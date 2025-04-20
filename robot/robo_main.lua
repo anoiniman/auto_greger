@@ -29,7 +29,7 @@ term.setCursorBlink(false)
 -- I want brackets back {}
 
 -- Very special commands I guess
-function message_interpretation(message)
+function special_message_interpretation(message)
     local priority = message[1]
     local command = message[2]
 
@@ -138,7 +138,7 @@ function blocking_prompt() -- Return Command
     term.setCursorBlink(false)
 
     --table.insert(history, read)
-    local post_read = read.tokenize
+    local post_read = text.tokenize(read)
 
     if post_read == nil or #post_read < 1 or #post_read > 2 then
         print("Invalid command lenght: \"" .. read .. "\"")
@@ -169,7 +169,7 @@ function robot_main()
         end
 
         local rec_state, addr, message
-        if block_message ~= nil then
+        if block_message == nil then
             rec_state, addr, message = comms.recieve()
         else
             rec_state, addr, message = true, "self", block_message

@@ -21,12 +21,16 @@ function module.recieve()
     -- message_table should be a string
 
     _, address, _, _, _, message_table = event.pull(0, "modem_message")
-    message_table = serialize.unserialize(message_table)
-
-    if address == tunnel_address then
-        return true, "self", message_table
-    elseif address == nil then
+    if message_table ~= nil then
+        message_table = serialize.unserialize(message_table)
+    else
         return false, nil, nil
+    end
+
+    if address == nil then
+        return false, nil, nil
+    elseif address == tunnel_address then
+        return true, "self", message_table
     else
         return true, address, message_table
     end
