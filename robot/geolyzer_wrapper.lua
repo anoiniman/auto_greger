@@ -1,7 +1,7 @@
 local geo = require("geolyzer")
 local comms = require("comms")
 local serialize = require("serialization")
-local sides_api = require("sides_api")
+local sides_api = require("sides")
 
 -- geo translation table
 local geo_table = {
