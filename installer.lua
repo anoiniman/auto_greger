@@ -39,6 +39,10 @@ function download(origin, where)
     counter = counter + 1
 end
 
+if not filesystem.isDirectory("/usr/lib") then
+    filesystem.makeDirectory("/usr/lib")
+end
+
 download("/shared/comms.lua", "/usr/lib/comms.lua")
 
 if args[1] == "robot" then

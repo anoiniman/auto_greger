@@ -24,7 +24,7 @@ chunk_z = {}
 
 local c_zero = {0,0}
 
-local abs = {0,0} -- (x,z,y)
+local abs = {0,0} -- (x,z)
 local height = 0
 local rel = {0,0} -- (x,z)
 local chunk = {0,0} -- (x,z)
@@ -43,6 +43,17 @@ end
 local chunk_nearest_side = {0,0}
 local rel_nearest_side = {0,0}
 local cur_in_road = false
+
+function module.setup_chunk(x, z)
+    chunk[1] = x
+    chunk[2] = z
+end
+
+function setup_absolute(x,z,y)
+    abs[1] = x
+    abs[2] = z
+    height = y
+end
 
 function module.update_pos(direction) -- assuming forward move
     if direction == "north" then
@@ -133,8 +144,14 @@ function module.base_move(direction) -- return result and error string
     return result, err
 end
 
+-- TODO -> better cave/hole detection so we don't lose ourselves underground
 function module.real_move(what_kind, direction)
     if what_kind == "surface" then
+        local can_move, block_type = robot.detectDown()
+        if block_type == "air" or block_type == "liquid" then
+            robot.down()
+        end
+
         local result, err = base_move(direction)
         if err ~= nil and err == "impossible move" then
             -- for know we just panic, maybe one day we'll add better AI
@@ -168,7 +185,7 @@ function module.debug_move(dir, distance, forget)
     end
 end
 
-function module.set_up_navigate_chunk(what_chunk)
+function module.setup_navigate_chunk(what_chunk)
     cur_in_road = false
 
     chunk_nearest_side = {0,0}
@@ -183,6 +200,7 @@ function module.set_up_navigate_chunk(what_chunk)
     rel_nearest_side[2] = rel[2] - half_chunk_square
 end
 
+-- returns if it is finished
 function module.navigate_chunk(what_kind)
     -- I feel as if this 2 bools are logically overlapping too much so i'll comment out 1 of em
     --local bool1 = (math.abs(rel_nearest_side[1]) < 8) or (math.abs(rel_nearest_side[2]) < 8)
@@ -197,7 +215,7 @@ function module.navigate_chunk(what_kind)
         elseif rel_nearest_side[2] < 0 then real_move(what_kind, "north") 
         else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
 
-        return
+        return false
     end
 
     if (chunk_nearest_side[1] ~= 0) or (chunk_nearest_side[2] ~= 0) then
@@ -210,7 +228,11 @@ function module.navigate_chunk(what_kind)
         else
             real_move(what_kind, "north")
         end
+        return false
     end
+
+    print(comms.robot_send("info", "We've arrived at the target chunk"))
+    return true
 end
 function module.mark_chunk(what_chunk, as_what)
 

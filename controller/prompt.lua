@@ -10,12 +10,18 @@ term.setCursorBlink(true)
 
 -- when we recieve things we recieve them as strings, when we send'em we send 'em as string + table
 
+local exit_own = false
+local exit_comm = false
+
 function own_terminal()
-    while true do
+    while not exit_own do
+        exit_own = false
         term.write("# ")
         local proompt = io.read()
         if proompt == "comm" then
             comm_terminal()
+        elseif proompt == "exit" then
+            exit_own = true 
         end
     end
 end
@@ -27,8 +33,9 @@ function calculate_prio(command)
 end
 
 function comm_terminal()
+    comms.setup_listener()
     -- space separeted string input into table
-    while true do
+    while not exit_comm do
         term.write("> ")
         local prompt = io.read()
         local array = text.tokenize(prompt)
@@ -41,16 +48,21 @@ function comm_terminal()
             table.insert(array, 1, prio)
         end
 
-        if array ~= nil and #array > 0 and array[1] ~= "s" then
-            comms.controller_send(array)
-        elseif array[1] == "s" then
-            --print("ERROR! badly formated?")
+        if array ~= nil and #array > 0  then
+            if array[2] == "exit" then
+                exit_comm = true
+            elseif array[2] == "s" then
+                -- skip
+            else
+                comms.controller_send(array)
+            end
         else
             print("ERROR! badly formated?")
         end
 
         os.sleep(0.1)
-        local something, _, message_string = comms.recieve()
+        local r_table = comms.recieve()
+        local something, _, message_string = r_table[1], r_table[2], r_table[3]
         if something == true then print(message_string) end
     end
 end

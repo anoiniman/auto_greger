@@ -1,38 +1,66 @@
 local module = {}
 -- Robot message handling is poll based rather than call-back based
 -- because this is not a server :P
+-- Correction -- Is this an hybrid approach now?
+
 local serialize = require("serialization")
 local component = require("component")
 local event = require("event")
+local table = require("table")
 
 local tunnel = component.tunnel
-local tunnel_address = tunnel.getChannel()
+--local tunnel_addr = tunnel.getChannel()
+local tunnel_card_addr = tunnel.address
+
+-- Global message tbl
+local glb_msg_tbl = {}
+local listener = nil
 
 function module.recieve()
-    local message_table = nil
-    local address = nil
-
-    -- for robot
-    -- message_table should be a (num, string, any) tuple, 
-    -- where num is priority, where string is a recognizeable keyword,
-    -- where any is an argument pairable with keyword string
-
-    -- for controller
-    -- message_table should be a string
-
-    _, address, _, _, _, message_table = event.pull(0, "modem_message")
-    if message_table ~= nil then
-        message_table = serialize.unserialize(message_table)
-    else
-        return false, nil, nil
+    -- return format = {bool, string, table}
+    if listener == nil or listener == false then
+        print("Comms Listener not registered!")
+        return {false, nil, nil}
     end
 
-    if address == nil then
-        return false, nil, nil
-    elseif address == tunnel_address then
-        return true, "self", message_table
+    if glb_msg_tbl == nil or #glb_msg_tbl == 0 then
+        --print("glb is NIL!")
+        return {false, nil, nil}
+    end
+
+    local to_return = table.remove(glb_msg_tbl, 1)
+    local serial = serialize.serialize(to_return)
+    --print("Serial: " .. serial)
+
+    return to_return
+end
+
+function listener_function(name, local_addr, foreign_addr, port, dist, ...)
+    -- It is expected only one serialized table string to be sent over
+    --local arg = {...}
+    --local vari = arg
+    local vari = {...}
+    local msg_string = vari[1]
+    --print("Msg_string: " .. msg_string)
+    local msg_table = serialize.unserialize(msg_string)
+    --print("Msg_table: " .. msg_table)
+
+    local new_table = nil
+    if local_addr == tunnel_card_addr then
+        new_table = {true, "self", msg_table}
     else
-        return true, address, message_table
+        new_table = {true, local_addr, msg_table}
+    end 
+
+    table.insert(glb_msg_tbl, new_table)
+end
+
+function module.setup_listener()
+    if listener == nil then
+        print("Setting up listener")
+        listener = event.listen("modem_message", listener_function)
+        local serial_listener = serialize.serialize(listener, true)
+        print(serial_listener)
     end
 end
 
@@ -45,7 +73,11 @@ end
 
 function module.robot_send(part1, part2) -- part1 & 2 must be strings
     local final_string = "<| " .. part1 .. " |> " .. part2 
-    tunnel.send(final_string)
+    local hello = serialize.serialize(final_string)
+
+    -- WHAT IS THIS FUCKING ERROR
+    --local serial_string = serialize.serialize(final_string)
+    tunnel.send(hello)
     return final_string
 end
 
