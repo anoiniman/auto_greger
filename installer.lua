@@ -48,8 +48,8 @@ if args[1] == "robot" then
     download("/robot/geolyzer_wrapper.lua", "/home/robot/geolyzer_wrapper.lua")
     download("/robot/nav_module.lua", "/home/robot/nav_module.lua")
     download("/robot/robo_main.lua", "/home/robot/robo_main.lua")
-    download("/robot/robo_main_dbg.lua", "/home/robot/robo_main_dbg.lua")
-    download("/robot/robo_main_dbg2.lua", "/home/robot/robo_main_dbg2.lua")
+    --download("/robot/robo_main_dbg.lua", "/home/robot/robo_main_dbg.lua")
+    --download("/robot/robo_main_dbg2.lua", "/home/robot/robo_main_dbg2.lua")
 elseif args[1] == "controller" then
     if not filesystem.isDirectory("/home/controller") then 
         filesystem.makeDirectory("/home/controller")

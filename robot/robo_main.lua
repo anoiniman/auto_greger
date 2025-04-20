@@ -13,7 +13,8 @@ local nav = require("nav_module")
 local geolyzer = require("geolyzer_wrapper")
 
 local command = nil
-local robot_routine = coroutine.create(robot_routine_func)
+--local robot_routine = coroutine.create(robot_routine_func)
+local robot_routine = nil
 
 local block_read_bool = true
 -- 0 = continue, 1 = stop
@@ -26,63 +27,6 @@ term.setCursorBlink(false)
 
 
 -- I want brackets back {}
-function robot_main()
-    -- START
-    robot_routine.resume()
-
-    while true do
-        os.sleep(0.1)
-        local block_message = nil
-
-        if block_read_bool == true then
-            local block = blocking_prompt()
-            if block ~= nil then
-                block_message = block
-            end
-        end
-
-        local rec_state, addr, message
-        if block_message ~= nil then
-            rec_state, addr, message = comms.recieve()
-        else
-            rec_state, addr, message = true, "self", block_message
-        end
-
-        if rec_state == true then
-            if addr ~= "self" then
-                print(comms.robot_send("error", "Non-Tunnel Communication NOT IMPLEMENTED!"))
-            else
-                special_message_interpretation(message)
-            end
-        end
-
-        if watch_dog == 0 then
-            coroutine.resume(robot_routine)
-        else
-            -- Nothing
-        end
-    end -- While
-end
-
-function blocking_prompt() -- Return Command
-    term.write("> ")
-    term.setCursorBlink(true)
-    local read = io.read(history)
-    print("")
-    term.setCursorBlink(false)
-
-    table.insert(history, read)
-    local post_read = read.tokenize
-    if #post_read == 1 then table.insert(post_read, nil)
-    elseif #post_read < 1 or #post_read > 2 then
-        print("Invalid command lenght: \"" .. read .. "\"")
-        return nil
-    end
-
-    table.insert(post_read, 1, -1)
-
-    return post_read -- Special command to stop blocking "run_auto"
-end
 
 -- Very special commands I guess
 function message_interpretation(message)
@@ -111,31 +55,6 @@ function wait_for_yield()
     end
 end
 
--- This is where the fun begins
-
--- message = priority instruction + command pair
--- task_list == table of messages as a priority queue
-function robot_routine_func()
-    local message = nil -- prob table (tuple)
-    local task_list = {} -- for sure table (table)
-
-    while true do
-        local cur_task = nil
-        if message ~= nil then
-            prio_insert(task_list, message)
-            message = nil
-        end
-        if #task_list > 0 then
-            cur_task = table.remove(message)
-        end
-
-        local extend_queue = eval_command(cur_task)
-        --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
-        if extend_queue ~= nil then prio_insert(task_list, extend_queue) end
-    
-        message = coroutine.yield()
-    end
-end
 
 -- task_list is updated by reference
 -- linear search should be good enough, surely
@@ -177,13 +96,101 @@ function eval_command(command, argument)
                 geolyzer.debug_print(argument[2]) 
             end
         elseif argument[1] == "move" then
-            nav.
+            nav.debug_move("north", 1, false)
         else
             print(comms.robot_send("error", "non-recongized argument for debug"))
         end
     end
     return nil
 end
+
+-- message = priority instruction + command pair
+-- task_list == table of messages as a priority queue
+function robot_routine_func()
+    local message = nil -- prob table (tuple)
+    local task_list = {} -- for sure table (table)
+
+    while true do
+        local cur_task = nil
+        if message ~= nil then
+            prio_insert(task_list, message)
+            message = nil
+        end
+        if #task_list > 0 then
+            cur_task = table.remove(message)
+        end
+
+        local extend_queue = eval_command(cur_task)
+        --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
+        if extend_queue ~= nil then prio_insert(task_list, extend_queue) end
+    
+        message = coroutine.yield()
+    end
+end
+
+robot_routine = coroutine.create(robot_routine_func)
+
+function blocking_prompt() -- Return Command
+    term.write("> ")
+    term.setCursorBlink(true)
+    local read = io.read()
+    print("")
+    term.setCursorBlink(false)
+
+    --table.insert(history, read)
+    local post_read = read.tokenize
+
+    if post_read == nil or #post_read < 1 or #post_read > 2 then
+        print("Invalid command lenght: \"" .. read .. "\"")
+        return nil
+    elseif #post_read == 1 then 
+        table.insert(post_read, nil)
+    end
+
+    table.insert(post_read, 1, -1)
+
+    return post_read -- Special command to stop blocking "run_auto"
+end
+
+function robot_main()
+    -- START
+    --robot_routine.resume()
+    coroutine.resume(robot_routine)
+
+    while true do
+        os.sleep(0.1)
+        local block_message = nil
+
+        if block_read_bool == true then
+            local block = blocking_prompt()
+            if block ~= nil then
+                block_message = block
+            end
+        end
+
+        local rec_state, addr, message
+        if block_message ~= nil then
+            rec_state, addr, message = comms.recieve()
+        else
+            rec_state, addr, message = true, "self", block_message
+        end
+
+        if rec_state == true then
+            if addr ~= "self" then
+                print(comms.robot_send("error", "Non-Tunnel Communication NOT IMPLEMENTED!"))
+            else
+                special_message_interpretation(message)
+            end
+        end
+
+        if watch_dog == 0 then
+            coroutine.resume(robot_routine)
+        else
+            -- Nothing
+        end
+    end -- While
+end
+
 
 -- Execution into main function always has to occur in the end due to how lua works
 robot_main()
