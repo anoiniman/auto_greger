@@ -1,3 +1,4 @@
+local module = {}
 -- Robot message handling is poll based rather than call-back based
 -- because this is not a server :P
 local serialize = require("serialization")
@@ -7,7 +8,7 @@ local event = require("event")
 local tunnel = component.tunnel
 local tunnel_address = tunnel.getChannel()
 
-function recieve()
+function module.recieve()
     local message_table = nil
     local address = nil
 
@@ -32,14 +33,16 @@ function recieve()
 end
 
 -- Same format
-function controller_send(any)
+function module.controller_send(any)
     local message_table = serialize.serialize(any, false)
     tunnel.send(message_table)
     return message_table
 end
 
-function robot_send(part1, part2) -- part1 & 2 must be strings
+function module.robot_send(part1, part2) -- part1 & 2 must be strings
     local final_string = "<| " .. part1 .. " |> " .. part2 
     tunnel.send(final_string)
     return final_string
 end
+
+return module

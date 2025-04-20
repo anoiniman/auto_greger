@@ -1,17 +1,19 @@
-local geo = require("geolyzer")
+local module = {}
+
+local geo = require("component").getPrimary("geolyzer")
 local comms = require("comms")
 local serialize = require("serialization")
 local sides_api = require("sides")
 
 -- geo translation table
 local geo_table = {
-    "gravel" = "minecraft:gravel",
-    "dirt" = "minecraft:dirt",
-    "grass" = "minecraft:grass",
-    "water" = "minecraft:water",
+    ["gravel"] = "minecraft:gravel",
+    ["dirt"] = "minecraft:dirt",
+    ["grass"] = "minecraft:grass",
+    ["water"] = "minecraft:water",
 }
 
-function compare(match_string, method, side) -- returns bool
+function module.compare(match_string, method, side) -- returns bool
     local table_id = geo_table[match_string]
 
     if method == "simple" then
@@ -28,8 +30,10 @@ function compare(match_string, method, side) -- returns bool
     end
 end
 
-function debug_print(side)
+function module.debug_print(side)
     local analysis = geo.analyze(side)
     print(comms.robot_send("info", "debug_analysing on side: \"" .. sides_api[side] .. "\""))
     print(comms.robot_send("info", serialize.serialize(analysis, true)))
 end
+
+return module
