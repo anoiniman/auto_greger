@@ -146,10 +146,12 @@ end
 
 -- TODO -> better cave/hole detection so we don't lose ourselves underground
 function module.real_move(what_kind, direction)
+    print("attempting real move")
     if what_kind == "surface" then
         local can_move, block_type = robot.detectDown()
         if block_type == "air" or block_type == "liquid" then
             robot.down()
+            height = height - height
         end
 
         local result, err = base_move(direction)
@@ -177,10 +179,12 @@ end
 
 function module.debug_move(dir, distance, forget)
     for i = 0, distance, 1 do
-        real_move("free", dir)        
+        print(i)
+        real_move("free", dir)
     end
 
     if forget == false then
+        print("updating")
         update_pos(dir)
     end
 end

@@ -119,6 +119,7 @@ function eval_command(command_argument)
                 forget = false
             end
 
+            print("attempting to move")
             nav.debug_move(move, how_much, forget)
         elseif argument[1] == "surface_move" then
             local x = argument[2]
@@ -197,7 +198,6 @@ function blocking_prompt() -- Return Command
 
     --table.insert(history, read)
     local post_read = text.tokenize(read)
-    local print_read = serialize.serialize(post_read, true)
     print(#post_read)
 
     if post_read == nil or #post_read < 1 or #post_read > 2 then
@@ -207,10 +207,7 @@ function blocking_prompt() -- Return Command
         table.insert(post_read, nil)
     end
 
-    print_read = serialize.serialize(post_read, true)
-
     table.insert(post_read, 1, -1)
-    print("Debug -- Blocking Table is: \"" .. print_read) 
 
     return post_read -- Special command to stop blocking "run_auto"
 end
