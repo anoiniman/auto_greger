@@ -1,5 +1,4 @@
 local module = {}
-local sym = require("sym_import")
 
 -- import of globals
 local serialize = require("serialization")
@@ -19,5 +18,7 @@ function module.navigate(arguments)
     if not finished then
         return {50, command, what_kind}
     end
+    return nil
 end
 
+return module

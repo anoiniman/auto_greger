@@ -1,5 +1,9 @@
 -- import of globals
 local io = require("io")
+old_stdrerr = io.stederr
+new_log_file = io.open("/home/robot/stderr.log,", "w")
+
+io.stederr = new_log_file
 
 local term = require("term")
 local text = require("text")
@@ -69,11 +73,11 @@ function robot_main()
             if addr ~= "self" then
                 print(comms.robot_send("error", "Non-Tunnel Communication NOT IMPLEMENTED!"))
             else
-                send_message = special_message_interpretation(message)
+                special_message_interpretation(message)
             end
         end
 
-        if watch_dog == 0 and send_message ~= nil then
+        if watch_dog == 0 or send_message ~= nil then
             robot_routine.robot_routine(message)
         else
             -- Nothing

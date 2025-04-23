@@ -21,11 +21,11 @@ function module.eval_command(command_arguments)
     local serial_arguments = serialize.serialize(arguments, true)
     print("Debug -- Attempting to Eval: \"" .. command .. ", " .. serial_arguments)
     if command == "echo" then
-        debug.echo(arguments)
+        return debug.echo(arguments)
     elseif command == "debug" then
-        debug.debug(arguments)
+        return debug.debug(arguments)
     elseif command == "navigate_chunk" then
-        navigate_chunk.navigate(arguments)
+        return navigate_chunk.navigate(arguments)
     end
     return nil
 end

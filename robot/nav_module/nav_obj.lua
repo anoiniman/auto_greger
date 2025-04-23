@@ -1,6 +1,8 @@
 local module = {}
 
 local interface = require("nav_module.nav_interface")
+local chunk_move = require("nav_module.chunk_move")
+local io = require("io")
 local comms = require("comms")
 
 
@@ -48,12 +50,15 @@ function module.set_rel(x, z)
 end
 
 function module.setup_navigate_chunk(what_chunk)
-    local a, b = interface.setup_navigate_chunk(what_chunk, chunk, rel)
-    print(comms.robot_send("debug", "c_nearest_side: " .. a .. " || " .. "r_nearest_side: " .. b))
+    local a, b = chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
+    --print(comms.robot_send("debug", "c_nearest_side: " .. a .. " || " .. "r_nearest_side: " .. b))
+    --io.read()
 end
 
 function module.navigate_chunk(what_kind)
-    interface.navigate_chunk(what_kind, nav_obj)
+    print("navigate chunk nav_obj")
+    --io.read()
+    chunk_move.navigate_chunk(what_kind, nav_obj)
 end
 
 function module.debug_move(dir, distance, forget)
