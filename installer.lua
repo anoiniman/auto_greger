@@ -11,6 +11,10 @@ function download(origin, where)
     local tmp_path = "/tmp/" .. counter .. ".lua"
     os.execute("wget -f " .. link .. " " .. tmp_path)
 
+    if where == "self" then
+        where = "/home" .. origin
+    end
+
     if not filesystem.exists(where) then
         local result, err = filesystem.rename(tmp_path, where)
         if result == nil then
@@ -49,18 +53,34 @@ if args[1] == "robot" then
     if not filesystem.isDirectory("/home/robot") then 
         filesystem.makeDirectory("/home/robot")
     end
-    download("/robot/geolyzer_wrapper.lua", "/home/robot/geolyzer_wrapper.lua")
-    download("/robot/nav_module.lua", "/home/robot/nav_module.lua")
-    download("/robot/robo_main.lua", "/home/robot/robo_main.lua")
-    --download("/robot/robo_main_dbg.lua", "/home/robot/robo_main_dbg.lua")
-    --download("/robot/robo_main_dbg2.lua", "/home/robot/robo_main_dbg2.lua")
+
+    download("/robot/geolyzer_wrapper.lua", "self")
+    --download("/robot/nav_module.lua", "self")
+    download("/robot/robo_main.lua", "self")
+    download("/robot/robo_routine.lua", "self")
+    
+    if not filesystem.isDirectory("/home/robot/eval") then
+       filesystem.makeDirectory("/home/robot/eval")
+    end
+    download("/robot/eval/eval_main.lua", "self")
+    download("/robot/eval/debug.lua", "self")
+    download("/robot/eval/navigate_chunk.lua", "self")
+
+    if not filesystem.isDirectory("/home/robot/nav_module") then
+       filesystem.makeDirectory("/home/robot/nav_module")
+    end
+
+    download("/robot/nav_module/nav_obj.lua", "self")
+    download("/robot/nav_module/nav_interface.lua", "self")
+    download("/robot/nav_module/chunk_move.lua", "self")
+
 elseif args[1] == "controller" then
     if not filesystem.isDirectory("/home/controller") then 
         filesystem.makeDirectory("/home/controller")
     end
-    download("/controller/draw_things.lua", "/home/controller/draw_things.lua")
-    download("/controller/listener.lua", "/home/controller/listener.lua")
-    download("/controller/prompt.lua", "/home/controller/prompt.lua")
+    download("/controller/draw_things.lua", "self")
+    download("/controller/listener.lua", "self")
+    download("/controller/prompt.lua", "self")
 else
     args[1] = "nil"
     print("Not recognized argument: \"" .. args[1] .. "\"")
