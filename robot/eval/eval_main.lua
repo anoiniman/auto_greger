@@ -7,7 +7,6 @@ local serialize = require("serialization")
 
 -- local imports
 local comms = require("comms")
-local nav = require("nav_module")
 local geolyzer = require("geolyzer_wrapper")
 
 local debug = require("eval.debug")
