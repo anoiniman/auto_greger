@@ -6,7 +6,7 @@ local args = {...}
 local counter = 0
 
 function download(origin, where)
-    local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/main" .. origin
+    local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/master" .. origin
 
     local tmp_path = "/tmp/" .. counter .. ".lua"
     os.execute("wget -f " .. link .. " " .. tmp_path)
