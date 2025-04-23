@@ -7,7 +7,7 @@ local serialize = require("serialization")
 
 -- local imports
 local comms = require("comms")
-local robot_routine = require("robot_routine")
+local robot_routine = require("robo_routine")
 
 local block_read_bool = true
 -- 0 = continue, 1 = stop
@@ -63,16 +63,18 @@ function robot_main()
             rec_state, addr, message = true, "self", block_message
         end
 
+        local send_message = nil
+
         if rec_state == true then
             if addr ~= "self" then
                 print(comms.robot_send("error", "Non-Tunnel Communication NOT IMPLEMENTED!"))
             else
-                special_message_interpretation(message)
+                send_message = special_message_interpretation(message)
             end
         end
 
-        if watch_dog == 0 then
-            robot_routine.robot_routine()
+        if watch_dog == 0 and send_message ~= nil then
+            robot_routine.robot_routine(message)
         else
             -- Nothing
         end

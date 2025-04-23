@@ -42,40 +42,34 @@ function prio_insert(task_list, message)
     table.insert(task_list, message)
 end
 
-local message = nil -- prob table (tuple)
 local task_list = {} -- for sure table (table)
 local cur_task = nil
 -- message = priority instruction + command + arguments
 -- task_list == table of messages as a priority queue
-function module.robot_routine()
+function module.robot_routine(message)
     print("I am not dead!")
-    while true do
-        cur_task = nil
-        if message ~= nil then
-            print("Pre-Prio Insert, message: " .. serialize.serialize(message, true))
-            prio_insert(task_list, message)
-            message = nil
-        end
-        if #task_list > 0 then
-            cur_task = table.remove(task_list)
-            print("Cur_Task: " .. serialize.serialize(cur_task, true))
-        end
+    cur_task = nil
+    if message ~= nil then
+        print("Pre-Prio Insert, message: " .. serialize.serialize(message, true))
+        prio_insert(task_list, message)
+        message = nil
+    end
+    if #task_list > 0 then
+        cur_task = table.remove(task_list)
+        print("Cur_Task: " .. serialize.serialize(cur_task, true))
+    end
 
-        local extend_queue = nil
-        if cur_task ~= nil and #cur_task ~= 0 then
-            print("Pre-Eval")
-            extend_queue = eval.eval_command(cur_task)
-            print("Post-Eval")
-        end
+    local extend_queue = nil
+    if cur_task ~= nil and #cur_task ~= 0 then
+        print("Pre-Eval")
+        extend_queue = eval.eval_command(cur_task)
+        print("Post-Eval")
+    end
 
-        --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
-        if extend_queue ~= nil then 
-            print("Attempting to extend_queue")
-            prio_insert(task_list, extend_queue) 
-        end
-        --print("Attempting to yield")
-    
-        message = coroutine.yield()
+    --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
+    if extend_queue ~= nil then 
+        print("Attempting to extend_queue")
+        prio_insert(task_list, extend_queue) 
     end
 end
 

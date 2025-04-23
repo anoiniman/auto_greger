@@ -5,8 +5,9 @@ local serialize = require("serialization")
 
 -- local imports
 local comms = require("comms")
-local nav = require("nav_module")
+
 local geolyzer = require("geolyzer_wrapper")
+local nav = require("nav_module.nav_obj")
 
 --[[
 local debug = false -- bool
@@ -25,7 +26,7 @@ local print = new_print
 --]]
 
 function module.echo(arguments)
-    local text = serialize.serialize(argumentss, true)
+    local text = serialize.serialize(arguments, true)
     print("Debug -- Attempting to Echo")
     print(comms.robot_send("response", text))
 end

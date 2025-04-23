@@ -1,13 +1,7 @@
 local module = {}
 
-local math = require("math")
-local robot = require("robot")
-local sides = require("sides")
-
 local interface = require("nav_module.nav_interface")
-
 local comms = require("comms")
-local geolyzer = require("geolyzer_wrapper")
 
 
 -- Internal Map things --
@@ -27,12 +21,12 @@ chunk_z = {}
 
 -- nav_obj will get passed around like your mother's cadaver at a George Bataille ritual reification fesitval
 local nav_obj = {
-    c_zero = {0,0}
+    c_zero = {0,0} ,
 
-    abs = {0,0} -- (x,z)
-    height = 0
-    rel = {0,0} -- (x,z)
-    chunk = {0,0} -- (x,z)
+    abs = {0,0} , -- (x,z)
+    height = 0 ,
+    rel = {0,0} , -- (x,z)
+    chunk = {0,0} , -- (x,z)
 
     orientation = "north"
 }
@@ -60,6 +54,10 @@ end
 
 function module.navigate_chunk(what_kind)
     interface.navigate_chunk(what_kind, nav_obj)
+end
+
+function module.debug_move(dir, distance, forget)
+    interface.debug_move(dir, distance, forget, nav_obj)
 end
 
 function module.mark_chunk(what_chunk, as_what)

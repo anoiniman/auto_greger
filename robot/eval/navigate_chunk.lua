@@ -1,12 +1,13 @@
 local module = {}
+local sym = require("sym_import")
 
 -- import of globals
 local serialize = require("serialization")
 
 -- local imports
 local comms = require("comms")
+
 local nav = require("nav_module.nav_obj")
-local geolyzer = require("geolyzer_wrapper")
 
 function module.navigate(arguments)
     local what_kind = arguments[1]

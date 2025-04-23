@@ -102,8 +102,7 @@ function base_move(direction, nav_obj) -- return result and error string
     return result, err
 end
 
--- TODO -> better cave/hole detection so we don't lose ourselves underground
-function real_move(what_kind, direction, nav_obj)
+function module.real_move(direction, nav_obj)
     print("attempting real move")
     io.read()
     if nav_obj == nil then
@@ -150,7 +149,6 @@ function real_move(what_kind, direction, nav_obj)
 
 end
 
-
 function module.debug_move(dir, distance, forget, nav_obj)
     for i = 0, distance, 1 do
         print(i .. " " .. dir .. distance .. forget)
@@ -158,7 +156,8 @@ function module.debug_move(dir, distance, forget, nav_obj)
         local serial = serialize.serialize(nav_obj, true)
         print(serial)
         io.read()
-        real_move("free", dir, nav_obj)
+        --real_move("free", dir, nav_obj)
+        real_move(dir, nav_obj)
     end
 
     if forget == false then

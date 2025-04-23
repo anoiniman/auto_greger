@@ -5,6 +5,7 @@ local robot = require("robot")
 local sides = require("sides")
 
 local comms = require("comms")
+
 local geolyzer = require("geolyzer_wrapper")
 
 local interface = require("nav_module.nav_interface")

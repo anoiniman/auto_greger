@@ -48,6 +48,7 @@ if not filesystem.isDirectory("/usr/lib") then
 end
 
 download("/shared/comms.lua", "/usr/lib/comms.lua")
+download("/shared/sym_import.lua", "/usr/lib/sym_import.lua")
 
 if args[1] == "robot" then
     if not filesystem.isDirectory("/home/robot") then 
