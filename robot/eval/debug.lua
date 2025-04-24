@@ -37,6 +37,7 @@ function module.debug(arguments)
         if side == nil then -- expects sides api derived num
             side = 0 -- defaults to down
         end
+        side = tonumber(side)
         geolyzer.debug_print(side) 
     elseif arguments[1] == "move" then
         local move = arguments[2]
@@ -70,12 +71,12 @@ function module.debug(arguments)
         local o = arguments[2]
         if o == nil then
             print(comms.robot_send("error", "set_orientation: no orientation mentioned")) 
-        else if o ~= "north" and o ~= "south" and o ~= "east" and o ~= "west" then
+        elseif o ~= "north" and o ~= "south" and o ~= "east" and o ~= "west" then
             print(comms.robot_send("error", "set_orientation: mis-formated")) 
         end
         nav.set_orientation(o)
     else
-        old_print(comms.robot_send("error", "non-recogized arguments for debug"))
+        print(comms.robot_send("error", "non-recogized arguments for debug"))
     end
     return nil
 end

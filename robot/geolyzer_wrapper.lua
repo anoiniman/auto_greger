@@ -13,16 +13,17 @@ local geo_table = {
     ["water"] = "minecraft:water",
 }
 
+-- it seems to me that sides_api here recognizes front as relative front, and not as south
 function module.compare(match_string, method, side) -- returns bool
     local table_id = geo_table[match_string]
 
     if method == "simple" then
         if table_id == nil then return false end -- which means not found
-        local string_id = geo.analyze(side)[1]
+        local string_id = geo.analyze(side)["name"]
 
         return string_id == table_id
     elseif method == "naive_contains" then
-        local string_id = geo.analyze(side)[1]
+        local string_id = geo.analyze(side)["name"]
         return string.find(string_id, match_string) ~= nil
     else
         print(comms.robot_send("error", "Geo Compare, unrecognized method"))

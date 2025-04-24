@@ -2,7 +2,7 @@ local module = {}
 
 local math = require("math")
 local robot = require("robot")
-local sides = require("sides")
+local sides_api = require("sides")
 local serialize = require("serialization")
 
 local comms = require("comms")
@@ -125,8 +125,8 @@ function real_move(what_kind, direction, nav_obj)
             -- for know we just panic, maybe one day we'll add better AI
             print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
         elseif err ~= nil and err ~= "impossible move" then
-            local orientation = convert_orientation(nav_obj)
-            if geolyzer.compare("log", "naive_contains", orientation) == true then
+            --local orientation = convert_orientation(nav_obj)
+            if geolyzer.compare("log", "naive_contains", sides_api.front) == true then
                 robot.swing()
             else
                 real_move("free", "up", nav_obj) -- This is the case for a non tree terrain feature
