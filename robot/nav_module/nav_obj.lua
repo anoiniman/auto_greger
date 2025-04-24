@@ -60,9 +60,9 @@ function module.setup_navigate_chunk(what_chunk)
 end
 
 function module.navigate_chunk(what_kind)
-    print("navigate chunk nav_obj")
+    --print("navigate chunk nav_obj")
     --io.read()
-    chunk_move.navigate_chunk(what_kind, nav_obj)
+    return chunk_move.navigate_chunk(what_kind, nav_obj)
 end
 
 function module.debug_move(dir, distance, forget)

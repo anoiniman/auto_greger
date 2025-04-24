@@ -19,8 +19,6 @@ local rel_nearest_side = {0,0}
 local cur_in_road = false
 
 function module.setup_navigate_chunk(to_what_chunk, nav_obj)
-    print("entered setup")
-    io.read()
     cur_in_road = false
 
     -- copy provided table (assuming to_what_chunk = {int, int}) (num, num)
