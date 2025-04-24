@@ -49,6 +49,10 @@ function module.set_rel(x, z)
     nav_obj.rel[2] = z
 end
 
+function module.set_orientation(orient)
+    nav_obj.orientation = orient
+end
+
 function module.setup_navigate_chunk(what_chunk)
     local a, b = chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
     --print(comms.robot_send("debug", "c_nearest_side: " .. a .. " || " .. "r_nearest_side: " .. b))

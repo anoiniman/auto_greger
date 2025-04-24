@@ -43,7 +43,7 @@ function module.debug(arguments)
         local how_much = arguments[3]
         local forget = arguments[4]
         if move == nil then
-            old_print(comms.robot_send("error", "nil direction in debug move"))
+            print(comms.robot_send("error", "nil direction in debug move"))
             return nil
         end
         if how_much == nil then
@@ -60,12 +60,20 @@ function module.debug(arguments)
         local z = arguments[3]
 
         if x == nil or z == nil then
-            old_print(comms.robot_send("error", "nil objective chunk in debug surface_move"))
+            print(comms.robot_send("error", "nil objective chunk in debug surface_move"))
             return nil
         end
         local chunk = {x,z}
         nav.setup_navigate_chunk(chunk)
         return {50, "navigate_chunk", "surface"}
+    elseif arguments[1] == "set_orientation" then
+        local o = arguments[2]
+        if o == nil then
+            print(comms.robot_send("error", "set_orientation: no orientation mentioned")) 
+        else if o ~= "north" and o ~= "south" and o ~= "east" and o ~= "west" then
+            print(comms.robot_send("error", "set_orientation: mis-formated")) 
+        end
+        nav.set_orientation(o)
     else
         old_print(comms.robot_send("error", "non-recogized arguments for debug"))
     end
