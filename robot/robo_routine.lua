@@ -47,7 +47,7 @@ local cur_task = nil
 -- message = priority instruction + command + arguments
 -- task_list == table of messages as a priority queue
 function module.robot_routine(message)
-    print("I am not dead!")
+    --print("I am not dead!")
     cur_task = nil
     if message ~= nil then
         print("Pre-Prio Insert, message: " .. serialize.serialize(message, true))

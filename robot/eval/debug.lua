@@ -69,6 +69,7 @@ function module.debug(arguments)
     else
         old_print(comms.robot_send("error", "non-recogized arguments for debug"))
     end
+    return nil
 end
 
 return module

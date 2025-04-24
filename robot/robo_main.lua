@@ -63,8 +63,6 @@ function robot_main()
             rec_state, addr, message = true, "self", block_message
         end
 
-        local send_message = nil
-
         if rec_state == true then
             if addr ~= "self" then
                 print(comms.robot_send("error", "Non-Tunnel Communication NOT IMPLEMENTED!"))
@@ -73,7 +71,7 @@ function robot_main()
             end
         end
 
-        if watch_dog == 0 or send_message ~= nil then
+        if watch_dog == 0 or message ~= nil then
             robot_routine.robot_routine(message)
         else
             -- Nothing
