@@ -14,7 +14,7 @@ function update_pos(direction, nav_obj) -- assuming forward move
     local abs = nav_obj.abs
     local rel = nav_obj.rel
     
-    local height = nav_obj.heihgt
+    local height = nav_obj.height
 
     if direction == "north" then
         abs[2] = abs[2] - 1
