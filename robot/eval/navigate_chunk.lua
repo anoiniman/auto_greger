@@ -16,7 +16,7 @@ function module.navigate(arguments)
     end
     local finished = nav.navigate_chunk(what_kind)
     if not finished then
-        return {50, command, what_kind}
+        return {50, "navigate_chunk", what_kind}
     end
     return nil
 end

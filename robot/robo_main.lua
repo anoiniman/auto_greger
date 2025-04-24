@@ -1,9 +1,5 @@
 -- import of globals
 local io = require("io")
-old_stdrerr = io.stederr
-new_log_file = io.open("/home/robot/stderr.log,", "w")
-
-io.stederr = new_log_file
 
 local term = require("term")
 local text = require("text")
