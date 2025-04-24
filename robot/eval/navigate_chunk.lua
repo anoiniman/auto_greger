@@ -10,13 +10,19 @@ local nav = require("nav_module.nav_obj")
 
 function module.navigate(arguments)
     local what_kind = arguments[1]
-    if what_kind == nil then
-        print(comms.robot_send("error", "navigate chunk, non-recognized \"what kind\""))
-        return nil
+    if what_kind == nil or tonumber(what_kind) ~= nil then
+        print(comms.robot_send("info", "navigate chunk, what_kind unspecified, so assuming"))
+        table.insert(arguments, 1, "surface")
     end
-    local finished = nav.navigate_chunk(what_kind)
+
+    if arguments[2] == nil or arguments[3] == nil then
+        print(comms.robot_send("error", "navigate chunk, bad goal-chunk coordinates"))
+    end
+    local what_chunk = {arguments[1], arguments[2]}
+    
+    local finished = nav.navigate_chunk(what_chunk)
     if not finished then
-        return {50, "navigate_chunk", what_kind}
+        return {50, "navigate_chunk", what_chunk}
     end
     return nil
 end
