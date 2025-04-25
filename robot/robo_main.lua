@@ -27,7 +27,7 @@ function special_message_interpretation(message)
         watch_dog = 1
     elseif command == "resume" then
         watch_dog = 0
-    elseif command == "run_auto" or command == "auto_run" then 
+    elseif command == "run_auto" or command == "auto_run" or command == "auto" then 
         block_read_bool = false 
     elseif command == "block" then
         block_read_bool = true 
