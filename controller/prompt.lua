@@ -51,8 +51,10 @@ function comm_terminal()
         if array ~= nil and #array > 0  then
             if array[2] == "exit" then
                 exit_comm = true
-            elseif array[2] == "s" then
+            elseif array[2] == "s" or array[2] == nil then
                 -- skip
+            elseif array[2] == "print_mode" then
+                print_mode()              
             else
                 comms.controller_send(array)
             end
@@ -60,7 +62,18 @@ function comm_terminal()
             print("ERROR! badly formated?")
         end
 
+        local r_table = comms.recieve()
+        local something, _, message_string = r_table[1], r_table[2], r_table[3]
+        if something == true then print(message_string) end
+
         os.sleep(0.1)
+    end
+end
+
+local keyboard = require("keyboard")
+function print_mode()
+    while not keyboard.isKeyDown(keyboard.keys.q) do
+        os.sleep(0.33)
         local r_table = comms.recieve()
         local something, _, message_string = r_table[1], r_table[2], r_table[3]
         if something == true then print(message_string) end
