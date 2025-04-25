@@ -6,13 +6,49 @@ local io = require("io")
 local comms = require("comms")
 
 
--- Internal Map things --
-map_x = {}
-map_y = {}
-map_z = {}
+-- Chunks are 16 by 16, roads includes they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chunks
+-- Builds (tm) will occupy marked sub-chunks inside a chunk instead of arbitrary rectangles, for ease of navigation
+-- and they'll always be accessed through the "outside", this is to say, through the "road-blocks/lines"
+-- if we want to get fancy, we can mark-down door locations and shit, so that we can have walls and enclosed buildigs etc
 
-chunk_x = {}
-chunk_z = {}
+local QuadTypeEnum = {
+    NULL = {},
+    Hole_Home = {},
+    Coke_Array = {},
+    Storage_T_One = {},
+} -- etc
+
+-- make a convert rel to quad function somewhere
+local MetaQuad = {x = 0, y = 0, QuadTypeEnum.NULL}
+function MetaQuad:zeroed()
+    local obj = {}
+
+    setmetatable(obj, self)
+    self.__index = self
+    return obj
+end
+
+
+-- is_home basically means: is a part of the base
+local MetaChunk = {x = 0, y = 0, is_home = false, MetaQuad:zeroed()}
+--local MetaChunk = {}
+
+function MetaChunk:zeroed()
+    local obj = {}
+
+    setmetatable(obj, self)
+    self.__index = self
+    return obj
+end
+
+--[[
+local map_obj = {
+    chunks = {MetaChunk:zeroed()},
+    -- Maybe this table will grow in the future!     
+}
+--]]
+local map_obj = {MetaChunk:zeroed()}
+
 -----------------
 
 -- The robot will understand chunk boundries as movement highways in between chunks
