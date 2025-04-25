@@ -1,43 +1,51 @@
 local module = {}
 
-local interface = require("nav_module.nav_interface")
-local chunk_move = require("nav_module.chunk_move")
+------- Sys Requires -------
 local io = require("io")
+
+------- Own Requires -------
 local comms = require("comms")
 
+local interface = require("nav_module.nav_interface")
+local chunk_move = require("nav_module.chunk_move")
 
--- Chunks are 16 by 16, roads includes they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chunks
--- Builds (tm) will occupy marked sub-chunks inside a chunk instead of arbitrary rectangles, for ease of navigation
--- and they'll always be accessed through the "outside", this is to say, through the "road-blocks/lines"
--- if we want to get fancy, we can mark-down door locations and shit, so that we can have walls and enclosed buildigs etc
+local MetaBuild = require("build.MetaBuild")
 
-local QuadTypeEnum = {
-    NULL = {},
-    Hole_Home = {},
-    Coke_Array = {},
-    Storage_T_One = {},
-} -- etc
 
 -- make a convert rel to quad function somewhere
-local MetaQuad = {x = 0, y = 0, QuadTypeEnum.NULL}
+local MetaQuad = {
+    x = 0, 
+    y = 0,
+    meta_build = MetaBuild:zeroed()
+}
+MetaQuad.__index = MetaQuad
+
 function MetaQuad:zeroed()
     local obj = {}
 
     setmetatable(obj, self)
-    self.__index = self
     return obj
+end
+
+function MetaQuad:getName()
+    return meta_build.getName()
 end
 
 
 -- is_home basically means: is a part of the base
-local MetaChunk = {x = 0, y = 0, is_home = false, MetaQuad:zeroed()}
+local MetaChunk = {
+    x = 0,
+    y = 0,
+    is_home = false,
+    meta_quads = {MetaQuad:zeroed()}
+}
+MetaChunk.__index = MetaChunk
 --local MetaChunk = {}
 
 function MetaChunk:zeroed()
     local obj = {}
 
     setmetatable(obj, self)
-    self.__index = self
     return obj
 end
 
