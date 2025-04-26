@@ -1,15 +1,16 @@
-require("deep_copy")
+local deep_copy = require("deep_copy")
+local meta_door = require("build.MetaBuild.MetaDoorInfo")
 
 local module = {parent = nil}
 
 -- IGNORE THIS COMMENT -- this an i-table of tables not an a-table k,v
-local dictionary = {
+module.dictionary = {
     ["c"] = "CokeOvenBrick", -- tmp name, I need to geolyze in game first or whatever
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)
 -- create rotation function somewhere
-local human_readable = {
+module.human_readable = {
 "--ccc--",
 "--ccc--",
 "--ccc--",
@@ -18,12 +19,14 @@ local human_readable = {
 "--ccc--",
 "--ccc--",
 }
+module.origin_pos = {0,0,0}
 
-local origin_pos = {0,0,0}
-local doors = {}
+module.doors = {}
+doors[1] = meta_door:zeroed()
+doors[1].doorX(6,2)
 
 -- consuming what function is to be executed
-function iter(human_readable)
+function module.iter(human_readable)
     local iteration = 0
     local goal = 3
     return function ()

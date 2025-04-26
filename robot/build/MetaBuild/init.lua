@@ -1,11 +1,13 @@
 local math = require("math")
 local comms = require("comms")
 
+local build_cache = {}
+
 local Module = {
     is_nil = true,
     primitive = {},
 
-    door_info = { MetaDoorInfo:zeroed() },
+    --door_info = { MetaDoorInfo:zeroed() },
     schematic = MetaMetaSchematic:new()
 }
 Module.__index = Module
@@ -19,20 +21,26 @@ end
 
 function Module:init_primitive()
     self.primitive.parent = self
-    self.
 end
 
 function Module:require(name)
-    no_error, build_table = dofile("/home/robot/build/" .. name)
+    if build_cache[name] ~= nil then 
+        self = build_cache[name]
+        return
+    end
+
+    no_error, build_table = pcall(dofile("/home/robot/build/" .. name))
     if no_error then
         self.primitive = build_table
     else
         print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
+        return false
     end
     self.init_primitive()
 
     local human_read = self.primitive.human_readable
     local schematic = self.schematic
+    schematic.iter_init_func = self.primitive.iter
 
     self.checkHumanMap(human_read, name)
     if schematic.iter_init_func == nil then
@@ -44,6 +52,8 @@ function Module:require(name)
             schematic.parseStringArr(human_read_obj, index)
         end
     end
+
+    table.insert(build_cache, 1, self)
 end
 
 function Module:getName()
@@ -65,5 +75,8 @@ function Module:checkHumanMap(map, name)
     return 0
 end
 
+function Module:getDoors()
+    return self.primitive.doors
+end
 
 return Module

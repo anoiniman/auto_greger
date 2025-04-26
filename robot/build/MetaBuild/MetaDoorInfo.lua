@@ -1,6 +1,7 @@
 local math = require("math")
 
 -- coords are chunk_rel, but are attached to quad, they need to be able to rotate with quad, if quad is rotatable
+-- their "default" definition inside the build-source files should be assuming quad 2
 local MetaDoorInfo = {x = -1, z = -1, len = -1}
 MetaDoorInfo.__index = MetaDoorInfo
 

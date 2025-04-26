@@ -5,31 +5,14 @@ local io = require("io")
 
 ------- Own Requires -------
 local comms = require("comms")
+local deep_copy = require("deep_copy")
 
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
 
 local MetaBuild = require("build.MetaBuild")
-
-
--- make a convert rel to quad function somewhere
-local MetaQuad = {
-    x = 0, 
-    y = 0,
-    meta_build = MetaBuild:zeroed()
-}
-MetaQuad.__index = MetaQuad
-
-function MetaQuad:zeroed()
-    local obj = {}
-
-    setmetatable(obj, self)
-    return obj
-end
-
-function MetaQuad:getName()
-    return meta_build.getName()
-end
+local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
+local MetaQuad = require("nav_module.MetaQuad")
 
 
 -- is_home basically means: is a part of the base
