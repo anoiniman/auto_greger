@@ -23,7 +23,12 @@ function Module:init_primitive()
 end
 
 function Module:require(name)
-    self.primitive = dofile("build." .. name)
+    no_error, build_table = dofile("/home/robot/build/" .. name)
+    if no_error then
+        self.primitive = build_table
+    else
+        print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
+    end
     self.init_primitive()
 
     local human_read = self.primitive.human_readable
