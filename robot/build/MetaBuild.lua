@@ -1,4 +1,5 @@
 local math = require("math")
+local comms = require("comms")
 
 -- coords are chunk_rel
 local MetaDoorInfo = {x = 0, y = 0, len = 0}
@@ -84,7 +85,15 @@ function MetaSchematic:parseStringArr(string_array, square_index)
 end
 
 -- adds bounding box and ref to child.dictionary to MetaSchematic
-local MetaMetaSchematic = {schematic = MetaSchematic:new(), dictionary = {}, x = 0, z = 0, y = 0}
+local MetaMetaSchematic = {
+    schematic = MetaSchematic:new(),
+    iter_init_func = nil, -- function that mutes the schematic on init, for a lot of fun! Implements iteration through __pairs()
+    dictionary = {},
+    x = 0,
+    z = 0,
+    y = 0
+}
+
 MetaMetaSchematic.__index = MetaMetaSchematic
 function MetaMetaSchematic:new()
     local obj = {}
@@ -93,10 +102,16 @@ function MetaMetaSchematic:new()
     return obj
 end
 
+function MetaMetaSchematic:parseStringArr(string_array, square_index)
+    self.schematic.parseStringArr(string_array, square_index)
+end
+
 local Module = {
-    is_nil = true
-    door_info = { MetaDoorInfo:zeroed() }
+    is_nil = true,
     primitive = {},
+
+    door_info = { MetaDoorInfo:zeroed() },
+    schematic = MetaMetaSchematic:new()
 }
 Module.__index = Module
 
@@ -108,15 +123,41 @@ function Module:new()
 end
 
 function Module:require(name)
-    self.primitive = require("build." .. name)
+    self.primitive = dofile("build." .. name)
     self.primitive.init(self)
+    local human_read = self.primitive.human_readable
+    local schematic = self.schematic
+
+    self.checkHumanMap(human_read, name)
+    if schematic.iter_init_func == nil then
+        for index = 1, #human_read, 1 do
+            schematic.parseStringArr(human_read, index)
+        end
+    else
+        for index, human_read_obj in schematic.iter_init_func(human_read) do
+            schematic.parseStringArr(human_read_obj, index)
+        end
+    end
 end
 
 function Module:getName()
     return primitive.name 
 end
 
-function Module:define
+function Module:checkHumanMap(map, name)
+    if #map > 7 then
+        comms.robot_send("error", "In human map -- Build: \"" .. name .. "\" -- Too Many Lines!")
+        return -1
+    end
+
+    for index, line in ipairs(map) do
+        if string.len(line) > 7 then
+            comms.robot_send("error", "In human map -- Build: \"" .. name .. "\" -- Line: \"" .. tostring(index) .. "\" -- Line is way too big!")
+            return index
+        end
+    end
+    return 0
+end
 
 
 return Module
