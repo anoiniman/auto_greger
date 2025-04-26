@@ -40,7 +40,6 @@ local MetaChunk = {
     meta_quads = {MetaQuad:zeroed()}
 }
 MetaChunk.__index = MetaChunk
---local MetaChunk = {}
 
 function MetaChunk:zeroed()
     local obj = {}
@@ -49,12 +48,6 @@ function MetaChunk:zeroed()
     return obj
 end
 
---[[
-local map_obj = {
-    chunks = {MetaChunk:zeroed()},
-    -- Maybe this table will grow in the future!     
-}
---]]
 local map_obj = {MetaChunk:zeroed()}
 
 -----------------

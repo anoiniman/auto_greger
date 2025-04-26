@@ -1,3 +1,5 @@
+require("deep_copy")
+
 local module = {parent = nil}
 
 -- IGNORE THIS COMMENT -- this an i-table of tables not an a-table k,v
@@ -17,24 +19,27 @@ local human_readable = {
 "--ccc--",
 }
 
+local origin_pos = {0,0,0}
+local doors = {}
+
 -- consuming what function is to be executed
-local function iter(human_readable)
+function iter(human_readable)
     local iteration = 0
     local goal = 3
     return function ()
         iteration = iteration + 1 -- later indexes into 1,2,3
+        if iteration == 2 then
+            local temp = deep_copy.copy_table(human_readable, ipairs)
+            local hole = "--c-c--"
+            temp[2] = hole
+            temp[6] = hole
+            return interation, temp
+        end
         if iteration <= goal then 
             return iteration, human_readable 
         end
         return nil
     end
 end
-
-function module:init(n_parent) -- return ref to dictionary plz
-    if self.parent ~= nil then return self end
-    self.parent = n_parent
-    parent.iter_init_func = iter
-end
-
 
 return
