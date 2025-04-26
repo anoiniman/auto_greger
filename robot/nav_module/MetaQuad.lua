@@ -1,5 +1,3 @@
-local module = {}
-
 ------- Sys Requires -------
 local io = require("io")
 
