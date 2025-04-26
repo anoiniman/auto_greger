@@ -1,5 +1,5 @@
 
--- adds bounding box and ref to child.dictionary to MetaSchematic, interfaces with "external code"
+-- adds bounding box and ref to child.dictionary to MetaSchematic
 local SchematicInterface = {
     schematic = MetaSchematic:new(),
     iter_init_func = nil, -- function that mutes the schematic on init, for a lot of fun! Implements iteration through __pairs()
