@@ -52,8 +52,4 @@ function MetaQuad:requireBuild(name)
     self.doors = deep_copy.copy_table(table, ipairs)
 end
 
-function MetaQuad:build(name)
-
-end
-
 return MetaQuad

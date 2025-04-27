@@ -15,11 +15,20 @@ local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
 local MetaQuad = require("nav_module.MetaQuad")
 
 
+-- I am not really sure if this is important/necessary, but futre proofing I guess
+local chunk_type = {
+    Nil = {},
+    Home = {},
+    Mine = {} 
+}
+
+-- THIS IS A GREAT READ: https://poga.github.io/lua53-notes/table.html, I'll probably maximize array access through pre-allocation write-to-disc de-allocation
+-- and smart accessing of disc and remote stored data eventually, so I'll not use string indeces.
 -- is_home basically means: is a part of the base
 local MetaChunk = {
     x = 0,
     y = 0,
-    is_home = false,
+    c_type = chunk_type.Nil,
     meta_quads = {MetaQuad:zeroed()}
 }
 MetaChunk.__index = MetaChunk
@@ -30,6 +39,8 @@ function MetaChunk:zeroed()
     setmetatable(obj, self)
     return obj
 end
+
+function MetaChunk
 
 local map_obj = {MetaChunk:zeroed()}
 
@@ -90,6 +101,15 @@ function module.debug_move(dir, distance, forget)
 end
 
 function module.mark_chunk(what_chunk, as_what)
+    if chunk_type[as_what] == nil then error("module.mark_chunk 01") end
+    if 
+end
+
+function module.rel_move(clear)
+
+end
+
+function module.build_quad()
 
 end
 
