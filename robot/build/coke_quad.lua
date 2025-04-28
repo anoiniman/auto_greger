@@ -31,6 +31,12 @@ function module.iter(human_readable)
     local goal = 3
     return function ()
         iteration = iteration + 1 -- later indexes into 1,2,3
+        if iteration == 1 then
+            local temp = deep_copy.copy_table(human_readable, ipairs)
+            local special = "--ccc*-"
+            temp[2] = special
+            temp[6] = special
+            return interation, temp
         if iteration == 2 then
             local temp = deep_copy.copy_table(human_readable, ipairs)
             local hole = "--c-c--"

@@ -23,13 +23,14 @@ local chunk_type = {
 }
 
 -- THIS IS A GREAT READ: https://poga.github.io/lua53-notes/table.html, I'll probably maximize array access through pre-allocation write-to-disc de-allocation
+-- Speaking of reading: https://web.engr.oregonstate.edu/~erwig/papers/DeclScripting_SLE09.pdf is this peak chat?
 -- and smart accessing of disc and remote stored data eventually, so I'll not use string indeces.
 -- is_home basically means: is a part of the base
 local MetaChunk = {
     x = 0,
     y = 0,
     c_type = chunk_type.Nil,
-    meta_quads = {MetaQuad:zeroed()}
+    meta_quads = nil
 }
 MetaChunk.__index = MetaChunk
 
@@ -42,7 +43,20 @@ end
 
 function MetaChunk
 
-local map_obj = {MetaChunk:zeroed()}
+--local map_obj = {MetaChunk:zeroed()}
+local map_obj = {{}}
+local map_obj_offsets = {0,0}   -- offsets logical 0,0 in the array in order to translate it to "real" 0,0
+                                -- what this means is that if set the "origin", the "map centre" of the robot
+                                -- à posteriori then we don't need to re-alloc the array
+
+function gen_map_obj()
+    local size = 30 -- generate 30x30 square of chunks
+    for zindex, size, 1 do
+        for xindex, size, 1 do
+            map_obj[x][z] = MetaChunk:zeroed()
+        end
+    end
+end
 
 -----------------
 
@@ -86,13 +100,9 @@ end
 
 function module.setup_navigate_chunk(what_chunk)
     local a, b = chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
-    --print(comms.robot_send("debug", "c_nearest_side: " .. a .. " || " .. "r_nearest_side: " .. b))
-    --io.read()
 end
 
 function module.navigate_chunk(what_kind)
-    --print("navigate chunk nav_obj")
-    --io.read()
     return chunk_move.navigate_chunk(what_kind, nav_obj)
 end
 
@@ -101,11 +111,22 @@ function module.debug_move(dir, distance, forget)
 end
 
 function module.mark_chunk(what_chunk, as_what)
-    if chunk_type[as_what] == nil then error("module.mark_chunk 01") end
-    if 
+    local c_type = chunk_type[as_what]
+    if c_type == nil then error("module.mark_chunk 01") end
+
+    local x = what_chunk[1]; local z = what_chunk[2];
+
+    local map_chunk = map_obj[x][z]
+    if map_chunk == nil then error("ungenerated chunk") end
+
+    map_chunk.c_type = c_type
 end
 
-function module.rel_move(clear)
+function module.setup_navigate_rel(what_chunk)
+
+end
+
+function module.navigate_rel(clear)
 
 end
 

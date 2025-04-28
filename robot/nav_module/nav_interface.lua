@@ -115,7 +115,7 @@ function real_move(what_kind, direction, nav_obj)
         if block_type == "air" or block_type == "liquid" then
             print("look for air")
             robot.down()
-            update_pos("up", nav_obj)
+            update_pos("down", nav_obj)
             return
         end
 

@@ -1,7 +1,7 @@
 local math = require("math")
 local comms = require("comms")
 
--- Chunks are 16 by 16, roads includes they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chu    nks
+-- Chunks are 16 by 16, roads includes they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chunks
 -- Builds (tm) will occupy marked sub-chunks inside a chunk instead of arbitrary rectangles, for ease of navi    gation
 -- and they'll always be accessed through the "outside", this is to say, through the "road-blocks/lines"
 -- if we want to get fancy, we can mark-down door locations and shit, so that we can have walls and enclosed     buildigs etc
@@ -21,6 +21,9 @@ function MSChunk:new(dist, symbol)
     obj.symbol = symbol
 end
 
+local SpecialBlockEnum = {
+   Inventory = {} 
+}
 
 -- lines into squares into square_cuboids (the meta_schematic itself)
 -- acts as a sort of multi-dimensional queue
@@ -45,10 +48,22 @@ local function return_or_init_table_table(tbl, index) -- for maybe nils
     return tbl[index] -- returns ref to inner table
 end
 
+local function record_special(ms_chunk, tbl) -- because a table is ref/pointer it's fine
+    local obj_detected = true
+    if ms_chunk.symbol == '*' then
+        table.insert(tbl, ms_chunk)
+    else
+        obj_detected = false
+    end
+
+    if obj_detected and tbl == nil then tbl = {} end
+end
+
 -- I hope no return needed, we're modifying self (a ref) anyhow
 -- 2d slice of height 1, where 1 string is 1 line (x,z)
 function MetaSchematic:parseStringArr(string_array, square_index) 
     local square = return_or_init_table_table(self, square_index)
+    local special_table = nil
 
     --local line = nil
     local max_line = 0
@@ -63,6 +78,7 @@ function MetaSchematic:parseStringArr(string_array, square_index)
 
             if char != '-' then
                 local new_obj = MSChunk::new(dist, char)
+                record_special(new_obj, special_table)
                 table.insert(line, new_obj)
             end -- if
 
@@ -71,6 +87,7 @@ function MetaSchematic:parseStringArr(string_array, square_index)
         end -- for char
         square_index = square_index + 1
     end -- for str
+    return special_table
 end
 
-return MetaSchematic
+return MetaSchematic, SpecialBlockEnum
