@@ -66,7 +66,7 @@ function Module:setupBuild()
             s_interface.parseStringArr(base_table[index], index)
         end
     else
-        for index, table_obj in s_interface.iter_init_func() do -- it is expected that table object does not include meta-data
+        for index, table_obj in s_interface.iter_init_func(self.primitive) do -- it is expected that table object does not include meta-data
             s_interface.parseStringArr(table_obj, index)
         end
     end
