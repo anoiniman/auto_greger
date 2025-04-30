@@ -69,9 +69,25 @@ function MetaQuad:setQuad(quad, name)
     self.require_build(name)
 end
 
--- TODO -> This is the Todo, get the build thingy building plz mwister UwU
 function MetaQuad:setupBuild()
+    if self.isBuilt() then
+        print(comms.robot_send("error", "remove build before trying to build over build (not Implemented yet tho)"))
+        return false
+    end
+    -- Now we must rotate the build according to quad number, before creating the build structure
+    self.build.rotatePrimitive(self.quad)
+    self.build.setupBuild() 
+    -- And then we must dump the primitive, to save memory
 
+    return true
+end
+
+function MetaQuad:doBuild()
+    if self.isBuilt() then
+        print(comms.robot_send("error", "how did you trigger this error message 01?"))
+    end
+    
+    self.build.doBuild()
 end
 
 return MetaQuad
