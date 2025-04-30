@@ -28,7 +28,7 @@ function module.iter(base_table, goal, segments)
     end
 end
 
-function module.rotate_x(base_table, segments)
+function module.mirror_x(base_table, segments)
     local watch_dog = false
     -- Reverse the base
     for key, base in pairs(base_table) do
@@ -54,7 +54,7 @@ function module.rotate_x(base_table, segments)
     end
 end
 
-function module.rotate_y(base_table, segments)
+function module.mirror_z(base_table, segments)
     local watch_dog = false
     -- Reverse the base
     for key, base in pairs(base_table) do

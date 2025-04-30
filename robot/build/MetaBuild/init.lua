@@ -1,6 +1,7 @@
 local math = require("math")
 local comms = require("comms")
 
+local general_functions = require("build.general_functions")
 local SchematicInterface = require("build.MetaBuild.SchematicInterface")
 
 local BuildStack = { -- reading head maxxed printer pilled state machine adjacent
@@ -46,10 +47,19 @@ function Module:init_primitive()
     self.primitive.parent = self
 end
 
-
 function Module:rotatePrimitive(quad_num)
+    local base_table = self.primitive.base_table
+    local segments = self.primitive.segments
+
     if quad_num == 1 then
-        
+        general_functions.mirror_x(base_table, segments)
+    elseif quad_num == 3 then
+        general_functions.mirror_y(base_table, segments)
+    elseif quad_num == 4 then
+        general_functions.mirror_x(base_table, segments)
+        general_functions.mirror_y(base_table, segments)
+    else
+        print(comms.robot_send("error", "MetaBuild rotatePrimitive impossible quad_num: " .. quad_num))
     end
 end
 

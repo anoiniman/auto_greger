@@ -78,6 +78,7 @@ function MetaQuad:setupBuild()
     self.build.rotatePrimitive(self.quad)
     self.build.setupBuild() 
     -- And then we must dump the primitive, to save memory
+    -- TODO -> self.build.dump_primitive()
 
     return true
 end
@@ -87,7 +88,7 @@ function MetaQuad:doBuild()
         print(comms.robot_send("error", "how did you trigger this error message 01?"))
     end
     
-    self.build.doBuild()
+    self.build.doBuild() -- TODO
 end
 
 return MetaQuad

@@ -38,14 +38,6 @@ Module.doors = {}
 doors[1] = meta_door:zeroed()
 doors[1].doorX(6,2)
 
-function Module:rotateX()
-    general_functions.rotate_x(self.base_table, self.segments)
-end
-
-function Module:rotateY()
-    general_function.rotate_y(self.base_table, self.segments)
-end
-
 -- consuming what function is to be executed
 -- "Which Iteration" <-> "Which Height/Level"
 function Module.iter(primitive)
