@@ -1,16 +1,18 @@
 local deep_copy = require("deep_copy")
-local meta_door = require("build.MetaBuild.MetaDoorInfo")
 
-local module = {parent = nil}
+local meta_door = require("build.MetaBuild.MetaDoorInfo")
+local general_iter = require("build.general_iter")
+
+local Module = {parent = nil}
 
 -- IGNORE THIS COMMENT -- this an i-table of tables not an a-table k,v
-module.dictionary = {
+Module.dictionary = {
     ["c"] = "CokeOvenBrick", -- tmp name, I need to geolyze in game first or whatever
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)
 -- create rotation function somewhere
-module.human_readable = {
+Module.human_readable = {
 "--ccc--",
 "--ccc--",
 "--ccc--",
@@ -19,36 +21,30 @@ module.human_readable = {
 "--ccc--",
 "--ccc--",
 }
-module.origin_pos = {0,0,0}
+Module.origin_pos = {0,0,0}
+Module.base_table = { def = Module.human_readable } -- def == default
 
-module.doors = {}
+local two_six = {2, 6}
+Module.segments = { -- This nil assignment schtick makes it so for 99% of the cases 'ipairs' no longer works :) btw
+    [1] = {{"--ccc*-", two_six}},   -- for height 1 change this
+    [2] = {{"--c-c--", two_six}},   -- for height 2 change this
+    [3] = nil                       -- .. 
+}
+
+Module.doors = {}
 doors[1] = meta_door:zeroed()
 doors[1].doorX(6,2)
 
 -- consuming what function is to be executed
-function module.iter(human_readable)
-    local iteration = 0
-    local goal = 3
-    return function ()
-        iteration = iteration + 1 -- later indexes into 1,2,3
-        if iteration == 1 then
-            local temp = deep_copy.copy_table(human_readable, ipairs)
-            local special = "--ccc*-"
-            temp[2] = special
-            temp[6] = special
-            return interation, temp
-        if iteration == 2 then
-            local temp = deep_copy.copy_table(human_readable, ipairs)
-            local hole = "--c-c--"
-            temp[2] = hole
-            temp[6] = hole
-            return interation, temp
-        end
-        if iteration <= goal then 
-            return iteration, human_readable 
-        end
-        return nil
-    end
+-- "Which Iteration" <-> "Which Height/Level"
+function Module:iter()
+    general_iter.iter(base_table, 3, segments)
 end
 
-return
+function Module:new()
+    local obj = {}
+    setmetatable(obj, self)
+    return obj
+end
+
+return Module
