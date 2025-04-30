@@ -68,15 +68,14 @@ function Module:setupBuild()
 
     if self.s_interface == nil then self.s_interface = SchematicInterface:new()
     local s_interface = self.s_interface
-    s_interface.iter_init_func = self.primitive.iter
 
     self.checkHumanMap(base_table, primitive.name)
     if s_interface.iter_init_func == nil then
-        for index = 1, #base_table, 1 do -- if we haven't defined a custom iterator, then the base_table must be ipairs-able
+        for index, table_obj in self.primitive.iter() do -- if we haven't defined a custom iterator, then the base_table must be ipairs-able
             s_interface.parseStringArr(base_table[index], index)
         end
     else
-        for index, table_obj in s_interface.iter_init_func(self.primitive) do -- it is expected that table object does not include meta-data
+        for index, table_obj in self.primitive.iter() do -- it is expected that table object does not include meta-data
             s_interface.parseStringArr(table_obj, index)
         end
     end
