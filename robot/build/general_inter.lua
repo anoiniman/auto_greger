@@ -1,6 +1,7 @@
 -- this either really cooks, or really fucks us over, who cares
+local module = {}
 
-return function iter(base_table, goal, segments)
+function module.iter(base_table, goal, segments)
     local iteration = 0
     return function ()
         iteration = iteration + 1 -- later indexes into 1,2,3
@@ -23,3 +24,5 @@ return function iter(base_table, goal, segments)
         return iteration, height_segment_to_return  
     end
 end
+
+return module
