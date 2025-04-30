@@ -41,7 +41,70 @@ function MetaChunk:zeroed()
     return obj
 end
 
-function MetaChunk
+function MetaChunk:mark(what_chunk, c_type)
+    local c_type = chunk_type[as_what]
+    if c_type == nil then print(comms.robot_send("error", "module.mark_chunk 01")) end
+
+    local x = what_chunk[1]; local z = what_chunk[2];
+
+    local map_chunk = map_obj[x][z]
+    if map_chunk == nil then print(comms.robot_send("error", "ungenerated chunk")) end
+
+    map_chunk.c_type = c_type
+end
+
+function empty_quad_table()
+    local quads = {MetaQuad:zeroed, MetaQuad:zeroed, MetaQuad:zeroed, MetaQuad:zeroed}
+    return quads
+end
+
+function MetaChunk:quadChecks(what_quad_num, from_where)
+    if what_quad_num > 4 or what_quad_num < 1 then
+        print(comms.robot_send("error", "-- " .. from_where .. " --" .. "specified invalid quad_num: \"" .. tostring(what_quad_num) .. "\""))
+        return false
+    end
+    if self.meta_quads == nil then self.meta_quads = empty_quad_table() end
+    return true
+end
+
+function MetaChunk:addQuadCommon(what_quad_num, what_build)
+    local this_quad = self.meta_quads[what_quad_num]
+    local result = this_quad.setQuad(what_quad_num, what_build)
+
+    if result == true then
+        return true
+    end
+    print(comms.robot_send("error", "couldn't add build to quad"))
+    return false
+end
+
+function MetaChunk:addQuad(what_quad_num, what_build)
+    if not self.quadChecks(what_quad_num, "addQuad") then return false end
+    if self.meta_quads[what_quad_num].getNum() ~= 0 then 
+        print(comms.robot_send("error", "trying to overwrite already defined quad, without specifing desire to overwrite!"))
+    end
+    self.addQuadCommon(what_quad_num, what_build)
+end
+
+function MetaChunk:replaceQuad(what_quad_num, what_build)
+    if not self.quadChecks(what_quad_num, "replaceQuad") then return false end
+    local this_quad = self.meta_quads[what_quad_num]
+    if this_quad.getNum() ~= 0 and this_quad.isBuilt() then 
+        print(comms.robot_send("error", "trying to overwrite already BUILT quad, UNIMPLEMENTED!"))
+    end
+    self.addQuadCommon(what_quad_num, what_build)
+end
+
+function MetaChunk:setupBuild(what_quad_num)
+    if not self.quadChecks(what_quad_num, "setupBuild") then return false end
+
+    local this_quad = self.meta_quads[what_quad_num]
+    if this_quad.isBuilt() then
+        print(comms.robot_send("error", "cannot build what is already built!"))
+        return false
+    end
+    return this_quad.setupBuild()
+end
 
 --local map_obj = {MetaChunk:zeroed()}
 local map_obj = {{}}
@@ -111,15 +174,7 @@ function module.debug_move(dir, distance, forget)
 end
 
 function module.mark_chunk(what_chunk, as_what)
-    local c_type = chunk_type[as_what]
-    if c_type == nil then error("module.mark_chunk 01") end
 
-    local x = what_chunk[1]; local z = what_chunk[2];
-
-    local map_chunk = map_obj[x][z]
-    if map_chunk == nil then error("ungenerated chunk") end
-
-    map_chunk.c_type = c_type
 end
 
 function module.setup_navigate_rel(what_chunk)

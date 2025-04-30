@@ -13,8 +13,8 @@ local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
 
 -- make a convert rel to quad and back function somewhere
 local MetaQuad = {
-    quad = 0
-    build = MetaBuild:zeroed()
+    quad = 0 -- if quad = 0 it is because we still haven't been neither "marked", nor "build"
+    build = MetaBuild:zeroed() -- if build.isBuilt() returns false.....
     doors = {}
 }
 MetaQuad.__index = MetaQuad
@@ -28,6 +28,14 @@ end
 
 function MetaQuad:getName()
     return build.getName()
+end
+
+function MetaQuad:getNum()
+    return quad
+end
+
+function MetaQuad:isBuilt()
+    return build.isBuilt()
 end
 
 local function MetaQuad:actualizeDoors() -- Transform the door definition into actual rel coordinates
@@ -47,9 +55,23 @@ local function MetaQuad:actualizeDoors() -- Transform the door definition into a
     end
 end
 
-function MetaQuad:requireBuild(name)
-    self.build.require(name)
-    self.doors = deep_copy.copy_table(table, ipairs)
+function require_build(name)
+    local result = self.build.require(name)
+    if result == false then return false end
+
+    self.doors = deep_copy.copy_table(self.build.getDoors(), ipairs)
+    self.actualizeDoors()
+    return true
+end
+
+function MetaQuad:setQuad(quad, name)
+    self.quad = quad
+    self.require_build(name)
+end
+
+-- TODO -> This is the Todo, get the build thingy building plz mwister UwU
+function MetaQuad:setupBuild()
+
 end
 
 return MetaQuad

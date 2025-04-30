@@ -116,7 +116,7 @@ function real_move(what_kind, direction, nav_obj)
             print("look for air")
             robot.down()
             update_pos("down", nav_obj)
-            return
+            return true
         end
 
         local result, err = base_move(direction, nav_obj)
@@ -124,12 +124,15 @@ function real_move(what_kind, direction, nav_obj)
         if err ~= nil and err == "impossible move" then
             -- for know we just panic, maybe one day we'll add better AI
             print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
+            return false
         elseif err ~= nil and err ~= "impossible move" then
             --local orientation = convert_orientation(nav_obj)
             if geolyzer.compare("log", "naive_contains", sides_api.front) == true then
                 robot.swing()
+                return true
             else
                 real_move("free", "up", nav_obj) -- This is the case for a non tree terrain feature
+                return true
             end
         end
     elseif what_kind == "free" then
@@ -137,8 +140,9 @@ function real_move(what_kind, direction, nav_obj)
         local result, err = base_move(direction, nav_obj)
         if result == nil then
             print(comms.robot_send("error", "real_move: \"" .. what_kind .. "\" || error: \"" .. err .. "\""))
+            return false
         end
-
+        return true
     else
         print(comms.robot_send("error", "real_move: \"" .. what_kind .. "\" unimplemented"))
     end

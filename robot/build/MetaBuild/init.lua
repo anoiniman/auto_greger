@@ -1,11 +1,15 @@
 local math = require("math")
 local comms = require("comms")
 
-local build_cache = {}
+local build_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
+                        -- so it exists as a singleton all "inheritors" of the MetaTable have the same
+                        -- reference for "build_cache"
 
 local Module = {
     is_nil = true,
-    primitive = {},
+    built = false,
+    primitive = {}, -- pretend that there is a 'const' keyword here, "the primitve" is a 
+                    -- reference that must NEVER be modified, only deep_copied or referenced without mut
 
     --door_info = { MetaDoorInfo:zeroed() },
     schematic = MetaMetaSchematic:new()
@@ -26,7 +30,7 @@ end
 function Module:require(name)
     if build_cache[name] ~= nil then 
         self = build_cache[name]
-        return
+        return true
     end
 
     no_error, build_table = pcall(dofile("/home/robot/build/" .. name))
@@ -54,10 +58,19 @@ function Module:require(name)
     end
 
     table.insert(build_cache, 1, self)
+    return true
 end
 
 function Module:getName()
-    return primitive.name 
+    return self.primitive.name 
+end
+
+function Module:getSchematic()
+    return self.
+end
+
+function Module:isBuilt()
+    return self.built
 end
 
 function Module:checkHumanMap(map, name)
@@ -78,5 +91,6 @@ end
 function Module:getDoors()
     return self.primitive.doors
 end
+
 
 return Module
