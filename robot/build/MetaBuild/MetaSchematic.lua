@@ -71,11 +71,11 @@ function MetaSchematic:parseStringArr(string_array, square_index)
         local dist = 0
         local line_index = 1
 
-        for char in str:gmatch"." do
+        for char in string.gmatch(str, ".") do
             max_line = math.max(max_line, line_index)
             local line = return_or_init_table_table(square, line_index)
 
-            if char != '-' then
+            if char ~= '-' then
                 local new_obj = MSChunk::new(dist, char)
                 record_special(new_obj, special_table)
                 table.insert(line, new_obj)

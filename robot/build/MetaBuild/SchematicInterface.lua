@@ -3,10 +3,13 @@ local deep_copy = require("deep_copy")
 
 local MetaSchematic, SpecialBlockEnum = require("build.MetaBuild.MetaSchematic")
 
+local rel_positions = {0, 0, 0} -- x, z, y
+function rel_posittions:new()
+    return deep_copy.copy(self, ipairs)
+end
+
 local BuildStack = { -- reading head maxxed printer pilled state machine adjacent
-    rel_x = 0,
-    rel_z = 0,
-    height = 0,
+    rel = rel_positions:new()
 
     logical_x = 0,
     logical_z = 0,
@@ -44,6 +47,7 @@ function SchematicInterface:forceAdvanceHead()
     local b_stack = self.build_stack
 
     if b_stack.logical_z < 7 then -- try and read every line
+        b_stack.rel[1] = 0 -- Very Important to reset the rel_x column now that we moved to the next line
         b_stack.logical_x = 0
         b_stack.logical_z = b_stack.logical_z + 1
     elseif b_stack.logical_y < #self.schematic then -- only then move-up in height
@@ -64,10 +68,20 @@ function SchematicInterface:doBuild()
     local chunk = self.schematic[b_stack.logical_y][b_stack.logical_z][b_stack.logical_x]
     if chunk == nil then 
         if self:forceAdvanceHead() then
-            -- TODO
-            print(comms.robot_send("error", "TODO 012"))
+            return "done"
         end
+        return self:doBuild()
     end
+    b_stack.logical_x = b_stack.logical_x + 1 -- prepare the advance to next column element
+
+    local rel = b_stack.rel
+
+    rel[3] = b_stack.logical_y
+    rel[2] = b_stack.logical_z
+    rel[1] = rel[1] + chunk.dist
+
+    local to_return = deep_copy.copy(rel, ipairs)
+    return "build", to_return, chunk.symbol
 end
 
 return SchematicInterface
