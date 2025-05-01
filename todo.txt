@@ -6,3 +6,5 @@ calls as returning a deep-copy of the original table, something you might rememb
 you have already implemented.
 
 Good luck to you, you shall need it.
+
+--- Remember to slam "local" on most of your functions because you have inadvertedly been poluting your namespaces I guess?
