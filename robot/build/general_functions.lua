@@ -54,39 +54,4 @@ function module.mirror_x(base_table, segments)
     end
 end
 
-function module.mirror_z(base_table, segments)
-    local watch_dog = false
-    -- Reverse the base
-    for key, base in pairs(base_table) do
-        if base[1] == "def" then -- because there might be multiple refs to "def" we only need to reverse it once
-            if watch_dog == false then
-                watch_dog = true
-            else
-                goto continue
-            end
-        end
-
-        local human_readable = base[2]
-        local jindex = 1
-        for index = #human_readable, 1, -1 do
-            local temp = human_readable[jindex]
-            human_readable[jindex] = human_readable[index]
-            human_readable[index] = temp
-            jindex = jindex + 1
-        end
-
-        ::continue::
-    end
-
-    local quad_size_logic = 8 -- imagine this is a const, it's 7+1, the actual size of a quad + 1
-    -- Reverse the segments
-    for index, seg in pairs(segments) do
-        for _, sub_seg in ipairs(seg) do
-            for _, replacement_num in ipairs(sub_seg[2]) do
-                replacement_num = quad_size_logic - replacement_num
-            end
-        end
-    end
-end
-
 return module

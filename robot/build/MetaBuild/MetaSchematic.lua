@@ -39,6 +39,9 @@ function MetaSchematic:new()
     return obj
 end
 
+-- this is very important, because it means that the tables have no "gaps" where they might contain
+-- a "nil" object, the array is sparse logically but "nil" objects are in reality just empty arrays
+-- which != nil
 local function return_or_init_table_table(tbl, index) -- for maybe nils
     if tbl[index] ~= nil then
         return tbl[index]
@@ -89,5 +92,11 @@ function MetaSchematic:parseStringArr(string_array, square_index)
     end -- for str
     return special_table
 end
+
+-->>--------------------------------------<<--
+
+--[[function MetaSchematic:lookUp(height, z, x) -- returns MsChunk
+    return MetaSchematic[height][z][x]
+end--]]
 
 return MetaSchematic, SpecialBlockEnum

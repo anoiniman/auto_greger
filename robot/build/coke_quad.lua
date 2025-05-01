@@ -24,7 +24,7 @@ Module.human_readable = {
     "--ccc--",
     }
 }
-Module.origin_pos = {0,0,0}
+Module.origin_block = {0,0,0} -- x, z, y
 Module.base_table = { def = Module.human_readable } -- def == default
 
 local two_six = {2, 6}

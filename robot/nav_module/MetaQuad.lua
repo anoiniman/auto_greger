@@ -69,26 +69,25 @@ function MetaQuad:setQuad(quad, name)
     self.require_build(name)
 end
 
-function MetaQuad:setupBuild()
+function MetaQuad:setupBuild(chunk_height)
     if self.isBuilt() then
         print(comms.robot_send("error", "remove build before trying to build over build (not Implemented yet tho)"))
         return false
     end
-    -- Now we must rotate the build according to quad number, before creating the build structure
-    self.build.rotatePrimitive(self.quad)
-    self.build.setupBuild() 
-    -- And then we must dump the primitive, to save memory
-    -- TODO -> self.build.dump_primitive()
-
+    -- Now we must rotate and translate the build in rel chunk space according to quad number, before creating the build structure
+    self.build.rotateAndTranslatePrimitive(self.quad, chunk_height)
+    self.build.setupBuild() -- Build the data-structures from the rotated primitive
+    self.build.dumpPrimitive() -- And then we must dump the primitive, to save memory
     return true
 end
 
 function MetaQuad:doBuild()
     if self.isBuilt() then
         print(comms.robot_send("error", "how did you trigger this error message 01?"))
+        return false
     end
     
-    self.build.doBuild() -- TODO
+    return self.build.doBuild()
 end
 
 return MetaQuad
