@@ -1,5 +1,7 @@
 local math = require("math")
+
 local comms = require("comms")
+local deep_copy = require("deep_copy")
 
 local general_functions = require("build.general_functions")
 local SchematicInterface = require("build.MetaBuild.SchematicInterface")
@@ -17,13 +19,9 @@ local Module = {
     build_stack = nil
     s_interface = nil
 }
-Module.__index = Module
 
 function Module:new()
-    local obj = {}
-
-    setmetatable(obj, self)
-    return obj
+    return deep_copy.copy(self, pairs)
 end
 
 function Module:doBuild()
@@ -85,7 +83,7 @@ function Module:setupBuild()
     self.s_interface.dictionary = primitive.dictionary
     self.s_interface.origin_block = primitive.origin_block
 
-    self.checkHumanMap(base_table, primitive.name) -- sanity check
+    self:checkHumanMap(base_table, primitive.name) -- sanity check
 
     -- Build the sparse array
     local iter_function = nil
@@ -99,7 +97,7 @@ function Module:setupBuild()
     -- if returning the length of the MetaSchematic tables is faulty, we'll need to count the height of buildings here
     -- thanks to the magic of lua bogus arguments are ok!
     for index, table_obj in iter_function(base_table) do -- it is expected that table object does not include meta-data
-        self.s_interface.parseStringArr(table_obj, index)
+        self.s_interface:parseStringArr(table_obj, index)
         max_index = max_index + 1
     end
 
@@ -108,16 +106,16 @@ end
 
 function Module:require(name)
     if primitive_cache[name] ~= nil then 
-        self.primitive = primitive_cache[name].new()
-        self.initPrimitive()
+        self.primitive = primitive_cache[name]:new()
+        self:initPrimitive()
         return true
     end
 
     no_error, build_table = pcall(dofile("/home/robot/build/" .. name))
     if no_error then
-        self.primitive = build_table.new()
+        self.primitive = build_table:new()
         primitive_cache[name] = build_table
-        self.initPrimitive()
+        self:initPrimitive()
 
         return true
     else

@@ -45,9 +45,7 @@ function Module:iter()
 end
 
 function Module:new()
-    local obj = {}
-    setmetatable(obj, self)
-    return obj
+    return deep_copy.copy(self, pairs)
 end
 
 return Module

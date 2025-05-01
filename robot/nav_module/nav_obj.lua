@@ -32,13 +32,8 @@ local MetaChunk = {
     c_type = chunk_type.Nil,
     meta_quads = nil
 }
-MetaChunk.__index = MetaChunk
-
 function MetaChunk:zeroed()
-    local obj = {}
-
-    setmetatable(obj, self)
-    return obj
+    return deep_copy.copy_table(self, pairs)
 end
 
 function MetaChunk:mark(what_chunk, c_type)
@@ -53,7 +48,7 @@ function MetaChunk:mark(what_chunk, c_type)
     map_chunk.c_type = c_type
 end
 
-function empty_quad_table()
+local function empty_quad_table()
     local quads = {MetaQuad:zeroed, MetaQuad:zeroed, MetaQuad:zeroed, MetaQuad:zeroed}
     return quads
 end
@@ -69,7 +64,7 @@ end
 
 function MetaChunk:addQuadCommon(what_quad_num, what_build)
     local this_quad = self.meta_quads[what_quad_num]
-    local result = this_quad.setQuad(what_quad_num, what_build)
+    local result = this_quad:setQuad(what_quad_num, what_build)
 
     if result == true then
         return true
@@ -79,31 +74,31 @@ function MetaChunk:addQuadCommon(what_quad_num, what_build)
 end
 
 function MetaChunk:addQuad(what_quad_num, what_build)
-    if not self.quadChecks(what_quad_num, "addQuad") then return false end
-    if self.meta_quads[what_quad_num].getNum() ~= 0 then 
+    if not self:quadChecks(what_quad_num, "addQuad") then return false end
+    if self.meta_quads[what_quad_num]:getNum() ~= 0 then 
         print(comms.robot_send("error", "trying to overwrite already defined quad, without specifing desire to overwrite!"))
     end
-    self.addQuadCommon(what_quad_num, what_build)
+    self:addQuadCommon(what_quad_num, what_build)
 end
 
 function MetaChunk:replaceQuad(what_quad_num, what_build)
-    if not self.quadChecks(what_quad_num, "replaceQuad") then return false end
+    if not self:quadChecks(what_quad_num, "replaceQuad") then return false end
     local this_quad = self.meta_quads[what_quad_num]
-    if this_quad.getNum() ~= 0 and this_quad.isBuilt() then 
+    if this_quad:getNum() ~= 0 and this_quad:isBuilt() then 
         print(comms.robot_send("error", "trying to overwrite already BUILT quad, UNIMPLEMENTED!"))
     end
-    self.addQuadCommon(what_quad_num, what_build)
+    self:addQuadCommon(what_quad_num, what_build)
 end
 
 function MetaChunk:setupBuild(what_quad_num)
-    if not self.quadChecks(what_quad_num, "setupBuild") then return false end
+    if not self:quadChecks(what_quad_num, "setupBuild") then return false end
 
     local this_quad = self.meta_quads[what_quad_num]
     if this_quad.isBuilt() then
         print(comms.robot_send("error", "cannot build what is already built!"))
         return false
     end
-    return this_quad.setupBuild()
+    return this_quad:setupBuild()
 end
 
 --local map_obj = {MetaChunk:zeroed()}
@@ -130,6 +125,7 @@ end
 -- Moving north = -Z, moving east = +X
 
 -- nav_obj will get passed around like your mother's cadaver at a George Bataille ritual reification fesitval
+-- singleton btw, this is why there is no "nav_obj:new()" function
 local nav_obj = {
     c_zero = {0,0} ,
 

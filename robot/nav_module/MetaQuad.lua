@@ -17,17 +17,12 @@ local MetaQuad = {
     build = MetaBuild:zeroed() -- if build.isBuilt() returns false.....
     doors = {}
 }
-MetaQuad.__index = MetaQuad
-
 function MetaQuad:zeroed()
-    local obj = {}
-
-    setmetatable(obj, self)
-    return obj
+    return deep_copy.copy_table(self, pairs)
 end
 
 function MetaQuad:getName()
-    return build.getName()
+    return build:getName()
 end
 
 function MetaQuad:getNum()
@@ -35,20 +30,20 @@ function MetaQuad:getNum()
 end
 
 function MetaQuad:isBuilt()
-    return build.isBuilt()
+    return build:isBuilt()
 end
 
 local function MetaQuad:actualizeDoors() -- Transform the door definition into actual rel coordinates
     for index, door in ipairs(self.doors) do
         if quad == 1 then
-            self.doors.mirror(true, false)
+            self.doors:mirror(true, false)
         elseif quad == 2 then
             --self.doors.mirror(false, false)
             -- do nothing
         elseif quad == 3 then
-            self.doors.mirror(false, true)            
+            self.doors:mirror(false, true)            
         elseif quad == 4 then
-            self.doors.mirror(true, true)
+            self.doors:mirror(true, true)
         else
             print(comms.robot_send("error", "logical impossibility - MetaQuad:acutalizeDoors()"))
         end
@@ -59,35 +54,35 @@ function require_build(name)
     local result = self.build.require(name)
     if result == false then return false end
 
-    self.doors = deep_copy.copy_table(self.build.getDoors(), ipairs)
-    self.actualizeDoors()
+    self.doors = deep_copy.copy(self.build:getDoors(), pairs)
+    self:actualizeDoors()
     return true
 end
 
 function MetaQuad:setQuad(quad, name)
     self.quad = quad
-    self.require_build(name)
+    self:require_build(name)
 end
 
 function MetaQuad:setupBuild(chunk_height)
-    if self.isBuilt() then
+    if self:isBuilt() then
         print(comms.robot_send("error", "remove build before trying to build over build (not Implemented yet tho)"))
         return false
     end
     -- Now we must rotate and translate the build in rel chunk space according to quad number, before creating the build structure
-    self.build.rotateAndTranslatePrimitive(self.quad, chunk_height)
-    self.build.setupBuild() -- Build the data-structures from the rotated primitive
-    self.build.dumpPrimitive() -- And then we must dump the primitive, to save memory
+    self.build:rotateAndTranslatePrimitive(self.quad, chunk_height)
+    self.build:setupBuild() -- Build the data-structures from the rotated primitive
+    self.build:dumpPrimitive() -- And then we must dump the primitive, to save memory
     return true
 end
 
 function MetaQuad:doBuild()
-    if self.isBuilt() then
+    if self:isBuilt() then
         print(comms.robot_send("error", "how did you trigger this error message 01?"))
         return false
     end
     
-    return self.build.doBuild()
+    return self.build:doBuild()
 end
 
 return MetaQuad

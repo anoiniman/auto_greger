@@ -1,4 +1,6 @@
 local comms = require("comms")
+local deep_copy = require("deep_copy")
+
 local MetaSchematic, SpecialBlockEnum = require("build.MetaBuild.MetaSchematic")
 
 local BuildStack = { -- reading head maxxed printer pilled state machine adjacent
@@ -11,10 +13,7 @@ local BuildStack = { -- reading head maxxed printer pilled state machine adjacen
     logical_y = 0
 }
 function BuildStack:new()
-    local obj = {}
-
-    setmetatable(obj, self)
-    return obj
+    return deep_copy.copy(self, pairs)
 end
 
 -- adds bounding box and ref to child.dictionary to MetaSchematic
@@ -30,17 +29,12 @@ local SchematicInterface = {
 
     build_stack = BuildStack:new()
 }
-
-SchematicInterface.__index = MetaMetaSchematic
 function SchematicInterface:new()
-    local obj = {}
-
-    setmetatable(obj, self)
-    return obj
+    return deep_copy.copy(self, pairs)
 end
 
 function SchematicInterface:parseStringArr(string_array, square_index)
-    local special_blocks = self.schematic.parseStringArr(string_array, square_index)
+    local special_blocks = self.schematic:parseStringArr(string_array, square_index)
     if special_blocks ~= nil then self.special_blocks = special_blocks end
 
     if #self.schematic == 0 then print(comms.robot_send("error", "we ballsd up good :(")) end

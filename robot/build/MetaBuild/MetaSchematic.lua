@@ -1,4 +1,6 @@
 local math = require("math")
+
+local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 -- Chunks are 16 by 16, roads includes they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chunks
@@ -8,17 +10,14 @@ local comms = require("comms")
 
 -- Meta schematic chunk
 local MSChunk = {dist = 0, symbol = "0"}
-MSChunk.__index = MSChunk
-
 function MSChunk:zeroed()
-    local obj = {}
-    setmetatable(obj, self)
-    return obj
+    return deep_copy.copy(self, pairs)
 end
 function MSChunk:new(dist, symbol)
-    local obj = self.zeroed()
+    local obj = self:zeroed()
     obj.dist = dist
     obj.symbol = symbol
+    return obj
 end
 
 local SpecialBlockEnum = {
@@ -31,13 +30,10 @@ local MetaSchematic = {} -- Cuboid (top-level)
 MetaSchematic[1] = {} -- 1st square
 MetaSchematic[1][1] = {} -- 1st line
 -- MetaSchematic[1][1][1] -- 1st chunk of 1st line
-MetaSchematic.__index = MetaSchematic
 
 function MetaSchematic:new()
-    local obj = {}
-    setmetatable(obj, self)
-    return obj
-end
+    return deep_copy.copy(self, pairs)
+end -- I hope I don't have to do forward declarations, that would be cringe
 
 -- this is very important, because it means that the tables have no "gaps" where they might contain
 -- a "nil" object, the array is sparse logically but "nil" objects are in reality just empty arrays
