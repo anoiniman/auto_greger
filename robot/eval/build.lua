@@ -22,7 +22,11 @@ function module.setup_build(arguments)
     if map_obj.setup_build(what_chunk, what_quad) then -- if we succeded
         -- TODO construct new auto_comand? IDK what happens after we succeed in setting up lol, prob we should auto start building
         error("TODO 1010")
-    else return nil end
+        -- return something in the end
+    else 
+        print(comms.robot_send("error", "setup_build -- failed somewhere"))
+        return nil
+    end
 end
 
 function module.do_build(arguments)
