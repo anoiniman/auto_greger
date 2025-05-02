@@ -106,6 +106,7 @@ function Module:setupBuild()
     end
 
     self.is_nil = false
+    return true
 end
 
 function Module:require(name)
