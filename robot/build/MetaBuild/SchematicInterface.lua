@@ -68,7 +68,7 @@ function SchematicInterface:doBuild()
     local chunk = self.schematic[b_stack.logical_y][b_stack.logical_z][b_stack.logical_x]
     if chunk == nil then 
         if self:forceAdvanceHead() then
-            return "done"
+            return true, "done"
         end
         return self:doBuild()
     end
@@ -80,8 +80,14 @@ function SchematicInterface:doBuild()
     rel[2] = b_stack.logical_z
     rel[1] = rel[1] + chunk.dist
 
-    local to_return = deep_copy.copy(rel, ipairs)
-    return "build", to_return, chunk.symbol
+    local translated_symbol = self.dictionary[chunk.symbol]
+    if translated_symbol == nil then
+        print(comms.send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
+        return false
+    end
+
+    local coords = deep_copy.copy(rel, ipairs)
+    return true, "build", coords, translated_symbol
 end
 
 return SchematicInterface

@@ -27,7 +27,7 @@ end
 function Module:doBuild()
     if s_interface == nil then
         print(comms.robot_send("error", "MetaBuild, doBuild, attempted to build with nil s_interface, init plz"))
-        return nil
+        return false
     end
 
     return self.s_interface.doBuild() -- string, 3d-coords, symbol 

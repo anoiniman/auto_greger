@@ -29,8 +29,12 @@ function module.eval_command(command_arguments)
         return navigate.navigate_chunk(arguments)
     elseif command == "navigate_rel" then
         return navigate.navigate_rel(arguments)
+    elseif command == "build_mark_chunk" then
+        return build.mark_chunk(arguments)
     elseif command == "build_setup" then
         return build.setup_build(arguments)
+    elseif command == "build_do_build" then
+        return build.do_build(arguments)   
     end
     return nil
 end

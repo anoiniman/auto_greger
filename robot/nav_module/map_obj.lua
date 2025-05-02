@@ -90,10 +90,21 @@ function MetaChunk:setupBuild(what_quad_num)
 
     local this_quad = self.meta_quads[what_quad_num]
     if this_quad.isBuilt() then
-        print(comms.robot_send("error", "cannot build what is already built!"))
+        print(comms.robot_send("error", "cannot prepare to build what is already built!"))
         return false
     end
     return this_quad:setupBuild()
+end
+
+function MetaChunk:doBuild(what_quad_num)
+    if not self:quadChecks(what_quad_num, "setupBuild") then return false end
+
+    local this_quad = self.meta_quads[what_quad_num]
+    if this_quad.isBuilt() then
+        print(comms.robot_send("error", "cannot build what is already built!"))
+        return false
+    end
+    return this_quad:doBuild()
 end
 
 -->>-----------------------------------<<--
@@ -128,6 +139,13 @@ function module.setup_build(what_chunk, what_quad)
     if map_chunk == nil then return false end
 
     return map_chunk:setupBuild(what_quad) -- pay attention to what are we returning
+end
+
+function module.do_build(what_chunk, what_quad)
+    local map_chunk = chunk_exits(what_chunk)
+    if map_chunk == nil then return false end
+
+    return map_chunk:doBuild(what_quad) -- pay attention to what are we returning
 end
 
 function module.mark_chunk(what_chunk, as_what)
