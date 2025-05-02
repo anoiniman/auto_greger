@@ -28,7 +28,7 @@ local MetaChunk = {
     c_type = chunk_type.Nil,
     meta_quads = nil
 }
-function MetaChunk:zeroed()
+function MetaChunk:new()
     return deep_copy.copy_table(self, pairs)
 end
 
@@ -44,7 +44,7 @@ function MetaChunk:mark(c_type)
 end
 
 local function empty_quad_table()
-    local quads = {MetaQuad:zeroed, MetaQuad:zeroed, MetaQuad:zeroed, MetaQuad:zeroed}
+    local quads = {MetaQuad:new(), MetaQuad:new(), MetaQuad:new(), MetaQuad:new()}
     return quads
 end
 
@@ -96,6 +96,8 @@ function MetaChunk:setupBuild(what_quad_num)
     return this_quad:setupBuild()
 end
 
+-->>-----------------------------------<<--
+
 --local map_obj = {MetaChunk:zeroed()}
 local map_obj = {{}}
 local map_obj_offsets = {0,0}   -- offsets logical 0,0 in the array in order to translate it to "real" 0,0
@@ -106,7 +108,7 @@ local function gen_map_obj()
     local size = 30 -- generate 30x30 square of chunks
     for zindex, size, 1 do
         for xindex, size, 1 do
-            map_obj[x][z] = MetaChunk:zeroed()
+            map_obj[x][z] = MetaChunk:new()
         end
     end
 end

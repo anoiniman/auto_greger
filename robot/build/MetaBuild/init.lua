@@ -65,7 +65,9 @@ function Module:rotateAndTranslatePrimitive(quad_num, logical_chunk_height)
         origin_block[2] = origin_block[2] + 8
     else
         print(comms.robot_send("error", "MetaBuild rotatePrimitive impossible quad_num: " .. quad_num))
+        return false
     end
+    return true
 end
 
 --[[function Module:translatePrimitive(quad_num)
@@ -79,11 +81,13 @@ end
 function Module:setupBuild()
     local base_table = self.primitive.base_table
 
-    if self.s_interface == nil then self.s_interface = SchematicInterface:new()
+    if self.s_interface == nil then self.s_interface = SchematicInterface:new() end
     self.s_interface.dictionary = primitive.dictionary
     self.s_interface.origin_block = primitive.origin_block
 
-    self:checkHumanMap(base_table, primitive.name) -- sanity check
+    if self:checkHumanMap(base_table, primitive.name) ~= 0 then -- sanity check
+        return false
+    end
 
     -- Build the sparse array
     local iter_function = nil

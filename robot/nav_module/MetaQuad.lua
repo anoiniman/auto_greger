@@ -14,10 +14,10 @@ local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
 -- make a convert rel to quad and back function somewhere
 local MetaQuad = {
     quad = 0 -- if quad = 0 it is because we still haven't been neither "marked", nor "build"
-    build = MetaBuild:zeroed() -- if build.isBuilt() returns false.....
+    build = MetaBuild:new() -- if build.isBuilt() returns false.....
     doors = {}
 }
-function MetaQuad:zeroed()
+function MetaQuad:new()
     return deep_copy.copy_table(self, pairs)
 end
 
@@ -69,9 +69,17 @@ function MetaQuad:setupBuild(chunk_height)
         print(comms.robot_send("error", "remove build before trying to build over build (not Implemented yet tho)"))
         return false
     end
+    if self.quad == 0 then
+        print(comms.robot_send("error", "you have to initialize the quad first with set_quad you dum dum"))
+        return false
+    end
     -- Now we must rotate and translate the build in rel chunk space according to quad number, before creating the build structure
-    self.build:rotateAndTranslatePrimitive(self.quad, chunk_height)
-    self.build:setupBuild() -- Build the data-structures from the rotated primitive
+    if  not self.build:rotateAndTranslatePrimitive(self.quad, chunk_height)
+        or not self.build:setupBuild() -- Build the data-structures from the rotated primitive
+    then
+        self.build = MetaBuild:new() -- better reset just for in case
+        return false
+    end
     self.build:dumpPrimitive() -- And then we must dump the primitive, to save memory
     return true
 end

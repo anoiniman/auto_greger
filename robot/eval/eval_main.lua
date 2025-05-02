@@ -11,7 +11,8 @@ local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 
 local debug = require("eval.debug")
-local navigate_chunk = require("eval.navigate_chunk")
+local navigate = require("eval.navigate")
+local build = require("eval.build")
 
 function module.eval_command(command_arguments)
     local prio = table.remove(command_arguments, 1)
@@ -25,7 +26,11 @@ function module.eval_command(command_arguments)
     elseif command == "debug" then
         return debug.debug(arguments)
     elseif command == "navigate_chunk" then
-        return navigate_chunk.navigate(arguments)
+        return navigate.navigate_chunk(arguments)
+    elseif command == "navigate_rel" then
+        return navigate.navigate_rel(arguments)
+    elseif command == "build_setup" then
+        return build.setup_build(arguments)
     end
     return nil
 end
