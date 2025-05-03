@@ -37,9 +37,9 @@ function module.mark_chunk(arguments)
         return nil
     end
 
-    local at_what_height = arguments[4]
+    local at_what_height = tonumber(arguments[4])
     if at_what_height == nil then
-        print(comms.robot_send("error", "mark_chunk -- no height provided"))
+        print(comms.robot_send("error", "mark_chunk -- no height provided or NaN"))
         return nil
     end
 

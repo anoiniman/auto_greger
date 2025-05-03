@@ -39,7 +39,7 @@ function MetaChunk:mark(as_what, height)
         print(comms.robot_send("error", "module.mark_chunk invalid c_type")) 
         return false
     end
-    if height < 0 or height > 255 then
+    if height == nil or height < 0 or height > 255 then
         print(comms.robot_send("error", "module.mark_chunk invalid height")) 
         return false
     end
@@ -141,8 +141,9 @@ end
 
 local function chunk_exists(what_chunk)
     local x = what_chunk[1]; local z = what_chunk[2];
-    if map_obj[x] == nil or map_obj[x][z] then
+    if map_obj[x] == nil or map_obj[x][z] == nil then
         print(comms.robot_send("error", "ungenerated chunk")) 
+        return nil
     end
     return map_obj[x][z]
 end
