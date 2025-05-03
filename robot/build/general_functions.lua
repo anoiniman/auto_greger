@@ -8,6 +8,8 @@ function module.iter(base_table, goal, segments)
     local iteration = 0
     return function ()
         iteration = iteration + 1 -- later indexes into 1,2,3
+        if iteration > goal then return nil end -- gg
+
         local cur_base = base_table[iteration]
 
         if cur_base == nil then cur_base = base_table["def"] end
