@@ -124,7 +124,7 @@ local map_obj_offsets = {0,0}   -- offsets logical 0,0 in the array in order to 
 
 function module.gen_map_obj(offset)
     map_obj_offsets = offset
-    if map_obj[0][0] ~= nil then
+    if map_obj[1][1] ~= nil then
         print(comms.robot_send("error", "map_obj already generated"))
     end
 
