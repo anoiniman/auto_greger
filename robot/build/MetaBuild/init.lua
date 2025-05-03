@@ -117,18 +117,20 @@ function Module:require(name)
         return true
     end
     
-    dofile("/home/robot/build/" .. name .. ".lua")
-    no_error, build_table = pcall()
-    if no_error then
-        self.primitive = build_table:new()
-        primitive_cache[name] = build_table
-        self:initPrimitive()
-
-        return true
+    local path = "/home/robot/build/" .. name .. ".lua"
+    local build_table = nil
+    if filesystem.exists(path) and not filesystem.isDirectory(path) then
+        build_table = dofile(path)
     else
         print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
         return false
     end
+
+    self.primitive = build_table:new()
+    primitive_cache[name] = build_table
+    self:initPrimitive()
+
+    return true
 end
 
 function Module:getName()
