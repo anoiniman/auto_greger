@@ -1,4 +1,5 @@
 local deep_copy = require("deep_copy")
+local comms = require("comms")
 local serialize = require("serialization")
  
 -- this either really cooks, or really fucks us over, who cares
@@ -23,9 +24,9 @@ function module.iter(base_table, goal, segments)
 
         local square_segment_to_return = deep_copy.copy_table(cur_base[2], ipairs)  -- as you can see meta-data is stripped, I mean,
                                                                                     -- it simply isn't returned
-        for _, value in pairs(cur_segment) do
-            local term = table.remove(value, 1)
-            for _, replace_index in pairs(value) do
+        for _, replaces in pairs(cur_segment) do
+            local term = replaces[1]
+            for _, replace_index in pairs(replaces[2]) do
                 square_segment_to_return[replace_index] = term
                 print(comms.robot_send("debug", "iter_func -> \n" .. serialize.serialize(square_segment_to_return, true)))
             end
