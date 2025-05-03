@@ -80,7 +80,7 @@ function MetaSchematic:parseStringArr(string_array, square_index)
                 local new_obj = MSChunk:new(dist, char)
                 record_special(new_obj, special_table)
                 table.insert(line, new_obj)
-                print(comms.robot_send("debug", char .. "-" .. dist))
+                --print(comms.robot_send("debug", char .. "-" .. dist))
             end -- if
             table.insert(print_table, char)
 

@@ -1,4 +1,5 @@
 local deep_copy = require("deep_copy")
+local serialize = require("serialization")
  
 -- this either really cooks, or really fucks us over, who cares
 -- friendly reminder that tables are passed by reference, otherwise this wouldn't work
@@ -11,24 +12,25 @@ function module.iter(base_table, goal, segments)
         if iteration > goal then return nil end -- gg
 
         local cur_base = base_table[iteration]
-
         if cur_base == nil then cur_base = base_table["def"] end
         --if cur_base == nil then cur_base = base_table["o_def"] end
 
         local cur_segment = segments[iteration]
         if cur_segment == nil then
+            print(comms.robot_send("debug", "iter_func -- segment at iter: " .. tostring(iteration) .. " -- is null"))
             return iteration, cur_base[2]
         end
 
-        local height_segment_to_return = deep_copy.copy_table(cur_base[2], ipairs)  -- as you can see meta-data is stripped, I mean,
+        local square_segment_to_return = deep_copy.copy_table(cur_base[2], ipairs)  -- as you can see meta-data is stripped, I mean,
                                                                                     -- it simply isn't returned
         for _, value in pairs(cur_segment) do
             local term = table.remove(value, 1)
             for _, replace_index in pairs(value) do
-                height_segment_to_return[replace_index] = term
+                square_segment_to_return[replace_index] = term
+                print(comms.robot_send("debug", "iter_func -> \n" .. serialize.serialize(square_segment_to_return, true)))
             end
         end
-        return iteration, height_segment_to_return  
+        return iteration, square_segment_to_return  
     end
 end
 
