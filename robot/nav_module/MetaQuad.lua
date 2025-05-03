@@ -22,7 +22,7 @@ function MetaQuad:new()
 end
 
 function MetaQuad:getName()
-    return build:getName()
+    return self.build:getName()
 end
 
 function MetaQuad:getNum()
@@ -30,10 +30,11 @@ function MetaQuad:getNum()
 end
 
 function MetaQuad:isBuilt()
-    return build:isBuilt()
+    return self.build:isBuilt()
 end
 
 function MetaQuad:actualizeDoors() -- Transform the door definition into actual rel coordinates
+    local quad = self.quad
     for index, door in ipairs(self.doors) do
         if quad == 1 then
             self.doors:mirror(true, false)
@@ -61,7 +62,7 @@ end
 
 function MetaQuad:setQuad(quad_num, name)
     self.quad = quad_num
-    self:requireBuild(name)
+    return self:requireBuild(name)
 end
 
 function MetaQuad:setupBuild(chunk_height)
