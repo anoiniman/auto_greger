@@ -96,7 +96,7 @@ function MetaChunk:setupBuild(what_quad_num)
     if not self:quadChecks(what_quad_num, "setupBuild") then return false end
 
     local this_quad = self.meta_quads[what_quad_num]
-    if this_quad.isBuilt() then
+    if this_quad:isBuilt() then
         print(comms.robot_send("error", "cannot prepare to build what is already built!"))
         return false
     end
@@ -107,7 +107,7 @@ function MetaChunk:doBuild(what_quad_num)
     if not self:quadChecks(what_quad_num, "setupBuild") then return false end
 
     local this_quad = self.meta_quads[what_quad_num]
-    if this_quad.isBuilt() then
+    if this_quad:isBuilt() then
         print(comms.robot_send("error", "cannot build what is already built!"))
         return false
     end
