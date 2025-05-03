@@ -13,8 +13,8 @@ local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
 
 -- make a convert rel to quad and back function somewhere
 local MetaQuad = {
-    quad = 0 -- if quad = 0 it is because we still haven't been neither "marked", nor "build"
-    build = MetaBuild:new() -- if build.isBuilt() returns false.....
+    quad = 0, -- if quad = 0 it is because we still haven't been neither "marked", nor "build"
+    build = MetaBuild:new(), -- if build.isBuilt() returns false.....
     doors = {}
 }
 function MetaQuad:new()
@@ -33,7 +33,7 @@ function MetaQuad:isBuilt()
     return build:isBuilt()
 end
 
-local function MetaQuad:actualizeDoors() -- Transform the door definition into actual rel coordinates
+function MetaQuad:actualizeDoors() -- Transform the door definition into actual rel coordinates
     for index, door in ipairs(self.doors) do
         if quad == 1 then
             self.doors:mirror(true, false)

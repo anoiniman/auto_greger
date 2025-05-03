@@ -16,7 +16,7 @@ local Module = {
     built = false,
     primitive = {},
 
-    build_stack = nil
+    build_stack = nil,
     s_interface = nil
 }
 

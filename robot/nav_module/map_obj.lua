@@ -117,8 +117,8 @@ local map_obj_offsets = {0,0}   -- offsets logical 0,0 in the array in order to 
 
 local function gen_map_obj()
     local size = 30 -- generate 30x30 square of chunks
-    for zindex, size, 1 do
-        for xindex, size, 1 do
+    for z = 1, size, 1 do
+        for x = 1, size, 1 do
             map_obj[x][z] = MetaChunk:new()
         end
     end

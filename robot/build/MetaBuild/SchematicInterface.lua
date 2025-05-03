@@ -4,12 +4,12 @@ local deep_copy = require("deep_copy")
 local MetaSchematic, SpecialBlockEnum = require("build.MetaBuild.MetaSchematic")
 
 local rel_positions = {0, 0, 0} -- x, z, y
-function rel_posittions:new()
+function rel_positions:new()
     return deep_copy.copy(self, ipairs)
 end
 
 local BuildStack = { -- reading head maxxed printer pilled state machine adjacent
-    rel = rel_positions:new()
+    rel = rel_positions:new(),
 
     logical_x = 0,
     logical_z = 0,
@@ -27,7 +27,7 @@ local SchematicInterface = {
         x = 0,
         z = 0,
         y = 0
-    }
+    },
     special_blocks = {},
 
     build_stack = BuildStack:new()
