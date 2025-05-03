@@ -100,7 +100,7 @@ function MetaChunk:setupBuild(what_quad_num)
         print(comms.robot_send("error", "cannot prepare to build what is already built!"))
         return false
     end
-    return this_quad:setupBuild()
+    return this_quad:setupBuild(self.height)
 end
 
 function MetaChunk:doBuild(what_quad_num)
