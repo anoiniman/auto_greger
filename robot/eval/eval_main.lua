@@ -29,6 +29,8 @@ function module.eval_command(command_arguments)
         return navigate.navigate_chunk(arguments)
     elseif command == "navigate_rel" then
         return navigate.navigate_rel(arguments)
+    elseif command == "generate_chunks" then
+        return navigate.generate_chunks(arguments)
     elseif command == "build_mark_chunk" then
         return build.mark_chunk(arguments)
     elseif command == "build_add_quad" then

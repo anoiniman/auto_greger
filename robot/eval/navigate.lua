@@ -7,6 +7,7 @@ local serialize = require("serialization")
 local comms = require("comms")
 
 local nav = require("nav_module.nav_obj")
+local map = require("nav_module.map_obj")
 
 function module.navigate_chunk(arguments)
     local what_kind = arguments[1]
@@ -18,6 +19,18 @@ function module.navigate_chunk(arguments)
     if not finished then
         return {50, "navigate_chunk", what_kind}
     end
+    return nil
+end
+
+function module.generate_chunks(arguments)
+    local x = arguments[1]; local z = arguments[2]
+    if x == nil or z == nil then
+        print(comms.robot_send("debug", "generate chunks, no x, or z provided for offset, assuming {0,0}"))
+        x = 0; z = 0
+    end
+
+    local offset = {x,z}
+    map.gen_map_obj(offset)
     return nil
 end
 
