@@ -31,6 +31,8 @@ function module.eval_command(command_arguments)
         return navigate.navigate_rel(arguments)
     elseif command == "build_mark_chunk" then
         return build.mark_chunk(arguments)
+    elseif command == "build_add_quad" then
+        return build.add_quad(arguments)
     elseif command == "build_setup" then
         return build.setup_build(arguments)
     elseif command == "build_do_build" then

@@ -26,20 +26,27 @@ local chunk_type = {
 -- is_home basically means: is a part of the base
 local MetaChunk = {
     c_type = chunk_type.Nil,
+    height = -1,
     meta_quads = nil
 }
 function MetaChunk:new()
     return deep_copy.copy_table(self, pairs)
 end
 
-function MetaChunk:mark(c_type)
+function MetaChunk:mark(c_type, height)
     local c_type = chunk_type[as_what]
     if c_type == nil then
-        print(comms.robot_send("error", "module.mark_chunk 01")) 
+        print(comms.robot_send("error", "module.mark_chunk invalid c_type")) 
+        return false
+    end
+    if height < 0 or height > 255 then
+        print(comms.robot_send("error", "module.mark_chunk invalid height")) 
         return false
     end
 
     self.c_type = c_type
+    self.height = height
+
     return true
 end
 
@@ -134,6 +141,20 @@ local function chunk_exists(what_chunk)
     return map_chunk
 end
 
+function module.mark_chunk(what_chunk, as_what, at_height)
+    local map_chunk = chunk_exists(what_chunk)
+    if map_chunk == nil then return false end
+
+    return map_chunk:mark(as_what, at_height)
+end
+
+function module.add_quad(what_chunk, what_quad, primitive_name)
+    local map_chunk = chunk_exists(what_chunk)
+    if map_chunk == nil then return false end
+
+    return map_chunk:addQuad(what_quad, primitive_name)
+end
+
 function module.setup_build(what_chunk, what_quad)
     local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
@@ -146,13 +167,6 @@ function module.do_build(what_chunk, what_quad)
     if map_chunk == nil then return false end
 
     return map_chunk:doBuild(what_quad) -- pay attention to what are we returning
-end
-
-function module.mark_chunk(what_chunk, as_what)
-    local map_chunk = chunk_exists(what_chunk)
-    if map_chunk == nil then return false end
-
-    return map_chunk:mark(as_what)
 end
 
 return module

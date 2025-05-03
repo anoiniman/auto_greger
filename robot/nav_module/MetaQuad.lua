@@ -59,8 +59,8 @@ function require_build(name)
     return true
 end
 
-function MetaQuad:setQuad(quad, name)
-    self.quad = quad
+function MetaQuad:setQuad(quad_num, name)
+    self.quad = quad_num
     self:require_build(name)
 end
 

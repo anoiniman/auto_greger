@@ -26,14 +26,20 @@ function module.mark_chunk(arguments)
     local x = tonumber(arguments[1])
     local z = tonumber(arguments[2])
     if tonumber(x) == nil or tonumber(z) == nil then
-        print(comms.robot_send("error", "mark_chunk, malformed command, x or z not number or nil"))
+        print(comms.robot_send("error", "mark_chunk -- malformed command, x or z not number or nil"))
         return nil
     end
     
     local what_chunk = {x, z}
     local as_what = arguments[3]
     if as_what == nil then
-        print(comms.robot_send("error", "chunk as what is nil"))
+        print(comms.robot_send("error", "mark_chunk -- chunk as what is nil"))
+        return nil
+    end
+
+    local at_what_height = arguments[4]
+    if at_what_height == nil then
+        print(comms.robot_send("error", "mark_chunk -- no height provided"))
         return nil
     end
 
@@ -43,6 +49,18 @@ function module.mark_chunk(arguments)
         print(comms.robot_send("error", "mark_chunk -- failed somewhere"))
         return nil
     end
+end
+
+function module.add_quad(arguments)
+    local result, what_chunk, what_quad = common_checks(arguments)
+    local primitive_name = arguments[4]
+    if primitive_name == nil then
+        print(comms.robot_send("error, load_primitive_at, no primitive name provided"))
+        return nil
+    end
+
+    map_obj.add_quad(what_chunk, what_quad, primitive_name)
+    return nil
 end
 
 function module.setup_build(arguments)
