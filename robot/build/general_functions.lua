@@ -1,3 +1,5 @@
+local deep_copy = require("deep_copy")
+ 
 -- this either really cooks, or really fucks us over, who cares
 -- friendly reminder that tables are passed by reference, otherwise this wouldn't work
 local module = {}

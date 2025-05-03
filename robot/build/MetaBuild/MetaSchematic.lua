@@ -71,6 +71,7 @@ function MetaSchematic:parseStringArr(string_array, square_index)
         local dist = 0
         local line_index = 1
 
+        local print_table = {}
         for char in string.gmatch(str, ".") do
             max_line = math.max(max_line, line_index)
             local line = return_or_init_table_table(square, line_index)
@@ -79,11 +80,14 @@ function MetaSchematic:parseStringArr(string_array, square_index)
                 local new_obj = MSChunk:new(dist, char)
                 record_special(new_obj, special_table)
                 table.insert(line, new_obj)
+                print(char .. "-" .. dist)
             end -- if
+            table.insert(print_table, char)
 
             line_index = line_index + 1
             dist = dist + 1
         end -- for char
+        print(table.concat(print_table))
         square_index = square_index + 1
     end -- for str
     return special_table

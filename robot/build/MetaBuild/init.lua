@@ -98,14 +98,16 @@ function Module:setupBuild()
     if self.primitive.iter == nil then
         for index, table_obj in ipairs(base_table) do -- it is expected that table object does not include meta-table
             self.s_interface:parseStringArr(table_obj, index)
-            max_index = max_index + 1
+            --max_index = max_index + 1
         end
     else
-        for index, table_obj in self.primitive:iter(base_table) do -- it is expected that table object does not include meta-table
+        for index, table_obj in self.primitive:iter(base_table) do -- it is expected that table object does not include meta-data
             self.s_interface:parseStringArr(table_obj, index)
-            max_index = max_index + 1
+            print(comms.robot_send("debug", "MetaBuild:setupBuild() we looped once m8"))
+            --max_index = max_index + 1
         end
     end
+    print(comms.robot_send("debug", "we facking did it m8!"))
 
     self.is_nil = false
     return true

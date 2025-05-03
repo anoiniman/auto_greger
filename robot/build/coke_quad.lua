@@ -41,7 +41,7 @@ Module.doors[1]:doorX(6,2)
 -- consuming what function is to be executed
 -- "Which Iteration" <-> "Which Height/Level"
 function Module:iter()
-    general_functions.iter(self.base_table, 3, self.segments)
+    return general_functions.iter(self.base_table, 3, self.segments)
 end
 
 function Module:new()
