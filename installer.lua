@@ -4,9 +4,10 @@ local io = require("io")
 
 local args = {...}
 local counter = 0
+local branch = "master"
 
 function download(origin, where)
-    local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/master" .. origin
+    local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/" .. branch .. origin
 
     local tmp_path = "/tmp/" .. counter .. ".lua"
     os.execute("wget -f " .. link .. " " .. tmp_path)
@@ -116,8 +117,10 @@ function robot_meta_build()
     download("/robot/build/MetaBuild/SchematicInterface.lua", "self")
 end
 
+if check_in_args(args, "--debug-branch") then branch = "debug" end
 
 local is_all = check_in_args(args, "all") or check_in_args(args, "--all") or check_in_args(args, "-a")
+if is_all or check_in_args(args, "shared") then shared() end
 
 if args[1] == "robot" then
     if is_all or check_in_args(args, "top"  )    then    robot_top_level()          end
