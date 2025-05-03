@@ -87,7 +87,7 @@ function SchematicInterface:doBuild()
     end
 
     local coords = deep_copy.copy(rel, ipairs)
-    return true, "build", coords, translated_symbol
+    return true, "continue", coords, translated_symbol
 end
 
 return SchematicInterface
