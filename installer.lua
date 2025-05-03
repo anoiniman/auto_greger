@@ -124,7 +124,7 @@ if args[1] == "robot" then
     if is_all or check_in_args(args, "eval" )    then    robot_eval()               end
     if is_all or check_in_args(args, "nav"  )    then    robot_navigation()         end
     if is_all or check_in_args(args, "bldp" )    then    robot_build_primitives()   end
-    if is_all or check_in_args(args, "mbld" )    then    robot_meta_builld()        end
+    if is_all or check_in_args(args, "mbld" )    then    robot_meta_build()        end
 
 elseif args[1] == "controller" then
     if not filesystem.isDirectory("/home/controller") then 
