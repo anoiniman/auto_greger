@@ -135,21 +135,21 @@ local function chunk_exists(what_chunk)
 end
 
 function module.setup_build(what_chunk, what_quad)
-    local map_chunk = chunk_exits(what_chunk)
+    local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:setupBuild(what_quad) -- pay attention to what are we returning
 end
 
 function module.do_build(what_chunk, what_quad)
-    local map_chunk = chunk_exits(what_chunk)
+    local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:doBuild(what_quad) -- pay attention to what are we returning
 end
 
 function module.mark_chunk(what_chunk, as_what)
-    local map_chunk = chunk_exits(what_chunk)
+    local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:mark(as_what)
