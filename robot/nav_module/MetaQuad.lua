@@ -26,7 +26,7 @@ function MetaQuad:getName()
 end
 
 function MetaQuad:getNum()
-    return quad
+    return self.quad
 end
 
 function MetaQuad:isBuilt()
@@ -50,8 +50,8 @@ function MetaQuad:actualizeDoors() -- Transform the door definition into actual 
     end
 end
 
-function require_build(name)
-    local result = self.build.require(name)
+function MetaQuad:requireBuild(name)
+    local result = self.build:require(name)
     if result == false then return false end
 
     self.doors = deep_copy.copy(self.build:getDoors(), pairs)
@@ -61,7 +61,7 @@ end
 
 function MetaQuad:setQuad(quad_num, name)
     self.quad = quad_num
-    self:require_build(name)
+    self:requireBuild(name)
 end
 
 function MetaQuad:setupBuild(chunk_height)

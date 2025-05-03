@@ -13,8 +13,8 @@ local function common_checks(arguments)
     end
     
     local what_chunk = {x, z}
-    local what_quad = arguments[3]
-    if tonumber(what_quad) == nil then
+    local what_quad = tonumber(arguments[3])
+    if what_quad == nil then
         print(comms.robot_send("error", "setup_build / do_build, malformed command, what_quad not number or nil"))
         return false
     end
@@ -43,7 +43,7 @@ function module.mark_chunk(arguments)
         return nil
     end
 
-    if map_obj.mark_chunk(what_chunk, as_what) then -- if we succeded
+    if map_obj.mark_chunk(what_chunk, as_what, at_what_height) then -- if we succeded
         return nil 
     else 
         print(comms.robot_send("error", "mark_chunk -- failed somewhere"))
