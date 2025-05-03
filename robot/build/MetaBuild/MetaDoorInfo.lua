@@ -5,7 +5,7 @@ local deep_copy = require("deep_copy")
 -- their "default" definition inside the build-source files should be assuming quad 2
 local MetaDoorInfo = {x = -1, z = -1, len = -1}
 function MetaDoorInfo:zeroed()
-    return deep_copy(self, pairs)
+    return deep_copy.copy(self, pairs)
 end
 
 function MetaDoorInfo:doorX(x, len)
