@@ -1,4 +1,5 @@
 local math = require("math")
+local filesystem = require("filesystem")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")
@@ -115,8 +116,9 @@ function Module:require(name)
         self:initPrimitive()
         return true
     end
-
-    no_error, build_table = pcall(dofile("/home/robot/build/" .. name))
+    
+    dofile("/home/robot/build/" .. name .. ".lua")
+    no_error, build_table = pcall()
     if no_error then
         self.primitive = build_table:new()
         primitive_cache[name] = build_table
