@@ -91,19 +91,20 @@ function Module:setupBuild()
     end
 
     -- Build the sparse array
-    local iter_function = nil
-    if self.primitive.iter == nil then -- if we haven't defined a custom iterator, then the base_table must be ipairs-able
-        iter_function = ipairs
-    else
-        iter_function = self.primitive.iter
-    end
 
     -- ATTENTION: VVVVVVVVVVVVVVVVVVVVVVVVV
     -- if returning the length of the MetaSchematic tables is faulty, we'll need to count the height of buildings here
     -- thanks to the magic of lua bogus arguments are ok!
-    for index, table_obj in iter_function(base_table) do -- it is expected that table object does not include meta-data
-        self.s_interface:parseStringArr(table_obj, index)
-        max_index = max_index + 1
+    if self.primitive.iter == nil then
+        for index, table_obj in ipairs(base_table) do -- it is expected that table object does not include meta-table
+            self.s_interface:parseStringArr(table_obj, index)
+            max_index = max_index + 1
+        end
+    else
+        for index, table_obj in self.primitive:iter(base_table) do -- it is expected that table object does not include meta-table
+            self.s_interface:parseStringArr(table_obj, index)
+            max_index = max_index + 1
+        end
     end
 
     self.is_nil = false
