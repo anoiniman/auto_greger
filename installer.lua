@@ -43,37 +43,88 @@ function download(origin, where)
     counter = counter + 1
 end
 
-if not filesystem.isDirectory("/usr/lib") then
-    filesystem.makeDirectory("/usr/lib")
+function check_in_args(arguments, check)
+    for _, v in ipairs(arguments) do
+        if v == check then return true end
+    end
+    return false
 end
 
-download("/shared/comms.lua", "/usr/lib/comms.lua")
-download("/shared/sym_import.lua", "/usr/lib/sym_import.lua")
+function shared()
+    if not filesystem.isDirectory("/usr/lib") then
+        filesystem.makeDirectory("/usr/lib")
+    end
 
-if args[1] == "robot" then
+    download("/shared/comms.lua", "/usr/lib/comms.lua")
+    download("/shared/deep_copy.lua", "/usr/lib/deep_copy.lua")
+end
+
+function robot_top_level()
     if not filesystem.isDirectory("/home/robot") then 
         filesystem.makeDirectory("/home/robot")
     end
 
     download("/robot/geolyzer_wrapper.lua", "self")
-    --download("/robot/nav_module.lua", "self")
     download("/robot/robo_main.lua", "self")
     download("/robot/robo_routine.lua", "self")
-    
+end
+
+function robot_eval()
     if not filesystem.isDirectory("/home/robot/eval") then
        filesystem.makeDirectory("/home/robot/eval")
     end
-    download("/robot/eval/eval_main.lua", "self")
-    download("/robot/eval/debug.lua", "self")
-    download("/robot/eval/navigate_chunk.lua", "self")
 
+    download("/robot/eval/build.lua", "self")
+    download("/robot/eval/debug.lua", "self")
+    download("/robot/eval/eval_main.lua", "self")
+    download("/robot/eval/navigate.lua", "self")
+end
+
+function robot_navigation()
     if not filesystem.isDirectory("/home/robot/nav_module") then
        filesystem.makeDirectory("/home/robot/nav_module")
     end
 
-    download("/robot/nav_module/nav_obj.lua", "self")
-    download("/robot/nav_module/nav_interface.lua", "self")
     download("/robot/nav_module/chunk_move.lua", "self")
+    download("/robot/nav_module/map_obj.lua", "self")
+    download("/robot/nav_module/MetaQuad.lua", "self")
+
+    download("/robot/nav_module/nav_interface.lua", "self")
+    download("/robot/nav_module/nav_obj.lua", "self")
+
+    download("/robot/nav_module/rel_move.lua", "self")
+end
+
+function robot_build_primitives()
+    if not filesystem.isDirectory("/home/robot/build") then
+       filesystem.makeDirectory("/home/robot/build")
+    end
+
+    download("/robot/build/coke_quad.lua", "self")
+    download("/robot/build/hole_home.lua", "self")
+end
+
+function robot_meta_build()
+    if not filesystem.isDirectory("/home/robot/build/MetaBuild") then
+       filesystem.makeDirectory("/home/robot/build/MetaBuild")
+    end
+
+    download("/robot/build/general_functions.lua", "self")
+    download("/robot/build/MetaBuild/init.lua", "self")
+    download("/robot/build/MetaBuild/MetaDoorInfo.lua", "self")
+    download("/robot/build/MetaBuild/MetaSchematic.lua", "self")
+    download("/robot/build/MetaBuild/SchematicInterface.lua", "self")
+end
+
+
+local is_all = check_in_args(args, "all") or check_in_args(args, "--all") or check_in_args(args, "-a")
+
+if args[1] == "robot" then
+    if is_all or check_in_args(args, "top"  )    then    robot_top_level()          end
+    if is_all or check_in_args(args, "eval" )    then    robot_eval()               end
+    if is_all or check_in_args(args, "nav"  )    then    robot_navigation()         end
+    if is_all or check_in_args(args, "bldp" )    then    robot_build_primitives()   end
+    if is_all or check_in_args(args, "mbld" )    then    robot_meta_builld()        end
 
 elseif args[1] == "controller" then
     if not filesystem.isDirectory("/home/controller") then 

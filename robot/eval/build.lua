@@ -67,6 +67,7 @@ function module.do_build(arguments)
             error("todo - basic inventory management, aka, check if we have such a block")
             return {"navigate_rel", "and_build", coords, block_name}
         elseif status == "done" then
+            -- TODO: de-allocate down the unneeded build-files
             return nil
         end
     else 
