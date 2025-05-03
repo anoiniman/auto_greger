@@ -33,7 +33,7 @@ function MetaChunk:new()
     return deep_copy.copy_table(self, pairs)
 end
 
-function MetaChunk:mark(c_type, height)
+function MetaChunk:mark(as_what, height)
     local c_type = chunk_type[as_what]
     if c_type == nil then
         print(comms.robot_send("error", "module.mark_chunk invalid c_type")) 
@@ -141,12 +141,10 @@ end
 
 local function chunk_exists(what_chunk)
     local x = what_chunk[1]; local z = what_chunk[2];
-    local map_chunk = map_obj[x][z]
-    if map_chunk == nil then
+    if map_obj[x] == nil or map_obj[x][z] then
         print(comms.robot_send("error", "ungenerated chunk")) 
     end
-
-    return map_chunk
+    return map_obj[x][z]
 end
 
 function module.mark_chunk(what_chunk, as_what, at_height)
