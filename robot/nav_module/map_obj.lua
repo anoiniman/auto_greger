@@ -117,23 +117,26 @@ end
 -->>-----------------------------------<<--
 
 --local map_obj = {MetaChunk:zeroed()}
-local map_obj = {{}}
+local map_obj = {}
 local map_obj_offsets = {0,0}   -- offsets logical 0,0 in the array in order to translate it to "real" 0,0
                                 -- what this means is that if set the "origin", the "map centre" of the robot
                                 -- à posteriori then we don't need to re-alloc the array
 
 function module.gen_map_obj(offset)
     map_obj_offsets = offset
-    if map_obj[1][1] ~= nil then
+    if map_obj[1] ~= nil then
         print(comms.robot_send("error", "map_obj already generated"))
+        return false
     end
 
     local size = 30 -- generate 30x30 square of chunks
     for x = 1, size, 1 do
+        map_obj[x] = {}
         for z = 1, size, 1 do
             map_obj[x][z] = MetaChunk:new()
         end
     end
+    return true
 end
 
 local function chunk_exists(what_chunk)
