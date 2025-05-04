@@ -9,13 +9,13 @@ local comms = require("comms")
 -- if we want to get fancy, we can mark-down door locations and shit, so that we can have walls and enclosed     buildigs etc
 
 -- Meta schematic chunk
-local MSChunk = {dist = 0, symbol = "0"}
+local MSChunk = {x = 0, symbol = "0"}
 function MSChunk:zeroed()
     return deep_copy.copy(self, pairs)
 end
-function MSChunk:new(dist, symbol)
+function MSChunk:new(x, symbol)
     local obj = self:zeroed()
-    obj.dist = dist
+    obj.x = x
     obj.symbol = symbol
     return obj
 end
@@ -47,16 +47,20 @@ local function return_or_init_table_table(tbl, index) -- for maybe nils
     return tbl[index] -- returns ref to inner table
 end
 
-local function record_special(ms_chunk, tbl) -- because a table is ref/pointer it's fine
-    local obj_detected = true
+local function record_special(symbol, x, z, y, tbl) -- because a table is ref/pointer it's fine
+    local obj_detected = false
     if ms_chunk.symbol == '*' then
-        table.insert(tbl, ms_chunk)
-    else
-        obj_detected = false
+        obj_detected = true
     end
 
-    if obj_detected and tbl == nil then tbl = {} end
+    if obj_detected then
+        if tbl == nil then tbl = {} end
+        local full_obj = {symbol, x, z, y}
+        table.insert(tbl, full_obj)
+    end
 end
+
+-- btw- no longer using dist, now it is straight up x coord of the thing
 
 -- I hope no return needed, we're modifying self (a ref) anyhow
 -- 2d slice of height 1, where 1 string is 1 line (x,z)
@@ -68,7 +72,7 @@ function MetaSchematic:parseStringArr(string_array, square_index)
     local max_line = 0
 
     for _, str in ipairs(string_array) do
-        local dist = 0
+        local x_coord = 0
         local line_index = 1
 
         local print_table = {}
@@ -77,7 +81,7 @@ function MetaSchematic:parseStringArr(string_array, square_index)
             local line = return_or_init_table_table(square, line_index)
 
             if char ~= '-' then
-                local new_obj = MSChunk:new(dist, char)
+                local new_obj = MSChunk:new(x_coord, char)
                 record_special(new_obj, special_table)
                 table.insert(line, new_obj)
                 --print(comms.robot_send("debug", char .. "-" .. dist))
@@ -85,7 +89,7 @@ function MetaSchematic:parseStringArr(string_array, square_index)
             table.insert(print_table, char)
 
             line_index = line_index + 1
-            dist = dist + 1
+            x_coord = x_coord + 1
         end -- for char
         print(comms.robot_send("debug", table.concat(print_table)))
         square_index = square_index + 1
