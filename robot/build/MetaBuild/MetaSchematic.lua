@@ -49,7 +49,7 @@ end
 
 local function record_special(symbol, x, z, y, tbl) -- because a table is ref/pointer it's fine
     local obj_detected = false
-    if ms_chunk.symbol == '*' then
+    if symbol == '*' then
         obj_detected = true
     end
 
