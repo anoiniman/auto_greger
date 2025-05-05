@@ -1,10 +1,11 @@
-Dear Friend, you got MetaTables completly ballds up, you didn't understand them at all
-now you pay the price, and you shall have to re-write some of your code, in particular
-the code that deals with MetaTables, fortunatly, my friend, you seem to have implemented
-your meta-tables in a way I expect to be fixable by simply treating your "new" and "zeroed"
-calls as returning a deep-copy of the original table, something you might remember
-you have already implemented.
+GT-Ores, once mined, have way to identify them
+Have global inventory tracking be done in the controller, and the robot to 
+only track internal inventory, and, instead of the robot keeping track of 
+base inventory by itself, have it ask the controller computer for the contents of 
+things in storage, and have it send push requests when it adds things to storage,
+also have it so the controller manages where things can be stored, in what storage quads
+and in what chests inside the quads, etc.
 
-Good luck to you, you shall need it.
+Basically keeping on with the rim-world for minecraft sort of concept
 
---- Remember to slam "local" on most of your functions because you have inadvertedly been poluting your namespaces I guess?
+spcecial cases are things like GT-Ores
