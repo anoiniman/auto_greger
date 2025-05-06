@@ -10,7 +10,7 @@ local io = require("io")
 
 local geolyzer = require("geolyzer_wrapper")
 
-function update_pos(direction, nav_obj) -- assuming forward move
+local function update_pos(direction, nav_obj) -- assuming forward move
     local abs = nav_obj.abs
     local rel = nav_obj.rel
     
@@ -39,28 +39,67 @@ function update_pos(direction, nav_obj) -- assuming forward move
     nav_obj.height = height
 end
 
-function change_orientation(goal, nav_obj) 
+local function change_orientation(goal, nav_obj) 
     local orientation = nav_obj.orientation
 
-    while orientation ~= goal do
-        robot.turnRight()
-        if orientation == "north" then
-            orientation = "east"
-        elseif orientation == "east" then
-            orientation = "south"     
-        elseif orientation == "south" then
-            orientation = "west"
-        elseif orientation == "west" then
-            orientation = "north"
-        else
-            print(comms.robot_send("error", "Change_Orientation, Logical Impossibility found"))
+    local raw_orientation = convert_orientation(orientation) - 1
+    local raw_goal = convert_orientation(goal) - 1
+
+    local numeric = raw_orientation % 2
+    local numeric_goal = raw_goal % 2
+
+    -- north 1, % = 1, %4 = 1
+    -- south 2, % = 0, %4 = 2
+
+    -- east 3,  % = 1, %4 = 3
+    -- west 4,  % = 0, %4 = 0
+
+    local mod_difference = numeric - numeric_goal
+    
+    -- if abs(mod_difference) == 1, then it is to the left
+    -- if abs(mod_difference) == 0, then it either is opposite, and so the move direction doesn't matter,
+    --                              or it is to the right
+
+    local move_dir = true
+    if mod_difference == 0 then move_dir = false -- right
+    elseif math.abs(mod_difference) == 1 then move_dir = true -- left
+    else 
+        print(comms.robot_send("error", "logical impossibility detected in changing orientation"))
+        return false
+    end
+
+    while raw_orientation % 4 ~= raw_goal do
+        numeric = raw_orientation % 2
+        if move_dir then
+            robot.turnLeft()
+            -- TODO
         end
     end
 
     nav_obj.orientation = orientation
+    return true
 end
 
-function convert_orientation(nav_obj)
+local function un_convert_orientation(num_side)
+    if num_side == 0 then
+        return "down"
+    elseif num_side == 1 then
+        return "up"
+    elseif num_side == 2 then 
+        return "north"
+    elseif num_side == 3 then
+        return "south"
+    elseif num_side == 4 then
+        return "east"
+    elseif num_side == 5 then
+        return "west"
+    else
+        print(comms.robot_send("error", "un_convert_orientation, logical impossibility"))
+        return "error"
+    end
+end
+
+local function convert_orientation(nav_obj)
     local orientation = nav_obj.orientation
 
     if orientation == "north" then
@@ -73,6 +112,7 @@ function convert_orientation(nav_obj)
         return 5
     else
         print(comms.robot_send("error", "convert_Orientation, Logical Impossibility found"))
+        return -1
     end
 end
 
@@ -128,6 +168,7 @@ function real_move(what_kind, direction, nav_obj)
         elseif err ~= nil and err ~= "impossible move" then
             --local orientation = convert_orientation(nav_obj)
             if geolyzer.compare("log", "naive_contains", sides_api.front) == true then
+                -- TODO: better chopping?
                 robot.swing()
                 return true
             else
