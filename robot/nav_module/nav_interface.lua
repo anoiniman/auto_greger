@@ -42,56 +42,46 @@ end
 local function change_orientation(goal, nav_obj) 
     local orientation = nav_obj.orientation
 
-    local raw_orientation = convert_orientation(orientation) - 1
-    local raw_goal = convert_orientation(goal) - 1
+    local numeric = convert_orientation(orientation) - 2 -- (alignement)
+    local num_goal = convert_orientation(goal) - 2
 
-    local numeric = raw_orientation % 2
-    local numeric_goal = raw_goal % 2
+    local difference = numeric - num_goal
 
-    -- north 1, % = 1, %4 = 1
-    -- south 2, % = 0, %4 = 2
-
-    -- east 3,  % = 1, %4 = 3
-    -- west 4,  % = 0, %4 = 0
-
-    local mod_difference = numeric - numeric_goal
-    
-    -- if abs(mod_difference) == 1, then it is to the left
-    -- if abs(mod_difference) == 0, then it either is opposite, and so the move direction doesn't matter,
-    --                              or it is to the right
-
-    local move_dir = true
-    if mod_difference == 0 then move_dir = false -- right
-    elseif math.abs(mod_difference) == 1 then move_dir = true -- left
-    else 
-        print(comms.robot_send("error", "logical impossibility detected in changing orientation"))
-        return false
-    end
-
-    while raw_orientation % 4 ~= raw_goal do
-        numeric = raw_orientation % 2
-        if move_dir then
-            robot.turnLeft()
-            -- TODO
+    while numeric ~= num_goal do
+        if difference > 0 then
+            if numeric == 4 and num_goal == 1 then
+                robot.turnRight()
+                numeric = 1
+            else
+                robot.turnLeft()
+                numeric = numeric - 1
+            end
+        else -- difference < 0
+            if numeric == 1 and num_goal == 4 then
+                robot.turnLeft()
+                numeric = 4
+            else
+                robot.turnRight()
+                numeric = numeric + 1
+            end
         end
     end
 
-    nav_obj.orientation = orientation
-    return true
+    nav_obj.orientation = goal
 end
 
 local function un_convert_orientation(num_side)
-    if num_side == 0 then
+    if num_side == 1 then
         return "down"
-    elseif num_side == 1 then
+    elseif num_side == 2 then
         return "up"
-    elseif num_side == 2 then 
+    elseif num_side == 3 then 
         return "north"
-    elseif num_side == 3 then
-        return "south"
     elseif num_side == 4 then
         return "east"
     elseif num_side == 5 then
+        return "south"
+    elseif num_side == 6 then
         return "west"
     else
         print(comms.robot_send("error", "un_convert_orientation, logical impossibility"))
@@ -99,17 +89,18 @@ local function un_convert_orientation(num_side)
     end
 end
 
+-- NOT SIDES_API COMPATIBLE ANYMORE
 local function convert_orientation(nav_obj)
     local orientation = nav_obj.orientation
 
     if orientation == "north" then
-        return 2
+        return 3
     elseif orientation == "east" then
         return 4
     elseif orientation == "south" then
-        return 3
-    elseif orientation == "west" then
         return 5
+    elseif orientation == "west" then
+        return 6
     else
         print(comms.robot_send("error", "convert_Orientation, Logical Impossibility found"))
         return -1
@@ -166,7 +157,6 @@ function real_move(what_kind, direction, nav_obj)
             print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
             return false
         elseif err ~= nil and err ~= "impossible move" then
-            --local orientation = convert_orientation(nav_obj)
             if geolyzer.compare("log", "naive_contains", sides_api.front) == true then
                 -- TODO: better chopping?
                 robot.swing()
