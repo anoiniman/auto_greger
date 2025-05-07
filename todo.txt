@@ -9,3 +9,15 @@ and in what chests inside the quads, etc.
 Basically keeping on with the rim-world for minecraft sort of concept
 
 spcecial cases are things like GT-Ores
+-- TODO: Add milestones to distinguish which recipe with the same output to use
+
+about buildings, have it so that if it can't fit all building blocks in inventory for a one pass-build
+or if it unconvinient to do so, split the building of the build into rational divisions, n-layer by
+n-layer? Dynamically to max layers up to a limit of x inventory slots filled? Have a safe-fail in case
+it can't even do one layer without over-flowing, and so it doesn't spin forever?
+-- Bif if true
+
+-- Maybe make it so that once there is a crafting area in the base (maybe with a "cache"-like storage included
+-- in such an area) the robot will no longer use/keep empty reserved it's internal crafting slot, and instead
+-- fully relies on the base's crafting areas, because of the possible "caching" effect, and freeing up
+-- robot internal inventory space this might be an amazing idea

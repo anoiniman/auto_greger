@@ -9,7 +9,7 @@ function module.setup_navigate_rel(x,z,y)
     goal_rel[3] = y
 end
 
-function attempt_move(nav_obj, dir)
+local function attempt_move(nav_obj, dir)
     local result = nil
     if dir ~= nil then
         result = nav.real_move("free", dir, nav_obj)
