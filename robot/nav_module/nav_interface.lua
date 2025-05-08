@@ -134,20 +134,25 @@ function module.r_move(a,b,c)
     real_move(a,b,c)
 end
 
+local empty_table = {}
 -- TODO -> better cave/hole detection so we don't lose ourselves underground
-function real_move(what_kind, direction, nav_obj)
+-- Returning true means move sucesseful
+function real_move(what_kind, direction, nav_obj, extra_sauce)
     print("attempting real move")
+    if extra_sauce == nil then extra_sauce = empty_table end -- nice hack!
+
     if nav_obj == nil then
         print(comms.robot_send("error", "No nav obj provided!"))
     end
 
+    -- WE NO LONGER AUTO-CHOP TREES
     if what_kind == "surface" then
         local can_move, block_type = robot.detectDown()
         if block_type == "air" or block_type == "liquid" then
             print("look for air")
             robot.down()
             update_pos("down", nav_obj)
-            return true
+            return true, nil
         end
 
         local result, err = base_move(direction, nav_obj)
@@ -155,29 +160,27 @@ function real_move(what_kind, direction, nav_obj)
         if err ~= nil and err == "impossible move" then
             -- for know we just panic, maybe one day we'll add better AI
             print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
-            return false
+            return false, nil
         elseif err ~= nil and err ~= "impossible move" then
-            if geolyzer.compare("log", "naive_contains", sides_api.front) == true then
-                -- TODO: better chopping?
-                robot.swing()
-                return true
-            else
-                real_move("free", "up", nav_obj) -- This is the case for a non tree terrain feature
-                return true
+            if extra_sauce[1] ~= "no_auto_up" then
+                return real_move("free", "up", nav_obj) -- This is the case for a non tree terrain feature
             end
+            local obstacle = geolyzer.simple_return()
+            return false, obstacle
         end
     elseif what_kind == "free" then
         print("free move")
         local result, err = base_move(direction, nav_obj)
         if result == nil then
             print(comms.robot_send("error", "real_move: \"" .. what_kind .. "\" || error: \"" .. err .. "\""))
-            return false
+            return false, nil
         end
-        return true
+        return true, nil
     else
         print(comms.robot_send("error", "real_move: \"" .. what_kind .. "\" unimplemented"))
+        return false, nil
     end
-
+    error("unreachable code at nav_interface.real_move")
 end
 
 function module.debug_move(dir, distance, forget, nav_obj)
