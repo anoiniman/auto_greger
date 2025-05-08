@@ -79,7 +79,7 @@ function module.navigate_rel(nav_obj)
         return -1
     end
 
-    return 1 -- couldn't move
+    return 1, data -- couldn't move
 end
 
 local function sweep_z_axis(nav_obj)
@@ -125,10 +125,10 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         if not navigation_setup then
             module.setup_navigate_rel(sweep_start[1], sweep_start[2], -1)
         end
-        local result = module.navigate_rel(nav_obj)
+        local result, data = module.navigate_rel(nav_obj)
         if result == 1 then
             print(comms.robot_send("error", "from: move_rel.sweep, navigate_rel returned err"))
-            return false
+            return false, data
         elseif result == -1 then
             move_to_start = false
         else
@@ -142,20 +142,20 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         return false -- stop sweeping
     end
 
-    local result = nil
+    local result = nil; local data = nil
     if sweep_start[1] == 0 then
         if nav_obj.rel[1] >= 15 then
-            result = sweep_z_axis(nav_obj)
+            result, data = sweep_z_axis(nav_obj)
         else
-            result = attempt_surface_move(nav_obj, "south")
+            result, data = attempt_surface_move(nav_obj, "south")
         end
     elseif sweep_start[1] == 15  then
         if nav_obj.rel <= 0 then
-            result = sweep_z_axis(nav_obj)
+            result, data = sweep_z_axis(nav_obj)
         else
-            result = attempt_surface_move(nav_obj, "north")
+            result, data = attempt_surface_move(nav_obj, "north")
         end
     end
     
-    return true, result
+    return result, data
 end
