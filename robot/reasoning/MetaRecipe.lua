@@ -5,13 +5,14 @@ local comms = require("comms")
 -- goal_block is what is recognizable by geolyzer, name is usually enough, but if it is a GT-Ore, for example
 -- colour and meta-data will probabily be necessary, these differences can be caught inside
 -- "algorithm" which is supposed to be a function that takes "Gathering"
-local Gathering = {tool = nil, level = nil, algorithm = nil, goal_block = nil, state = nil}
-function Gathering:new(tool, level, algorithm, goal_block)
+local Gathering = {tool = nil, level = nil, algorithm = nil, state = nil, algo_pass = nil}
+function Gathering:new(tool, level, algorithm, algo_pass)
     local new = deep_copy.copy(self, pairs)
-    new.tool = tool; new.level = level, new.algorithm = algorithm, new.goal_block = goal_block
+    new.tool = tool; new.level = level; new.algorithm = algorithm; new.algo_pass = algo_pass 
+    new.state = {}
 end
-function Gathering:call()
-    return self.algorithm(self)
+function Gathering:call(change_state)
+    return self.algorithm(self.state, change_state, self.algo_pass)
 end
 
 -- Maybe make it so that once there is a crafting area in the base (maybe with a "cache"-like storage included

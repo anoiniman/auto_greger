@@ -1,22 +1,42 @@
 local module = {}
 local MetaRecipe = require("reasoning.MetaRecipe")
+local nav_obj = require("nav_module.nav_obj")
 
-local module.dictionary = { g = "gravel", f = "flint", s = "stick" }
+-- As you know very well, there are certain, specific, recipes that require oak logs rather than
+-- any log, and others (more plentiful than the former) that function only with vanilla logs
+-- but, for compatibility, we'll use oak_logs as our only vanilla logs
+-- maybe spruce wood for charcoaling_wood, but in general prioritise oak logs
+-- unless ya'know anything else is needed but hey.
+local module.dictionary = { ol = "oak_log", g = "gravel", f = "flint", s = "stick" }
+
 local temp = nil
+local algo_pass = nil
+
+
+-- If tool level is 0 then it means it may also be broken by hand
+local oak_log = MetaRecipe:newGathering("oak_log", "axe", 0, log_algo, algo_pass)
+
 
 -- change_state at first will be a chunk table {0, 0}
-local function grav_algo(state, change_state, nav_obj)
-    if state == nil then
-        state = {}
-        nav_obj.prepare_sweep(what_chunk)
-        state[1] = "prepare_sweep"
-        return state
+local function grav_algo(state, change_state, nav_obj) -- nav_obj will be algo_pass[1]
+    local what_chunk = change_state[1] -- or -- local what_chunk = change_state?
+    local result, data = nav_obj.sweep(what_chunk)
+    if result == false then
+        if data ~= nil then -- probably means that we've run into an obstacle
+            -- TODO stuff with this obstacle data 
+        else
+            print(comms.robot_send("error", "grav_algo ran into unrecoverable error in navigation"))
+            return false -- error
+        end
     end
+    -- TODO Now we need to check if there is anything of interest below us and stuff
 
-    return state
+
+    return true
 end
 
-local gravel = MetaRecipe:newGathering("gravel", "shovel", 0, nil, "gravel")
+algo_pass[1] = nav_obj -- nav_obj is passed by reference, as should be obvious
+local gravel = MetaRecipe:newGathering("gravel", "shovel", 0, grav_algo, algo_pass)
 
 -- fing a way to include the 2 flint recipes, and only to the "better one" when a certain
 -- milestone is passed
