@@ -37,4 +37,10 @@ function module.debug_print(side)
     print(comms.robot_send("info", serialize.serialize(analysis, true)))
 end
 
+function module.simple_return(side)
+    if side == nil then side = sides_api.front end
+    local analysis = geo.analyze(side)
+    return analysis
+end
+
 return module

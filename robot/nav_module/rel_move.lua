@@ -8,7 +8,7 @@ local function attempt_move(nav_obj, dir)
         result = nav.real_move("free", dir, nav_obj)
         return result, data
     end
-    return nil
+    return false, nil
 end
 
 local function attempt_surface_move(nav_obj, dir)
@@ -16,7 +16,7 @@ local function attempt_surface_move(nav_obj, dir)
         result, data = nav.real_move("surface", dir, nav_obj)
         return result, data
     end
-    return nil
+    return false, nil
 end
 
 local goal_rel = {0,0,0} -- x,z,y

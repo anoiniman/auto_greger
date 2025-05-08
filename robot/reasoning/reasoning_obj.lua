@@ -10,5 +10,10 @@ local MSBuilder, Goal, Requirement = require("reasoning.MetaScript")
 local scripts = {}
 local recipes = {}
 
+local cur_script = nil
+
+function reason_obj.reason()
+
+end
 
 return reason_obj

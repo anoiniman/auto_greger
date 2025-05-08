@@ -5,7 +5,7 @@ local comms = require("comms")
 -- goal_block is what is recognizable by geolyzer, name is usually enough, but if it is a GT-Ore, for example
 -- colour and meta-data will probabily be necessary, these differences can be caught inside
 -- "algorithm" which is supposed to be a function that takes "Gathering"
-local Gathering = {tool = nil, level = nil, algorithm = nil, goal_block = nil}
+local Gathering = {tool = nil, level = nil, algorithm = nil, goal_block = nil, state = nil}
 function Gathering:new(tool, level, algorithm, goal_block)
     local new = deep_copy.copy(self, pairs)
     new.tool = tool; new.level = level, new.algorithm = algorithm, new.goal_block = goal_block
@@ -31,7 +31,7 @@ end
 
 local MetaRecipe.output = nil
 local MetaRecipe.meta_type = nil
-local MetaRecipe.crafting_table = nil
+local MetaRecipe.mechanism = nil
 
 function MetaRecipe:new()
     return deep_copy.copy(self, pairs)
@@ -39,25 +39,44 @@ end
 
 function MetaRecipe:newCraftingTable(output, recipe)
     if output == nil then
-        print(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
+        error(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
         return nil
     end
     if recipe == nil or type(recipe) ~= "table" then 
-        print(comms.robot_send("error", "recipe: \"" .. name .. "\" is nil or wrong type"))
+        error(comms.robot_send("error", "recipe: \"" .. name .. "\" is nil or wrong type"))
         return nil
     end
     if #recipe < 1 and #recipe > 9 then
-        print(comms.robot_send("error", "recipe: \"" .. name .. "\" is invalid size"))
+        error(comms.robot_send("error", "recipe: \"" .. name .. "\" is invalid size"))
         return nil
     end
 
     local new = self:new()
     new.meta_type = "crafting_table"
-    new.output = name
+    new.output = output
 
-    new.crafting_table = CraftingTable:new(recipe)
+    new.mechanism = CraftingTable:new(recipe)
     return new
 end
 
+function MetaRecipe:newGathering(output, tool, level, algorithm, goal_block)
+    if output == nil then
+        error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
+        return nil
+    end
+    if tool == nil or level == nil, or algorithm == nil 
+            or type(algorithm) ~= "function" or goal_block == nil then
+
+        error(comms.robot_send("error", "MetaRecipe:newGathering, we did a fucky-wucky oopie wooppies"))
+        return nil
+    end
+
+    local new = self:new()
+    new.meta_type = "gathering"
+    new.output = output
+
+    new.mechanism = Gathering:new(tool, level, algorithm, goal_block)
+    return new
+end
 
 return MetaRecipe
