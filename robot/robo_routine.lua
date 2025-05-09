@@ -44,7 +44,7 @@ end
 
 local task_list = {} -- for sure table (table)
 local cur_task = nil
--- message = priority instruction + command + arguments
+-- message = priority + command + arguments
 -- task_list == table of messages as a priority queue
 function module.robot_routine(message)
     --print("I am not dead!")

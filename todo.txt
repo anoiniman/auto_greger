@@ -27,3 +27,8 @@ they need to be a fast-access list to chunks
 
 IMPORTANT --> Make some "test" builds that allow for easy fuzzing of the building processes once inventory
 management is enough underway, only practial, "complete", confirmation can give us the confidence we need
+
+Make that some of the chunk marking and build placement stuff isn't immediatly marked, but rather
+is staged and commited to allow for changes, and also add visualisation of the chunks in a virtual map
+
+Interactive shit will be a gamechanger for real for real
