@@ -1,3 +1,5 @@
+local robot_name = "sumire-chan"
+
 -- import of globals
 local io = require("io")
 
@@ -15,7 +17,7 @@ local watch_dog = 0
 local history = {}
 
 term.clear()
-print(comms.robot_send("info", "Now Online!"))
+print(comms.robot_send("info", robot_name .. " -- Now Online!"))
 term.setCursorBlink(false)
 
 -- Very special commands I guess
