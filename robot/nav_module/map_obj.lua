@@ -118,9 +118,11 @@ end
 
 --local map_obj = {MetaChunk:zeroed()}
 local map_obj = {}
-local map_obj_offsets = {0,0}   -- offsets logical 0,0 in the array in order to translate it to "real" 0,0
+local map_obj_offsets = {1,1}   -- offsets logical 0,0 in the array in order to translate it to "real" 0,0
                                 -- what this means is that if set the "origin", the "map centre" of the robot
                                 -- à posteriori then we don't need to re-alloc the array
+                                -- 1,1 is default since array acess in lua is [1][1] rather than [0][0]
+                                -- so "real" [0][0] is logical [1][1]
 
 function module.gen_map_obj(offset)
     map_obj_offsets = offset
@@ -140,7 +142,9 @@ function module.gen_map_obj(offset)
 end
 
 local function chunk_exists(what_chunk)
-    local x = what_chunk[1]; local z = what_chunk[2];
+    local x = what_chunk[1] + map_obj_offsets[1]; 
+    local z = what_chunk[2] + map_obj_offsets[2];
+
     if map_obj[x] == nil or map_obj[x][z] == nil then
         print(comms.robot_send("error", "ungenerated chunk")) 
         return nil
