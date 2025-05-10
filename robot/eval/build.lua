@@ -32,7 +32,7 @@ function module.create_named_area(arguments)
         print(comms.robot_send("error", "create_named_area, malformed command"))
         return nil
     end
-
+    map_obj.create_named_area(name, colour, height, floor_block)
 end
 
 function module.chunk_set_parent(arguments)
