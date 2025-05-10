@@ -31,8 +31,10 @@ function module.eval_command(command_arguments)
         return navigate.navigate_rel(arguments)
     elseif command == "generate_chunks" then
         return navigate.generate_chunks(arguments)
-    elseif command == "build_mark_chunk" then
-        return build.mark_chunk(arguments)
+    elseif command == "create_named_area" then
+        return build.create_named_area(arguments)
+    elseif command == "chunk_set_parent" then
+        return build.chunk_set_parent(arguments)
     elseif command == "build_add_quad" then
         return build.add_quad(arguments)
     elseif command == "build_setup" then
