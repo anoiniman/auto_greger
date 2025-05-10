@@ -35,7 +35,7 @@ function reason_obj.force_load(index)
 end
 
 function reason_obj.step_script()
-    cur_script. 
+    cur_script:step()
 end
 
 return reason_obj

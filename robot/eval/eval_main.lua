@@ -14,13 +14,26 @@ local debug = require("eval.debug")
 local navigate = require("eval.navigate")
 local build = require("eval.build")
 
+-- I have created a sort of "abomination" command that in the command field it is a
+-- function pointer, and the arguments are unpacked inside the function, this allows for
+-- less "cluttering" in the if-else tree, and allows us to skip some verification steps
+-- because we can be sure that the pointer and its arguments are generated
+-- programatically, this is, maybe, a bit "ugly" (design-wise), but it is a cute solution
+-- (programming-wise) and makes things easier and less boiler-platy for me
 function module.eval_command(command_arguments)
     local prio = table.remove(command_arguments, 1)
     local command = table.remove(command_arguments, 1)
     local arguments = command_arguments
 
+    if type(command) == "function" then
+        print(comms.robot_send("eval", "Attempting to Eval Internal Command...."))
+        return command(arguments)
+    end
+
+    --- IF not a function pointer
+
     local serial_arguments = serialize.serialize(arguments, true)
-    print(comms.robot_send("debug", "Debug -- Attempting to Eval: \"" .. command .. ", " .. serial_arguments))
+    print(comms.robot_send("eval", "Attempting to Eval -- \"" .. command .. "\":\n" .. serial_arguments))
     if command == "echo" then
         return debug.echo(arguments)
     elseif command == "debug" then

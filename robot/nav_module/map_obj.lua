@@ -222,4 +222,10 @@ function module.do_build(what_chunk, what_quad)
     return map_chunk:doBuild(what_quad) -- pay attention to what are we returning
 end
 
+function module.start_auto_build(what_chunk, what_quad, primitive_name, what_step)
+    if what_step == 1 then
+
+    end
+end
+
 return module
