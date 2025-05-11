@@ -40,12 +40,15 @@ function special_message_interpretation(message)
     return nil
 end
 
+-- global variable:
+ROBO_MAIN_THREAD_SLEEP = 0.2
+
 function robot_main()
     -- START
     comms.setup_listener()
 
     while true do
-        os.sleep(0.1)
+        os.sleep(ROBO_MAIN_THREAD_SLEEP)
         local block_message = nil
 
         if block_read_bool == true then

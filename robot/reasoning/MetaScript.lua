@@ -34,7 +34,7 @@ function MetaScript:findBestGoal()
         local goal = self.goals[index] 
         if goal:depSatisfied() then
             local index, name = self:selfSatisfied()
-            if index ~= then
+            if index ~= 0 then
                 return goal, index, name
             end
         end
@@ -85,7 +85,8 @@ end
 
 -- MetaStructures will still only be initialised lazily, because that is the best
 -- and esiest way of doing this imo
-local BuildingConstraint = {structures = nil, chunk_centre = nil}
+-- Lock needs to be a table so that it is passed by reference
+local BuildingConstraint = {structures = nil, chunk_centre = nil, lock = {0}} -- 0 means unlock
 function BuildingConstraint:new(structures, chunk_centre)
     local new = deep_copy.copy(self, pairs)
     new.structures = structures
@@ -103,8 +104,10 @@ function BuildingConstraint:check()
         end
 
         local size = #heap[name]
-        if heap[name][size] == nil then -- we've run out of buildings, aka, we're bellow the target
-            return index, name -- returns where we failed
+        if heap[name][size] == nil then -- we've run out of buildings, aka, we're below the target
+            if structure.lock[1] == 0 then -- if we've NOT already started working on this
+                return index, name -- returns where we failed
+            end -- else we want to fall through
         else
             heap[name][size] = nil
         end
@@ -132,9 +135,9 @@ function BuildingConstraint:step(name, index) -- returns command to be evaled
     local to_build = structure_to_build
 
     local step_num = 0 -- 0 is interactive mode
-    local what_chunk = nil -- what_chunk isn't dropped because of GC I think
+    local what_chunk = {} -- what_chunk isn't dropped because of GC I think
     if self.chunk_centre ~= nil then
-        what_chunk = {}
+        --what_chunk = {}
         what_chunk[1] = self.chunk_centre[1] + to_build.x_offset
         what_chunk[2] = self.chunk_centre[2] + to_build.z_offset
         step_num = 1 -- 1 means that what_chunk we want to build in is already set by definition
@@ -143,8 +146,9 @@ function BuildingConstraint:step(name, index) -- returns command to be evaled
     end
 
     local command = build_eval.start_auto_build
-    local arguments = {what_chunk, to_build.quadrant, name, 0}
-    return 100, command, arguments -- the common format, you know it well
+    local arguments = {what_chunk, to_build.quadrant, name, 0, self.lock}
+    -- TODO define prio dynamically somehow
+    return 60, command, arguments -- the common format, you know it welll
 end
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met

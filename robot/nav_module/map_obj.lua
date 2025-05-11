@@ -8,6 +8,8 @@ local serialize = require("serialization")
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
+local iterative = require("iterative")
+
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
 
@@ -222,8 +224,13 @@ function module.do_build(what_chunk, what_quad)
     return map_chunk:doBuild(what_quad) -- pay attention to what are we returning
 end
 
-function module.start_auto_build(what_chunk, what_quad, primitive_name, what_step)
-    if what_step == 1 then
+-- TODO register completed buildings, base_wide? In someway that our reasoning scripts can acess tehm
+-- lock needs to be released only when building is done and registered
+function module.start_auto_build(what_chunk, what_quad, primitive_name, what_step, lock)
+    -- TODO this is all still to do
+    if what_step == 0 then
+        iterative.add()
+    elseif what_step == 1 then
 
     end
 end

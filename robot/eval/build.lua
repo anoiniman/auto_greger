@@ -108,7 +108,7 @@ end
 
 function module.start_auto_build(arguments)
     --local arguments = {name, what_chunk, to_build.quadrant}
-    return map_obj.start_auto_build(arguments[1], arguments[2], arguments[3], arguments[4])
+    return map_obj.start_auto_build(arguments[1], arguments[2], arguments[3], arguments[4], arguments[5])
 end
 
 return module
