@@ -19,20 +19,41 @@ local MetaQuad = require("nav_module.MetaQuad")
 
 
 local areas_table = {}
+function areas_table:addArea(new_area)
+    table.insert(self, new_area)
+end
+
+function areas_table:isInArea(what_chunk)
+    for _, area in ipairs(areas_table) do
+        for _, area_chunk in ipairs(area.chunks) do
+            if what_chunk[1] == area_chunk[1] and what_chunk[2] == area_chunk[2] then
+                return true
+            end
+        end
+    end
+    return false
+end
+function areas_table:getArea(name)
+    for _, area in ipairs(areas_table) do
+        if area.name == name then return area end
+    end
+    return nil
+end
 
 local NamedArea = {
     name = nil,
     colour = nil,
     height = nil,
-    floor_block = nil
+    floor_block = nil,
+    chunks = nil
 }
 function NamedArea:new(name, colour, height, floor_block)
     if height == nil or height < 0 or height > 255 then
-        print(comms.robot_send("error", "NamedRect:new -- invalid height")) 
+        print(comms.robot_send("error", "NamedArea:new -- invalid height")) 
         return nil
     end
     if MapColours[colour] == nil then
-        print(comms.robot_send("error", "nameRect:new -- inavlid colour"))
+        print(comms.robot_send("error", "NamedArea:new -- inavlid colour"))
         return nil
     end
 
@@ -41,7 +62,11 @@ function NamedArea:new(name, colour, height, floor_block)
     new.colour = colour
     new.height = height
     new.floor_block = floor_block
+    new.chunks = {}
     return new
+end
+function NamedArea:addChunkToSelf(what_chunk)
+    table.insert(self.chunks, what_chunk)
 end
 
 
@@ -58,11 +83,25 @@ function MetaChunk:new() -- lazy initialization :I
     return deep_copy.copy_table(self, pairs)
 end
 
+function MetaChunk:getName(what_quad)
+    if self.meta_quads == nil then return nil end
+    local quad_in_question = self.meta_quads[what_quad]
+    if quad_in_question == nil or not quad_in_question:isInit() then return nil end
+    return quad_in_question:getName()
+end
+
 function MetaChunk:getHeight()
     if self.height_override ~= nil then return self.height_override end
-    if parent_rect ~= nil then return parent_rect.height end
+    if parent_area ~= nil then return parent_area.height end
     print(comms.robot_send("error", "MetaChunk:getHeight -- could not getHeight"))
     return nil
+end
+
+function MetaChunk:getBuildRef()
+    if self.meta_quads == nil then return nil end
+    local quad_in_question = self.meta_quads[what_quad]
+    if quad_in_question == nil or not quad_in_question:isInit() then return nil end
+    return quad_in_question:getBuild()
 end
 
 function MetaChunk:setParent(what_parent, height_override)
@@ -108,7 +147,7 @@ function MetaChunk:addQuad(what_quad_num, what_build)
     if self.meta_quads[what_quad_num]:getNum() ~= 0 then 
         print(comms.robot_send("error", "trying to overwrite already defined quad, without specifing desire to overwrite!"))
     end
-    self:addQuadCommon(what_quad_num, what_build)
+    return self:addQuadCommon(what_quad_num, what_build)
 end
 
 function MetaChunk:replaceQuad(what_quad_num, what_build)
@@ -153,6 +192,13 @@ local map_obj_offsets = {1,1}   -- offsets logical 0,0 in the array in order to 
                                 -- 1,1 is default since array acess in lua is [1][1] rather than [0][0]
                                 -- so "real" [0][0] is logical [1][1]
 
+local known_buildings = {}
+function known_buildings:insert(name, build_ref)
+    if self[name] == nil then self[name] = {} end
+    local size = #self[name]
+    self[name][size + 1] = build_ref
+end
+
 function module.gen_map_obj(offset)
     map_obj_offsets = offset
     if map_obj[1] ~= nil then
@@ -192,15 +238,16 @@ function module.create_named_area(name, colour, height, floor_block)
     local to_print = serialize.serialize(new_area, true)
     print(comms.robot_send("debug", "Created new named_area definition"))
     print(comms.robot_send("debug", to_print))
-    table.insert(areas_table, new_area)
+    --table.insert(areas_table, new_area)
+    areas_table:addArea(new_area)
     return true
 end
 
-function module.chunk_set_parent(what_chunk, as_what, height_override)
+function module.chunk_set_parent(what_chunk, what_area, height_override)
     local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
-    return map_chunk:setParent(as_what, height_override)
+    return map_chunk:setParent(what_area, height_override)
 end
 
 function module.add_quad(what_chunk, what_quad, primitive_name)
@@ -221,8 +268,24 @@ function module.do_build(what_chunk, what_quad)
     local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
-    return map_chunk:doBuild(what_quad) -- pay attention to what are we returning
+    local result_bool, result_string, coords, symbol = map_chunk:doBuild(what_quad) -- pay attention to what are we returning
+    if result_string == "done" then
+        local primitive_name = map_chunk:getName(what_quad)
+        if primtive_name == nil then error(comms.robot_send("fatal", "Impossible state, map_obj.do_build")) end
+        known_buildings:insert(primitive_name, map_chunk:getBuildRef())
+    end
+
+    return result_bool, result_string, coords, symbol
 end
+
+function module.get_buildings(name)
+    return known_buildings[name]
+end
+
+function module.get_buildings_num(name)
+    return #known_buildings[name]
+end
+
 
 -- TODO register completed buildings, base_wide? In someway that our reasoning scripts can acess tehm
 -- lock needs to be released only when building is done and registered
@@ -234,17 +297,88 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     -- TODO this is all still to do
     if what_step <= 0 then
         -- if this crashes add the to_string's
-        local hr_table = {"offset_chunk:", what_chunk[1], ", ", what_chunk[2], " || ", "quad: ", what_quad, " || ", primitive_name}
+        local hr_table = {
+            "offset_chunk:", what_chunk[1], ", ", what_chunk[2], " || ", "quad: ", what_quad, " || \n",
+            "name: ", primitive_name, " || ", "waiting for origin_chunk_coords"
+        }
         local human_readable = table.concat(hr_table)
-        interactive.add("auto_build", human_readable)
+        local id = interactive.add("auto_build0", human_readable)
 
         what_step = 1 -- updates what_step here
+        return_table[4] = what_step
+        return_table[6] = id
         return prio, module.start_auto_build, return_table
     elseif what_step == 1 then
         local data = interactive.get_data_table(id)
         if data == nil then
-            return
+            return prio, module.start_auto_build, return_table
         end
+        what_chunk[1] = what_chunk[1] + data[1]
+        what_chunk[2] = what_chunk[2] + data[2] -- no need to alter return_table since what_chunk is a ref
+        -- return_table[1] = what_chunk -> &a = &a -> useless operation
+
+        interactive.del_element(id) -- remove current interactive "task", in a real language data would now be a null ptr
+
+        what_step = 2
+        return_table[4] = what_step
+        return prio, module.start_auto_build, return_table
+    elseif what_step == 2 then
+        if area_table:isInArea(what_chunk) then
+            what_step = 4
+            return_table[4] = what_step
+            return prio, module.start_auto_build, return_table
+        end -- else iteractive mode_it again
+    
+        local hr_table = {
+            "abs_chunk:", what_chunk[1], ", ", what_chunk[2], " || ", "quad: ", what_quad, " || \n",
+            "name: ", primitive_name, " || ", "waiting for area_name and optional height override"
+        }
+        local human_readable = table.concat(hr_table)
+        local id = interactive.add("auto_build1", human_readable)
+
+        what_step = 3
+        return_table[4] = what_step
+        return_table[6] = id
+        return prio, module.start_auto_build, return_table
+    elseif what_step == 3 then
+        local data = interactive.get_data_table(id)
+        if data == nil then
+            return prio, module.start_auto_build, return_table
+        end
+        local area_name = data[1]
+        local area = areas_table:getArea(area_name)
+        if area == nil then
+            print(comms.robot_send("error", "what are you? Stupid? start_auto_build, what_step == 3 | area doesn't exist stupid")) 
+            interactive.del_data_table(id) -- resets table
+            return prio, module.start_auto_build, return_table
+        end
+        area:addChunkToSelf(what_chunk)
+
+        local height_override = data[2] -- it's ok if it's nil
+        module.chunk_set_parent(what_chink, area, height_override) -- the important thing of this step
+        interactive.del_element(id)
+
+        what_step = 4
+        return_table[4] = what_step
+        return prio, module.start_auto_build, return_table
+    elseif what_step == 4 then
+        local result = module.add_quad(what_chunk, what_quad, primitive_name)
+        if not result then
+            error(comms.robot_send("fatal", "start_auto_build, step == 4 | TODO - make this thing failable without fatality :)"))
+        end
+        
+        what_step = 5
+        return_table[4] = what_step
+        return prio, module.start_auto_build, return_table
+    elseif what_step == 5 then
+        local result = module.setup_build(what_chunk, what_quad)
+        if not result then
+            error(comms.robot_send("fatal", "start_auto_build, step == 5 | TODO - idem :)"))
+        end
+    
+        what_step = 6
+        return_table[4] = what_step
+        return prio, module.start_auto_build, return_table
     end
 
     print(comms.robot_send("error", "start_auto_build fell through xO"))

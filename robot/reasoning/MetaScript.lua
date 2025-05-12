@@ -30,7 +30,7 @@ function MetaScript:unlockPosterior()
 end
 
 function MetaScript:findBestGoal()
-    for index = #self.goals, -1, 1 do -- Reverse order so it goes from highest prio to lowest
+    for index = #self.goals, 1, -1 do -- Reverse order so it goes from highest prio to lowest
         local goal = self.goals[index] 
         if goal:depSatisfied() then
             local index, name = self:selfSatisfied()
@@ -98,18 +98,18 @@ function BuildingConstraint:check()
     for index, structure in ipairs(self.structures) do
         local name = structure.name
         if heap[name] == nil then
-            local cur_buildings = map_obj.getBuildings(name) -- table
-            if cur_buildings == nil then return index, name end
+            --local cur_buildings = map_obj.get_buildings(name) -- table
+            local cur_buildings = map_obj.get_buildings_num(name) -- num
+            if cur_buildings == 0 then return index, name end
             heap[name] = cur_buildings
         end
 
-        local size = #heap[name]
-        if heap[name][size] == nil then -- we've run out of buildings, aka, we're below the target
+        if heap[name] <= 0 then -- we've run out of buildings, aka, we're below the target
             if structure.lock[1] == 0 then -- if we've NOT already started working on this
                 return index, name -- returns where we failed
             end -- else we want to fall through
         else
-            heap[name][size] = nil
+            heap[name] = heap[name] - 1
         end
     end
 

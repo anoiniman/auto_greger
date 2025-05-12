@@ -29,6 +29,14 @@ function MetaQuad:getNum()
     return self.quad
 end
 
+function MetaQuad:getBuild()
+    return self.build
+end
+
+function MetaQuad:isInit()
+    return self.quad ~= 0
+end
+
 function MetaQuad:isBuilt()
     return self.build:isBuilt()
 end
