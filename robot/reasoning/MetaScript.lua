@@ -140,15 +140,25 @@ function BuildingConstraint:step(name, index) -- returns command to be evaled
         --what_chunk = {}
         what_chunk[1] = self.chunk_centre[1] + to_build.x_offset
         what_chunk[2] = self.chunk_centre[2] + to_build.z_offset
-        step_num = 1 -- 1 means that what_chunk we want to build in is already set by definition
+        step_num = 2 -- 2 means that what_chunk we want to build in is already set by definition
     else
-        
+        what_chunk[1] = to_build.x_offset
+        what_chunk[2] = to_build.z_offset
+        step_num = 0
     end
 
+    self.lock[1] = 1
+    --local id = {-1}
+    local step = 0
+    local id = -1
+    local prio = 60
     local command = build_eval.start_auto_build
-    local arguments = {what_chunk, to_build.quadrant, name, 0, self.lock}
+    -- lock will not be released unless building fails in a specific manner, but it's still worth
+    -- for it to be around, because, hey, that might happen, and we might want to unluck the
+    -- build and "start over", aka, tell the system it is ok to re-try
+    local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, prio}
     -- TODO define prio dynamically somehow
-    return 60, command, arguments -- the common format, you know it welll
+    return prio, command, arguments -- the common format, you know it welll
 end
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met

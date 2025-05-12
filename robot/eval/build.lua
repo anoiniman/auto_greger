@@ -107,8 +107,9 @@ function module.do_build(arguments)
 end
 
 function module.start_auto_build(arguments)
-    --local arguments = {name, what_chunk, to_build.quadrant}
-    return map_obj.start_auto_build(arguments[1], arguments[2], arguments[3], arguments[4], arguments[5])
+    -- local arguments = {what_chunk, to_build.quadrant, name, what_step, self.lock, id, prio}
+    -- prio is not passed into function :) (on purpose)
+    return map_obj.start_auto_build(arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments)
 end
 
 return module
