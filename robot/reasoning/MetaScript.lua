@@ -33,9 +33,9 @@ function MetaScript:findBestGoal()
     for index = #self.goals, 1, -1 do -- Reverse order so it goes from highest prio to lowest
         local goal = self.goals[index] 
         if goal:depSatisfied() then
-            local index, name = self:selfSatisfied()
+            local inner_index, name = self:selfSatisfied()
             if index ~= 0 then
-                return goal, index, name
+                return goal, inner_index, name
             end
         end
     end
@@ -46,7 +46,7 @@ function MetaScript:step() -- most important function does everything, I think
     self:unlockPosterior()
     local best_goal, index, name = self:findBestGoal()
     if best_goal == nil then
-        error(comms.robot_send("fatal", "MetaScript:step() -- couldn't find best goal"))
+        print(comms.robot_send("error", "MetaScript:step() -- couldn't find best goal"))
     end
 
     local can_step = best_goal:step(index, name)

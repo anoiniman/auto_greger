@@ -134,7 +134,7 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
     if use_self_craft then
          local result = clear_first_slot(non_craft_slot_iter)
          if not result then
-            crafting_tablr_clear = false
+            crafting_table_clear = false
             return false
          end
          return true
