@@ -39,31 +39,53 @@ end
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
 local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post_run)
+    -- I know this shit should be done in place, I don't have the time to code good for now
+    local self_return = {80, eval_nav.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, post_run}
+
     -- post_run is a command to be run after this one is finished
-    -- TODO
     local cur_chunk = nav.get_chunk()
     if cur_chunk[1] ~= what_chunk[1] or cur_chunk[2] ~= what_chunk[2] then
-        
-        -- this is getting ridiculous, but hey
-        local inner = {80, eval_nav.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, post_run}
+        -- this is getting ridiculous, we won't do a inner command again this time
+        if not nav.is_setup_navigate_chunk() then
+            nav.setup_navigate_chunk(what_chunk)
+        end
+        nav.navigate_chunk("surface") -- for now surface move only
+
+        return self_return
+    end
+    -- Sanity Check:
+    if nav.is_setup_navigate_chunk() then
+        error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?")) 
     end
 
-    error("We need to go to the right chunk first")
-    local is_setup = rel.is_setup()
-    if not is_setup then
-        --rel.setup_navigate_rel(coords[1], coords[2], coords[3])
+    if not rel.is_setup() then
+        nav.setup_navigate_rel(rel_coords)
         --return {80, module.navigate_rel, "and_build", coords, block_name, post_run}
     end
-    --rel.navigate_rel()
+    local result, err = nav.navigate_rel()
+    if result == -1 then -- movement completed (place block, and go back to build_function)
+        nav.debug_move("up", 1, false)
+        if not inv.place("down", block_name, "lable") then
+            -- Real error handling will come som eother time
+            error(comms.robot_send("fatal", "how is this possible? :sob:"))
+        end
 
-    -- I know this shit should be done in place, I don't have the time to code good for now
-    return {80, eval_nav.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, post_run}
+        return post_run
+    elseif result == 1 then
+        if err == "swong" then print("noop") -- not a big error we keep going
+        else error(comms.robot_send("fatal", "eval, navigate, I never thought of this x0")) end
+    elseif result ~= 0 then -- elseif 0 then no problem
+        error(comms.robot_send("fatal", "impossible error code returned eval navigate"))
+    end
+
+    return self_return
 end
 
 function module.navigate_rel(arguments)
     -- {"and_build", rel_coords, what_chunk, door_info, block_name, self_table}
     local flag = arguments[1];          local rel_coords = arguments[2]
     local what_chunk = arguments[3];    local door_info = arguments[4]
+    -- Block Name                         Post Run
     local fifth = arguments[5];         local sixth = arguments[6]
     
     if flag == nil then

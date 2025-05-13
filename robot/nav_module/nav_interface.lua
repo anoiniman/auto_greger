@@ -9,6 +9,7 @@ local comms = require("comms")
 local io = require("io")
 
 local geolyzer = require("geolyzer_wrapper")
+local inv = require("inventory.inv_obj")
 
 local function update_pos(direction, nav_obj) -- assuming forward move
     local abs = nav_obj.abs
@@ -111,7 +112,6 @@ function base_move(direction, nav_obj) -- return result and error string
     local result = nil
     local err = nil
     print("base_move")
-    --io.read()
 
     if direction == "up" then
         result, err = robot.up()
@@ -122,7 +122,6 @@ function base_move(direction, nav_obj) -- return result and error string
         result, err = robot.forward()
     end
     print("post thing")
-    --io.read()
 
     if result ~= nil then update_pos(direction, nav_obj) end
     return result, err
@@ -160,7 +159,7 @@ function real_move(what_kind, direction, nav_obj, extra_sauce)
         if err ~= nil and err == "impossible move" then
             -- for know we just panic, maybe one day we'll add better AI
             print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
-            return false, nil
+            return false, "impossible"
         elseif err ~= nil and err ~= "impossible move" then
             if extra_sauce[1] ~= "no_auto_up" then
                 return real_move("free", "up", nav_obj) -- This is the case for a non tree terrain feature
@@ -173,7 +172,15 @@ function real_move(what_kind, direction, nav_obj, extra_sauce)
         local result, err = base_move(direction, nav_obj)
         if result == nil then
             print(comms.robot_send("error", "real_move: \"" .. what_kind .. "\" || error: \"" .. err .. "\""))
-            return false, nil
+            if err == "entity" then
+                inv.equip_tool("sword")
+                robot.swing()
+                return false, "swong"
+            elseif err ~= "impossible move" then
+                return false, err
+            elseif err == "impossible move" then
+                return false, "impossible"
+            end
         end
         return true, nil
     else
@@ -184,8 +191,8 @@ function real_move(what_kind, direction, nav_obj, extra_sauce)
 end
 
 function module.debug_move(dir, distance, forget, nav_obj)
-    for i = 0, distance, 1 do
-        local serial = serialize.serialize(nav_obj, true)
+    for i = 1, distance, 1 do
+        -- local serial = serialize.serialize(nav_obj, true)
         real_move("free", dir, nav_obj)
     end
 

@@ -36,3 +36,4 @@ I don't know if locks should be goal-wide or script-wide, but I guess that in or
 if something gets stuck in interactive mode for a while that I should do it goal-wide
 
 Algorithm to deal with entities getting in our way during move (aka, swing that sword baby)
+Sort inventory in such way we have tool "slots", maybe we really should have a 32 slot inventory huh

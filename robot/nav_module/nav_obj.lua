@@ -59,6 +59,10 @@ function module.set_orientation(orient)
     nav_obj.orientation = orient
 end
 
+function module.is_setup_navigate_chunk()
+    return chunk_move.is_setup
+end
+
 function module.setup_navigate_chunk(what_chunk)
     local a, b = chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
 end
@@ -72,12 +76,12 @@ function module.debug_move(dir, distance, forget)
 end
 
 
-function module.setup_navigate_rel(what_chunk)
-
+function module.setup_navigate_rel(what_coords)
+    rel_move.setup_navigate_rel(what_coords[1], what_coords[2], what_coords[3])
 end
 
-function module.navigate_rel(clear)
-
+function module.navigate_rel()
+    return rel_move.navigate_rel(nav_obj)
 end
 
 return module

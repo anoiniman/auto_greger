@@ -17,9 +17,11 @@ local chunk_nearest_side = {0,0}
 local rel_nearest_side = {0,0}
 
 local cur_in_road = false
+local is_setup = false
 
 function module.setup_navigate_chunk(to_what_chunk, nav_obj)
     cur_in_road = false
+    is_setup = true
 
     -- copy provided table (assuming to_what_chunk = {int, int}) (num, num)
     goal_chunk = {to_what_chunk[1], to_what_chunk[2]}
@@ -29,7 +31,7 @@ function module.setup_navigate_chunk(to_what_chunk, nav_obj)
     return chunk_nearest_side, rel_nearest_side
 end
 
-function update_chunk_nav(nav_obj)
+local function update_chunk_nav(nav_obj)
     local rel = nav_obj["rel"]
     local chunk = nav_obj["chunk"]
 
@@ -57,6 +59,11 @@ end
 
 -- returns if it is finished
 function module.navigate_chunk(what_kind, nav_obj)
+    if is_setup == false then
+        print(comms.robot_send("error", "tried to navigate without setting up first"))
+        return false
+    end
+
     -- I feel as if this 2 bools are logically overlapping too much so i'll comment out 1 of em
     --local bool1 = (math.abs(rel_nearest_side[1]) < 8) or (math.abs(rel_nearest_side[2]) < 8)
     local bool1 = true
@@ -90,6 +97,7 @@ function module.navigate_chunk(what_kind, nav_obj)
     end
 
     print(comms.robot_send("info", "We've arrived at the target chunk"))
+    is_setup = false
     return true
 end
 

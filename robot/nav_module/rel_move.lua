@@ -5,8 +5,8 @@ local math = require("math")
 
 local function attempt_move(nav_obj, dir)
     if dir ~= nil then
-        result = nav.real_move("free", dir, nav_obj)
-        return result, data
+        local result, err = nav.real_move("free", dir, nav_obj)
+        return result, err
     end
     return false, nil
 end
@@ -43,7 +43,9 @@ function module.navigate_rel(nav_obj)
     local result = nil
     local data = nil
 
-    -- attempt to move on the x axis, if not possible, attempt to move on the z axis, this won't solve mazes, but we won't need to
+    -- attempt to move on the x axis, if not possible, attempt to move on the z axis, if not possible etc.
+    -- this won't solve mazes, but we won't need to
+
     ------ x axis
     local x_dif = nav_obj.rel[1] - goal_rel[1]
     if x_dif > 0 then dir = "west"

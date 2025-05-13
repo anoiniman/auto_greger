@@ -19,13 +19,6 @@ local inventory = component.getPrimary("inventory_controller")
 local forbidden_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 
 --->>-- Ledger Shit --<<-----
---[[local SpecialEntry = {common_name = nil, material_id = nil, form_id = nil, quantity = nil}
-function SpecialEntry:new(name, material, form)
-    local new = deep_copy.copy(self, pairs)
-    new.name = name
-    new.quantity = quantity
-    return new
-end--]]
 
 local internal_ledger = {}  -- using just the lables should be fine, but I'll keep "name" here because
                             -- it might become useful in the future
@@ -46,6 +39,60 @@ local function i_ledger_add_or_create(name, lable, quantity)
     entry_quantity = entry_quantity + quantity
 end
 
+local function find_in_slot(block_id, lable_type)
+    if lable_type == "lable" then
+        for index = 1, inventory_size, 1 do
+            local item = getStackInInternalSlot(index)
+            if item == nil then goto continue end
+            if item.label == block_id then
+                return index
+            end
+
+            ::continue::
+        end
+    elseif lable_type == "name" then
+        print(comms.robot_send("error", "inv_obj: not valid lable_type"))
+        return -2
+    else
+        print(comms.robot_send("error", "inv_obj: not valid lable_type"))
+        return -2
+    end
+
+    return -1 -- in case nothing was found
+end
+
+--->>-- Tool Use --<<-----
+function module.equip_tool(tool_type)
+    --TODO do things
+    return true
+end
+
+
+--->>-- Block Placing --<<----
+function module.place_block(dir, block_identifier, lable_type)
+    local slot = find_in_slot(block_identifier, lable_type)
+    if slot == -1 then
+        print(comms.robot_send("warning", "couldn't find id: \"" .. block_identifier .. "\" lable -- " .. lable_type))
+        return false
+    elseif slot < -1 then
+        return false
+    end
+
+    robot.select(slot)
+
+    if dir == "down" then 
+        robot.placeDown()
+    else
+        print(comms.robot_send("error", "not yet implemented, inv_obj.place_block"))
+        robot.select(1)
+        return false
+    end
+
+    robot.select(1)
+    return true
+end
+
+
 --TODO interaction with external inventories and storage inventories
 
 --->>-- Crafter Shit --<<-----
@@ -56,7 +103,7 @@ function module:is_craft_active()
 end
 
 function module.debug_force_add()
-    for i in free_slot_iter(used_up_capacity, inventory_size) do
+    for i in free_slot_iter() do
         local quantity = robot.count(i)
         if quantity == 0 then goto continue end
 
@@ -100,7 +147,7 @@ local function clear_first_slot(iter)
     if robot.count(1) == 0 then return true end -- nothing needs to be done
 
     local free_slot = nil
-    for slot_num in iter(used_up_capacity, inventory_size) do
+    for slot_num in iter() do
         if slot_num == -1 then goto continue end
         if robot.count(slot_num) == 0 then
             free_slot = slot_num
@@ -119,11 +166,11 @@ local function clear_first_slot(iter)
     return true
 end
 
-local function non_craft_slot_iter(cur_size, max_size)
-    local iteration = cur_size + 1 -- +1 so that we always try to keep slot 1 free, (logically meaningless)
+local function non_craft_slot_iter()
+    local iteration = used_up_capacity
     return function ()
         iteration = iteration + 1
-        if iteration > max_size then
+        if iteration > inventory_size then
             return nil
         end
         
@@ -136,12 +183,12 @@ local function non_craft_slot_iter(cur_size, max_size)
     end
 end
 
-local function free_slot_iter(cur_size, max_size)
-    local iteration = cur_size + 1
+local function free_slot_iter()
+    local iteration = used_up_capacity + 1 -- spares first slot, meaningless logically
 
     return function ()
         iteration = iteration + 1
-        if iteration > max_size then
+        if iteration > inventory_size then
             return nil
         end
 
