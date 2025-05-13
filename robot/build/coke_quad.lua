@@ -7,7 +7,9 @@ local Module = {parent = nil}
 Module.name = "coke_quad"
 
 Module.dictionary = {
-    ["c"] = "CokeOvenBrick", -- tmp name, I need to geolyze in game first or whatever
+    ["c"] = "Coke Oven Brick",  -- tmp name, I need to geolyze in game first or whatever
+                                -- this needs to be distinguited from the brick from somehow
+                                -- (this is the block form)
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)

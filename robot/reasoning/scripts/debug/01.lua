@@ -10,6 +10,6 @@ local constraint = Constraint:newBuildingConstraint(coke_oven, nil)
 local simple_goal = Goal:new(nil, constraint, nil, nil, 100)
 builder.addGoal(simple_goal)
 
-script = builder.build()
+local script = builder.build()
 
 return script

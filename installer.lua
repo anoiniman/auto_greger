@@ -149,6 +149,17 @@ local function robot_reasoning()
     download("/robot/reasoning/scripts/debug/01.lua", "self")
 end
 
+local function robot_inventory()
+    if not filesystem.isDirectory("/home/robot/inventory") then
+       filesystem.makeDirectory("/home/robot/inventory")
+    end
+
+    download("/robot/inventory/external_inv_obj.lua", "self")
+    download("/robot/inventory/inv_obj.lua", "self")
+    download("/robot/inventory/item_buckets.lua", "self")
+    download("/robot/inventory/special_cases.lua", "self")
+end
+
 
 if check_in_args(args, "--debug-branch") then branch = "debug" end
 
@@ -162,6 +173,7 @@ if args[1] == "robot" then
     if is_all or check_in_args(args, "bldp" )    then    robot_build_primitives()   end
     if is_all or check_in_args(args, "mbld" )    then    robot_meta_build()         end
     if is_all or check_in_args(args, "reas" )    then    robot_reasoning()          end
+    if is_all or check_in_args(args, "inv"  )    then    robot_inventory()          end
 
 elseif args[1] == "controller" then
     if not filesystem.isDirectory("/home/controller") then 
