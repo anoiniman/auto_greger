@@ -34,7 +34,12 @@ function reason_obj.force_load(index)
     end
 end
 
+local loaded = false
 function reason_obj.step_script()
+    if not loaded then
+        reason_obj.force_load(1)
+        loaded = true
+    end
     cur_script:step()
 end
 

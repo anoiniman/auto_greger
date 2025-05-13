@@ -6,7 +6,7 @@ local args = {...}
 local counter = 0
 local branch = "master"
 
-function download(origin, where)
+local function download(origin, where)
     local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/" .. branch .. origin
 
     local tmp_path = "/tmp/" .. counter .. ".lua"
@@ -44,33 +44,39 @@ function download(origin, where)
     counter = counter + 1
 end
 
-function check_in_args(arguments, check)
+local function check_in_args(arguments, check)
     for _, v in ipairs(arguments) do
         if v == check then return true end
     end
     return false
 end
 
-function shared()
+local function shared()
     if not filesystem.isDirectory("/usr/lib") then
         filesystem.makeDirectory("/usr/lib")
     end
 
     download("/shared/comms.lua", "/usr/lib/comms.lua")
     download("/shared/deep_copy.lua", "/usr/lib/deep_copy.lua")
+    download("/shared/prio_insert.lua", "/usr/lib/prio_insert.lua")
 end
 
-function robot_top_level()
+local function robot_top_level()
     if not filesystem.isDirectory("/home/robot") then 
         filesystem.makeDirectory("/home/robot")
     end
 
     download("/robot/geolyzer_wrapper.lua", "self")
+    download("/robot/geolyzer_ore_table.lua", "self")
+    download("/robot/interactive.lua", "self")
+    download("/robot/keep_alive.lua", "self")
+    download("/robot/post_exit.lua", "self")
+
     download("/robot/robo_main.lua", "self")
     download("/robot/robo_routine.lua", "self")
 end
 
-function robot_eval()
+local function robot_eval()
     if not filesystem.isDirectory("/home/robot/eval") then
        filesystem.makeDirectory("/home/robot/eval")
     end
@@ -81,7 +87,7 @@ function robot_eval()
     download("/robot/eval/navigate.lua", "self")
 end
 
-function robot_navigation()
+local function robot_navigation()
     if not filesystem.isDirectory("/home/robot/nav_module") then
        filesystem.makeDirectory("/home/robot/nav_module")
     end
@@ -96,7 +102,7 @@ function robot_navigation()
     download("/robot/nav_module/rel_move.lua", "self")
 end
 
-function robot_build_primitives()
+local function robot_build_primitives()
     if not filesystem.isDirectory("/home/robot/build") then
        filesystem.makeDirectory("/home/robot/build")
     end
@@ -105,7 +111,7 @@ function robot_build_primitives()
     download("/robot/build/hole_home.lua", "self")
 end
 
-function robot_meta_build()
+local function robot_meta_build()
     if not filesystem.isDirectory("/home/robot/build/MetaBuild") then
        filesystem.makeDirectory("/home/robot/build/MetaBuild")
     end
@@ -117,6 +123,33 @@ function robot_meta_build()
     download("/robot/build/MetaBuild/SchematicInterface.lua", "self")
 end
 
+-- one day option to download different script folders etc, but not today
+local function robot_reasoning()
+    if not filesystem.isDirectory("/home/robot/reasoning") then
+       filesystem.makeDirectory("/home/robot/reasoning")
+    end
+
+    download("/robot/reasoning/MetaRecipe.lua", "self")
+    download("/robot/reasoning/MetaScript.lua", "self")
+    download("/robot/reasoning/reasoning_obj.lua", "self")
+
+    if not filesystem.isDirectory("/home/robot/reasoning/recipes") then
+       filesystem.makeDirectory("/home/robot/reasoning/recipes")
+    end
+
+    if not filesystem.isDirectory("/home/robot/reasoning/recipes/stone_age") then
+       filesystem.makeDirectory("/home/robot/reasoning/recipes/stone_age")
+    end
+
+    --download("/robot/reasoning/recipes/stone_age/essential01.lua", "self")
+
+    if not filesystem.isDirectory("/home/robot/reasoning/scripts/debug") then
+       filesystem.makeDirectory("/home/robot/reasoning/scripts/debug")
+    end
+    download("/robot/reasoning/scripts/debug/01.lua", "self")
+end
+
+
 if check_in_args(args, "--debug-branch") then branch = "debug" end
 
 local is_all = check_in_args(args, "all") or check_in_args(args, "--all") or check_in_args(args, "-a")
@@ -127,7 +160,8 @@ if args[1] == "robot" then
     if is_all or check_in_args(args, "eval" )    then    robot_eval()               end
     if is_all or check_in_args(args, "nav"  )    then    robot_navigation()         end
     if is_all or check_in_args(args, "bldp" )    then    robot_build_primitives()   end
-    if is_all or check_in_args(args, "mbld" )    then    robot_meta_build()        end
+    if is_all or check_in_args(args, "mbld" )    then    robot_meta_build()         end
+    if is_all or check_in_args(args, "reas" )    then    robot_reasoning()          end
 
 elseif args[1] == "controller" then
     if not filesystem.isDirectory("/home/controller") then 
