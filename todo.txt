@@ -34,3 +34,5 @@ is staged and commited to allow for changes, and also add visualisation of the c
 Interactive shit will be a gamechanger for real for real
 I don't know if locks should be goal-wide or script-wide, but I guess that in order to allow parallel working
 if something gets stuck in interactive mode for a while that I should do it goal-wide
+
+Algorithm to deal with entities getting in our way during move (aka, swing that sword baby)

@@ -20,9 +20,9 @@ function MSChunk:new(x, symbol)
     return obj
 end
 
-local SpecialBlockEnum = {
+--[[local SpecialBlockEnum = {
    Inventory = {} 
-}
+}--]]
 
 -- lines into squares into square_cuboids (the meta_schematic itself)
 -- acts as a sort of multi-dimensional queue
@@ -103,4 +103,4 @@ end
     return MetaSchematic[height][z][x]
 end--]]
 
-return MetaSchematic, SpecialBlockEnum
+return MetaSchematic

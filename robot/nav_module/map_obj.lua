@@ -9,6 +9,7 @@ local comms = require("comms")
 local deep_copy = require("deep_copy")
 
 local interactive = require("interactive")
+local eval_nav = require("eval.navigate")
 
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
@@ -122,6 +123,14 @@ local function empty_quad_table()
     return quads
 end
 
+function MetaChunk:getDoors(what_quad_num)
+    if not self:quadChecks(what_quad_num, "getDoors") then return nil end
+    local this_quad = self.meta_quads[what_quad_num]
+    local doors = this_quad:getDoors()
+    if doors == nil then print(comms.robot_send("error", "MetaChunk:getDoors, got nil doors xO")) end
+    return doors
+end
+
 function MetaChunk:quadChecks(what_quad_num, from_where)
     if what_quad_num > 4 or what_quad_num < 1 then
         print(comms.robot_send("error", "-- " .. from_where .. " --" .. "specified invalid quad_num: \"" .. tostring(what_quad_num) .. "\""))
@@ -227,6 +236,16 @@ local function chunk_exists(what_chunk)
     return map_obj[x][z]
 end
 
+local function get_door_info(what_chunk, what_quad)
+    local map_chunk = chunk_exists(what_chunk)
+    if map_chunk == nil then 
+        print(comms.robot_send("error", "map_obj, failed to get door info -- chunk doesn't exist"))
+        return nil 
+    end
+
+    return map_chunk:getDoors(what_quad)
+end
+
 -- NamedArea:new(name, colour, height, floor_block)
 function module.create_named_area(name, colour, height, floor_block)
     local new_area = NamedArea:new(name, colour, height, floor_block)
@@ -307,11 +326,11 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 1 -- updates what_step here
         return_table[4] = what_step
         return_table[6] = id
-        return prio, module.start_auto_build, return_table
+        return {prio, module.start_auto_build, return_table}
     elseif what_step == 1 then
         local data = interactive.get_data_table(id)
         if data == nil then
-            return prio, module.start_auto_build, return_table
+            return {prio, module.start_auto_build, return_table}
         end
         what_chunk[1] = what_chunk[1] + data[1]
         what_chunk[2] = what_chunk[2] + data[2] -- no need to alter return_table since what_chunk is a ref
@@ -321,12 +340,12 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 2
         return_table[4] = what_step
-        return prio, module.start_auto_build, return_table
+        return {prio, module.start_auto_build, return_table}
     elseif what_step == 2 then
         if area_table:isInArea(what_chunk) then
             what_step = 4
             return_table[4] = what_step
-            return prio, module.start_auto_build, return_table
+            return {prio, module.start_auto_build, return_table}
         end -- else iteractive mode_it again
     
         local hr_table = {
@@ -339,18 +358,18 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 3
         return_table[4] = what_step
         return_table[6] = id
-        return prio, module.start_auto_build, return_table
+        return {prio, module.start_auto_build, return_table}
     elseif what_step == 3 then
         local data = interactive.get_data_table(id)
         if data == nil then
-            return prio, module.start_auto_build, return_table
+            return {prio, module.start_auto_build, return_table}
         end
         local area_name = data[1]
         local area = areas_table:getArea(area_name)
         if area == nil then
             print(comms.robot_send("error", "what are you? Stupid? start_auto_build, what_step == 3 | area doesn't exist stupid")) 
             interactive.del_data_table(id) -- resets table
-            return prio, module.start_auto_build, return_table
+            return {prio, module.start_auto_build, return_table}
         end
         area:addChunkToSelf(what_chunk)
 
@@ -360,7 +379,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 4
         return_table[4] = what_step
-        return prio, module.start_auto_build, return_table
+        return {prio, module.start_auto_build, return_table}
     elseif what_step == 4 then
         local result = module.add_quad(what_chunk, what_quad, primitive_name)
         if not result then
@@ -369,7 +388,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         
         what_step = 5
         return_table[4] = what_step
-        return prio, module.start_auto_build, return_table
+        return {prio, module.start_auto_build, return_table}
     elseif what_step == 5 then
         local result = module.setup_build(what_chunk, what_quad)
         if not result then
@@ -378,7 +397,20 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     
         what_step = 6
         return_table[4] = what_step
-        return prio, module.start_auto_build, return_table
+        return {prio, module.start_auto_build, return_table}
+    elseif what_step == 6 then
+        local result, status, rel_coords, block_name = map_obj.do_build(what_chunk, what_quad)
+        if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
+
+        local door_info = get_door_info(what_chunk, what_quad)
+        local self_table = {prio, module.start_auto_build, return_table}
+
+        if status == "continue" then
+            --return {80, "navigate_rel", "and_build", coords, block_name, self_table}
+            return {80, eval_nav.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, self_table}
+        elseif status == "done" then
+            return nil -- I think we return nil?
+        else error(comms.robot_send("fatal", "lol, how?")) end
     end
 
     print(comms.robot_send("error", "start_auto_build fell through xO"))

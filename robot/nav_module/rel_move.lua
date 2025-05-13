@@ -22,6 +22,10 @@ end
 local goal_rel = {0,0,0} -- x,z,y
 local navigation_setup = false
 
+function module.is_setup()
+    return navigation_setup
+end
+
 function module.setup_navigate_rel(x,z,y)
     goal_rel[1] = x
     goal_rel[2] = z
@@ -32,7 +36,7 @@ end
 function module.navigate_rel(nav_obj)
     if not navigation_setup then
         print(comms.robot_send("error", "navigate_rel, navigation not setup"))
-        return 1
+        return 2
     end
 
     local dir = nil

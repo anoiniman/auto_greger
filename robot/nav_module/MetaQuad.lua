@@ -15,7 +15,7 @@ local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
 local MetaQuad = {
     quad = 0, -- if quad = 0 it is because we still haven't been neither "marked", nor "build"
     build = MetaBuild:new(), -- if build.isBuilt() returns false.....
-    doors = {}
+    doors = nil
 }
 function MetaQuad:new()
     return deep_copy.copy_table(self, pairs)
@@ -33,6 +33,10 @@ function MetaQuad:getBuild()
     return self.build
 end
 
+function MetaQuad:getDoors()
+    return self.doors
+end
+
 function MetaQuad:isInit()
     return self.quad ~= 0
 end
@@ -42,6 +46,11 @@ function MetaQuad:isBuilt()
 end
 
 function MetaQuad:actualizeDoors() -- Transform the door definition into actual rel coordinates
+    if self.doors == nil then
+        print(comms.robot_send("error", "tried to actualizeDoors without having any doors!?"))
+        return
+    end
+
     local quad = self.quad
     for index, door in ipairs(self.doors) do
         if quad == 1 then

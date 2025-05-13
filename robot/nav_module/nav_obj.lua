@@ -9,6 +9,7 @@ local deep_copy = require("deep_copy")
 
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
+local rel_move = require("nav_module.rel_move")
 
 local MetaBuild = require("build.MetaBuild")
 local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
@@ -33,6 +34,10 @@ local nav_obj = {
 
     orientation = "north"
 }
+
+function module.get_chunk()
+    return deep_copy.copy(chunk, ipairs) -- :)
+end
 
 function module.set_chunk(x, z)
     nav_obj.chunk[1] = x
@@ -72,10 +77,6 @@ function module.setup_navigate_rel(what_chunk)
 end
 
 function module.navigate_rel(clear)
-
-end
-
-function module.build_quad()
 
 end
 

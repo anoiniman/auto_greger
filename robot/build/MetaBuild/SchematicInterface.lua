@@ -1,7 +1,7 @@
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
-local MetaSchematic, SpecialBlockEnum = require("build.MetaBuild.MetaSchematic")
+local MetaSchematic = require("build.MetaBuild.MetaSchematic")
 
 local rel_positions = {0, 0, 0} -- x, z, y
 function rel_positions:new()

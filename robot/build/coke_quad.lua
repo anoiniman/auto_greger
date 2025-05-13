@@ -35,7 +35,7 @@ Module.segments = { -- This nil assignment schtick makes it so for 99% of the ca
 }
 
 Module.doors = {}
-Module.doors[1] = meta_door:zeroed()
+Module.doors[1] = meta_door:new()
 Module.doors[1]:doorX(6,2)
 
 -- consuming what function is to be executed

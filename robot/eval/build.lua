@@ -94,8 +94,9 @@ function module.do_build(arguments)
     local result, status, coords, block_name = map_obj.do_build(what_chunk, what_quad)
     if result then
         if status == "continue" then
-            error("todo - basic inventory management, aka, check if we have such a block")
-            return {"navigate_rel", "and_build", coords, block_name}
+            error("todo - this is still not supported")
+            --error("todo - basic inventory management, aka, check if we have such a block")
+            --return {80, eval., "and_build", coords, block_name}
         elseif status == "done" then
             -- TODO: de-allocate down the unneeded build-files
             return nil
