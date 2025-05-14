@@ -329,11 +329,11 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 1 -- updates what_step here
         return_table[4] = what_step
         return_table[6] = id
-        return {prio, module.start_auto_build, table.unpack(return_table)}
+        return what_to_return
     elseif what_step == 1 then
         local data = interactive.get_data_table(id)
         if data == nil then
-            return {prio, module.start_auto_build, table.unpack(return_table)}
+            return what_to_return
         end
         what_chunk[1] = what_chunk[1] + data[1]
         what_chunk[2] = what_chunk[2] + data[2] -- no need to alter return_table since what_chunk is a ref
@@ -343,12 +343,12 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 2
         return_table[4] = what_step
-        return {prio, module.start_auto_build, table.unpack(return_table)}
+        return what_to_return
     elseif what_step == 2 then
         if area_table:isInArea(what_chunk) then
             what_step = 4
             return_table[4] = what_step
-            return {prio, module.start_auto_build, table.unpack(return_table)}
+            return what_to_return
         end -- else iteractive mode_it again
     
         local hr_table = {
@@ -361,18 +361,18 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 3
         return_table[4] = what_step
         return_table[6] = id
-        return {prio, module.start_auto_build, table.unpack(return_table)}
+        return what_to_return
     elseif what_step == 3 then
         local data = interactive.get_data_table(id)
         if data == nil then
-            return {prio, module.start_auto_build, table.unpack(return_table)}
+            return what_to_return
         end
         local area_name = data[1]
         local area = areas_table:getArea(area_name)
         if area == nil then
             print(comms.robot_send("error", "what are you? Stupid? start_auto_build, what_step == 3 | area doesn't exist stupid")) 
             interactive.del_data_table(id) -- resets table
-            return {prio, module.start_auto_build, table.unpack(return_table)}
+            return what_to_return
         end
         area:addChunkToSelf(what_chunk)
 
@@ -382,7 +382,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 4
         return_table[4] = what_step
-        return {prio, module.start_auto_build, table.unpack(return_table)}
+        return what_to_return
     elseif what_step == 4 then
         local result = module.add_quad(what_chunk, what_quad, primitive_name)
         if not result then
@@ -391,7 +391,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         
         what_step = 5
         return_table[4] = what_step
-        return {prio, module.start_auto_build, table.unpack(return_table)}
+        return what_to_return
     elseif what_step == 5 then
         local result = module.setup_build(what_chunk, what_quad)
         if not result then
@@ -400,13 +400,13 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     
         what_step = 6
         return_table[4] = what_step
-        return {prio, module.start_auto_build, table.unpack(return_table)}
+        return what_to_return
     elseif what_step == 6 then
         local result, status, rel_coords, block_name = map_obj.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
 
         local door_info = get_door_info(what_chunk, what_quad)
-        local self_table = {prio, module.start_auto_build, table.unpack(return_table)}
+        local self_table = what_to_return
 
         if status == "continue" then
             return {80, "navigate_rel", "and_build", rel_coords, what_chunk, door_info, block_name, self_table}
