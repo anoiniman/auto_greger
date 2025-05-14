@@ -45,7 +45,7 @@ function module.add(interactive_type, human_readable) -- returns id
     local new_id = get_new_id() 
     local new_element = MetaElement:new(interactive_type, human_readable)
     wait_list[new_id] = new_element
-    return id
+    return new_id
 end
 
 function module.get_data_table(id)
