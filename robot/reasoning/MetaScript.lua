@@ -171,7 +171,7 @@ function BuildingConstraint:step(index, name) -- returns command to be evaled
     -- build and "start over", aka, tell the system it is ok to re-try
     local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, prio}
     -- TODO define prio dynamically somehow
-    return {prio, command, arguments} -- the common format, you know it welll
+    return {prio, command, table.unpack(arguments)} -- the common format, you know it welll
 end
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met
