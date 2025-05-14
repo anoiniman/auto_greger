@@ -45,7 +45,7 @@ function comm_terminal()
             -- Do nothing, since prio is already inside the array
         else
             prio = calculate_prio(array[1]) -- some special commands will have higher prio
-            table.insert(array, prio, 1)
+            table.insert(array, 1, prio)
         end
 
         if array ~= nil and #array > 0  then
