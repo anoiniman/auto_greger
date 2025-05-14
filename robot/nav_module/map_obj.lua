@@ -326,9 +326,6 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
             "name: ", primitive_name, " || ", "waiting for origin_chunk_coords"
         }
         local human_readable = table.concat(hr_table)
-        local debug_print = serialize.serialize(human_readable, true)
-        print(comms.robot_send("debug", debug_print))
-
         local id = interactive.add("auto_build0", human_readable)
 
         what_step = 1 -- updates what_step here
@@ -353,6 +350,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 2
         return_table[4] = what_step
 
+        ITERACTED = true
         prio = 70
         -- old return
     elseif what_step == 2 then
@@ -400,6 +398,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 4
         return_table[4] = what_step
 
+        ITERACTED = true
         prio = 70
         -- old return
     elseif what_step == 4 then

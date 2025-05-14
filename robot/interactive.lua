@@ -68,7 +68,7 @@ function module.print_list()
 
     print(comms.robot_send("info", "--- Wait List print begin ---"))
     for id, element in pairs(wait_list) do
-        local print_table = {"id -- [",  id,  "] -- ",  element.interactive_type,  " -- \"",  human_readable,  "\""}
+        local print_table = {"id -- [",  id,  "] -- ",  element.interactive_type,  " -- \"",  element.human_readable,  "\""}
         local print_string = table.concat(print_table)
         print(comms.robot_send("info", print_string))
     end
