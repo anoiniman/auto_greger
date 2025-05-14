@@ -316,6 +316,8 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     -- if what_step == 0 then what_chunk is simply an offset, else it is an absolute coordinate
     -- the base coordinate to add to the offset is given by the user at a later time
 
+    -- Temporary value?
+    local prio = 70
 
     if what_step <= 0 then
         -- if this crashes add the to_string's
@@ -332,8 +334,11 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 1 -- updates what_step here
         return_table[4] = what_step
         return_table[6] = id
+
+        prio = -2
         -- old return
     elseif what_step == 1 then
+        prio = -2
         local data = interactive.get_data_table(id)
         if data == nil then
             goto fall
@@ -347,6 +352,8 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 2
         return_table[4] = what_step
+
+        prio = 70
         -- old return
     elseif what_step == 2 then
         if area_table:isInArea(what_chunk) then
@@ -366,8 +373,11 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 3
         return_table[4] = what_step
         return_table[6] = id
+
+        prio = -2
         -- old return
     elseif what_step == 3 then
+        prio = -2
         local data = interactive.get_data_table(id)
         if data == nil then
             goto fall
@@ -389,6 +399,8 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 4
         return_table[4] = what_step
+
+        prio = 70
         -- old return
     elseif what_step == 4 then
         local result = module.add_quad(what_chunk, what_quad, primitive_name)

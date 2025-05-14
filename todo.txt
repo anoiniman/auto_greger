@@ -44,3 +44,7 @@ we should be going depth first, for now doesn't seem to matter much, but you kno
 
 in the reasoning we must find better ways to sleep and better ways stop repeating calculations, because this actually drains our
 power very quickly holy
+
+when we loop in non-reasoning, waiting for a interactive input, we waste way to much power
+-- how to solve is simple, simply set flag to wait for interaction or something like that
+I KNOW WHY IT CRASHED THAT TIME IT WAS BECAUSE WE HAD TO THINGS IN THE CUEUE -- prob fine now

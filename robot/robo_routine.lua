@@ -22,7 +22,7 @@ function prio_insert(task_list, message)
     end
 
     local prio = message[1]
-    if prio == -1 then
+    if prio == -1 or prio == -2 then
         table.insert(task_list, message)
         return
     end
@@ -42,6 +42,9 @@ function prio_insert(task_list, message)
     table.insert(task_list, message)
 end
 
+-- Dangerous global value
+INTERACTED = false
+
 local task_list = {} -- for sure table (table)
 local cur_task = nil
 -- message = priority + command + arguments
@@ -53,13 +56,26 @@ function module.robot_routine(message)
         prio_insert(task_list, message)
         message = nil
     end
-    if #task_list > 0 then
-        cur_task = table.remove(task_list)
-    end
+
 
     local extend_queue = nil
-    if cur_task ~= nil and #cur_task ~= 0 then
-        extend_queue = eval.eval_command(cur_task)
+
+    -- ugly cludge, fix later
+    while #task_list > 0 do
+        cur_task = table.remove(task_list)
+        if cur_task ~= nil and #cur_task ~= 0 then
+            if cur_task[1] == -2 then
+                if INTERACTED then
+                    INTERACTED = false
+                    extend_queue = eval.eval_command(cur_task)
+                end -- else let it fall through
+            else
+                extend_queue = eval.eval_command(cur_task)
+                break
+            end
+        else
+            break
+        end
     end
 
     --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
