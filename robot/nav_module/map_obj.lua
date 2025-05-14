@@ -316,15 +316,6 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     -- if what_step == 0 then what_chunk is simply an offset, else it is an absolute coordinate
     -- the base coordinate to add to the offset is given by the user at a later time
 
-    -- This is such a bad fix for the long term, we should just pass it back by name, but whatever,
-    -- if it works it works
-    local what_to_return = nil
-    if return_table ~= nil then
-        local what_to_return = {prio, module.start_auto_build, table.unpack(return_table)}
-    else
-        local what_to_return = {prio, module.start_auto_build, table.unpack(what_chunk)}
-        what_chunk, what_quad, primitive_name, what_step, lock, id, return_table = table.unpack(what_chunk)
-    end
 
     if what_step <= 0 then
         -- if this crashes add the to_string's
@@ -333,16 +324,20 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
             "name: ", primitive_name, " || ", "waiting for origin_chunk_coords"
         }
         local human_readable = table.concat(hr_table)
+        local debug_print = serialize.serialize(human_readable, true)
+        print(comms.robot_send("debug", debug_print))
+
         local id = interactive.add("auto_build0", human_readable)
 
         what_step = 1 -- updates what_step here
         return_table[4] = what_step
         return_table[6] = id
-        return what_to_return
+        -- old return
     elseif what_step == 1 then
         local data = interactive.get_data_table(id)
         if data == nil then
-            return what_to_return
+            goto fall
+            -- old return
         end
         what_chunk[1] = what_chunk[1] + data[1]
         what_chunk[2] = what_chunk[2] + data[2] -- no need to alter return_table since what_chunk is a ref
@@ -352,12 +347,13 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 2
         return_table[4] = what_step
-        return what_to_return
+        -- old return
     elseif what_step == 2 then
         if area_table:isInArea(what_chunk) then
             what_step = 4
             return_table[4] = what_step
-            return what_to_return
+            goto fall
+            -- old return
         end -- else iteractive mode_it again
     
         local hr_table = {
@@ -370,18 +366,20 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 3
         return_table[4] = what_step
         return_table[6] = id
-        return what_to_return
+        -- old return
     elseif what_step == 3 then
         local data = interactive.get_data_table(id)
         if data == nil then
-            return what_to_return
+            goto fall
+            -- old return
         end
         local area_name = data[1]
         local area = areas_table:getArea(area_name)
         if area == nil then
             print(comms.robot_send("error", "what are you? Stupid? start_auto_build, what_step == 3 | area doesn't exist stupid")) 
             interactive.del_data_table(id) -- resets table
-            return what_to_return
+            goto fall
+            -- old return
         end
         area:addChunkToSelf(what_chunk)
 
@@ -391,7 +389,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         what_step = 4
         return_table[4] = what_step
-        return what_to_return
+        -- old return
     elseif what_step == 4 then
         local result = module.add_quad(what_chunk, what_quad, primitive_name)
         if not result then
@@ -400,7 +398,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         
         what_step = 5
         return_table[4] = what_step
-        return what_to_return
+        -- old return
     elseif what_step == 5 then
         local result = module.setup_build(what_chunk, what_quad)
         if not result then
@@ -409,7 +407,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     
         what_step = 6
         return_table[4] = what_step
-        return what_to_return
+        -- old return
     elseif what_step == 6 then
         local result, status, rel_coords, block_name = map_obj.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
@@ -425,8 +423,10 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         else error(comms.robot_send("fatal", "lol, how?")) end
     end
 
-    print(comms.robot_send("error", "start_auto_build fell through xO"))
-    return nil
+    ::fall::
+
+    -- let this fall through if this is what we want to return, most of the time this is what we wan't to return
+    return {prio, "start_auto_build", table.unpack(return_table)}
 end
 
 return module

@@ -63,6 +63,8 @@ function module.eval_command(command_arguments)
         return build.setup_build(arguments)
     elseif command == "build_do_build" then
         return build.do_build(arguments)   
+    elseif command == "start_auto_build" then
+        return build.start_auto_build(arguments)   
 
     ---------------
     elseif command == "interactive_list" or command == "ils" then
