@@ -316,7 +316,6 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     -- if what_step == 0 then what_chunk is simply an offset, else it is an absolute coordinate
     -- the base coordinate to add to the offset is given by the user at a later time
 
-    -- TODO this is all still to do
     if what_step <= 0 then
         -- if this crashes add the to_string's
         local hr_table = {
@@ -411,6 +410,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         if status == "continue" then
             return {80, "navigate_rel", "and_build", rel_coords, what_chunk, door_info, block_name, self_table}
         elseif status == "done" then
+            lock[1] = 0 -- VERY IMPORTANT, unlocking the building constraint
             return nil -- I think we return nil?
         else error(comms.robot_send("fatal", "lol, how?")) end
     end

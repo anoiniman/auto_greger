@@ -2,6 +2,7 @@ local robot_name = "sumire-chan"
 
 -- import of globals
 local io = require("io")
+local os = require("os")
 
 local term = require("term")
 local text = require("text")
@@ -27,9 +28,19 @@ term.clear()
 print(comms.robot_send("info", robot_name .. " -- Now Online!"))
 term.setCursorBlink(false)
 
+CRON_TIME = 5
+local cron_time_interval = 0
 local function cron_jobs()
-    keep_alive.keep_alive()
-    reasoning.step_script()
+    local cron_message = nil
+
+    local cron_time_delta = os.clock() - cron_time_interval
+    if cron_time_delta > CRON_TIME then
+        keep_alive.keep_alive()
+        cron_time_interval = os.clock()
+        message_type, cron_message = reasoning.step_script()
+    end
+
+    return cron_message
 end
 
 -- Very special commands I guess
@@ -54,7 +65,7 @@ local function special_message_interpretation(message)
     return nil
 end
 
-local function process_messages()
+local function process_messages(cron_message)
     local block_message = nil
 
     if block_read_bool == true then
@@ -84,6 +95,8 @@ local function process_messages()
 
     if watch_dog == 0 or message ~= nil then
         robot_routine.robot_routine(message)
+    elseif cron_message ~= nil then
+        robot_routine.robot_routine(cron_message)
     else
         -- Nothing
     end
@@ -98,8 +111,8 @@ local function robot_main()
     while not do_exit do
         os.sleep(ROBO_MAIN_THREAD_SLEEP)
 
-        cron_jobs()
-        process_messages()
+        local cron_message = cron_jobs()
+        process_messages(cron_message)
     end -- While
 
     print(comms.robot_send("info", "exiting!"))

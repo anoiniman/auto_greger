@@ -40,7 +40,7 @@ function reason_obj.step_script()
         reason_obj.force_load(1)
         loaded = true
     end
-    cur_script:step()
+    return cur_script:step()
 end
 
 return reason_obj

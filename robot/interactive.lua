@@ -1,6 +1,5 @@
 local module = {}
 -- Just noticed that this is basically a fancy future/promise implementation :sob:
--- Long term TODO -- uhhh, yeah, let's hope we don't run out of id's ehehhe
 
 local math = require("math")
 
@@ -67,11 +66,14 @@ function module.print_list()
         return
     end
 
+    print(comms.robot_send("info", "--- Wait List print begin ---"))
     for id, element in pairs(wait_list) do
         local print_table = {"id -- [",  id,  "] -- ",  element.interactive_type,  " -- \"",  human_readable,  "\""}
         local print_string = table.concat(print_table)
         print(comms.robot_send("info", print_string))
     end
+    print(comms.robot_send("info", "--- Wait List print END ---"))
+    print(comms.robot_send("\0", "\0"))
 end
 
 -- gonna need to programe something in prompt side for this cool thing to happen, but can also just add

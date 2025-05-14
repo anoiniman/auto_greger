@@ -48,14 +48,17 @@ function MetaScript:step() -- most important function does everything, I think
     local best_goal, index, name = self:findBestGoal()
     if best_goal == nil then
         print(comms.robot_send("error", "MetaScript:step() -- couldn't find best goal"))
-        return "fail"
+        return "fail", nil
     end
 
-    local can_step = best_goal:step(index, name)
-    if not can_step and index == 1 then -- activate power saving, or change active scripts
-        return "end"
+    local result = best_goal:step(index, name)
+    if result == nil and index == 1 then -- activate power saving, or change active scripts
+        print(comms.robot_send("warning", "MetaScript:step() -- ran out of goals!"))
+        return "end", nil
     end
-    return "continue"
+
+    print(comms.robot_send("info", "MetaScript:step() -- selected command to to execute: " .. result[2]))
+    return "continue", result
 end
 
 -- Possible filters = "strict", "loose", <!"gt_ore"!> (maybe not anymore)
@@ -96,6 +99,9 @@ function BuildingConstraint:new(structures, chunk_centre)
     return new
 end
 function BuildingConstraint:check()
+    -- early return
+    if self.lock[1] ~= 0 then return 0, nil end
+
     local heap = {}
     for index, structure in ipairs(self.structures) do
         local name = structure.name
@@ -121,7 +127,6 @@ function BuildingConstraint:check()
     return 0, nil -- check passed
 end
 
--- NAME IS NIL BRUHHH
 function BuildingConstraint:step(index, name) -- returns command to be evaled
     local structure_to_build = nil
     local occurence = 0
@@ -156,8 +161,7 @@ function BuildingConstraint:step(index, name) -- returns command to be evaled
         step_num = 0
     end
 
-    self.lock[1] = 1
-    --local id = {-1}
+    self.lock[1] = 1 -- signals that constraint is in the middle of processing and to not do more requests
     local step = 0
     local id = -1
     local prio = 60
@@ -167,7 +171,7 @@ function BuildingConstraint:step(index, name) -- returns command to be evaled
     -- build and "start over", aka, tell the system it is ok to re-try
     local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, prio}
     -- TODO define prio dynamically somehow
-    return prio, command, arguments -- the common format, you know it welll
+    return {prio, command, arguments} -- the common format, you know it welll
 end
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met
@@ -254,11 +258,10 @@ end
 
 function Goal:step(index, name)
     if self.recipe == nil then -- aka, is this a building constraint?
-        self.constraint:step(index, name)
-        return
+        return self.constraint:step(index, name)
     end
     self.recipe:step() -- ?
-    return
+    return nil
 end
 
 
