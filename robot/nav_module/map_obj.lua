@@ -315,7 +315,16 @@ end
 function module.start_auto_build(what_chunk, what_quad, primitive_name, what_step, lock, id, return_table)
     -- if what_step == 0 then what_chunk is simply an offset, else it is an absolute coordinate
     -- the base coordinate to add to the offset is given by the user at a later time
-    local what_to_return = {prio, module.start_auto_build, table.unpack(return_table)}
+
+    -- This is such a bad fix for the long term, we should just pass it back by name, but whatever,
+    -- if it works it works
+    local what_to_return = nil
+    if return_table ~= nil then
+        local what_to_return = {prio, module.start_auto_build, table.unpack(return_table)}
+    else
+        local what_to_return = {prio, module.start_auto_build, table.unpack(what_chunk)}
+        what_chunk, what_quad, primitive_name, what_step, lock, id, return_table = table.unpack(what_chunk)
+    end
 
     if what_step <= 0 then
         -- if this crashes add the to_string's
