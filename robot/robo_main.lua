@@ -30,15 +30,24 @@ print(comms.robot_send("info", robot_name .. " -- Now Online!"))
 term.setCursorBlink(false)
 
 CRON_TIME = 5
+DO_REASONING = true
+REASON_ONCE = false
+
 local cron_time_interval = computer.uptime()
 local function cron_jobs()
     local cron_message = nil
+    local message_type = nil
 
     local cron_time_delta = computer.uptime() - cron_time_interval
     if cron_time_delta > CRON_TIME then
         keep_alive.keep_alive()
         cron_time_interval = computer.uptime()
-        message_type, cron_message = reasoning.step_script()
+        if DO_REASONING then
+            message_type, cron_message = reasoning.step_script()
+        elseif REASON_ONCE then
+            REASON_ONCE = false 
+            message_type, cron_message = reasoning.step_script()
+        end
     end
 
     return cron_message
@@ -96,7 +105,7 @@ local function process_messages(cron_message)
 
     if watch_dog == 0 or message ~= nil then
         robot_routine.robot_routine(message)
-    elseif cron_message ~= nil then
+    if cron_message ~= nil then
         robot_routine.robot_routine(cron_message)
     else
         -- Nothing

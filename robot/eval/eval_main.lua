@@ -38,7 +38,10 @@ function module.eval_command(command_arguments)
         return debug.echo(arguments)
     elseif command == "debug" then
         return debug.debug(arguments)
-
+    elseif command == "stop_reason" then
+        DO_REASONING = false
+    elseif command == "reason_once" then
+        REASON_ONCE = true
     ---------------
     elseif command == "navigate_chunk" then
         return navigate.navigate_chunk(arguments)

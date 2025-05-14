@@ -57,7 +57,7 @@ function MetaScript:step() -- most important function does everything, I think
         return "end", nil
     end
 
-    print(comms.robot_send("info", "MetaScript:step() -- selected command to to execute: " .. result[2]))
+    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute))
     return "continue", result
 end
 
