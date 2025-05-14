@@ -29,14 +29,14 @@ print(comms.robot_send("info", robot_name .. " -- Now Online!"))
 term.setCursorBlink(false)
 
 CRON_TIME = 5
-local cron_time_interval = 0
+local cron_time_interval = os.uptime()
 local function cron_jobs()
     local cron_message = nil
 
-    local cron_time_delta = os.clock() - cron_time_interval
+    local cron_time_delta = os.uptime() - cron_time_interval
     if cron_time_delta > CRON_TIME then
         keep_alive.keep_alive()
-        cron_time_interval = os.clock()
+        cron_time_interval = os.uptime()
         message_type, cron_message = reasoning.step_script()
     end
 

@@ -85,6 +85,7 @@ local function robot_eval()
     download("/robot/eval/debug.lua", "self")
     download("/robot/eval/eval_main.lua", "self")
     download("/robot/eval/navigate.lua", "self")
+    download("/robot/eval/interactive.lua", "self")
 end
 
 local function robot_navigation()
