@@ -29,7 +29,7 @@ term.setCursorBlink(false)
 
 local function cron_jobs()
     keep_alive.keep_alive()
-    reason.step_script()
+    reasoning.step_script()
 end
 
 -- Very special commands I guess

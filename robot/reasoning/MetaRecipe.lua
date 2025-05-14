@@ -1,4 +1,8 @@
-local MetaRecipe = {}
+local MetaRecipe = {
+    output = nil,
+    meta_type = nil,
+    mechanism = nil
+}
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
@@ -29,10 +33,9 @@ end
                                             -- is the one that will have to do the crafting itself
 --end
 
-
-local MetaRecipe.output = nil
+--[[local MetaRecipe.output = nil
 local MetaRecipe.meta_type = nil
-local MetaRecipe.mechanism = nil
+local MetaRecipe.mechanism = nil--]]
 
 function MetaRecipe:new()
     return deep_copy.copy(self, pairs)
@@ -65,7 +68,7 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, goal_block)
         error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
         return nil
     end
-    if tool == nil or level == nil, or algorithm == nil 
+    if tool == nil or level == nil or algorithm == nil 
             or type(algorithm) ~= "function" or goal_block == nil then
 
         error(comms.robot_send("error", "MetaRecipe:newGathering, we did a fucky-wucky oopie wooppies"))

@@ -9,7 +9,7 @@ local sides_api = require("sides")
 local robot = require("robot")
 
 local deep_copy = require("deep_copy")
-local bucket_functions, item_buckets = require("inventory.item_buckets")
+local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
 
 local crafting = component.getPrimary("crafting")
 local inventory = component.getPrimary("inventory_controller")

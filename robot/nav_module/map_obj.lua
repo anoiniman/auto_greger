@@ -9,7 +9,8 @@ local comms = require("comms")
 local deep_copy = require("deep_copy")
 
 local interactive = require("interactive")
-local eval_nav = require("eval.navigate")
+-- YOU CANNOT IMPORT EVAL.NAVIGATE, IT BECOMES CIRCULAR YOU DUFUS
+--local eval_nav = require("eval.navigate")
 
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
@@ -302,6 +303,8 @@ function module.get_buildings(name)
 end
 
 function module.get_buildings_num(name)
+    if known_buildings[name] == nil then return 0 end
+
     return #known_buildings[name]
 end
 
@@ -406,8 +409,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         local self_table = {prio, module.start_auto_build, return_table}
 
         if status == "continue" then
-            --return {80, "navigate_rel", "and_build", coords, block_name, self_table}
-            return {80, eval_nav.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, self_table}
+            return {80, "navigate_rel", "and_build", rel_coords, what_chunk, door_info, block_name, self_table}
         elseif status == "done" then
             return nil -- I think we return nil?
         else error(comms.robot_send("fatal", "lol, how?")) end

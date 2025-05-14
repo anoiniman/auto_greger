@@ -1,5 +1,5 @@
 local module = {}
-local MSBuilder, Goal, Constraint = require("reasoning.MetaScript")
+local MSBuilder, Goal, Constraint = table.unpack(require("reasoning.MetaScript"))
 local desc = "The very first moments of the stone age"
 
 local item = nil

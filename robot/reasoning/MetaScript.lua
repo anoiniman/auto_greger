@@ -1,6 +1,7 @@
 ---- Global Objects ----
 local map_obj = require("nav_module.map_obj")
 local inv_obj = require("inventory.inv_obj")
+-- Mind the circular dependencies with care
 local eval_build = require("eval.build")
 ---- Shared ----
 local comms = require("comms")
@@ -33,8 +34,8 @@ function MetaScript:findBestGoal()
     for index = #self.goals, 1, -1 do -- Reverse order so it goes from highest prio to lowest
         local goal = self.goals[index] 
         if goal:depSatisfied() then
-            local inner_index, name = self:selfSatisfied()
-            if index ~= 0 then
+            local inner_index, name = goal:selfSatisfied()
+            if inner_index ~= 0 then
                 return goal, inner_index, name
             end
         end
@@ -47,6 +48,7 @@ function MetaScript:step() -- most important function does everything, I think
     local best_goal, index, name = self:findBestGoal()
     if best_goal == nil then
         print(comms.robot_send("error", "MetaScript:step() -- couldn't find best goal"))
+        return "fail"
     end
 
     local can_step = best_goal:step(index, name)
@@ -97,8 +99,11 @@ function BuildingConstraint:check()
     local heap = {}
     for index, structure in ipairs(self.structures) do
         local name = structure.name
+        print(comms.robot_send("debug", "BuildingConstraint:check(), name: " .. name))
+        print(comms.robot_send("debug", "BuildingConstraint:check(), index: " .. index))
         if heap[name] == nil then
             --local cur_buildings = map_obj.get_buildings(name) -- table
+            print(comms.robot_send("debug", "BuildingConstraint:check(), heap[name] is nil"))
             local cur_buildings = map_obj.get_buildings_num(name) -- num
             if cur_buildings == 0 then return index, name end
             heap[name] = cur_buildings
@@ -116,14 +121,18 @@ function BuildingConstraint:check()
     return 0, nil -- check passed
 end
 
-function BuildingConstraint:step(name, index) -- returns command to be evaled
+-- NAME IS NIL BRUHHH
+function BuildingConstraint:step(index, name) -- returns command to be evaled
     local structure_to_build = nil
     local occurence = 0
     for _, structure in ipairs(self.structures) do
+        print(comms.robot_send("debug", "BC:step(), iterated once"))
         if structure.name == name then
+            print(comms.robot_send("debug", "BC:step(), name is equal once"))
             occurence = occurence + 1
         end
         if occurence == index then
+            print(comms.robot_send("debug", "BC:step(), indexes match"))
             structure_to_build = structure
             break
         end
@@ -152,7 +161,7 @@ function BuildingConstraint:step(name, index) -- returns command to be evaled
     local step = 0
     local id = -1
     local prio = 60
-    local command = build_eval.start_auto_build
+    local command = eval_build.start_auto_build
     -- lock will not be released unless building fails in a specific manner, but it's still worth
     -- for it to be around, because, hey, that might happen, and we might want to unluck the
     -- build and "start over", aka, tell the system it is ok to re-try
@@ -180,6 +189,13 @@ function Constraint:newItemConstraint(item_name, total_count, slacking)
 end
 
 function Constraint:newBuildingConstraint(structures, centre, slacking)
+    if structures == nil then
+        print(comms.robot_send("error", "Constraint:newBC, structures is nil!"))
+    elseif structures[1] == nil then
+        print(comms.robot_send("debug", "Constraint:newBC, strucutres is not table of structures, attempting quick-fix!"))
+        structures = {structures}
+    end
+
     local new = self:new()
     new.const_type = "building"
     new.const_obj = BuildingConstraint:new(structures, centre)
@@ -196,11 +212,11 @@ function Constraint:check()
     return index, name
 end
 
-function Constraint:step() -- useful only for Building Constraints
+function Constraint:step(index, name) -- useful only for Building Constraints
     if self.const_type ~= "building" then
         error(comms.robot_send("fatal", "Constraint:step used for non building"))
     end
-    return self.const_obj:step()
+    return self.const_obj:step(index, name)
 end
 
 -- goals depend on other goals (goals will have names, but not inside their struct definition)
@@ -220,6 +236,7 @@ function Goal:new(dependencies, constraint, recipe, priority)
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
     new.recipe = recipe or nil
     new.priority = priority or 0
+    return new
 end
 
 function Goal:selfSatisfied()
@@ -237,7 +254,7 @@ end
 
 function Goal:step(index, name)
     if self.recipe == nil then -- aka, is this a building constraint?
-        self.constraint:step()
+        self.constraint:step(index, name)
         return
     end
     self.recipe:step() -- ?
@@ -254,12 +271,12 @@ function MSBuilder:new_w_desc(desc)
 end
 
 function MSBuilder:addGoal(goal)
-    self.base_script:add_goal(goal)
+    self.base_script:addGoal(goal)
     return self
 end
 
 function MSBuilder:build()
-    return self:base_script
+    return self.base_script
 end
 
-return MSBuilder, Goal, Constraint, StructureDeclaration
+return {MSBuilder, Goal, Constraint, StructureDeclaration}

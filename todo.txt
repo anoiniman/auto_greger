@@ -41,3 +41,6 @@ Sort inventory in such way we have tool "slots", maybe we really should have a 3
 about reasoning, we need to be very careful about how command priorities and the graphs they form
 are handled by the system, otherwise we'll be spinning in place, or-worse, going breath-first when
 we should be going depth first, for now doesn't seem to matter much, but you know how things can go down
+
+in the reasoning we must find better ways to sleep and better ways stop repeating calculations, because this actually drains our
+power very quickly holy

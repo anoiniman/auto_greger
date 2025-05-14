@@ -1,3 +1,5 @@
+local module = {}
+
 local nav = require("nav_module.nav_interface")
 local comms = require("comms")
 
@@ -165,3 +167,5 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
     
     return result, data
 end
+
+return module

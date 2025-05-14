@@ -1,4 +1,4 @@
-local module
+local module = {}
 
 local buckets = {
 "minecraft",
@@ -18,4 +18,4 @@ function module.identify(name, lable)
     end
 end
 
-return module, buckets
+return {module, buckets}
