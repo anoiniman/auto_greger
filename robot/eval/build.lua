@@ -111,8 +111,8 @@ end
 function module.start_auto_build(arguments)
     -- local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, prio}
     -- prio is not passed into function :) (on purpose)
-    local serial = serialize.serialize(arguments, true)
-    print(comms.robot_send("debug", "start auto build arguments: " .. serial))
+    --local serial = serialize.serialize(arguments, true)
+    --print(comms.robot_send("debug", "start auto build arguments: " .. serial))
     return map_obj.start_auto_build(arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments)
 end
 
