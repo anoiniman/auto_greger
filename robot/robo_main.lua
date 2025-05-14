@@ -2,7 +2,8 @@ local robot_name = "sumire-chan"
 
 -- import of globals
 local io = require("io")
-local os = require("os")
+local computer = require("computer")
+--local os = require("os")
 
 local term = require("term")
 local text = require("text")
@@ -29,14 +30,14 @@ print(comms.robot_send("info", robot_name .. " -- Now Online!"))
 term.setCursorBlink(false)
 
 CRON_TIME = 5
-local cron_time_interval = os.uptime()
+local cron_time_interval = computer.uptime()
 local function cron_jobs()
     local cron_message = nil
 
-    local cron_time_delta = os.uptime() - cron_time_interval
+    local cron_time_delta = computer.uptime() - cron_time_interval
     if cron_time_delta > CRON_TIME then
         keep_alive.keep_alive()
-        cron_time_interval = os.uptime()
+        cron_time_interval = computer.uptime()
         message_type, cron_message = reasoning.step_script()
     end
 
