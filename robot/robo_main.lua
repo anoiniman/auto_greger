@@ -105,10 +105,9 @@ local function process_messages(cron_message)
 
     if watch_dog == 0 or message ~= nil then
         robot_routine.robot_routine(message)
+    end
     if cron_message ~= nil then
         robot_routine.robot_routine(cron_message)
-    else
-        -- Nothing
     end
 end
 
