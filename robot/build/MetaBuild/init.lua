@@ -1,4 +1,5 @@
 local math = require("math")
+local serialize = require("serialization")
 local filesystem = require("filesystem")
 
 local comms = require("comms")

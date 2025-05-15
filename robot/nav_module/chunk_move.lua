@@ -19,18 +19,6 @@ local rel_nearest_side = {0,0}
 local cur_in_road = false
 local is_setup = false
 
-function module.setup_navigate_chunk(to_what_chunk, nav_obj)
-    cur_in_road = false
-    is_setup = true
-
-    -- copy provided table (assuming to_what_chunk = {int, int}) (num, num)
-    goal_chunk = {to_what_chunk[1], to_what_chunk[2]}
-
-    update_chunk_nav(nav_obj)
-
-    return chunk_nearest_side, rel_nearest_side
-end
-
 local function update_chunk_nav(nav_obj)
     local rel = nav_obj["rel"]
     local chunk = nav_obj["chunk"]
@@ -45,7 +33,7 @@ local function update_chunk_nav(nav_obj)
         rel[2] = 0
         chunk[2] = chunk[2] + 1
     elseif rel[2] < 0 then
-        rel[2] = 16
+        rel[2] = 15
         chunk[2] = chunk[2] - 1
     end
 
@@ -55,6 +43,18 @@ local function update_chunk_nav(nav_obj)
     local half_chunk_square = 8
     rel_nearest_side[1] = rel[1] - half_chunk_square
     rel_nearest_side[2] = rel[2] - half_chunk_square
+end
+
+function module.setup_navigate_chunk(to_what_chunk, nav_obj)
+    cur_in_road = false
+    is_setup = true
+
+    -- copy provided table (assuming to_what_chunk = {int, int}) (num, num)
+    goal_chunk = {to_what_chunk[1], to_what_chunk[2]}
+
+    update_chunk_nav(nav_obj)
+
+    return chunk_nearest_side, rel_nearest_side
 end
 
 -- returns if it is finished

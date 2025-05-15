@@ -1,4 +1,5 @@
 local serialize = require("serialization")
+local io = require("io")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")
@@ -72,7 +73,7 @@ function SchematicInterface:doBuild()
 
     --local chunk = self.schematic.lookUp(b_stack.logical_y, b_stack.logical_z, b_stack.logical_x)
     local chunk = self.schematic[b_stack.logical_y][b_stack.logical_z][b_stack.logical_x]
-    if chunk == nil then 
+    if chunk == nil or chunk.symbol == '*' then 
         if self:forceAdvanceHead() then
             return true, "done"
         end
@@ -87,9 +88,12 @@ function SchematicInterface:doBuild()
 
     local translated_symbol = self.dictionary[chunk.symbol]
     if translated_symbol == nil then
-        print(comms.send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
+        print(comms.robot_send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
         return false
     end
+    print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
+    print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
+    io.read()
 
     local coords = deep_copy.copy(rel, ipairs)
     return true, "continue", coords, translated_symbol

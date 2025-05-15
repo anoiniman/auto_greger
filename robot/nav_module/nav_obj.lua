@@ -36,7 +36,7 @@ local nav_obj = {
 }
 
 function module.get_chunk()
-    return deep_copy.copy(chunk, ipairs) -- :)
+    return deep_copy.copy(nav_obj.chunk, ipairs) -- :)
 end
 
 function module.set_chunk(x, z)
@@ -89,7 +89,15 @@ function module.navigate_rel()
 end
 
 --temp
-nav_obj.height = 65
-nav_obj.orientation = "east"
+nav_obj.height = 69
+nav_obj.orientation = "west"
+nav_obj.abs[1] = -16
+nav_obj.abs[2] = 0
+
+nav_obj.rel[1] = 15
+nav_obj.rel[2] = 0
+
+nav_obj.chunk[1] = -2
+nav_obj.chunk[2] = 0
 
 return module

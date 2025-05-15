@@ -7,7 +7,7 @@ local math = require("math")
 
 local function attempt_move(nav_obj, dir)
     if dir ~= nil then
-        local result, err = nav.real_move("free", dir, nav_obj)
+        local result, err = nav.r_move("free", dir, nav_obj)
         return result, err
     end
     return false, nil
@@ -69,8 +69,8 @@ function module.navigate_rel(nav_obj)
     if result then return 0 end
 
     ----- y axis
-    local y_dif = nav_obj.rel[3] - goal_rel[3]
-    if goal_rel[3] ~= -1 then
+    local y_dif = nav_obj.height - goal_rel[3]
+    if goal_rel[3] > -1 then
         if y_dif > 0 then dir = "down"
         elseif y_dif < 0 then dir = "up" end
     end

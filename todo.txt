@@ -9,4 +9,5 @@ consumes quite a bit of power to both print characters and send characters throu
 the linked network so yeah
 
 
-Load the offset into the relative coordinate buffer in SchematicInterface!!!!
+Uhhh, start debuging starting from where you left the robot, just add some more temporary values
+in nav_obj, you know the drill

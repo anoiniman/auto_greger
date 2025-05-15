@@ -66,10 +66,11 @@ end
 -- 2d slice of height 1, where 1 string is 1 line (x,z)
 function MetaSchematic:parseStringArr(string_array, square_index) 
     local square = return_or_init_table_table(self, square_index)
+    local z_coord = 0
     local special_table = nil
 
     --local line = nil
-    local max_line = 0
+    --local max_line = 0
 
     for _, str in ipairs(string_array) do
         local x_coord = 0
@@ -77,22 +78,22 @@ function MetaSchematic:parseStringArr(string_array, square_index)
 
         local print_table = {}
         for char in string.gmatch(str, ".") do
-            max_line = math.max(max_line, line_index)
+            --max_line = math.max(max_line, line_index)
             local line = return_or_init_table_table(square, line_index)
 
             if char ~= '-' then
                 local new_obj = MSChunk:new(x_coord, char)
-                record_special(new_obj, special_table)
+                record_special(char, x_coord, z_coord, square_index, special_table)
                 table.insert(line, new_obj)
                 --print(comms.robot_send("debug", char .. "-" .. dist))
             end -- if
-            table.insert(print_table, char)
+            --table.insert(print_table, char)
 
             line_index = line_index + 1
             x_coord = x_coord + 1
         end -- for char
-        print(comms.robot_send("debug", table.concat(print_table)))
-        square_index = square_index + 1
+        --print(comms.robot_send("debug", table.concat(print_table)))
+        z_coord = z_coord + 1
     end -- for str
     return special_table
 end

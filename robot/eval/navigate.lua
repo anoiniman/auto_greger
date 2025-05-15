@@ -40,10 +40,12 @@ end
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
 local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post_run)
     -- I know this shit should be done in place, I don't have the time to code good for now
-    local self_return = {80, eval_nav.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, post_run}
+    local self_return = {80, module.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, post_run}
 
     -- post_run is a command to be run after this one is finished
     local cur_chunk = nav.get_chunk()
+
+    print(comms.robot_send("debug", "cur_coords: " .. cur_chunk[1] .. ", " .. cur_chunk[2]))
     if cur_chunk[1] ~= what_chunk[1] or cur_chunk[2] ~= what_chunk[2] then
         -- this is getting ridiculous, we won't do a inner command again this time
         if not nav.is_setup_navigate_chunk() then
@@ -63,6 +65,7 @@ local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post
         --return {80, module.navigate_rel, "and_build", coords, block_name, post_run}
     end
     local result, err = nav.navigate_rel()
+    print(comms.robot_send("debug", "cur_rel is: " .. nav.nav_obj.rel[1] .. ", " .. nav.nav_obj.rel[2] .. ", " .. nav.nav_obj.height))
     if result == -1 then -- movement completed (place block, and go back to build_function)
         nav.debug_move("up", 1, false)
         if not inv.place("down", block_name, "lable") then
@@ -73,7 +76,7 @@ local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post
         return post_run
     elseif result == 1 then
         if err == "swong" then print("noop") -- not a big error we keep going
-        else error(comms.robot_send("fatal", "eval, navigate, I never thought of this x0")) end
+        else error(comms.robot_send("fatal", "eval.navigate: navigate_build, error rel_moving: " .. err)) end
     elseif result ~= 0 then -- elseif 0 then no problem
         error(comms.robot_send("fatal", "impossible error code returned eval navigate"))
     end
