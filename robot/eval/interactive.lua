@@ -1,5 +1,6 @@
 local module = {}
 local interactive = require("interactive")
+local comms = require("comms")
 
 function module.print_list()
     return interactive.print_list()
@@ -10,7 +11,14 @@ function module.force_set_data_table(arguments)
 
     local id = tonumber(table.remove(arguments, 1))
     if id == nil then return nil end
-    return interactive.set_data_table(arguments, id)
+    local bool = interactive.set_data_table(arguments, id)
+    if bool then
+        INTERACTED = true
+        print(comms.robot_send("debug", "succeseful force setting interaction data table for id: " .. id))
+    else
+        print(comms.robot_send("warning", "Failed force setting interaction data table for id: " .. id))
+    end
+    return nil
 end
 
 return module

@@ -26,12 +26,12 @@ function Module:new()
 end
 
 function Module:doBuild()
-    if s_interface == nil then
+    if self.s_interface == nil then
         print(comms.robot_send("error", "MetaBuild, doBuild, attempted to build with nil s_interface, init plz"))
         return false
     end
 
-    return self.s_interface.doBuild() -- string, 3d-coords, symbol 
+    return self.s_interface:doBuild() -- string, 3d-coords, symbol 
 end
 
 function Module:initPrimitive()
@@ -82,9 +82,11 @@ end
 function Module:setupBuild()
     local base_table = self.primitive.base_table
 
-    if self.s_interface == nil then self.s_interface = SchematicInterface:new() end
-    self.s_interface.dictionary = self.primitive.dictionary
-    self.s_interface.origin_block = self.primitive.origin_block
+    if self.s_interface == nil then 
+        self.s_interface = SchematicInterface:new() 
+    end
+    -- its ok to retain this after dumping the primitive because of GC, I think
+    self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
 
     if self:checkHumanMap(base_table, self.primitive.name) ~= 0 then -- sanity check
         return false

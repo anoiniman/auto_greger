@@ -56,7 +56,7 @@ function module.mirror_x(base_table, segments)
     -- Reverse the segments
     for _, seg in pairs(segments) do
         for _, sub_seg in ipairs(seg) do
-            sub_seg[1] = string.reverse(segment[1])
+            sub_seg[1] = string.reverse(sub_seg[1])
         end
     end
 end

@@ -27,7 +27,7 @@ function module.generate_chunks(arguments)
     local x = arguments[1]; local z = arguments[2]
     if x == nil or z == nil then
         print(comms.robot_send("debug", "generate chunks, no x, or z provided for offset, assuming {1,1}"))
-        x = 0; z = 0
+        x = 1; z = 1
     end
 
     local offset = {x,z}

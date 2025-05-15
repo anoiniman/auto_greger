@@ -1,0 +1,50 @@
+GT-Ores, once mined, have way to identify them
+Have global inventory tracking be done in the controller, and the robot to 
+only track internal inventory, and, instead of the robot keeping track of 
+base inventory by itself, have it ask the controller computer for the contents of 
+things in storage, and have it send push requests when it adds things to storage,
+also have it so the controller manages where things can be stored, in what storage quads
+and in what chests inside the quads, etc.
+
+Basically keeping on with the rim-world for minecraft sort of concept
+
+spcecial cases are things like GT-Ores
+-- TODO: Add milestones to distinguish which recipe with the same output to use
+
+about buildings, have it so that if it can't fit all building blocks in inventory for a one pass-build
+or if it unconvinient to do so, split the building of the build into rational divisions, n-layer by
+n-layer? Dynamically to max layers up to a limit of x inventory slots filled? Have a safe-fail in case
+it can't even do one layer without over-flowing, and so it doesn't spin forever?
+-- Bif if true
+
+-- Maybe make it so that once there is a crafting area in the base (maybe with a "cache"-like storage included
+-- in such an area) the robot will no longer use/keep empty reserved it's internal crafting slot, and instead
+-- fully relies on the base's crafting areas, because of the possible "caching" effect, and freeing up
+-- robot internal inventory space this might be an amazing idea
+
+HOME and MINES in map_obj need to be tables of their own and not simply enum objs that are added to chunk,
+they need to be a fast-access list to chunks
+
+IMPORTANT --> Make some "test" builds that allow for easy fuzzing of the building processes once inventory
+management is enough underway, only practial, "complete", confirmation can give us the confidence we need
+
+Make that some of the chunk marking and build placement stuff isn't immediatly marked, but rather
+is staged and commited to allow for changes, and also add visualisation of the chunks in a virtual map
+
+Interactive shit will be a gamechanger for real for real
+I don't know if locks should be goal-wide or script-wide, but I guess that in order to allow parallel working
+if something gets stuck in interactive mode for a while that I should do it goal-wide
+
+Algorithm to deal with entities getting in our way during move (aka, swing that sword baby)
+Sort inventory in such way we have tool "slots", maybe we really should have a 32 slot inventory huh
+
+about reasoning, we need to be very careful about how command priorities and the graphs they form
+are handled by the system, otherwise we'll be spinning in place, or-worse, going breath-first when
+we should be going depth first, for now doesn't seem to matter much, but you know how things can go down
+
+in the reasoning we must find better ways to sleep and better ways stop repeating calculations, because this actually drains our
+power very quickly holy
+
+when we loop in non-reasoning, waiting for a interactive input, we waste way to much power
+-- how to solve is simple, simply set flag to wait for interaction or something like that
+I KNOW WHY IT CRASHED THAT TIME IT WAS BECAUSE WE HAD TO THINGS IN THE CUEUE -- prob fine now

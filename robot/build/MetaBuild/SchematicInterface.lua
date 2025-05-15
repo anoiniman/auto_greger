@@ -1,19 +1,14 @@
+local serialize = require("serialization")
+
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
 local MetaSchematic = require("build.MetaBuild.MetaSchematic")
 
-local rel_positions = {0, 0, 0} -- x, z, y
-function rel_positions:new()
-    return deep_copy.copy(self, ipairs)
-end
-
 local BuildStack = { -- reading head maxxed printer pilled state machine adjacent
-    rel = rel_positions:new(),
-
-    logical_x = 0,
-    logical_z = 0,
-    logical_y = 0
+    logical_x = 1,
+    logical_z = 1,
+    logical_y = 1
 }
 function BuildStack:new()
     return deep_copy.copy(self, pairs)
@@ -36,6 +31,11 @@ function SchematicInterface:new()
     return deep_copy.copy(self, pairs)
 end
 
+function SchematicInterface:init(dict, origin)
+    self.origin_block = origin
+    self.dictionary = dict
+end
+
 function SchematicInterface:parseStringArr(string_array, square_index)
     local special_blocks = self.schematic:parseStringArr(string_array, square_index)
     if special_blocks ~= nil then self.special_blocks = special_blocks end
@@ -46,24 +46,30 @@ end
 function SchematicInterface:forceAdvanceHead()
     local b_stack = self.build_stack
 
-    if b_stack.logical_z < 7 then -- try and read every line
-        b_stack.rel[1] = 0 -- Very Important to reset the rel_x column now that we moved to the next line
-        b_stack.logical_x = 0
+    if b_stack.logical_z <= 7 then -- try and read every line
+        b_stack.logical_x = 1
         b_stack.logical_z = b_stack.logical_z + 1
-    elseif b_stack.logical_y < #self.schematic then -- only then move-up in height
-        b_stack.logical_x = 0
-        b_stack.logical_z = 0
+    elseif b_stack.logical_y <= #self.schematic then -- only then move-up in height
+        b_stack.logical_x = 1
+        b_stack.logical_z = 1
         b_stack.logical_y = b_stack.logical_y + 1
     else -- we can only assume there is nothing left to process, let's mark ourself as built
         return true
     end
 
-    return false
+    return false -- aka continue
 end
 
 -- chunk.dist && chunk.symbol
 function SchematicInterface:doBuild()
-    b_stack = self.build_stack
+    local b_stack = self.build_stack
+
+    --[[local print_a = serialize.serialize(b_stack, true)
+    print(comms.robot_send("debug", "b_stack is: \n" .. print_a))
+
+    local print_schematic = serialize.serialize(self.schematic, true)
+    print(comms.robot_send("debug", "self.schematic is: \n" .. print_a))--]]
+
     --local chunk = self.schematic.lookUp(b_stack.logical_y, b_stack.logical_z, b_stack.logical_x)
     local chunk = self.schematic[b_stack.logical_y][b_stack.logical_z][b_stack.logical_x]
     if chunk == nil then 
@@ -74,11 +80,10 @@ function SchematicInterface:doBuild()
     end
     b_stack.logical_x = b_stack.logical_x + 1 -- prepare the advance to next column element
 
-    local rel = b_stack.rel
-
-    rel[3] = b_stack.logical_y
-    rel[2] = b_stack.logical_z
-    rel[1] = rel[1] + chunk.dist
+    local rel = {0, 0, 0}
+    rel[3] = self.origin_block[3] + (b_stack.logical_y - 1) -- (-1) compensates for array access being on 1
+    rel[2] = self.origin_block[2] + (b_stack.logical_z - 1)
+    rel[1] = self.origin_block[1] + chunk.x
 
     local translated_symbol = self.dictionary[chunk.symbol]
     if translated_symbol == nil then

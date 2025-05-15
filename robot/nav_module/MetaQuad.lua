@@ -54,14 +54,14 @@ function MetaQuad:actualizeDoors() -- Transform the door definition into actual 
     local quad = self.quad
     for index, door in ipairs(self.doors) do
         if quad == 1 then
-            self.doors:mirror(true, false)
+            door:mirror(true, false)
         elseif quad == 2 then
-            --self.doors.mirror(false, false)
+            --door.mirror(false, false)
             -- do nothing
         elseif quad == 3 then
-            self.doors:mirror(false, true)            
+            door:mirror(false, true)            
         elseif quad == 4 then
-            self.doors:mirror(true, true)
+            door:mirror(true, true)
         else
             print(comms.robot_send("error", "logical impossibility - MetaQuad:acutalizeDoors()"))
         end

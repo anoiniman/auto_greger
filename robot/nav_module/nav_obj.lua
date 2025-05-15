@@ -44,6 +44,10 @@ function module.set_chunk(x, z)
     nav_obj.chunk[2] = z
 end
 
+function module.set_height(height)
+    nav_obj.height = height
+end
+
 function module.set_absolute(x,z,y)
     nav_obj.abs[1] = x
     nav_obj.abs[2] = z
@@ -83,5 +87,9 @@ end
 function module.navigate_rel()
     return rel_move.navigate_rel(nav_obj)
 end
+
+--temp
+nav_obj.height = 65
+nav_obj.orientation = "east"
 
 return module

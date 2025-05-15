@@ -71,10 +71,19 @@ function module.debug(arguments)
         local o = arguments[2]
         if o == nil then
             print(comms.robot_send("error", "set_orientation: no orientation mentioned")) 
+            return nil
         elseif o ~= "north" and o ~= "south" and o ~= "east" and o ~= "west" then
             print(comms.robot_send("error", "set_orientation: mis-formated")) 
+            return nil
         end
         nav.set_orientation(o)
+    elseif arguments[1] == "set_height" then
+        local height = tonumber(arguments[2])
+        if height == nil then
+            print(comms.robot_send("error", "set_height: no orientation provided")) 
+            return nil
+        end
+        nav.set_height(height)
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end

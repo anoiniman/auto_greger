@@ -91,7 +91,10 @@ end
 
 function module.set_data_table(add_data, id)
     local element = wait_list[id]
-    local data_table = wait_list[id].data_table
+    if element == nil then 
+        print(comms.robot_send("error", "interactive.set_data_table, id: \"" .. id .. "\" doesn't exist"))
+        return false
+    end
 
     local t = element.interactive_type
     if t == "auto_build0" then
@@ -100,14 +103,14 @@ function module.set_data_table(add_data, id)
             print(comms.robot_send("error", "invalid data")) 
             return false
         end
-        data_table = add_data
+        wait_list[id].data_table = add_data
         return true
     elseif t == "auto_build1" then
         if add_data == nil or #add_data ~= 1 or tostring(add_data[1]) == nil then 
             print(comms.robot_send("error", "invalid data")) 
             return false
         end
-        data_table = add_data
+        wait_list[id].data_table = add_data
         return true
     else
         --enable the following error message if we force data to be handled through requests

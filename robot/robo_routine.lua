@@ -61,19 +61,26 @@ function module.robot_routine(message)
     local extend_queue = nil
 
     -- ugly cludge, fix later
-    while #task_list > 0 do
-        cur_task = table.remove(task_list)
+    local where = #task_list
+    while where > 0 do
+        cur_task = task_list[#task_list]
+
         if cur_task ~= nil and #cur_task ~= 0 then
             if cur_task[1] == -2 then
                 if INTERACTED then
                     INTERACTED = false
                     extend_queue = eval.eval_command(cur_task)
-                end -- else let it fall through
+                    table.remove(task_list, where)
+                else
+                    where = where - 1
+                end
             else
                 extend_queue = eval.eval_command(cur_task)
+                table.remove(task_list, where)
                 break
             end
         else
+            task_list[#task_list] = nil
             break
         end
     end

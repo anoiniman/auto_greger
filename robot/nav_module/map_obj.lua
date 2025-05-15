@@ -54,10 +54,10 @@ function NamedArea:new(name, colour, height, floor_block)
         print(comms.robot_send("error", "NamedArea:new -- invalid height")) 
         return nil
     end
-    if MapColours[colour] == nil then
+    --[[if MapColours[colour] == nil then
         print(comms.robot_send("error", "NamedArea:new -- inavlid colour"))
         return nil
-    end
+    end--]]
 
     local new = deep_copy.copy(self, pairs)
     new.name = name
@@ -94,7 +94,7 @@ end
 
 function MetaChunk:getHeight()
     if self.height_override ~= nil then return self.height_override end
-    if parent_area ~= nil then return parent_area.height end
+    if self.parent_area ~= nil then return self.parent_area.height end
     print(comms.robot_send("error", "MetaChunk:getHeight -- could not getHeight"))
     return nil
 end
@@ -193,14 +193,18 @@ end
 
 -->>-----------------------------------<<--
 
-local current_map_size = 30
-local default_map_size = 30 -- generate 30x30 square of chunks
+local default_map_size = 31 -- generate 31x31 square of chunks
+local current_map_size = default_map_size 
 local map_obj = {}
 local map_obj_offsets = {1,1}   -- offsets logical 0,0 in the array in order to translate it to "real" 0,0
                                 -- what this means is that if set the "origin", the "map centre" of the robot
                                 -- à posteriori then we don't need to re-alloc the array
                                 -- 1,1 is default since array acess in lua is [1][1] rather than [0][0]
                                 -- so "real" [0][0] is logical [1][1]
+
+if default_map_size % 2 == 0 then
+    error(comms.robot_send("fatal", "default_map_size is divisble by 2"))
+end
 
 local known_buildings = {}
 function known_buildings:insert(name, build_ref)
@@ -210,11 +214,17 @@ function known_buildings:insert(name, build_ref)
 end
 
 function module.gen_map_obj(offset)
-    map_obj_offsets = offset
     if map_obj[1] ~= nil then
         print(comms.robot_send("error", "map_obj already generated"))
         return false
     end
+
+    map_obj_offsets = offset
+
+    -- (necessary offset so that we can load negative numbers)
+    local negative_offset = math.floor(current_map_size / 2)
+    map_obj_offsets[1] = map_obj_offsets[1] + negative_offset
+    map_obj_offsets[2] = map_obj_offsets[2] + negative_offset
 
     local size = default_map_size 
     for x = 1, size, 1 do
@@ -350,11 +360,10 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 2
         return_table[4] = what_step
 
-        ITERACTED = true
         prio = 70
         -- old return
     elseif what_step == 2 then
-        if area_table:isInArea(what_chunk) then
+        if areas_table:isInArea(what_chunk) then
             what_step = 4
             return_table[4] = what_step
             goto fall
@@ -392,13 +401,12 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         area:addChunkToSelf(what_chunk)
 
         local height_override = data[2] -- it's ok if it's nil
-        module.chunk_set_parent(what_chink, area, height_override) -- the important thing of this step
+        module.chunk_set_parent(what_chunk, area, height_override) -- the important thing of this step
         interactive.del_element(id)
 
         what_step = 4
         return_table[4] = what_step
 
-        ITERACTED = true
         prio = 70
         -- old return
     elseif what_step == 4 then
@@ -420,7 +428,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         return_table[4] = what_step
         -- old return
     elseif what_step == 6 then
-        local result, status, rel_coords, block_name = map_obj.do_build(what_chunk, what_quad)
+        local result, status, rel_coords, block_name = module.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
 
         local door_info = get_door_info(what_chunk, what_quad)
@@ -439,5 +447,9 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     -- let this fall through if this is what we want to return, most of the time this is what we wan't to return
     return {prio, "start_auto_build", table.unpack(return_table)}
 end
+
+-- temp
+module.create_named_area("home", "green", 69, "dirt")
+module.gen_map_obj({1,1})
 
 return module
