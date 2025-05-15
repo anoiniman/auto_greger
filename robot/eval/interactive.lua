@@ -8,7 +8,8 @@ end
 function module.force_set_data_table(arguments)
     if arguments == nil or #arguments < 2 then return nil end
 
-    local id = table.remove(arguments, 1)
+    local id = tonumber(table.remove(arguments, 1))
+    if id == nil then return nil end
     return interactive.set_data_table(arguments, id)
 end
 
