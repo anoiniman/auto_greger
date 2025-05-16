@@ -129,7 +129,7 @@ end
 function module.r_move(a,b,c)
     --print("r_move used")
     --io.read()
-    real_move(a,b,c)
+    return real_move(a,b,c)
 end
 
 local empty_table = {}
@@ -191,15 +191,10 @@ function real_move(what_kind, direction, nav_obj, extra_sauce)
     error("unreachable code at nav_interface.real_move")
 end
 
+-- for now forget argument remais for compatibility, but needs to be refactored in the future
 function module.debug_move(dir, distance, forget, nav_obj)
     for i = 1, distance, 1 do
-        -- local serial = serialize.serialize(nav_obj, true)
         real_move("free", dir, nav_obj)
-    end
-
-    if forget == false then
-        --print("updating")
-        update_pos(dir, nav_obj)
     end
 end
 

@@ -1,16 +1,18 @@
 local module = {}
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
 -- Or we'll stay with 16 slots with the expectation that we abandon internal crafting quickly, idk
-local inventory_size = 16
+local inventory_size = 32
 local used_up_capacity = 0
 
 local component = require("component")
 local sides_api = require("sides")
 local robot = require("robot")
+local text = require("text")
 
 local deep_copy = require("deep_copy")
-local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
+local comms = require("comms")
 
+local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
 local crafting = component.getPrimary("crafting")
 local inventory = component.getPrimary("inventory_controller")
 
@@ -42,9 +44,15 @@ end
 local function find_in_slot(block_id, lable_type)
     if lable_type == "lable" then
         for index = 1, inventory_size, 1 do
-            local item = getStackInInternalSlot(index)
+            local item = inventory.getStackInInternalSlot(index)
             if item == nil then goto continue end
-            if item.label == block_id then
+            
+            -- This is needed because dictionary translation seems to mangle spaces
+            -- this will destroy spaces to allow for comparison
+            local split = text.tokenize(item.label)
+            local reconstruct = table.concat(split) 
+
+            if reconstruct == block_id then
                 return index
             end
 

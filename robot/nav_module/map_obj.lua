@@ -432,7 +432,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
 
         local door_info = get_door_info(what_chunk, what_quad)
-        local self_table = what_to_return
+        local self_table = {prio, "start_auto_build", table.unpack(return_table)}
 
         if status == "continue" then
             return {80, "navigate_rel", "and_build", rel_coords, what_chunk, door_info, block_name, self_table}

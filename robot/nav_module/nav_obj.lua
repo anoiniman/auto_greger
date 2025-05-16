@@ -39,6 +39,15 @@ function module.get_chunk()
     return deep_copy.copy(nav_obj.chunk, ipairs) -- :)
 end
 
+function module.get_rel()
+    return deep_copy.copy(nav_obj.rel, ipairs)
+end
+
+function module.get_height()
+    return nav_obj.height
+end
+
+
 function module.set_chunk(x, z)
     nav_obj.chunk[1] = x
     nav_obj.chunk[2] = z

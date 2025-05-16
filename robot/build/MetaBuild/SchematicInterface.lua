@@ -72,13 +72,31 @@ function SchematicInterface:doBuild()
     print(comms.robot_send("debug", "self.schematic is: \n" .. print_a))--]]
 
     --local chunk = self.schematic.lookUp(b_stack.logical_y, b_stack.logical_z, b_stack.logical_x)
-    local chunk = self.schematic[b_stack.logical_y][b_stack.logical_z][b_stack.logical_x]
-    if chunk == nil or chunk.symbol == '*' then 
+
+    local chunk = nil
+    local line = nil
+    local square = nil
+
+    square = self.schematic[b_stack.logical_y]
+    if square == nil then goto very_funny end
+
+    line = square[b_stack.logical_z]
+    if line == nil then goto very_funny end
+
+    chunk = line[b_stack.logical_x]
+
+    ::very_funny::
+    if chunk == nil then 
         if self:forceAdvanceHead() then
             return true, "done"
         end
         return self:doBuild()
     end
+    if chunk.symbol == '*' then -- or other such special characters
+        b_stack.logical_x = b_stack.logical_x + 1
+        return self:doBuild()
+    end
+
     b_stack.logical_x = b_stack.logical_x + 1 -- prepare the advance to next column element
 
     local rel = {0, 0, 0}

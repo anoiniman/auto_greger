@@ -8,6 +8,5 @@ will be changed so that they ignore things tagged with "debug", because, it actu
 consumes quite a bit of power to both print characters and send characters through
 the linked network so yeah
 
-
-Uhhh, start debuging starting from where you left the robot, just add some more temporary values
-in nav_obj, you know the drill
+Última coisa a verificar na coisa das builds é ver se os special blocks estão a ser gravos
+com sucesso, mas não duvido de tal
