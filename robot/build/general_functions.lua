@@ -1,7 +1,7 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local serialize = require("serialization")
- 
+
 -- this either really cooks, or really fucks us over, who cares
 -- friendly reminder that tables are passed by reference, otherwise this wouldn't work
 local module = {}
@@ -31,7 +31,7 @@ function module.iter(base_table, goal, segments)
                 print(comms.robot_send("debug", "iter_func -> \n" .. serialize.serialize(square_segment_to_return, true)))
             end
         end
-        return iteration, square_segment_to_return  
+        return iteration, square_segment_to_return
     end
 end
 
@@ -47,8 +47,9 @@ function module.mirror_x(base_table, segments)
             end
         end
 
-        for _, x_segment in ipairs(base[2]) do
+        for index, x_segment in ipairs(base[2]) do
             x_segment = string.reverse(x_segment)
+            base[2][index] = x_segment
         end
         ::continue::
     end
@@ -89,8 +90,9 @@ function module.mirror_z(base_table, segments)
     -- Reverse the segments
     for index, seg in pairs(segments) do
         for _, sub_seg in ipairs(seg) do
-            for _, replacement_num in ipairs(sub_seg[2]) do
+            for jindex, replacement_num in ipairs(sub_seg[2]) do
                 replacement_num = quad_size_logic - replacement_num
+                sub_seg[2][jindex] = replacement_num
             end
         end
     end

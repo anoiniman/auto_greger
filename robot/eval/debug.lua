@@ -38,7 +38,7 @@ function module.debug(arguments)
             side = 0 -- defaults to down
         end
         side = tonumber(side)
-        geolyzer.debug_print(side) 
+        geolyzer.debug_print(side)
     elseif arguments[1] == "move" then
         local move = arguments[2]
         local how_much = arguments[3]
@@ -48,7 +48,7 @@ function module.debug(arguments)
             return nil
         end
         if how_much == nil then
-            how_much = 1    
+            how_much = 1
         end
         if forget == nil then
             forget = false
@@ -70,17 +70,17 @@ function module.debug(arguments)
     elseif arguments[1] == "set_orientation" then
         local o = arguments[2]
         if o == nil then
-            print(comms.robot_send("error", "set_orientation: no orientation mentioned")) 
+            print(comms.robot_send("error", "set_orientation: no orientation mentioned"))
             return nil
         elseif o ~= "north" and o ~= "south" and o ~= "east" and o ~= "west" then
-            print(comms.robot_send("error", "set_orientation: mis-formated")) 
+            print(comms.robot_send("error", "set_orientation: mis-formated"))
             return nil
         end
         nav.set_orientation(o)
     elseif arguments[1] == "set_height" then
         local height = tonumber(arguments[2])
         if height == nil then
-            print(comms.robot_send("error", "set_height: no orientation provided")) 
+            print(comms.robot_send("error", "set_height: no orientation provided"))
             return nil
         end
         nav.set_height(height)

@@ -24,7 +24,7 @@ end
 
 function MetaDoorInfo:mirror(x_axis, z_axis) -- arguments are bools, function returns nothing
     if x_axis then
-        self.x = self.x 
+        self.x = self.x
         self.z = math.abs(15 - self.z)
     end
     if z_axis then

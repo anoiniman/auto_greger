@@ -32,7 +32,7 @@ end
 
 function MetaScript:findBestGoal()
     for index = #self.goals, 1, -1 do -- Reverse order so it goes from highest prio to lowest
-        local goal = self.goals[index] 
+        local goal = self.goals[index]
         if goal:depSatisfied() then
             local inner_index, name = goal:selfSatisfied()
             if inner_index ~= 0 then
@@ -57,14 +57,14 @@ function MetaScript:step() -- most important function does everything, I think
         return "end", nil
     end
 
-    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute))
+    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute"))
     return "continue", result
 end
 
 -- Possible filters = "strict", "loose", <!"gt_ore"!> (maybe not anymore)
 -- perfect string match, imperfect match, item_name is actually a table
 local ItemConstraint = {item_name = nil, total_count = nil, filter = nil}
-function ItemConstraint:new(item_name, total_count, filter) 
+function ItemConstraint:new(item_name, total_count, filter)
     local new = deep_copy.copy(self, pairs)
     new.item_name = item_name
     new.total_count = total_count
@@ -143,26 +143,26 @@ function BuildingConstraint:step(index, name) -- returns command to be evaled
         end
     end
 
-    if structure_to_build == nil then 
-        error(comms.robot_send("fatal", "impossible state BuildingConstraint:step()")) 
+    if structure_to_build == nil then
+        error(comms.robot_send("fatal", "impossible state BuildingConstraint:step()"))
     end
     local to_build = structure_to_build
 
-    local step_num = 0 -- 0 is interactive mode
+    --luacheck: ignore
+    local step = 0 -- 0 is interactive mode
     local what_chunk = {} -- what_chunk isn't dropped because of GC I think
     if self.chunk_centre ~= nil then
         --what_chunk = {}
         what_chunk[1] = self.chunk_centre[1] + to_build.x_offset
         what_chunk[2] = self.chunk_centre[2] + to_build.z_offset
-        step_num = 2 -- 2 means that what_chunk we want to build in is already set by definition
+        step = 2 -- 2 means that what_chunk we want to build in is already set by definition
     else
         what_chunk[1] = to_build.x_offset
         what_chunk[2] = to_build.z_offset
-        step_num = 0
+        step = 0
     end
 
     self.lock[1] = 1 -- signals that constraint is in the middle of processing and to not do more requests
-    local step = 0
     local id = -1
     local prio = 60
     local command = eval_build.start_auto_build
@@ -234,8 +234,8 @@ end
 -- user interaction from the user -- this is to say, the recipes are the buildings
 -- themselves which are self-explaining, unlike items which require explanations
 local Goal = {dependencies = nil, constraint = nil, recipe = nil, priority = 0}
-function Goal:new(dependencies, constraint, recipe, priority) 
-    local new = deep_copy.copy(self, pairs) 
+function Goal:new(dependencies, constraint, recipe, priority)
+    local new = deep_copy.copy(self, pairs)
     new.dependencies = dependencies or nil
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
     new.recipe = recipe or nil

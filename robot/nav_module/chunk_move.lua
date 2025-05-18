@@ -1,14 +1,10 @@
 local module = {}
 
 local math = require("math")
-local robot = require("robot")
-local sides = require("sides")
-local io = require("io")
-local serialize = require("serialization")
+--local serialize = require("serialization")
 
 local comms = require("comms")
-
-local geolyzer = require("geolyzer_wrapper")
+--local geolyzer = require("geolyzer_wrapper")
 
 local interface = require("nav_module.nav_interface")
 
@@ -74,7 +70,7 @@ function module.navigate_chunk(what_kind, nav_obj)
         if rel_nearest_side[1] > 0 then interface.r_move(what_kind, "east", nav_obj)
         elseif rel_nearest_side[1] < 0 then interface.r_move(what_kind, "west", nav_obj)
         elseif rel_nearest_side[2] > 0 then interface.r_move(what_kind, "south", nav_obj)
-        elseif rel_nearest_side[2] < 0 then interface.r_move(what_kind, "north", nav_obj) 
+        elseif rel_nearest_side[2] < 0 then interface.r_move(what_kind, "north", nav_obj)
         else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
 
         update_chunk_nav(nav_obj)

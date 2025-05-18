@@ -14,7 +14,7 @@ local eval = require("eval.eval_main")
 -- task_list is updated by reference
 -- linear search should be good enough, surely
 -- "-1" is max prio
-function prio_insert(task_list, message)
+local function prio_insert(task_list, message)
     -- case task_list is empty
     if #task_list == 0 then
         table.insert(task_list, message)
@@ -54,7 +54,7 @@ function module.robot_routine(message)
     cur_task = nil
     if message ~= nil then
         prio_insert(task_list, message)
-        message = nil
+        --message = nil
     end
 
 
@@ -86,9 +86,9 @@ function module.robot_routine(message)
     end
 
     --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
-    if extend_queue ~= nil then 
+    if extend_queue ~= nil then
         if type(extend_queue[1]) ~= "table" then
-            prio_insert(task_list, extend_queue) 
+            prio_insert(task_list, extend_queue)
         else
             for _, element in ipairs(extend_queue) do
                 prio_insert(task_list, element)

@@ -33,7 +33,7 @@ local two_six = {2, 6}
 Module.segments = { -- This nil assignment schtick makes it so for 99% of the cases 'ipairs' no longer works :) btw
     [1] = {{"--ccc*-", two_six}},   -- for height 1 change this
     [2] = {{"--c-c--", two_six}},   -- for height 2 change this
-    [3] = nil                       -- .. 
+    [3] = nil                       -- ..
 }
 
 Module.doors = {}

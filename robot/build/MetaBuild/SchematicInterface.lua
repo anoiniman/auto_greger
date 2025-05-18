@@ -1,4 +1,4 @@
-local serialize = require("serialization")
+--local serialize = require("serialization")
 local io = require("io")
 
 local comms = require("comms")
@@ -73,9 +73,9 @@ function SchematicInterface:doBuild()
 
     --local chunk = self.schematic.lookUp(b_stack.logical_y, b_stack.logical_z, b_stack.logical_x)
 
-    local chunk = nil
-    local line = nil
-    local square = nil
+    local chunk = nil --luacheck: ignore
+    local line = nil --luacheck: ignore
+    local square = nil --luacheck: ignore
 
     square = self.schematic[b_stack.logical_y]
     if square == nil then goto very_funny end
@@ -86,7 +86,7 @@ function SchematicInterface:doBuild()
     chunk = line[b_stack.logical_x]
 
     ::very_funny::
-    if chunk == nil then 
+    if chunk == nil then
         if self:forceAdvanceHead() then
             return true, "done"
         end

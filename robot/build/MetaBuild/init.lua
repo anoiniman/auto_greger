@@ -1,5 +1,5 @@
-local math = require("math")
-local serialize = require("serialization")
+--local math = require("math")
+--local serialize = require("serialization")
 local filesystem = require("filesystem")
 
 local comms = require("comms")
@@ -32,7 +32,7 @@ function Module:doBuild()
         return false
     end
 
-    return self.s_interface:doBuild() -- string, 3d-coords, symbol 
+    return self.s_interface:doBuild() -- string, 3d-coords, symbol
 end
 
 function Module:initPrimitive()
@@ -83,8 +83,8 @@ end
 function Module:setupBuild()
     local base_table = self.primitive.base_table
 
-    if self.s_interface == nil then 
-        self.s_interface = SchematicInterface:new() 
+    if self.s_interface == nil then
+        self.s_interface = SchematicInterface:new()
     end
     -- its ok to retain this after dumping the primitive because of GC, I think
     self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
@@ -117,14 +117,14 @@ function Module:setupBuild()
 end
 
 function Module:require(name)
-    if primitive_cache[name] ~= nil then 
+    if primitive_cache[name] ~= nil then
         self.primitive = primitive_cache[name]:new()
         self:initPrimitive()
         return true
     end
-    
+
     local path = "/home/robot/build/" .. name .. ".lua"
-    local build_table = nil
+    local build_table = nil -- luacheck: ignore
     if filesystem.exists(path) and not filesystem.isDirectory(path) then
         build_table = dofile(path)
     else
@@ -140,7 +140,7 @@ function Module:require(name)
 end
 
 function Module:getName()
-    return self.primitive.name 
+    return self.primitive.name
 end
 
 function Module:getSchematicInterface()
@@ -151,6 +151,7 @@ function Module:isBuilt()
     return self.built
 end
 
+-- luacheck: no unused args
 function Module:checkHumanMap(base_table, name)
     local watch_dog = false
     for _, base in pairs(base_table) do

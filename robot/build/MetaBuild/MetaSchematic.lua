@@ -1,7 +1,7 @@
-local math = require("math")
+--local math = require("math")
 
 local deep_copy = require("deep_copy")
-local comms = require("comms")
+--local comms = require("comms")
 
 -- Chunks are 16 by 16, roads includes they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chunks
 -- Builds (tm) will occupy marked sub-chunks inside a chunk instead of arbitrary rectangles, for ease of navi    gation
@@ -21,7 +21,7 @@ function MSChunk:new(x, symbol)
 end
 
 --[[local SpecialBlockEnum = {
-   Inventory = {} 
+   Inventory = {}
 }--]]
 
 -- lines into squares into square_cuboids (the meta_schematic itself)
@@ -64,7 +64,7 @@ end
 
 -- I hope no return needed, we're modifying self (a ref) anyhow
 -- 2d slice of height 1, where 1 string is 1 line (x,z)
-function MetaSchematic:parseStringArr(string_array, y_coord) 
+function MetaSchematic:parseStringArr(string_array, y_coord)
     local square = return_or_init_table_table(self, y_coord)
     local special_table = nil
 
@@ -75,7 +75,6 @@ function MetaSchematic:parseStringArr(string_array, y_coord)
     for _, str in ipairs(string_array) do
         local x_coord = 0
 
-        local print_table = {}
         for char in string.gmatch(str, ".") do
             --max_line = math.max(max_line, z_coord)
             local line = return_or_init_table_table(square, z_coord + 1)

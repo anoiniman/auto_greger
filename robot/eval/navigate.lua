@@ -108,7 +108,8 @@ function module.navigate_rel(arguments)
         print(comms.robot_send("error", "eval_navigate: flag is incorrect?"))
     end
 
-    return post_run
+    --return post_run
+    return nil
 end
 
 return module

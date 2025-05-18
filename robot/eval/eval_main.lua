@@ -1,8 +1,6 @@
 local module = {}
 
 -- import of globals
-local term = require("term")
-local text = require("text")
 local serialize = require("serialization")
 
 -- local imports
@@ -21,7 +19,7 @@ local interactive = require("eval.interactive")
 -- programatically, this is, maybe, a bit "ugly" (design-wise), but it is a cute solution
 -- (programming-wise) and makes things easier and less boiler-platy for me
 function module.eval_command(command_arguments)
-    local prio = table.remove(command_arguments, 1)
+    local _ = table.remove(command_arguments, 1) -- prio
     local command = table.remove(command_arguments, 1)
     local arguments = command_arguments
 
@@ -62,9 +60,9 @@ function module.eval_command(command_arguments)
     elseif command == "build_setup" then
         return build.setup_build(arguments)
     elseif command == "build_do_build" then
-        return build.do_build(arguments)   
+        return build.do_build(arguments)
     elseif command == "start_auto_build" then
-        return build.start_auto_build(arguments)   
+        return build.start_auto_build(arguments)
 
     ---------------
     elseif command == "interactive_list" or command == "ils" then

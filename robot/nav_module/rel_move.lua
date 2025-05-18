@@ -15,7 +15,7 @@ end
 
 local function attempt_surface_move(nav_obj, dir)
     if dir ~= nil then
-        result, data = nav.real_move("surface", dir, nav_obj)
+        local result, data = nav.real_move("surface", dir, nav_obj)
         return result, data
     end
     return false, nil
@@ -52,7 +52,7 @@ function module.navigate_rel(nav_obj)
     local x_dif = nav_obj.rel[1] - goal_rel[1]
     if x_dif > 0 then dir = "west"
     elseif x_dif < 0 then dir = "east" end
-    
+
     if dir ~= nil then
         result, data = attempt_move(nav_obj, dir)
     end
@@ -90,8 +90,13 @@ function module.navigate_rel(nav_obj)
     return 1, data -- couldn't move
 end
 
+local sweep_start = {0, 0, 0}
+local sweep_end = {0, 0, 0}
+local is_sweep = false
+local move_to_start = false
+
 local function sweep_z_axis(nav_obj)
-    local dir = nil
+    local dir = nil -- luacheck: ignore
     if sweep_start[2] == 0 then
         dir = "west"
     else
@@ -100,10 +105,6 @@ local function sweep_z_axis(nav_obj)
     attempt_surface_move(nav_obj, dir)
 end
 
-local sweep_start = {0, 0, 0}
-local sweep_end = {0, 0, 0}
-local is_sweep = false
-local move_to_start = false
 -- height[1] = start height, height[2] = end height
 function module.sweep(nav_obj, is_surface, height, do_dig)
     if not is_surface then error("todo, rel_move:sweep()") end
@@ -116,7 +117,7 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
 
         if nav_obj.rel[2] > 6 then sweep_start[2] = 15
         else sweep_start[2] = 0 end
-        
+
         if height ~= nil then
             sweep_start[3] = height[1]
             sweep_end[3] = height[2]
@@ -164,7 +165,7 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
             result, data = attempt_surface_move(nav_obj, "north")
         end
     end
-    
+
     return result, data
 end
 

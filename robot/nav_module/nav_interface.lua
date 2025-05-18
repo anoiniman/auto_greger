@@ -1,12 +1,11 @@
 local module = {}
 
-local math = require("math")
+--local math = require("math")
 local robot = require("robot")
-local sides_api = require("sides")
-local serialize = require("serialization")
+--local sides_api = require("sides")
+local serialize = require("serialization")-- luacheck: ignore
 
 local comms = require("comms")
-local io = require("io")
 
 local geolyzer = require("geolyzer_wrapper")
 local inv = require("inventory.inv_obj")
@@ -14,7 +13,7 @@ local inv = require("inventory.inv_obj")
 function update_pos(direction, nav_obj) -- assuming forward move
     local abs = nav_obj.abs
     local rel = nav_obj.rel
-    
+
     local height = nav_obj.height
 
     if direction == "north" then
@@ -40,7 +39,7 @@ function update_pos(direction, nav_obj) -- assuming forward move
     nav_obj.height = height
 end
 
-function change_orientation(goal, nav_obj) 
+function change_orientation(goal, nav_obj)
     local orientation = nav_obj.orientation
 
     local numeric = convert_orientation(orientation) - 2 -- (alignement)
@@ -76,7 +75,7 @@ function un_convert_orientation(num_side)
         return "down"
     elseif num_side == 2 then
         return "up"
-    elseif num_side == 3 then 
+    elseif num_side == 3 then
         return "north"
     elseif num_side == 4 then
         return "east"
@@ -115,9 +114,9 @@ function base_move(direction, nav_obj) -- return result and error string
     if direction == "up" then
         result, err = robot.up()
     elseif direction == "down" then
-        result, err = robot.down()         
+        result, err = robot.down()
     else
-        change_orientation(direction, nav_obj) 
+        change_orientation(direction, nav_obj)
         result, err = robot.forward()
     end
     --print("post thing")

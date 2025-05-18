@@ -12,7 +12,7 @@ local comms = require("comms")
 local Gathering = {tool = nil, level = nil, algorithm = nil, state = nil, algo_pass = nil}
 function Gathering:new(tool, level, algorithm, algo_pass)
     local new = deep_copy.copy(self, pairs)
-    new.tool = tool; new.level = level; new.algorithm = algorithm; new.algo_pass = algo_pass 
+    new.tool = tool; new.level = level; new.algorithm = algorithm; new.algo_pass = algo_pass
     new.state = {}
 end
 function Gathering:call(change_state)
@@ -46,12 +46,12 @@ function MetaRecipe:newCraftingTable(output, recipe)
         error(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
         return nil
     end
-    if recipe == nil or type(recipe) ~= "table" then 
-        error(comms.robot_send("error", "recipe: \"" .. name .. "\" is nil or wrong type"))
+    if recipe == nil or type(recipe) ~= "table" then
+        error(comms.robot_send("error", "recipe: \"" .. output .. "\" is nil or wrong type"))
         return nil
     end
     if #recipe < 1 and #recipe > 9 then
-        error(comms.robot_send("error", "recipe: \"" .. name .. "\" is invalid size"))
+        error(comms.robot_send("error", "recipe: \"" .. output .. "\" is invalid size"))
         return nil
     end
 
@@ -68,7 +68,7 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, goal_block)
         error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
         return nil
     end
-    if tool == nil or level == nil or algorithm == nil 
+    if tool == nil or level == nil or algorithm == nil
             or type(algorithm) ~= "function" or goal_block == nil then
 
         error(comms.robot_send("error", "MetaRecipe:newGathering, we did a fucky-wucky oopie wooppies"))

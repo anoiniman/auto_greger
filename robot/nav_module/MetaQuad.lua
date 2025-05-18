@@ -1,15 +1,11 @@
 ------- Sys Requires -------
-local io = require("io")
+--local io = require("io")
 
 ------- Own Requires -------
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
-local interface = require("nav_module.nav_interface")
-local chunk_move = require("nav_module.chunk_move")
-
 local MetaBuild = require("build.MetaBuild")
-local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
 
 -- make a convert rel to quad and back function somewhere
 local MetaQuad = {
@@ -55,11 +51,11 @@ function MetaQuad:actualizeDoors() -- Transform the door definition into actual 
     for index, door in ipairs(self.doors) do
         if quad == 1 then
             door:mirror(true, false)
-        elseif quad == 2 then
+        elseif quad == 2 then -- luacheck: ignore
             --door.mirror(false, false)
             -- do nothing
         elseif quad == 3 then
-            door:mirror(false, true)            
+            door:mirror(false, true)
         elseif quad == 4 then
             door:mirror(true, true)
         else
@@ -107,7 +103,7 @@ function MetaQuad:doBuild()
         print(comms.robot_send("error", "how did you trigger this error message 01?"))
         return false
     end
-    
+
     return self.build:doBuild()
 end
 

@@ -1,25 +1,20 @@
 local module = {}
 
 ------- Sys Requires -------
-local io = require("io")
 
 ------- Own Requires -------
-local comms = require("comms")
+local comms = require("comms") -- luacheck: ignore
 local deep_copy = require("deep_copy")
 
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
 local rel_move = require("nav_module.rel_move")
-
-local MetaBuild = require("build.MetaBuild")
-local MetaDoorInfo = require("build.MetaBuild.MetaDoorInfo")
-local MetaQuad = require("nav_module.MetaQuad")
 -----------------
 
 -- The robot will understand chunk boundries as movement highways in between chunks
 -- and focus inner-chunk movement inside it's own chunk
 
--- please centre the robot in the top left (north oriented map) of the "origin chunk" 
+-- please centre the robot in the top left (north oriented map) of the "origin chunk"
 -- Moving north = -Z, moving east = +X
 
 -- nav_obj will get passed around like your mother's cadaver at a George Bataille ritual reification fesitval
@@ -77,6 +72,7 @@ function module.is_setup_navigate_chunk()
 end
 
 function module.setup_navigate_chunk(what_chunk)
+    -- luacheck: ignore
     local a, b = chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
 end
 

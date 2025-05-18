@@ -1,10 +1,12 @@
 local reason_obj = {}
 
 local comms = require("comms")
-local deep_copy = require("deep_copy")
+local deep_copy = require("deep_copy") -- luacheck: ignore
 
+--[[
 local MetaRecipe = require("reasoning.MetaRecipe")
 local MSBuilder, Goal, Requirement = table.unpack(require("reasoning.MetaScript"))
+--]]
 
 -- Have the recipes be dynamically loaded-unloaded with doFile, rather than required
 -- because, you, know there are a lot of recipes, do the same for scripts
