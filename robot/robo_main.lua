@@ -1,4 +1,5 @@
 local robot_name = "sumire-chan"
+require("overloads")
 
 -- import of globals
 local io = require("io")

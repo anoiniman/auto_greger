@@ -73,13 +73,17 @@ function module.controller_send(any)
 end
 
 function module.robot_send(part1, part2) -- part1 & 2 must be strings
-    local final_string = "<| " .. part1 .. " |> " .. part2
-    local hello = serialize.serialize(final_string)
+    if part1 == "debug" then
+        return part1, part2
+    end
 
-    -- WHAT IS THIS FUCKING ERROR
-    --local serial_string = serialize.serialize(final_string)
+    --local final_string = "<| " .. part1 .. " |> " .. part2
+    local final_table = {part1, part2}
+    --local final_string = table.concat(final_table)
+    local hello = serialize.serialize(final_table)
+
     tunnel.send(hello)
-    return final_string
+    return part1, part2
 end
 
 return module

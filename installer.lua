@@ -74,6 +74,7 @@ local function robot_top_level()
 
     download("/robot/robo_main.lua", "self")
     download("/robot/robo_routine.lua", "self")
+    download("/robot/overloads.lua", "self")
 end
 
 local function robot_eval()

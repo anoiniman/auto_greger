@@ -2,6 +2,7 @@ local term = require("term")
 local io = require("io")
 local text = require("text")
 local table = require("table")
+local keyboard = require("keyboard")
 
 local comms = require("comms")
 
@@ -19,14 +20,19 @@ local function calculate_prio(command)
     return 50
 end
 
+local function simple_print(msg_tbl)
+        local first_tbl = { "<| ", msg_tbl[1], " |> | ", msg_tbl[2] }
+        local to_print = table.concat(first_tbl)
 
-local keyboard = require("keyboard")
+        print(to_print)
+end
+
 local function print_mode()
     while not keyboard.isKeyDown(keyboard.keys.q) do
-        os.sleep(0.33)
+        os.sleep(0.33) -- luacheck: ignore
         local r_table = comms.recieve()
-        local something, _, message_string = r_table[1], r_table[2], r_table[3]
-        if something == true then print(message_string) end
+        local something, _, msg_tbl = r_table[1], r_table[2], r_table[3]
+        if something == true then simple_print(msg_tbl) end
     end
 end
 
@@ -62,8 +68,8 @@ local function comm_terminal()
         end
 
         local r_table = comms.recieve()
-        local something, _, message_string = r_table[1], r_table[2], r_table[3]
-        if something == true then print(message_string) end
+        local something, _, msg_tbl = r_table[1], r_table[2], r_table[3]
+        if something == true then simple_print(msg_tbl) end
 
         os.sleep(0.1)
     end
