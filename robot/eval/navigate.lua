@@ -63,19 +63,18 @@ local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post
     end
 
     if not rel.is_setup() then
-        nav.setup_navigate_rel(rel_coords)
-        --return {80, module.navigate_rel, "and_build", coords, block_name, post_run}
-    end
+        -- a little hack to optimize building, basically, we are pre-moving up, rather than going up
+        -- and down to place blocks, theoretically saving a lot of time and energy
+        rel_coords[3] = rel_coords[3] + 1
 
-    --[[local rel = nav.get_rel()
-    local height = nav.get_height()
-    print(comms.robot_send("debug", "cur_rel is: " .. rel[1] .. ", " .. rel[2] .. ", " .. height))--]]
+        nav.setup_navigate_rel(rel_coords)
+    end
 
     local result, err = nav.navigate_rel()
     if result == -1 then -- movement completed (place block, and go back to build_function)
-        nav.debug_move("up", 1, false)
+        --nav.debug_move("up", 1, false) >-----< No longer needed
         if not inv.place_block("down", block_name, "lable") then
-            -- Real error handling will come som eother time
+            -- Real error handling will come some other time
             error(comms.robot_send("fatal", "how is this possible? :sob:"))
         end
 
