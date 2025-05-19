@@ -1,6 +1,6 @@
 local os = require("os")
 local filesystem = require("filesystem")
-local io = require("io")
+--local io = require("io")
 
 local args = {...}
 local counter = 0
@@ -25,7 +25,7 @@ local function download(origin, where)
         print("File: \"" .. where .. "\" is installed!")
         return
     end
-    
+
     if filesystem.size(where) == filesystem.size(tmp_path) and (args[1] ~= "-f" and args[2] ~= "-f") then
         print("File: \"" .. where .. "\" doesn't need update")
         --cur_file.close()
@@ -35,8 +35,8 @@ local function download(origin, where)
 
     filesystem.remove(where)
     local result, err = filesystem.rename(tmp_path, where)
-    if result == nil then 
-        print("Error:" .. err) 
+    if result == nil then
+        print("Error:" .. err)
         return
     end
     print("File: \"" .. where .. "\" is updated!")
@@ -62,7 +62,7 @@ local function shared()
 end
 
 local function robot_top_level()
-    if not filesystem.isDirectory("/home/robot") then 
+    if not filesystem.isDirectory("/home/robot") then
         filesystem.makeDirectory("/home/robot")
     end
 
@@ -177,7 +177,7 @@ if args[1] == "robot" then
     if is_all or check_in_args(args, "inv"  )    then    robot_inventory()          end
 
 elseif args[1] == "controller" then
-    if not filesystem.isDirectory("/home/controller") then 
+    if not filesystem.isDirectory("/home/controller") then
         filesystem.makeDirectory("/home/controller")
     end
     download("/controller/draw_things.lua", "self")

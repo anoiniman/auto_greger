@@ -10,3 +10,30 @@ the linked network so yeah
 
 Última coisa a verificar na coisa das builds é ver se os special blocks estão a ser gravos
 com sucesso, mas não duvido de tal
+
+After some reading I've come to the conclusion that the cause of our power problems 
+is in the print (statements) mainly (a lot of screen writing and refreshing, both in
+previous text scrolling up and new one being written down) -- and secundarily in
+sending network messages (they'll scale with large distances) -- a solution for the first
+is re-directing global "print" into a no-op function, a solution for the second is simply
+not sending messages (re-directing debug messages into no-op, transmitting only errors,
+warnings and responses) and/or to batch them, cost scales with distance? Maybe Idk how
+it workds for linked-cards.
+
+found-it:
+linked cards work as such:
+-(packet.size / 32.0 
++ Settings.get.wirelessCostPerRange(Tier.Two) 
+* Settings.get.maxWirelessRange(Tier.Two) * 5)
+
+this is:
+packet.size / 32.0 + 0.05 * 400 * 5
+assuming a packet.size of 128:
+4 + 100 = 104
+a base cost of 100 power per message, fortunatly this cost doesn't vary with distance,
+100 is very manageable, but it means that a fully charged robot can only send 200
+messages before running out of battery, this compares with a move cost of 15, which is
+8 times smaller, this means you can move 1600 blocks before running out of power.
+
+This also means that our power issues come from printing and sending too many debug messages
+this will be fixed!

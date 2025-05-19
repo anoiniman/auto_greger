@@ -19,11 +19,11 @@ function module.copy_table(old_table, iter_func) -- pair or ipair
     end
 
     for k, v in iter_func(old_table) do
-        if type(v) == "table" then 
+        if type(v) == "table" then
             v = module.copy_table(v, iter_func)
         end
 
-        new_table[k] = v    
+        new_table[k] = v
     end
 
     return new_table

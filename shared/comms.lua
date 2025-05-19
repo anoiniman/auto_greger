@@ -16,6 +16,27 @@ local tunnel_card_addr = tunnel.address
 local glb_msg_tbl = {}
 local listener = nil
 
+-- luacheck: no unused args
+local function listener_function(name, local_addr, foreign_addr, port, dist, ...)
+    -- It is expected only one serialized table string to be sent over
+    --local arg = {...}
+    --local vari = arg
+    local vari = {...}
+    local msg_string = vari[1]
+    --print("Msg_string: " .. msg_string)
+    local msg_table = serialize.unserialize(msg_string)
+    --print("Msg_table: " .. msg_table)
+
+    local new_table = nil -- luacheck: ignore
+    if local_addr == tunnel_card_addr then
+        new_table = {true, "self", msg_table}
+    else
+        new_table = {true, local_addr, msg_table}
+    end
+
+    table.insert(glb_msg_tbl, new_table)
+end
+
 function module.recieve()
     -- return format = {bool, string, table}
     if listener == nil or listener == false then
@@ -29,31 +50,11 @@ function module.recieve()
     end
 
     local to_return = table.remove(glb_msg_tbl, 1)
-    local serial = serialize.serialize(to_return)
     --print("Serial: " .. serial)
 
     return to_return
 end
 
-function listener_function(name, local_addr, foreign_addr, port, dist, ...)
-    -- It is expected only one serialized table string to be sent over
-    --local arg = {...}
-    --local vari = arg
-    local vari = {...}
-    local msg_string = vari[1]
-    --print("Msg_string: " .. msg_string)
-    local msg_table = serialize.unserialize(msg_string)
-    --print("Msg_table: " .. msg_table)
-
-    local new_table = nil
-    if local_addr == tunnel_card_addr then
-        new_table = {true, "self", msg_table}
-    else
-        new_table = {true, local_addr, msg_table}
-    end 
-
-    table.insert(glb_msg_tbl, new_table)
-end
 
 function module.setup_listener()
     if listener == nil then
@@ -72,7 +73,7 @@ function module.controller_send(any)
 end
 
 function module.robot_send(part1, part2) -- part1 & 2 must be strings
-    local final_string = "<| " .. part1 .. " |> " .. part2 
+    local final_string = "<| " .. part1 .. " |> " .. part2
     local hello = serialize.serialize(final_string)
 
     -- WHAT IS THIS FUCKING ERROR

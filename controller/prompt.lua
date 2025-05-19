@@ -13,26 +13,24 @@ term.setCursorBlink(true)
 local exit_own = false
 local exit_comm = false
 
-function own_terminal()
-    while not exit_own do
-        exit_own = false
-        term.write("# ")
-        local proompt = io.read()
-        if proompt == "comm" then
-            comm_terminal()
-        elseif proompt == "exit" then
-            exit_own = true 
-        end
-    end
-end
-
-function calculate_prio(command)
+local function calculate_prio(command)
     if command == "debug" then return -1 end
 
     return 50
 end
 
-function comm_terminal()
+
+local keyboard = require("keyboard")
+local function print_mode()
+    while not keyboard.isKeyDown(keyboard.keys.q) do
+        os.sleep(0.33)
+        local r_table = comms.recieve()
+        local something, _, message_string = r_table[1], r_table[2], r_table[3]
+        if something == true then print(message_string) end
+    end
+end
+
+local function comm_terminal()
     comms.setup_listener()
     -- space separeted string input into table
     while not exit_comm do
@@ -40,7 +38,8 @@ function comm_terminal()
         local prompt = io.read()
         local array = text.tokenize(prompt)
 
-        local prio = -1
+        local prio = -1 -- luacheck: ignore
+        -- luacheck: ignore
         if array == nil or tonumber(array[1]) ~= nil then -- calculate prio if prio is not given as first string
             -- Do nothing, since prio is already inside the array
         else
@@ -52,9 +51,9 @@ function comm_terminal()
             if array[2] == "exit" then
                 exit_comm = true
             elseif array[2] == "s" or array[2] == nil then
-                -- skip
+                -- luacheck: ignore
             elseif array[2] == "print_mode" then
-                print_mode()              
+                print_mode()
             else
                 comms.controller_send(array)
             end
@@ -70,13 +69,16 @@ function comm_terminal()
     end
 end
 
-local keyboard = require("keyboard")
-function print_mode()
-    while not keyboard.isKeyDown(keyboard.keys.q) do
-        os.sleep(0.33)
-        local r_table = comms.recieve()
-        local something, _, message_string = r_table[1], r_table[2], r_table[3]
-        if something == true then print(message_string) end
+local function own_terminal()
+    while not exit_own do
+        exit_own = false
+        term.write("# ")
+        local proompt = io.read()
+        if proompt == "comm" then
+            comm_terminal()
+        elseif proompt == "exit" then
+            exit_own = true
+        end
     end
 end
 

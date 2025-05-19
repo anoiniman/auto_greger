@@ -7,7 +7,7 @@ local computer = require("computer")
 
 local term = require("term")
 local text = require("text")
-local serialize = require("serialization")
+local serialize = require("serialization") -- luacheck: ignore
 
 -- local imports
 local comms = require("comms")
@@ -23,18 +23,19 @@ local do_exit = false
 
 -- 0 = continue, 1 = stop
 local watch_dog = 0
-local history = {}
 
 term.clear()
 print(comms.robot_send("info", robot_name .. " -- Now Online!"))
 term.setCursorBlink(false)
 
+--luacheck: globals CRON_TIME DO_REASONING REASON_ONCE
 CRON_TIME = 5
 DO_REASONING = true
 REASON_ONCE = false
 
 local cron_time_interval = computer.uptime()
 local function cron_jobs()
+    -- luacheck: ignore message_type
     local cron_message = nil
     local message_type = nil
 
@@ -45,7 +46,7 @@ local function cron_jobs()
         if DO_REASONING then
             message_type, cron_message = reasoning.step_script()
         elseif REASON_ONCE then
-            REASON_ONCE = false 
+            REASON_ONCE = false
             message_type, cron_message = reasoning.step_script()
         end
     end
@@ -55,6 +56,7 @@ end
 
 -- Very special commands I guess
 local function special_message_interpretation(message)
+    -- luacheck: ignore priority
     local priority = message[1]
     local command = message[2]
 
@@ -62,10 +64,10 @@ local function special_message_interpretation(message)
         watch_dog = 1
     elseif command == "resume" then
         watch_dog = 0
-    elseif command == "run_auto" or command == "auto_run" or command == "auto" then 
-        block_read_bool = false 
+    elseif command == "run_auto" or command == "auto_run" or command == "auto" then
+        block_read_bool = false
     elseif command == "block" then
-        block_read_bool = true 
+        block_read_bool = true
     elseif command == "exit" then
         do_exit = true
     else -- pass along to co-routine
@@ -73,6 +75,29 @@ local function special_message_interpretation(message)
         return message
     end
     return nil
+end
+
+local function blocking_prompt() -- Return Command
+    term.write("> ")
+    term.setCursorBlink(true)
+    local read = io.read()
+    print("")
+    term.setCursorBlink(false)
+
+    --table.insert(history, read)
+    local post_read = text.tokenize(read)
+    print(#post_read)
+
+    if post_read == nil or #post_read < 1 or #post_read > 2 then
+        print("Invalid command lenght: \"" .. read .. "\"")
+        return nil
+    elseif #post_read == 1 then
+        table.insert(post_read, nil)
+    end
+
+    table.insert(post_read, 1, -1)
+
+    return post_read -- Special command to stop blocking "run_auto"
 end
 
 local function process_messages(cron_message)
@@ -111,14 +136,14 @@ local function process_messages(cron_message)
     end
 end
 
--- global variable:
+-- luacheck: globals ROBO_MAIN_THREAD_SLEEP
 ROBO_MAIN_THREAD_SLEEP = 0.2
 local function robot_main()
     -- START
     comms.setup_listener()
 
     while not do_exit do
-        os.sleep(ROBO_MAIN_THREAD_SLEEP)
+        os.sleep(ROBO_MAIN_THREAD_SLEEP) -- luacheck: ignore
 
         local cron_message = cron_jobs()
         process_messages(cron_message)
@@ -128,28 +153,6 @@ local function robot_main()
     post_exit.exit()
 end
 
-function blocking_prompt() -- Return Command
-    term.write("> ")
-    term.setCursorBlink(true)
-    local read = io.read()
-    print("")
-    term.setCursorBlink(false)
-
-    --table.insert(history, read)
-    local post_read = text.tokenize(read)
-    print(#post_read)
-
-    if post_read == nil or #post_read < 1 or #post_read > 2 then
-        print("Invalid command lenght: \"" .. read .. "\"")
-        return nil
-    elseif #post_read == 1 then 
-        table.insert(post_read, nil)
-    end
-
-    table.insert(post_read, 1, -1)
-
-    return post_read -- Special command to stop blocking "run_auto"
-end
 
 -- Execution into main function always has to occur in the end due to how lua works
 robot_main()

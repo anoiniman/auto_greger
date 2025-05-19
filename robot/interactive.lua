@@ -1,8 +1,6 @@
 local module = {}
 -- Just noticed that this is basically a fancy future/promise implementation :sob:
 
-local math = require("math")
-
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
@@ -42,7 +40,7 @@ local function get_new_id() -- now with this linear search will no longer be nec
 end
 
 function module.add(interactive_type, human_readable) -- returns id
-    local new_id = get_new_id() 
+    local new_id = get_new_id()
     local new_element = MetaElement:new(interactive_type, human_readable)
     wait_list[new_id] = new_element
     return new_id
@@ -78,6 +76,7 @@ end
 
 -- gonna need to programe something in prompt side for this cool thing to happen, but can also just add
 -- a debug FORCE SET DATA kind of thing
+-- luacheck: no unused args
 function module.request_form(data, id)
     local element = wait_list[id]
     local t = element.interactive_type
@@ -91,7 +90,7 @@ end
 
 function module.set_data_table(add_data, id)
     local element = wait_list[id]
-    if element == nil then 
+    if element == nil then
         print(comms.robot_send("error", "interactive.set_data_table, id: \"" .. id .. "\" doesn't exist"))
         return false
     end
@@ -99,15 +98,15 @@ function module.set_data_table(add_data, id)
     local t = element.interactive_type
     if t == "auto_build0" then
         -- since we don't have the request systme implemented, just add an eval to throw data in
-        if add_data == nil or #add_data ~= 2 or tonumber(add_data[1]) == nil or tonumber(add_data[2]) == nil then 
-            print(comms.robot_send("error", "invalid data")) 
+        if add_data == nil or #add_data ~= 2 or tonumber(add_data[1]) == nil or tonumber(add_data[2]) == nil then
+            print(comms.robot_send("error", "invalid data"))
             return false
         end
         wait_list[id].data_table = add_data
         return true
     elseif t == "auto_build1" then
-        if add_data == nil or #add_data ~= 1 or tostring(add_data[1]) == nil then 
-            print(comms.robot_send("error", "invalid data")) 
+        if add_data == nil or #add_data ~= 1 or tostring(add_data[1]) == nil then
+            print(comms.robot_send("error", "invalid data"))
             return false
         end
         wait_list[id].data_table = add_data

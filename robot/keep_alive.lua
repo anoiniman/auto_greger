@@ -22,6 +22,7 @@ function module.keep_alive()
         local prev_select = robot.select()
         robot.select(2)
         gen.insert(64 - count)
+        robot.select(prev_select)
     end
 end
 

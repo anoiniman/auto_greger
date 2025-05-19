@@ -3,10 +3,10 @@ local module = {}
 -- import of globals
 local math = require("math")
 
-local text = require("text")
+--[[local text = require("text")
 local serialize = require("serialization")
+local comms = require("comms")--]]
 
-local comms = require("comms")
 local eval = require("eval.eval_main")
 
 ---------------------------------------
@@ -43,6 +43,7 @@ local function prio_insert(task_list, message)
 end
 
 -- Dangerous global value
+-- luacheck: globals INTERACTED
 INTERACTED = false
 
 local task_list = {} -- for sure table (table)
