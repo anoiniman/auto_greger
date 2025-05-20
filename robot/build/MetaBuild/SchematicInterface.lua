@@ -120,7 +120,6 @@ function SchematicInterface:doBuild(top_down)
     end
     print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
     print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
-    io.read()
 
     local coords = deep_copy.copy(rel, ipairs)
     local instruction = BuildInstruction:newBasic(coords, translated_symbol)
