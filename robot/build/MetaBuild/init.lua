@@ -14,11 +14,11 @@ local primitive_cache = {}  -- as you might have noticed this value exists outsi
                             -- reference for "build_cache"
 
 local Module = {
+    name = nil,
     is_nil = true,
     built = false,
     primitive = {},
 
-    build_stack = nil,
     s_interface = nil
 }
 
@@ -133,6 +133,8 @@ function Module:require(name)
     end
 
     self.primitive = build_table:new()
+    self.name = self.primitive.name
+
     primitive_cache[name] = build_table
     self:initPrimitive()
 
@@ -140,7 +142,7 @@ function Module:require(name)
 end
 
 function Module:getName()
-    return self.primitive.name
+    return self.name
 end
 
 function Module:getSchematicInterface()
