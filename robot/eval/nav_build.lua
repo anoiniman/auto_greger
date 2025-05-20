@@ -45,7 +45,7 @@ function module.nav_and_build(instructions, post_run)
     end
 
     -- I know this shit should be done in place, I don't have the time to code good for now
-    local self_return = {80, "navigate_rel", "and_build", rel_coords, what_chunk, door_info, block_name, post_run}
+    local self_return = {80, "navigate_rel", "and_build", instructions, post_run}
 
     -- post_run is a command to be run after this one is finished
     local cur_chunk = nav.get_chunk()
