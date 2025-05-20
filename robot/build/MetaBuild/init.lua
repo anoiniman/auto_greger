@@ -34,7 +34,15 @@ function Module:doBuild()
         return false
     end
 
-    return self.s_interface:doBuild() -- string, 3d-coords, symbol
+    -- TODO make this an utility in the future
+    local result = false;
+    for sauce in ipairs(self.extra_sauce) do
+        if sauce == "top_to_bottom" then
+            result = true
+            break
+        end
+    end
+    return self.s_interface:doBuild(result) -- string, 3d-coords, symbol
 end
 
 function Module:initPrimitive()

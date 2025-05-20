@@ -2,19 +2,45 @@ local module = {}
 
 -- local imports
 local comms = require("comms")
+local geolyzer = require("geolyzer_wrapper")
 
 local inv = require("inventory.inv_obj")
 local nav = require("nav_module.nav_obj")
 local rel = require("nav_module.rel_move")
 
+-- TODO fix this mess
+-- the algorithm doesn't take into account the way we always place blocks from the top
+local function block_already_valid(rel_coords, block_name) -- luacheck: ignore
+    local cur_rel = nav.get_rel()
+    local cur_height = nav.get_height()
+
+    local diff_rel = {0,0,0}
+    diff_rel[1] = cur_rel[1] - rel_coords[1]
+    diff_rel[2] = cur_rel[2] - rel_coords[2]
+    diff_rel[3] = cur_height - rel_coords[3]
+
+    local num_of_diffs = 0
+    for diff in ipairs(diff_rel) do
+        if diff ~= 0 then num_of_diffs = num_of_diffs + 1 end
+    end
+    -- AKA: if we are not directly adjacent to the target block the block that stopped us must be different
+    if num_of_diffs > 1 then return false end
+    if geolyzer.compare(block_name.lable, "simple", -1) then return true end
+    if geolyzer.compare(block_name.name, "direct", -1) then return true end
+
+    -- TODO add more thorough comparisons comparision
+    return false
+end
+
 
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
-local non_smart_keywords = {"no_smart_build", "force_clear"}
-local function nav_and_build(instructions, post_run)
-    local rel_coords, what_chunk, door_info, block_name = instruction:unpack()
-    if instruction:includesOr(non_smart_keywords) then
+
+local non_smart_keywords = {"no_smart_build", "force_clear"} -- this is now useless since I decided to make force_clear the default
+function module.nav_and_build(instructions, post_run)
+    local rel_coords, what_chunk, door_info, block_name = instructions:unpack()
+    if instructions:includesOr(non_smart_keywords) then
         error(comms.robot_send("fatal", "nav_and_build_ non-smart building not yet supported"))
     end
 
@@ -52,7 +78,10 @@ local function nav_and_build(instructions, post_run)
         --nav.debug_move("up", 1, false) >-----< No longer needed
         if not inv.place_block("down", block_name, "lable") then
             -- Real error handling will come some other time
-            error(comms.robot_send("fatal", "how is this possible? :sob:"))
+            if not inv.blindSwingDown() then -- just break the damn block te-he
+                print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
+                return nil
+            end
         end
 
         return post_run
@@ -60,7 +89,19 @@ local function nav_and_build(instructions, post_run)
         if err == nil then err = "nil" end
 
         if err == "swong" then print("noop") -- not a big error we keep going
-        else error(comms.robot_send("fatal", "eval.navigate: navigate_build, error rel_moving: " .. err)) end
+        else
+            if err == "impossible" then error(comms.robot_send("fatal", "Can't deal with this yeat"))
+            elseif err ~= "solid" then error(comms.robot_send("fatal", "Is this even possible")) end
+
+            --[[if block_already_valid(rel_coords, block_name) then
+                return post_run -- act as if we placed the block ourselves
+            end -- else ]]
+
+            if not inv.blindSwing() then -- try and destory the block
+                print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
+                return nil -- this breaks out of the "job"
+            end
+        end
     elseif result ~= 0 then -- elseif 0 then no problem
         error(comms.robot_send("fatal", "impossible error code returned eval navigate"))
     end

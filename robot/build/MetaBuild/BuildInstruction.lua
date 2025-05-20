@@ -7,19 +7,26 @@ local Module = {
     rel_coords = nil,
     what_chunk = nil,
     door_info = nil,
-    block_name = nil,
+    block_info = {lable = nil, name = nil},
     extra_sauce = nil
 }
 
 -- local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post_run)
 function Module:zeroed()
-    return deep_copy.copy(self, pairs) 
+    return deep_copy.copy(self, pairs)
 end
 
-function Module:newBasic(rel, block)
+function Module:newBasic(rel, block_lable, block_name)
+    -- Dangerous hack that should allow for some brain-dead polymorphism
+    if type(block_lable) == "table" then
+        block_name = block_lable[2]
+        block_lable = block_lable[1]
+    end
+
     local new = self:zeroed()
     new.rel_coords = rel
-    new.block_name = block
+    new.block_info.lable = block_lable
+    new.block_info.name = block_name
     return new
 end
 
@@ -78,4 +85,4 @@ function Module:addExtra(str_name, args)
     end
 end
 
-return module
+return Module

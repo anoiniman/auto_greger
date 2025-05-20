@@ -45,13 +45,21 @@ function SchematicInterface:parseStringArr(string_array, square_index)
     if #self.schematic == 0 then print(comms.robot_send("error", "we ballsd up good :(")) end
 end
 
-function SchematicInterface:forceAdvanceHead()
+function SchematicInterface:advanceY(top_down)
+    local b_stack = self.build_stack
+    if top_down then
+        return b_stack.logical_y > 1
+    end
+    return b_stack.logical_y <= #self.schematic
+end
+
+function SchematicInterface:forceAdvanceHead(top_down)
     local b_stack = self.build_stack
 
     if b_stack.logical_z <= 7 then -- try and read every line
         b_stack.logical_x = 1
         b_stack.logical_z = b_stack.logical_z + 1
-    elseif b_stack.logical_y <= #self.schematic then -- only then move-up in height
+    elseif self:advanceY(top_down) then -- only then move-up in height
         b_stack.logical_x = 1
         b_stack.logical_z = 1
         b_stack.logical_y = b_stack.logical_y + 1
@@ -63,7 +71,7 @@ function SchematicInterface:forceAdvanceHead()
 end
 
 -- chunk.dist && chunk.symbol
-function SchematicInterface:doBuild()
+function SchematicInterface:doBuild(top_down)
     local b_stack = self.build_stack
 
     --[[local print_a = serialize.serialize(b_stack, true)
@@ -88,14 +96,14 @@ function SchematicInterface:doBuild()
 
     ::very_funny::
     if chunk == nil then
-        if self:forceAdvanceHead() then
+        if self:forceAdvanceHead(top_down) then
             return true, "done"
         end
-        return self:doBuild()
+        return self:doBuild(top_down)
     end
     if chunk.symbol == '*' then -- or other such special characters
         b_stack.logical_x = b_stack.logical_x + 1
-        return self:doBuild()
+        return self:doBuild(top_down)
     end
 
     b_stack.logical_x = b_stack.logical_x + 1 -- prepare the advance to next column element

@@ -1,4 +1,10 @@
 local Module = {parent = nil}
+
+local deep_copy = require("deep_copy")
+local meta_door = require("build.MetaBuild.MetaDoorInfo")
+local general_functions = require("build.general_functions")
+
+
 Module.name = "hole_home"
 
 Module.dictionary = {
@@ -46,13 +52,13 @@ for index = 1, 5, 1 do
 end
 
 local ss = sub_segment
-local a = "d------"
+local b = "d------"
 Module.segments = {
-    [1] = {{a, ss[1]}},
-    [2] = {{a, ss[2]}},
-    [3] = {{a, ss[3]}},
-    [4] = {{a, ss[4]}},
-    [5] = {{a, ss[5]}}
+    [1] = {{b, ss[1]}},
+    [2] = {{b, ss[2]}},
+    [3] = {{b, ss[3]}},
+    [4] = {{b, ss[4]}},
+    [5] = {{b, ss[5]}}
 }
 
 Module.doors = {}

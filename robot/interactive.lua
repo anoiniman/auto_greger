@@ -1,3 +1,4 @@
+-- luacheck: globals INTERACTED
 local module = {}
 -- Just noticed that this is basically a fancy future/promise implementation :sob:
 

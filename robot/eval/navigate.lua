@@ -1,16 +1,13 @@
 local module = {}
 
 -- import of globals
-local serialize = require("serialization")
+local serialize = require("serialization") -- luacheck: ignore
 
 -- local imports
 local comms = require("comms")
 
-local inv = require("inventory.inv_obj")
-
 local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
-local rel = require("nav_module.rel_move")
 local nb = require("eval.nav_build")
 
 
@@ -48,7 +45,7 @@ function module.navigate_rel(arguments)
     if flag == nil then
         print(comms.robot_send("error", "eval_navigate: flag is nil"))
     elseif flag == "and_build" then
-        return nb.nav_and_build(rel_coords, what_chunk, door_info, fifth, sixth)
+        return nb.nav_and_build(instructions, return_table)
     elseif flag == "and_clear" then
 
     elseif flag == "smart_clear" then

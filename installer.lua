@@ -123,6 +123,7 @@ local function robot_meta_build()
     download("/robot/build/MetaBuild/MetaDoorInfo.lua", "self")
     download("/robot/build/MetaBuild/MetaSchematic.lua", "self")
     download("/robot/build/MetaBuild/SchematicInterface.lua", "self")
+    download("/robot/build/MetaBuild/BuildInstruction.lua", "self")
 end
 
 -- one day option to download different script folders etc, but not today
@@ -149,6 +150,7 @@ local function robot_reasoning()
        filesystem.makeDirectory("/home/robot/reasoning/scripts/debug")
     end
     download("/robot/reasoning/scripts/debug/01.lua", "self")
+    download("/robot/reasoning/scripts/debug/02.lua", "self")
 end
 
 local function robot_inventory()

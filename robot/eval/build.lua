@@ -1,6 +1,6 @@
 local module = {}
 
-local serialize = require("serialization")
+local serialize = require("serialization") -- luacheck: ignore
 local comms = require("comms")
 
 local map_obj = require("nav_module.map_obj")
@@ -66,6 +66,11 @@ end
 
 function module.add_quad(arguments)
     local result, what_chunk, what_quad = common_checks(arguments)
+    if result == false then
+        --print(comms.robot_send("debug", "failed to find chunk to add quad"))
+        return nil
+    end
+
     local primitive_name = arguments[4]
     if primitive_name == nil then
         print(comms.robot_send("error, load_primitive_at, no primitive name provided"))
@@ -92,6 +97,7 @@ function module.do_build(arguments)
     local result, what_chunk, what_quad = common_checks(arguments)
     if result == false then return nil end
 
+    -- luacheck: ignore result, no unused
     local result, status, coords, block_name = map_obj.do_build(what_chunk, what_quad)
     if result then
         if status == "continue" then

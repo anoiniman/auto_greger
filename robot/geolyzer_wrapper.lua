@@ -15,6 +15,10 @@ local geo_table = {
 
 -- it seems to me that sides_api here recognizes front as relative front, and not as south
 function module.compare(match_string, method, side) -- returns bool
+    if side == nil or side == -1 then side = sides_api.front end
+    if match_string == nil then return false end
+    if method == nil then return false end
+
     local table_id = geo_table[match_string]
 
     if method == "simple" then
@@ -25,9 +29,12 @@ function module.compare(match_string, method, side) -- returns bool
     elseif method == "naive_contains" then
         local string_id = geo.analyze(side)["name"]
         return string.find(string_id, match_string) ~= nil
+    elseif method == "direct" then
+        local string_id = geo.analyze(side)["name"]
+        return string_id == match_string
     else
         print(comms.robot_send("error", "Geo Compare, unrecognized method"))
-        return nil -- which means error
+        return false
     end
 end
 

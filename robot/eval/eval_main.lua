@@ -1,3 +1,4 @@
+-- luacheck: globals DO_REASONING REASON_ONCE
 local module = {}
 
 -- import of globals

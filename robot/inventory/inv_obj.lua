@@ -35,10 +35,10 @@ local function i_ledger_add_or_create(name, lable, quantity)
 
     local entry_quantity = internal_ledger[bucket][lable]
     if entry_quantity == nil then
-        entry_quantity = quantity
+        internal_ledger[bucket][lable] = quantity
         return
     end
-    entry_quantity = entry_quantity + quantity
+    internal_ledger[bucket][lable] = entry_quantity + quantity
 end
 
 local function find_in_slot(block_id, lable_type)
@@ -106,8 +106,20 @@ end
 --->>-- Crafter Shit --<<-----
 
 local use_self_craft = true
-function module:is_craft_active()
-    return self.use_self_craft
+function module.isCraftActive()
+    return use_self_craft
+end
+
+function module.blindSwingFront()
+    local result = robot.swing()
+    module.maybe_something_added_to_inv()
+    return result
+end
+
+function module.blindSwingDown()
+    local result = robot.swingDown()
+    module.maybe_something_added_to_inv()
+    return result
 end
 
 function module.debug_force_add()
@@ -123,6 +135,11 @@ function module.debug_force_add()
     end
 end
 
+
+-- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
+-- with things that drop more than one item; in that case uhhhhhhh we need better accounting
+-- algorithms that detect if something is in the inventory that was not there previously, 
+-- I think we can just check back with the ledger but hey || TODO - what is said before
 
 -- Hopefully robot.count == 0 works in detecting empty slots, otherwise.... woppps sorry
 local crafting_table_clear = false
@@ -150,7 +167,7 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
     return clear_first_slot(free_slot_iter)
 end
 
-local function clear_first_slot(iter)
+function clear_first_slot(iter)
     local real_size = inventory_size - 9
     if robot.count(1) == 0 then return true end -- nothing needs to be done
 
@@ -174,7 +191,7 @@ local function clear_first_slot(iter)
     return true
 end
 
-local function non_craft_slot_iter()
+function non_craft_slot_iter()
     local iteration = used_up_capacity
     return function ()
         iteration = iteration + 1
@@ -191,7 +208,7 @@ local function non_craft_slot_iter()
     end
 end
 
-local function free_slot_iter()
+function free_slot_iter()
     local iteration = used_up_capacity + 1 -- spares first slot, meaningless logically
 
     return function ()
