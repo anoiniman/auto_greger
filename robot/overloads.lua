@@ -1,4 +1,5 @@
 -- luacheck: globals OLD_PRINT DO_DEBUG_PRINT
+DO_DEBUG_PRINT = false
 OLD_PRINT = print
 function print (...) -- luacheck: ignore
     local args = {...}

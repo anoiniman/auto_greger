@@ -425,13 +425,13 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 6
         return_table[4] = what_step
         -- old return
-    elseif what_step == 6 then
+    elseif what_step == -100 then
         module.clear_quad()
         error("TODO")
 
         what_step = 7
         return_table[4] = what_step
-    elseif what_step == 7 then
+    elseif what_step == 6 then
         local result, status, instruction = module.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
 
