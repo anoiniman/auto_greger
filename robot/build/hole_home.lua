@@ -10,7 +10,7 @@ Module.name = "hole_home"
 Module.dictionary = {
     --["t"] = "Torch",
     --["d"] = {"sub", "dirt", "any"}, -- instruction, base, alternative(s) "any" == any
-    ["d"]  = "dirt"
+    ["d"]  = "Dirt"
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)

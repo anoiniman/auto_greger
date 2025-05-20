@@ -78,7 +78,7 @@ function module.nav_and_build(instructions, post_run)
         --nav.debug_move("up", 1, false) >-----< No longer needed
         if not inv.place_block("down", block_info, "lable") then
             -- Real error handling will come some other time
-            if not inv.blindSwingDown() then -- just break the damn block te-he
+            if not inv.blind_swing_down() then -- just break the damn block te-he
                 print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
                 return nil
             end
@@ -97,7 +97,7 @@ function module.nav_and_build(instructions, post_run)
                 return post_run -- act as if we placed the block ourselves
             end -- else ]]
 
-            if not inv.blindSwing() then -- try and destory the block
+            if not inv.blind_swing_front() then -- try and destory the block
                 print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
                 return nil -- this breaks out of the "job"
             end

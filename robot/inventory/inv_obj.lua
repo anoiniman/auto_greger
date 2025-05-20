@@ -117,13 +117,13 @@ function module.isCraftActive()
     return use_self_craft
 end
 
-function module.blindSwingFront()
+function module.blind_swing_front()
     local result = robot.swing()
     module.maybe_something_added_to_inv()
     return result
 end
 
-function module.blindSwingDown()
+function module.blind_swing_down()
     local result = robot.swingDown()
     module.maybe_something_added_to_inv()
     return result
