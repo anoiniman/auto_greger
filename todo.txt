@@ -37,3 +37,8 @@ messages before running out of battery, this compares with a move cost of 15, wh
 
 This also means that our power issues come from printing and sending too many debug messages
 this will be fixed!
+
+Clear && do walls (6x6) space with (7x7) walls?
+-> 7x7 space with 8x8 walls
+
+-- ils transmissions and others of the sort should be batched for transmission

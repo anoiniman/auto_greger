@@ -74,6 +74,7 @@ function ItemConstraint:check()
     error(comms.robot_send("fatal", "ItemConstraint:check() TODO!"))
 end
 
+-- chunk_x_offset and chunk_z_offset btw
 local StructureDeclaration = {name = nil, x_offset = 0, z_offset = 0, quadrant = -1}
 function StructureDeclaration:new(structure_name, x_offset, z_offset, quadrant)
     local new = deep_copy.copy(self, pairs)
