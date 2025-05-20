@@ -5,6 +5,7 @@ local comms = require("comms")
 local deep_copy = require("deep_copy")
 
 local MetaSchematic = require("build.MetaBuild.MetaSchematic")
+local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 
 local BuildStack = { -- reading head maxxed printer pilled state machine adjacent
     logical_x = 1,
@@ -114,7 +115,9 @@ function SchematicInterface:doBuild()
     io.read()
 
     local coords = deep_copy.copy(rel, ipairs)
-    return true, "continue", coords, translated_symbol
+    local instruction = BuildInstruction:newBasic(coords, translated_symbol)
+
+    return true, "continue", instruction
 end
 
 return SchematicInterface

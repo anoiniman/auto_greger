@@ -13,6 +13,7 @@ local interactive = require("interactive")
 --local eval_nav = require("eval.navigate")
 
 local MetaQuad = require("nav_module.MetaQuad")
+local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 
 
 local areas_table = {}
@@ -431,14 +432,17 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 7
         return_table[4] = 7
     elseif what_step == 7 then
-        local result, status, rel_coords, block_name = module.do_build(what_chunk, what_quad)
+        local result, status, instruction = module.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
 
         local door_info = get_door_info(what_chunk, what_quad)
+        instruction:addDoors(door_info)
+        instruction:addChunk(chunk_info)
+
         local self_table = {prio, "start_auto_build", table.unpack(return_table)}
 
         if status == "continue" then
-            return {80, "navigate_rel", "and_build", rel_coords, what_chunk, door_info, block_name, self_table}
+            return {80, "navigate_rel", "and_build", instruction, self_table}
         elseif status == "done" then
             lock[1] = 0 -- VERY IMPORTANT, unlocking the building constraint
             return nil -- I think we return nil?

@@ -11,7 +11,9 @@ local rel = require("nav_module.rel_move")
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
-local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post_run)
+local function nav_and_build(instructions, post_run)
+    local rel_coords, what_chunk, door_info, block_name, extra_info = instruction:unpack()
+
     -- I know this shit should be done in place, I don't have the time to code good for now
     local self_return = {80, module.navigate_rel, "and_build", rel_coords, what_chunk, door_info, block_name, post_run}
 

@@ -41,10 +41,9 @@ end
 
 function module.navigate_rel(arguments)
     -- {"and_build", rel_coords, what_chunk, door_info, block_name, self_table}
-    local flag = arguments[1];          local rel_coords = arguments[2]
-    local what_chunk = arguments[3];    local door_info = arguments[4]
-    -- Block Name                         Post Run
-    local fifth = arguments[5];         local sixth = arguments[6]
+    local flag = arguments[1]
+    local instructions = arguments[2]
+    local return_table = arguments[3]
 
     if flag == nil then
         print(comms.robot_send("error", "eval_navigate: flag is nil"))

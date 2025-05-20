@@ -5,7 +5,7 @@ local comms = require("comms")
 
 local Module = {
     rel_coords = nil,
-    chunk_coords = nil,
+    what_chunk = nil,
     door_info = nil,
     block_name = nil,
     extra_sauce = nil
@@ -16,13 +16,25 @@ function Module:zeroed()
     return deep_copy.copy(self, pairs) 
 end
 
-function Module:newBasic(rel, chunk, door, block)
+function Module:newBasic(rel, block)
     local new = self:zeroed()
     new.rel_coords = rel
-    new.chunk_coords = chunk
-    new.door_info = door
     new.block_name = block
     return new
+end
+
+-- For clarity, this instead of table.unpack()
+function Module.unpack()
+    return self.rel_coords, self.what_chunk, self.door_info, self.block_name, self.extra_sauce
+end
+
+
+function Module:addDoors(door)
+    self.door_info = door
+end
+
+function Module:addChunkCoords(what_chunk)
+    self.what_chunk = what_chunk
 end
 
 function Module:addExtra(str_name, args)
