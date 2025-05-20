@@ -52,7 +52,8 @@ local function find_in_slot(block_id, lable_type)
             local split = text.tokenize(item.label)
             local reconstruct = table.concat(split) 
 
-            if reconstruct == block_id then
+            -- somehow, now that we have BuildInstruction it doesn't get mangled???
+            if reconstruct == block_id or item.label == block_id then
                 return index
             end
 
