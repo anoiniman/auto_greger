@@ -36,6 +36,8 @@ function Module:unpack()
 end
 
 function Module:includesOr(str_array)
+    if str_array == nil or type(str_array) ~= "table" then return false end
+
     for _, str in ipairs(str_array) do
         if self:includes(str) then
             return true
@@ -46,6 +48,7 @@ end
 
 
 function Module:includes(str)
+    if self.extra_sauce == nil then return false end
     for _, sauce in ipairs(self.extra_sauce) do
         if sauce == str then return true end
     end
