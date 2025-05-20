@@ -10,7 +10,7 @@ local rel = require("nav_module.rel_move")
 
 -- TODO fix this mess
 -- the algorithm doesn't take into account the way we always place blocks from the top
-local function block_already_valid(rel_coords, block_name) -- luacheck: ignore
+local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     local cur_rel = nav.get_rel()
     local cur_height = nav.get_height()
 
@@ -25,8 +25,8 @@ local function block_already_valid(rel_coords, block_name) -- luacheck: ignore
     end
     -- AKA: if we are not directly adjacent to the target block the block that stopped us must be different
     if num_of_diffs > 1 then return false end
-    if geolyzer.compare(block_name.lable, "simple", -1) then return true end
-    if geolyzer.compare(block_name.name, "direct", -1) then return true end
+    if geolyzer.compare(block_info.lable, "simple", -1) then return true end
+    if geolyzer.compare(block_info.name, "direct", -1) then return true end
 
     -- TODO add more thorough comparisons comparision
     return false
@@ -39,7 +39,7 @@ end
 
 local non_smart_keywords = {"no_smart_build", "force_clear"} -- this is now useless since I decided to make force_clear the default
 function module.nav_and_build(instructions, post_run)
-    local rel_coords, what_chunk, door_info, block_name = instructions:unpack()
+    local rel_coords, what_chunk, door_info, block_info = instructions:unpack()
     if instructions:includesOr(non_smart_keywords) then
         error(comms.robot_send("fatal", "nav_and_build_ non-smart building not yet supported"))
     end
@@ -76,7 +76,7 @@ function module.nav_and_build(instructions, post_run)
     local result, err = nav.navigate_rel()
     if result == -1 then -- movement completed (place block, and go back to build_function)
         --nav.debug_move("up", 1, false) >-----< No longer needed
-        if not inv.place_block("down", block_name, "lable") then
+        if not inv.place_block("down", block_info, "lable") then
             -- Real error handling will come some other time
             if not inv.blindSwingDown() then -- just break the damn block te-he
                 print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
@@ -93,7 +93,7 @@ function module.nav_and_build(instructions, post_run)
             if err == "impossible" then error(comms.robot_send("fatal", "Can't deal with this yeat"))
             elseif err ~= "solid" then error(comms.robot_send("fatal", "Is this even possible")) end
 
-            --[[if block_already_valid(rel_coords, block_name) then
+            --[[if block_already_valid(rel_coords, block_info) then
                 return post_run -- act as if we placed the block ourselves
             end -- else ]]
 

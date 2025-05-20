@@ -78,6 +78,12 @@ end
 
 --->>-- Block Placing --<<----
 function module.place_block(dir, block_identifier, lable_type)
+    if type(block_identifier) == table then
+        if lable_type == "lable" then block_identifier = block_identifier.lable end
+        elseif lable_type == "name" then block_identifier = block_identifier.name
+        else block_identifier = "invalid \"lable_type\"" end
+    end
+
     local slot = find_in_slot(block_identifier, lable_type)
     if slot == -1 then
         print(comms.robot_send("warning", "couldn't find id: \"" .. block_identifier .. "\" lable -- " .. lable_type))

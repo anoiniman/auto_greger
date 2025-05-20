@@ -32,7 +32,7 @@ end
 
 -- For clarity, this instead of table.unpack()
 function Module:unpack()
-    return self.rel_coords, self.what_chunk, self.door_info, self.block_name
+    return self.rel_coords, self.what_chunk, self.door_info, self.block_info
 end
 
 function Module:includesOr(str_array)
