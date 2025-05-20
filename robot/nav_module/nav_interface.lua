@@ -171,7 +171,7 @@ function real_move(what_kind, direction, nav_obj, extra_sauce)
         --print("free move")
         local result, err = base_move(direction, nav_obj)
         if result == nil then
-            print(comms.robot_send("error", "real_move: \"" .. what_kind .. "\" || error: \"" .. err .. "\""))
+            print(comms.robot_send("debug", "real_move: \"" .. what_kind .. "\" || error: \"" .. err .. "\""))
             if err == "entity" then
                 inv.equip_tool("sword")
                 robot.swing()

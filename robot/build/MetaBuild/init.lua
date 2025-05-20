@@ -34,17 +34,27 @@ function Module:doBuild()
         return false
     end
 
-    -- TODO make this an utility in the future
-    local result = false
-    if self.extra_sauce ~= nil then
-        for sauce in ipairs(self.extra_sauce) do
-            if sauce == "top_to_bottom" then
-                result = true
-                break
-            end
-        end
-    end
+    local result = self:is_extra("top_to_bottom")
     return self.s_interface:doBuild(result) -- string, 3d-coords, symbol
+end
+
+function Module:is_extra(str)
+    if self.extra_sauce == nil then return false end
+
+    for sauce in ipairs(self.extra_sauce) do
+        if type(sauce) == "table" then
+            error("not implemented yet")
+            if sauce[1] == "do_wall" then
+            end -- etc
+        end
+
+        if sauce == str then
+            result = true
+            break
+        end
+
+        ::continue::
+    end
 end
 
 function Module:initPrimitive()
@@ -100,6 +110,9 @@ function Module:setupBuild()
     end
     -- its ok to retain this after dumping the primitive because of GC, I think
     self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
+    if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
+        s_interface.build_stack.logical_y = self.primitive.height
+    end
 
     if self:checkHumanMap(base_table, self.primitive.name) ~= 0 then -- sanity check
         return false

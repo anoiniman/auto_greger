@@ -76,6 +76,23 @@ function module.equip_tool(tool_type)
     return true
 end
 
+function module.blind_swing_front()
+    local result = robot.swing()
+    module.maybe_something_added_to_inv()
+    return result
+end
+
+function module.blind_swing_down()
+    local result = robot.swingDown()
+    module.maybe_something_added_to_inv()
+    return result
+end
+
+function module.blind_swing_up()
+    local result = robot.swingUp()
+    module.maybe_something_added_to_inv()
+    return result
+end
 
 --->>-- Block Placing --<<----
 function module.place_block(dir, block_identifier, lable_type)
@@ -115,18 +132,6 @@ end
 local use_self_craft = true
 function module.isCraftActive()
     return use_self_craft
-end
-
-function module.blind_swing_front()
-    local result = robot.swing()
-    module.maybe_something_added_to_inv()
-    return result
-end
-
-function module.blind_swing_down()
-    local result = robot.swingDown()
-    module.maybe_something_added_to_inv()
-    return result
 end
 
 function module.debug_force_add()

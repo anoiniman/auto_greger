@@ -97,9 +97,18 @@ function module.nav_and_build(instructions, post_run)
                 return post_run -- act as if we placed the block ourselves
             end -- else ]]
 
+            local height_diff = nav.get_height() - rel_coords[3]
+            local swing_front_success = true
             if not inv.blind_swing_front() then -- try and destory the block
-                print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
+                --print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
+                swing_front_success = false
+            end
+            if not swing_front_success and height_diff > 0 and not inv.blind_swing_down() then -- just break the damn block te-he
+                print(comms.robot_send("error", "Could not break nor block in front, nor block down during move and build smart_cleanup"))
                 return nil -- this breaks out of the "job"
+            elseif not swing_front_success and height_diff < 0 and not inv.blind_swing_up() then -- just break the damn block te-he
+                print(comms.robot_send("error", "Could not break nor block in front, nor block up during move and build smart_cleanup"))
+                return nil
             end
         end
     elseif result ~= 0 then -- elseif 0 then no problem

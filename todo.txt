@@ -47,3 +47,7 @@ Write command that dry runs all primitives to check for dynamic errors
 ... all scripts ...
 ... all recipes ...
 etc.
+
+More debug prints in inventory, and add command that allows to turn off/on debug mode
+Also, make the bot move to the door before starting the do_build into the block, just
+rel_move into the doorway, and then start do_building/rel_moving into the block

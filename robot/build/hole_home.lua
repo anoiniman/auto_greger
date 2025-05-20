@@ -63,14 +63,15 @@ Module.segments = {
 
 Module.doors = {}
 Module.doors[1] = meta_door:new()
-Module.doors[1]:doorX(6,2)
+Module.doors[1]:doorX(0,1)
 
 Module.extra_sauce = {"top_to_bottom"}
+Module.height = 5
 
 -- consuming what function is to be executed
 -- "Which Iteration" <-> "Which Height/Level"
 function Module:iter()
-    return general_functions.iter(self.base_table, 5, self.segments)
+    return general_functions.iter(self.base_table, self.height, self.segments)
 end
 
 function Module:new()
