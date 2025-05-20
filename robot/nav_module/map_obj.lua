@@ -434,6 +434,10 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
     elseif what_step == 6 then
         local result, status, instruction = module.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
+        if status == "done" then
+            lock[1] = 0 -- VERY IMPORTANT, unlocking the building constraint
+            return nil -- I think we return nil?
+        end
 
         local door_info = get_door_info(what_chunk, what_quad)
         instruction:addDoors(door_info)
@@ -443,9 +447,6 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
         if status == "continue" then
             return {80, "navigate_rel", "and_build", instruction, self_table}
-        elseif status == "done" then
-            lock[1] = 0 -- VERY IMPORTANT, unlocking the building constraint
-            return nil -- I think we return nil?
         else error(comms.robot_send("fatal", "lol, how?")) end
     end
 
