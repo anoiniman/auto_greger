@@ -73,7 +73,7 @@ function module.controller_send(any)
 end
 
 function module.robot_send(part1, part2) -- part1 & 2 must be strings
-    if part1 == "debug" then
+    if (part1 == "debug" or part1 == "eval") and DO_DEBUG_PRINT ~= nil and not DO_DEBUG_PRINT then
         return part1, part2
     end
 
