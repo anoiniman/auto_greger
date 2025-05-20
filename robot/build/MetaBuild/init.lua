@@ -15,10 +15,12 @@ local primitive_cache = {}  -- as you might have noticed this value exists outsi
 
 local Module = {
     name = nil,
+    extra_sauce = nil,
+
     is_nil = true,
     built = false,
-    primitive = {},
 
+    primitive = {},
     s_interface = nil
 }
 
@@ -134,6 +136,7 @@ function Module:require(name)
 
     self.primitive = build_table:new()
     self.name = self.primitive.name
+    self.extra_sauce = self.primitive.extra_sauce -- effective change of ownership
 
     primitive_cache[name] = build_table
     self:initPrimitive()

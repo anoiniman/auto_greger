@@ -59,6 +59,8 @@ Module.doors = {}
 Module.doors[1] = meta_door:new()
 Module.doors[1]:doorX(6,2)
 
+Module.extra_sauce = {"top_to_bottom"}
+
 -- consuming what function is to be executed
 -- "Which Iteration" <-> "Which Height/Level"
 function Module:iter()

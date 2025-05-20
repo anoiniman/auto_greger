@@ -43,3 +43,7 @@ Clear && do walls (6x6) space with (7x7) walls?
 
 -- ils transmissions and others of the sort should be batched for transmission
 -- add option to ifs multiple steps in a row, at least during the first step
+Write command that dry runs all primitives to check for dynamic errors
+... all scripts ...
+... all recipes ...
+etc.

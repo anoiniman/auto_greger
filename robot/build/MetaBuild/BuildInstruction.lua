@@ -24,8 +24,25 @@ function Module:newBasic(rel, block)
 end
 
 -- For clarity, this instead of table.unpack()
-function Module.unpack()
-    return self.rel_coords, self.what_chunk, self.door_info, self.block_name, self.extra_sauce
+function Module:unpack()
+    return self.rel_coords, self.what_chunk, self.door_info, self.block_name
+end
+
+function Module:includesOr(str_array)
+    for _, str in ipairs(str_array) do
+        if self:includes(str) then
+            return true
+        end
+    end
+    return false
+end
+
+
+function Module:includes(str)
+    for _, sauce in ipairs(self.extra_sauce) do
+        if sauce == str then return true end
+    end
+    return false
 end
 
 
@@ -37,13 +54,27 @@ function Module:addChunkCoords(what_chunk)
     self.what_chunk = what_chunk
 end
 
+function Module:addMultipleExtras(extras)
+    if type(extras) ~= table then
+        self:addExtra(extras, nil)
+    end
+
+    for extra, args in pairs(extras) do
+        self:addExtra(extra, args)
+    end
+end
+
+-- smart clear by default
+-- prob unecessary to do all these ifs idk
 function Module:addExtra(str_name, args)
-    if str_name == "build_shell" then
-        error(comms.robot_send("fatal", "non-implemented instruction"))
+    if str_name == "top_to_bottom" then
+        table.insert(self.extra_sauce, str_name)
+    elseif str_name == "build_shell" then
+        error(comms.robot_send("fatal", "BuildInstruction: non-implemented instruction"))
     elseif str_name == "force_clear" then
-
-    elseif str_name == "smart_clear" then
-
+        error(comms.robot_send("fatal", "BuildInstruction: non-implemented instruction"))
+    else
+        error(comms.robot_send("fatal", "BuildInstruction: non-recognized instruction"))
     end
 end
 
