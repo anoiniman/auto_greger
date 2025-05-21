@@ -20,6 +20,40 @@ local inventory = component.getPrimary("inventory_controller")
 -- this means actual internal inventory size while crafing mode is true is == 7
 local forbidden_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 
+
+--->>-- Iterator Shit --<<-----
+
+local function non_craft_slot_iter()
+    local iteration = used_up_capacity
+    return function ()
+        iteration = iteration + 1
+        if iteration > inventory_size then
+            return nil
+        end
+
+        local cur_f = forbidden_slots[iteration]
+        if cur_f ~= nil or cur_f ~= -1 then
+            return -1
+        end
+
+        return iteration
+    end
+end
+
+local function free_slot_iter()
+    local iteration = used_up_capacity + 1 -- spares first slot, meaningless logically
+
+    return function ()
+        iteration = iteration + 1
+        if iteration > inventory_size then
+            return nil
+        end
+
+        return iteration
+    end
+end
+
+
 --->>-- Ledger Shit --<<-----
 
 local internal_ledger = {}  -- using just the lables should be fine, but I'll keep "name" here because
@@ -46,11 +80,11 @@ local function find_in_slot(block_id, lable_type)
         for index = 1, inventory_size, 1 do
             local item = inventory.getStackInInternalSlot(index)
             if item == nil then goto continue end
-            
+
             -- This is needed because dictionary translation seems to mangle spaces
             -- this will destroy spaces to allow for comparison
             local split = text.tokenize(item.label)
-            local reconstruct = table.concat(split) 
+            local reconstruct = table.concat(split)
 
             -- somehow, now that we have BuildInstruction it doesn't get mangled???
             if reconstruct == block_id or item.label == block_id then
@@ -97,7 +131,7 @@ end
 --->>-- Block Placing --<<----
 function module.place_block(dir, block_identifier, lable_type)
     if type(block_identifier) == "table" then
-        if lable_type == "lable" then block_identifier = block_identifier.lable 
+        if lable_type == "lable" then block_identifier = block_identifier.lable
         elseif lable_type == "name" then block_identifier = block_identifier.name
         else block_identifier = "invalid \"lable_type\"" end
     end
@@ -112,7 +146,7 @@ function module.place_block(dir, block_identifier, lable_type)
 
     robot.select(slot)
 
-    if dir == "down" then 
+    if dir == "down" then
         robot.placeDown()
     else
         print(comms.robot_send("error", "not yet implemented, inv_obj.place_block"))
@@ -147,10 +181,32 @@ function module.debug_force_add()
     end
 end
 
+local function clear_first_slot(iter)
+    if robot.count(1) == 0 then return true end -- nothing needs to be done
+
+    local free_slot = nil
+    for slot_num in iter() do
+        if slot_num == -1 then goto continue end
+        if robot.count(slot_num) == 0 then
+            free_slot = slot_num
+            break;
+        end
+
+        ::continue::
+    end
+    if free_slot == nil then -- there is no free_slot
+        crafting_table_clear = false
+        return false
+    end
+
+    robot.select(1)
+    robot.transferTo(free_slot)
+    return true
+end
 
 -- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
 -- with things that drop more than one item; in that case uhhhhhhh we need better accounting
--- algorithms that detect if something is in the inventory that was not there previously, 
+-- algorithms that detect if something is in the inventory that was not there previously,
 -- I think we can just check back with the ledger but hey || TODO - what is said before
 
 -- Hopefully robot.count == 0 works in detecting empty slots, otherwise.... woppps sorry
@@ -162,7 +218,7 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
 
     local quantity = robot.count(1)
     if quantity > 0 then
-        used_up_capacity = used_up_capacity + 1        
+        used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(1)
         local name = item.name; local lable = item.label
         i_ledger_add_or_create(name, lable, quantity)
@@ -179,58 +235,6 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
     return clear_first_slot(free_slot_iter)
 end
 
-function clear_first_slot(iter)
-    local real_size = inventory_size - 9
-    if robot.count(1) == 0 then return true end -- nothing needs to be done
 
-    local free_slot = nil
-    for slot_num in iter() do
-        if slot_num == -1 then goto continue end
-        if robot.count(slot_num) == 0 then
-            free_slot = slot_num
-            break;
-        end
-
-        ::continue::
-    end
-    if free_slot == nil then -- there is no free_slot
-        crafting_table_clear = false
-        return false 
-    end
-
-    robot.select(1)
-    robot.transferTo(slot_num)
-    return true
-end
-
-function non_craft_slot_iter()
-    local iteration = used_up_capacity
-    return function ()
-        iteration = iteration + 1
-        if iteration > inventory_size then
-            return nil
-        end
-        
-        local cur_f = forbidden_slots[iteration]
-        if cur_f ~= nil or cur_f ~= -1 then
-            return -1 
-        end
-
-        return iteration
-    end
-end
-
-function free_slot_iter()
-    local iteration = used_up_capacity + 1 -- spares first slot, meaningless logically
-
-    return function ()
-        iteration = iteration + 1
-        if iteration > inventory_size then
-            return nil
-        end
-
-        return iteration
-    end
-end
 
 return module
