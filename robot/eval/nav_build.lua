@@ -32,11 +32,9 @@ local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     return false
 end
 
-
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
-
 local non_smart_keywords = {"no_smart_build", "force_clear"} -- this is now useless since I decided to make force_clear the default
 function module.nav_and_build(instructions, post_run)
     local rel_coords, what_chunk, door_info, block_info = instructions:unpack()
@@ -45,14 +43,13 @@ function module.nav_and_build(instructions, post_run)
     end
 
     -- I know this shit should be done in place, I don't have the time to code good for now
+    -- post_run is a command to be run after this one is finished
     local self_return = {80, "navigate_rel", "and_build", instructions, post_run}
 
-    -- post_run is a command to be run after this one is finished
+    --------- CHUNK MOVE -----------
     local cur_chunk = nav.get_chunk()
-
     --print(comms.robot_send("debug", "cur_coords: " .. cur_chunk[1] .. ", " .. cur_chunk[2]))
     if cur_chunk[1] ~= what_chunk[1] or cur_chunk[2] ~= what_chunk[2] then
-        -- this is getting ridiculous, we won't do a inner command again this time
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)
         end
@@ -60,11 +57,23 @@ function module.nav_and_build(instructions, post_run)
 
         return self_return
     end
-    -- Sanity Check:
+
+    -------- SANITY CHECK ---------
     if nav.is_setup_navigate_chunk() then
         error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?"))
     end
+    -------- DO MOVE DOOR ----------
+    if door_info ~= nil then
+        if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
+        local result, data = nav.door_move()
 
+        if result == 1 then error(comms.robot_send("fatal", "nav_build: this is unexpected!"))
+        elseif result == -1 then
+            instructions:delete("door_info") -- necessary for code to advance to rel_move section
+        elseif result == 0 then return self_return end
+    end
+
+    -------- DO MOVE REL -----------
     if not rel.is_setup() then
         -- a little hack to optimize building, basically, we are pre-moving up, rather than going up
         -- and down to place blocks, theoretically saving a lot of time and energy
@@ -72,13 +81,14 @@ function module.nav_and_build(instructions, post_run)
 
         nav.setup_navigate_rel(rel_coords)
     end
+    -------------------------------
 
     local result, err = nav.navigate_rel()
     if result == -1 then -- movement completed (place block, and go back to build_function)
         --nav.debug_move("up", 1, false) >-----< No longer needed
         if not inv.place_block("down", block_info, "lable") then
             -- Real error handling will come some other time
-            if not inv.blind_swing_down() then -- just break the damn block te-he
+            if not inv.blind_swing_down() then -- just break the damn block and try again
                 print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
                 return nil
             end

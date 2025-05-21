@@ -21,7 +21,7 @@ local function attempt_surface_move(nav_obj, dir)
     return false, nil
 end
 
-local goal_rel = {0,0,0} -- x,z,y
+local singleton_goal_rel = {0,0,0} -- x,z,y
 local navigation_setup = false
 
 function module.is_setup()
@@ -29,21 +29,16 @@ function module.is_setup()
 end
 
 function module.setup_navigate_rel(x,z,y)
-    goal_rel[1] = x
-    goal_rel[2] = z
-    goal_rel[3] = y
+    singleton_goal_rel[1] = x
+    singleton_goal_rel[2] = z
+    singleton_goal_rel[3] = y
     navigation_setup = true
 end
 
-function module.navigate_rel(nav_obj)
-    if not navigation_setup then
-        print(comms.robot_send("error", "navigate_rel, navigation not setup"))
-        return 2
-    end
-
+local function navigate_opaque(nav_obj, goal_rel)
     local dir = nil
     local result = nil
-    local data = nil
+    local data
 
     -- attempt to move on the x axis, if not possible, attempt to move on the z axis, if not possible etc.
     -- this won't solve mazes, but we won't need to
@@ -80,6 +75,24 @@ function module.navigate_rel(nav_obj)
     end
     if result then return 0 end
 
+    return dir, data
+end
+
+function module.access_opaque(nav_obj, goal_rel)
+    return navigate_opaque(nav_obj, goal_rel)
+end
+
+function module.navigate_rel(nav_obj)
+    if not navigation_setup then
+        print(comms.robot_send("error", "navigate_rel, navigation not setup"))
+        return 2
+    end
+
+    local result, data = navigate_opaque(nav_obj, singleton_goal_rel)
+    if result == nil then -- luacheck: ignore (hacky, I like it)
+    elseif result == 0 then return 0 end
+
+    local dir = result
     ----- wrap up
     if dir == nil then
         -- This means that we've arrived at the spot

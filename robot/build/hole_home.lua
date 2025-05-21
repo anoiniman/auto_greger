@@ -27,14 +27,6 @@ Module.human_readable = {
     "-------",
     }
 }
---  TODO: I think we'll simply improve the algorimth rather than, or in conjunction with defining walls
---  "ddddddd",
---  "dd----d",
---  "dd----d",
---  "dd----d",
---  "dd----d",
---  "d-----d",
---  "ddddddd",
 
 local a = Module.human_readable
 Module.origin_block = {0,0,-5} -- x, z, y
@@ -58,15 +50,15 @@ Module.segments = {
     [2] = {{b, ss[2]}},
     [3] = {{b, ss[3]}},
     [4] = {{b, ss[4]}},
-    [5] = {{b, ss[5]}}
+--    [5] = {{b, ss[5]}}
 }
 
 Module.doors = {}
 Module.doors[1] = meta_door:new()
-Module.doors[1]:doorX(0,1)
+Module.doors[1]:doorX(1,1)
 
 Module.extra_sauce = {"top_to_bottom"}
-Module.height = 5
+Module.height = 4
 
 -- consuming what function is to be executed
 -- "Which Iteration" <-> "Which Height/Level"

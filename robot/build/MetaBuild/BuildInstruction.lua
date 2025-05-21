@@ -30,6 +30,17 @@ function Module:newBasic(rel, block_lable, block_name)
     return new
 end
 
+function Module:delete(str)
+    local found = self[str]
+    if found == nil then
+        print("warning", "BuildInstruction:delete -- Attempted to delete something that is nil, \z
+        check if what you are passing in \"str\" is valid, begin stack trace: ")
+        debug.traceback()
+    end
+    self[str] = nil
+end
+
+
 -- For clarity, this instead of table.unpack()
 function Module:unpack()
     return self.rel_coords, self.what_chunk, self.door_info, self.block_info
@@ -54,7 +65,6 @@ function Module:includes(str)
     end
     return false
 end
-
 
 function Module:addDoors(door)
     self.door_info = door

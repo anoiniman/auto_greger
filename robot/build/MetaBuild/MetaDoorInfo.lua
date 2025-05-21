@@ -9,13 +9,17 @@ function MetaDoorInfo:new()
 end
 
 function MetaDoorInfo:doorX(x, len) -- this assumes quad 2
+    if x < 1 or x > 7 then error(comms.robot_send("fatal", "MetaDoorInfo:doorX, invariants broken!")) end
+
     self.x = x
     self.len = len
 
-    self.z = 7
+    self.z = 0
 end
 
 function MetaDoorInfo:doorZ(z, len) -- this assumes quad 2
+    if z < 1 or z > 7 then error(comms.robot_send("fatal", "MetaDoorInfo:doorZ, invariants broken!")) end
+
     self.z = z
     self.len = len
 

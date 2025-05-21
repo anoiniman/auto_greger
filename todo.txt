@@ -51,3 +51,6 @@ etc.
 More debug prints in inventory, and add command that allows to turn off/on debug mode
 Also, make the bot move to the door before starting the do_build into the block, just
 rel_move into the doorway, and then start do_building/rel_moving into the block
+build_road behaviour/instruction is necessary also
+add flag to build/primitives called can_fail -> which means that if it fails to place
+a block, or clear a block it will just continue going

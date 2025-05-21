@@ -9,6 +9,7 @@ local deep_copy = require("deep_copy")
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
 local rel_move = require("nav_module.rel_move")
+local door_move = require("nav_module.door_move")
 -----------------
 
 -- The robot will understand chunk boundries as movement highways in between chunks
@@ -84,14 +85,31 @@ function module.debug_move(dir, distance, forget)
     interface.debug_move(dir, distance, forget, nav_obj)
 end
 
-
 function module.setup_navigate_rel(what_coords)
     rel_move.setup_navigate_rel(what_coords[1], what_coords[2], what_coords[3])
+end
+
+function module.navigate_rel_opaque(what_coords)
+    rel_move.access_opaque(nav_obj, what_coords)
 end
 
 function module.navigate_rel()
     return rel_move.navigate_rel(nav_obj)
 end
+
+function module.is_setup_door_move()
+    return door_move.is_setup()
+end
+
+function module.setup_door_move(door_table)
+    return door_move.setup_move(door_table, module.get_rel())
+end
+
+function module.door_move()
+    return door_move.do_move()
+end
+
+
 
 --temp
 nav_obj.height = 69

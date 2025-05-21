@@ -96,6 +96,8 @@ local function robot_navigation()
     end
 
     download("/robot/nav_module/chunk_move.lua", "self")
+    download("/robot/nav_module/door_move.lua", "self")
+
     download("/robot/nav_module/map_obj.lua", "self")
     download("/robot/nav_module/MetaQuad.lua", "self")
 
