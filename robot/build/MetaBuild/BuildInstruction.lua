@@ -86,7 +86,7 @@ end
 
 -- smart clear by default
 -- prob unecessary to do all these ifs idk
-function Module:addExtra(str_name, args)
+function Module:addExtra(str_name, args) -- luacheck: ignore args
     if str_name == "top_to_bottom" then
         table.insert(self.extra_sauce, str_name)
     elseif str_name == "build_shell" then

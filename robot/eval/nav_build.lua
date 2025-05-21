@@ -65,9 +65,11 @@ function module.nav_and_build(instructions, post_run)
     -------- DO MOVE DOOR ----------
     if door_info ~= nil then
         if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
-        local result, data = nav.door_move()
+        local result, err = nav.door_move()
 
-        if result == 1 then error(comms.robot_send("fatal", "nav_build: this is unexpected!"))
+        if result == 1 then
+            if err == nil then err = "nil" end
+            if err ~= "swong" then error(comms.robot_send("fatal", "nav_build: this is unexpected!")) end
         elseif result == -1 then
             instructions:delete("door_info") -- necessary for code to advance to rel_move section
         elseif result == 0 then return self_return end
