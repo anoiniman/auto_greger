@@ -33,9 +33,14 @@ function Module:newBasic(rel, block_lable, block_name)
     return new
 end
 
-function Module:onlyChunk(what_chunk)
+function Module:roadBuild(what_chunk, height)
     local new = self:zeroed()
+    if height < 0 or height > 255 then
+        print(comms.robot_send("error", "BuildInstructions:roadBuild, height set to something invalid!"))
+    end
+
     new.what_chunk = what_chunk
+    new.rel_coords = {-1, -1, height}
 
     new.what_base_type = "only_chunk"
     return new

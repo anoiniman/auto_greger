@@ -51,8 +51,11 @@ etc.
 I'm here
 vvvvvvvvv
 More debug prints in inventory, and add command that allows to turn off/on debug mode
-build_road behaviour/instruction is necessary also
+build_road behaviour/instruction is necessary also <Maybe Done now?>
 ^^^^^^^^^^
+Test if geolyzer scanning dir is relative to robot orientation, rather than coord abs
 
+chunk_move improve the get_to_nearest algorithm for when we are inside buildings tehe
+or just move towards the door first tehe
 add flag to build/primitives called can_fail -> which means that if it fails to place
 a block, or clear a block it will just continue going

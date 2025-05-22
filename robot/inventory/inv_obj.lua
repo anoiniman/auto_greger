@@ -11,6 +11,7 @@ local text = require("text")
 
 local deep_copy = require("deep_copy")
 local comms = require("comms")
+local geolyzer = require("geolyzer_wrapper")
 
 local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
 local crafting = component.getPrimary("crafting")
@@ -110,22 +111,35 @@ function module.equip_tool(tool_type)
     return true
 end
 
-function module.blind_swing_front()
-    local result = robot.swing()
-    module.maybe_something_added_to_inv()
+local function swing_general(swing_function, dir)
+    local g_info = geolyzer.simple_return(dir) -- hopefully this dir is relative to robot, run some tests
+    if g_info == nil then return true end -- returning true is more ideomatic, I think.
+    local needed_level = g_info.harvestLevel
+    local needed_tool = g_info.harvestTool
+
+    if needed_tool == "pickaxe" then
+        -- We need to programme in the tool belt and tool switching :P
+    end -- TODO
+
+
+    local result, info = swing_function()
+    if result == true and info == "block" then
+        module.maybe_something_added_to_inv()
+    end
+
     return result
+end
+
+function module.blind_swing_front()
+    return swing_general(robot.swing, sides_api.front)
 end
 
 function module.blind_swing_down()
-    local result = robot.swingDown()
-    module.maybe_something_added_to_inv()
-    return result
+    return swing_general(robot.swingDown, sides_api.down)
 end
 
 function module.blind_swing_up()
-    local result = robot.swingUp()
-    module.maybe_something_added_to_inv()
-    return result
+    return swing_general(robot.swingUp, sides_api.up)
 end
 
 --->>-- Block Placing --<<----

@@ -284,6 +284,20 @@ function module.chunk_set_parent(what_chunk, what_area, height_override)
     return map_chunk:setParent(what_area, height_override)
 end
 
+function module.get_height(what_chunk)
+    local map_chunk = chunk_exists(what_chunk)
+    if map_chunk == nil then return -1 end
+
+    return map_chunk:getHeight()
+end
+
+function module.get_chunk(what_chunk) -- Evil function!
+    local map_chunk = chunk_exists(what_chunk)
+    if map_chunk == nil then return -1 end
+
+    return map_chunk
+end
+
 function module.add_quad(what_chunk, what_quad, primitive_name)
     local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
@@ -416,7 +430,9 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         local chunk_ref = chunk_exists(what_chunk)
         if chunk_ref.roads_cleared == false then
             local self_table = {prio, "start_auto_build", table.unpack(return_table)}
-            local local_instructions = BuildInstruction:onlyChunk(what_chunk)
+            local build_height = module.get_height(what_chunk)
+            local local_instructions = BuildInstruction:roadBuild(what_chunk, build_height)
+
             return {80, "navigate_rel", "road_build", local_instructions, self_table}
         end
 

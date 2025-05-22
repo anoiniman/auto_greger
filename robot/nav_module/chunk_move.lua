@@ -53,7 +53,7 @@ function module.setup_navigate_chunk(to_what_chunk, nav_obj)
     return chunk_nearest_side, rel_nearest_side
 end
 
--- returns if it is finished
+-- returns true if it is finished
 function module.navigate_chunk(what_kind, nav_obj)
     if is_setup == false then
         print(comms.robot_send("error", "tried to navigate without setting up first"))
@@ -77,6 +77,8 @@ function module.navigate_chunk(what_kind, nav_obj)
         return false
     end
 
+    -- after being in road we start moving towards the target chunk
+    -- this means we can use chunk_move cur_chunk in order to move to the nearest road for free
     if (chunk_nearest_side[1] ~= 0) or (chunk_nearest_side[2] ~= 0) then
         if chunk_nearest_side[1] < 0 then -- move right
             interface.r_move(what_kind, "east", nav_obj)
