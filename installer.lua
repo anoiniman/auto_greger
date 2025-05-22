@@ -86,7 +86,6 @@ local function robot_eval()
     download("/robot/eval/debug.lua", "self")
     download("/robot/eval/eval_main.lua", "self")
     download("/robot/eval/navigate.lua", "self")
-    download("/robot/eval/nav_build.lua", "self")
     download("/robot/eval/interactive.lua", "self")
 end
 
@@ -101,10 +100,13 @@ local function robot_navigation()
     download("/robot/nav_module/map_obj.lua", "self")
     download("/robot/nav_module/MetaQuad.lua", "self")
 
+    download("/robot/nav_module/nav_build.lua", "self")
+
     download("/robot/nav_module/nav_interface.lua", "self")
     download("/robot/nav_module/nav_obj.lua", "self")
 
     download("/robot/nav_module/rel_move.lua", "self")
+    download("/robot/nav_module/road_build.lua", "self")
 end
 
 local function robot_build_primitives()

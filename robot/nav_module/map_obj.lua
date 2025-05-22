@@ -77,7 +77,10 @@ end
 local MetaChunk = {
     parent_area = nil,
     height_override = nil,
-    meta_quads = nil
+    meta_quads = nil,
+    roads_cleared = false   -- this property and methods that mess with it will have to be changed when
+                            -- multi-level areas become a thing, unless we simply "layer" MetaChunks
+                            -- like cake, that might be the obvious thing
 }
 function MetaChunk:new() -- lazy initialization :I
     return deep_copy.copy_table(self, pairs)
@@ -256,6 +259,8 @@ local function get_door_info(what_chunk, what_quad)
     return map_chunk:getDoors(what_quad)
 end
 
+-- When we first add a builing to a named area we should also add an order to clear the road at the specified
+-- chunk at the specified height
 -- NamedArea:new(name, colour, height, floor_block)
 function module.create_named_area(name, colour, height, floor_block)
     local new_area = NamedArea:new(name, colour, height, floor_block)
@@ -408,6 +413,13 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         prio = 70
         -- old return
     elseif what_step == 4 then
+        local chunk_ref = chunk_exists(what_chunk)
+        if chunk_ref.roads_cleared == false then
+            local self_table = {prio, "start_auto_build", table.unpack(return_table)}
+            local local_instructions = BuildInstruction:onlyChunk(what_chunk)
+            return {80, "navigate_rel", "road_build", local_instructions, self_table}
+        end
+
         local result = module.add_quad(what_chunk, what_quad, primitive_name)
         if not result then
             error(comms.robot_send("fatal", "start_auto_build, step == 4 | TODO - make this thing failable without fatality :)"))

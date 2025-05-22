@@ -8,7 +8,8 @@ local comms = require("comms")
 
 local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
-local nb = require("eval.nav_build")
+local nb = require("nav_module.nav_build")
+local rb = require("nav_module.road_build")
 
 
 function module.navigate_chunk(arguments)
@@ -46,6 +47,8 @@ function module.navigate_rel(arguments)
         print(comms.robot_send("error", "eval_navigate: flag is nil"))
     elseif flag == "and_build" then
         return nb.nav_and_build(instructions, return_table)
+    elseif flag == "road_build" then
+        return rb.step(instructions, return_table)
     elseif flag == "and_clear" then
 
     elseif flag == "smart_clear" then

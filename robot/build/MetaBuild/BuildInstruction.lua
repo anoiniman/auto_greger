@@ -4,8 +4,9 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 local Module = {
+    what_base_type = nil,
     rel_coords = nil,
-    what_chunk = nil,
+    what_chunk = nil, -- where are reliant on consumers pinky promissing not to mutate this ref :)
     door_info = nil,
     block_info = {lable = nil, name = nil},
     extra_sauce = nil
@@ -27,6 +28,16 @@ function Module:newBasic(rel, block_lable, block_name)
     new.rel_coords = rel
     new.block_info.lable = block_lable
     new.block_info.name = block_name
+
+    new.what_base_type = "basic_build"
+    return new
+end
+
+function Module:onlyChunk(what_chunk)
+    local new = self:zeroed()
+    new.what_chunk = what_chunk
+
+    new.what_base_type = "only_chunk"
     return new
 end
 
@@ -40,9 +51,8 @@ function Module:delete(str)
     self[str] = nil
 end
 
-
 -- For clarity, this instead of table.unpack()
-function Module:unpack()
+function Module:nav_and_build_unpack()
     return self.rel_coords, self.what_chunk, self.door_info, self.block_info
 end
 

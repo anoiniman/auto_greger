@@ -110,7 +110,6 @@ function module.door_move()
 end
 
 
-
 --temp
 nav_obj.height = 69
 nav_obj.orientation = "west"
