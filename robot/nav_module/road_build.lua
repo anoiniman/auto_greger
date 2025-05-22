@@ -11,51 +11,39 @@ local nav = require("nav_module.nav_obj")
 local geolyzer = require("geolyzer_wrapper")
 
 -- it'll be going down-up-move-down-move-up..... etc.
-local initial_step = true
-local go_next_block = false
-local up_stroke = false
+local has_up_stroked = false
+local has_down_stroked = false
 local starting_coords = {-1,-1}
 
 local function do_down_stroke(cur_height, height_target)
-    if cur_height == height_target then
-        up_stroke = true
-        go_next_block = true
-        return
-    end
     local block_down = robot.detectDown()
     if block_down then
         local result = inv.blind_swing_down()
         if not result then -- we report the warning, and we skip to the next block
-            up_stroke = true
-            go_next_block = true
-            return
+            print(comms.robot_send("warning", "BuildRoad: failed to swing down"))
+            return true
         end
     end
 
-    nav.debug_move("down", 1, 0)
+    local result, _ = nav.debug_move("down", 1, 0) -- I think this will always return true
+    if not result then print(comms.robot_send("error", "BuildRoad: my oh so perfect assertion failed")) end
+
+    return cur_height == height_target
 end
 
 local function do_up_stroke()
-    if geolyzer.can_see_sky() then
-        up_stroke = false
-        go_next_block = true
-        return
-    end
     local block_up = robot.detectUp()
     if block_up then
         local result = inv.blind_swing_up()
         if not result then -- we report the warning, and we skip to the next block
-            up_stroke = false
-            go_next_block = true
-            return
+            return true
         end
     end
 
     local result = nav.debug_move("up", 1, 0)
-    if not result then --  just skip to the next block, this is prob a fly-height limit issue
-        up_stroke = false
-        go_next_block = true
-    end
+    -- if not result then: just go to the next thing
+
+    return (geolyzer.can_see_sky() or not result)
 end
 
 -- move it counter-clockwise
@@ -141,41 +129,40 @@ function module.step(instructions, return_table)
         starting_coords[2] = cur_rel[2]
     end
 
-    if initial_step then
-        -- hoperfully this is a good logic hack
-        if up_stroke == false and go_next_block == true then
-            initial_step = false
-            up_stroke = true
-        end
+    local closer_to_ceiling = (cur_height - height_target > 4)
+    local in_ground = (cur_height == height_target)
 
-        if up_stroke then
-            do_up_stroke(cur_height, height_target)
-            return return_table
-        end
-        do_down_stroke(cur_height, height_target)
+    if not closer_to_ceiling and not in_ground and not has_down_stroked then
+        has_down_stroked = do_down_stroke(cur_height, height_target)
+        return return_table
+    elseif closer_to_ceiling and not geolyzer.can_see_sky() and not has_up_stroked then
+        has_up_stroked = do_up_stroke()
         return return_table
     end
 
+    if not has_up_stroked then
+        has_up_stroked = do_up_stroke()
+        return return_table
+    elseif not has_down_stroked then
+        has_down_stroked = do_down_stroke()
+        return return_table
+    end
+
+
     local finished = false
-    if go_next_block then
+    if has_up_stroked and has_down_stroked then
         finished = next_block(cur_rel)
+        has_up_stroked = false
+        has_down_stroked = false
     end
 
     if finished then
         map.get_chunk(what_chunk).roads_cleared = true
-        initial_step = true
-        up_stroke = false
-        go_next_block = false
         starting_coords[1] = -1
         starting_coords[2] = -1
         return return_table
     end
 
-    if up_stroke then
-        do_up_stroke(cur_height, height_target)
-        return return_table
-    end
-    do_down_stroke(cur_height, height_target)
     return return_table
 end
 
