@@ -60,3 +60,11 @@ chunk_move improve the get_to_nearest algorithm for when we are inside buildings
 or just move towards the door first tehe
 add flag to build/primitives called can_fail -> which means that if it fails to place
 a block, or clear a block it will just continue going
+
+
+have it be that when we switch to a different reasoning script we make sure that
+the command queue is empty in relation to reasoning commands, prob. will be
+guarenteed by the way scripts worky anyway, but we can never be sure,
+act with intencionality
+
+tool chest in crafting area

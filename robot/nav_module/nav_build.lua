@@ -20,7 +20,7 @@ local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     diff_rel[3] = cur_height - rel_coords[3]
 
     local num_of_diffs = 0
-    for diff in ipairs(diff_rel) do
+    for _, diff in ipairs(diff_rel) do
         if diff ~= 0 then num_of_diffs = num_of_diffs + 1 end
     end
     -- AKA: if we are not directly adjacent to the target block the block that stopped us must be different

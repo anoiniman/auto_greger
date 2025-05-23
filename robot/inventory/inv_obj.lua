@@ -22,7 +22,7 @@ local inventory = component.getPrimary("inventory_controller")
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 local tool_belt_slots = {}
 
-local SlotDefinition {
+local SlotDefinition = {
     slot_number = nil,
     material = nil,
     item_name = nil,
@@ -43,17 +43,50 @@ function SlotDefinition:new(slot_number, item_name)
     return new
 end
 
+local SlotManaged = {}
+local SlotManager = {}
+function SlotManager.add(obj)
+    if obj.item_name ~= nil then
+        local name = obj.item_name
+        if SlotManaged[name] == nil then SlotManaged[name] = {} end
+        table.insert(SlotManaged[name], obj)
+        return
+    end
+
+    for _, definition in ipairs(obj) do
+        local name = definition.item_name
+        if SlotManaged[name] == nil then SlotManaged[name] = {} end
+        table.insert(SlotManaged[name], definition)
+    end
+end
+
+-- I think this is fine
+function SlotManager.find(item_name, level) -- returns a slot number
+    for _, multi_def in pairs(SlotManaged) do
+        for _, def in pairs(multi_def) do
+            if def.item_name == item_name and def.item_level >= level then
+                return def.slot_number
+            end
+        end
+    end
+    return nil
+end
+
 --- Write more slot definitions :)
 --
 --  15,  16,  17,  18,  19,  20
 -- (21)  22,  23,  24, (25)  26,
 -- (27) (28) (29) (30) (31) (32)
-local pickaxe_slots = {SlotDefinition:new(27, "pickaxe"), SlotDefinition:new(21, "pickaxe")}
-local axe_slots = {SlotDefinition:new(31,"axe"), SlotDefinition:new(25, "axe")}
-local fuel_slots = {SlotDefinition:new(29, "fuel"), SlotDefinition:new(30, "fuel")}
+local sd = SlotDefinition
+SlotManager.add({sd:new(27, "pickaxe"), sd:new(21, "pickaxe")}) -- pickaxe
+SlotManager.add({sd:new(31,"axe"), sd:new(25, "axe")}) -- axe
+SlotManager.add({sd:new(29, "fuel"), sd:new(30, "fuel")}) -- fuel
 
-local shovel_slot = SlotDefinition:new(28, "shovel")
-local sword_slot = SlotDefinition:new(32, "sword")
+SlotManager.add(sd:new(28, "shovel"))
+SlotManager.add(sd:new(32, "sword"))
+sd = nil
+
+
 
 --->>-- Iterator Shit --<<-----
 

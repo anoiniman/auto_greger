@@ -41,7 +41,7 @@ end
 function Module:is_extra(str)
     if self.extra_sauce == nil then return false end
 
-    for sauce in ipairs(self.extra_sauce) do
+    for _, sauce in ipairs(self.extra_sauce) do
         if type(sauce) == "table" then
             error("not implemented yet")
             if sauce[1] == "do_wall" then
