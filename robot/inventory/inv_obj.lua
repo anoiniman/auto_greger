@@ -107,6 +107,7 @@ local function i_ledger_add_or_create(name, lable, quantity)
     local bucket, is_special = bucket_functions.identify(name, lable)
     if is_special ~= nil then
         s_ledger_add_or_create()
+        return
     end
 
     local entry_quantity = internal_ledger[bucket][lable]
