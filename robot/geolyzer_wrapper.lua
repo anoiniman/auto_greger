@@ -5,6 +5,11 @@ local comms = require("comms")
 local serialize = require("serialization")
 local sides_api = require("sides")
 
+
+function module.can_see_sky()
+    return geo.canSeeSky()
+end
+
 -- geo translation table
 local geo_table = {
     ["gravel"] = "minecraft:gravel",
