@@ -19,8 +19,41 @@ local inventory = component.getPrimary("inventory_controller")
 
 -- forbiden slots (because of crafting table) = 1,2,3 -- 5,6,7 -- 9,10,11
 -- this means actual internal inventory size while crafing mode is true is == 7
-local forbidden_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
+local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
+local tool_belt_slots = {}
 
+local SlotDefinition {
+    slot_number = nil,
+    material = nil,
+    item_name = nil,
+    item_level = nil,
+}
+--function SlotDefinition:newFromCurrent(slot_numbers, material, item_name, item_level)
+
+-- slot_numbers, might actually be a non-table number!
+function SlotDefinition:new(slot_number, item_name)
+    local new = deep_copy.copy(self, pairs)
+    new.slot_number = slot_number
+    new.material = "none"
+    new.item_name = item_name
+    new.item_level = -1
+
+    table.insert(tool_belt_slots, slot_number) -- important
+
+    return new
+end
+
+--- Write more slot definitions :)
+--
+--  15,  16,  17,  18,  19,  20
+-- (21)  22,  23,  24, (25)  26,
+-- (27) (28) (29) (30) (31) (32)
+local pickaxe_slots = {SlotDefinition:new(27, "pickaxe"), SlotDefinition:new(21, "pickaxe")}
+local axe_slots = {SlotDefinition:new(31,"axe"), SlotDefinition:new(25, "axe")}
+local fuel_slots = {SlotDefinition:new(29, "fuel"), SlotDefinition:new(30, "fuel")}
+
+local shovel_slot = SlotDefinition:new(28, "shovel")
+local sword_slot = SlotDefinition:new(32, "sword")
 
 --->>-- Iterator Shit --<<-----
 
@@ -32,7 +65,7 @@ local function non_craft_slot_iter()
             return nil
         end
 
-        local cur_f = forbidden_slots[iteration]
+        local cur_f = crafting_table_slots[iteration]
         if cur_f ~= nil or cur_f ~= -1 then
             return -1
         end
@@ -57,6 +90,11 @@ end
 
 --->>-- Ledger Shit --<<-----
 
+local special_ledger = {} -- ledger for things that have a definition, rather than just a lable/and_or/name
+local function s_ledger_add_or_create()
+ -- TODO
+end
+
 local internal_ledger = {}  -- using just the lables should be fine, but I'll keep "name" here because
                             -- it might become useful in the future
 --init_ledger()
@@ -66,7 +104,10 @@ end
 
 local function i_ledger_add_or_create(name, lable, quantity)
     --if string.find(name, "gt.metaitem") then -- the question of meta-items is complex and I gave it thought
-    local bucket = bucket_functions.identify(name, lable)
+    local bucket, is_special = bucket_functions.identify(name, lable)
+    if is_special ~= nil then
+        s_ledger_add_or_create()
+    end
 
     local entry_quantity = internal_ledger[bucket][lable]
     if entry_quantity == nil then
@@ -106,20 +147,23 @@ local function find_in_slot(block_id, lable_type)
 end
 
 --->>-- Tool Use --<<-----
-function module.equip_tool(tool_type)
+-- Assume that the tools are in their correct slots at all the times, it is not the responsibility
+-- of this function to make sure that the items are in the desitred slot
+function module.equip_tool(tool_type, wanted_level)
     --TODO do things
+    if needed_tool == "pickaxe" then
+        -- We need to programme in the tool belt and tool switching :P
+    end
     return true
 end
 
 local function swing_general(swing_function, dir)
     local g_info = geolyzer.simple_return(dir) -- hopefully this dir is relative to robot, run some tests
     if g_info == nil then return true end -- returning true is more ideomatic, I think.
+
     local needed_level = g_info.harvestLevel
     local needed_tool = g_info.harvestTool
-
-    if needed_tool == "pickaxe" then
-        -- We need to programme in the tool belt and tool switching :P
-    end -- TODO
+    local result = module.equip_tool(needed_tool, needed_level)
 
 
     local result, info = swing_function()

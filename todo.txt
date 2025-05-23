@@ -48,12 +48,13 @@ Write command that dry runs all primitives to check for dynamic errors
 ... all recipes ...
 etc.
 
-I'm here
-vvvvvvvvv
 More debug prints in inventory, and add command that allows to turn off/on debug mode
 build_road behaviour/instruction is necessary also <Maybe Done now?>
-^^^^^^^^^^
+
+vvvvvvvvvv
 Test if geolyzer scanning dir is relative to robot orientation, rather than coord abs
+-- and -- write tool code, and of course, general inventory code after that
+
 
 chunk_move improve the get_to_nearest algorithm for when we are inside buildings tehe
 or just move towards the door first tehe

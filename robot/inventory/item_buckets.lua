@@ -1,9 +1,22 @@
 local module = {}
 
+-- takes some data as input, and returns other data as output :D
+local special_dictionary = {
+    --TODO
+}
+
+
+local function special_identify(full_lable, tool_type)
+    --TODO
+end
+
+
 local buckets = {
-"minecraft",
-"gt_raw_ore",
-"ingot",
+    "minecraft",
+    "gt_raw_ore",
+    "ingot",
+    "generic",
+    -- sword?
 }
 
 function module.identify(name, lable)
@@ -15,7 +28,11 @@ function module.identify(name, lable)
         end
     elseif string.find(lable, "Ingot$") then
         return "ingot"
+    elseif string.find(lable, "Sword") or string.find(lable, "sword") then
+        return "sword" -- TODO - feed to special identify
     end
+
+    return "generic"
 end
 
 return {module, buckets}
