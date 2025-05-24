@@ -1,9 +1,7 @@
 local module = {}
+--imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
 -- Or we'll stay with 16 slots with the expectation that we abandon internal crafting quickly, idk
-local inventory_size = 32
-local used_up_capacity = 0
-
 local component = require("component")
 local sides_api = require("sides")
 local robot = require("robot")
@@ -14,35 +12,43 @@ local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 
 local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
+local MetaLedger = require("inventory.MetaLedger")
+local SpecialDefinition = require("inventory.SpecialDefinition")
+--local external_iobj = require("inventory.external_inv_obj")
+
 local crafting = component.getPrimary("crafting")
 local inventory = component.getPrimary("inventory_controller")
+--}}}
 
 -- forbiden slots (because of crafting table) = 1,2,3 -- 5,6,7 -- 9,10,11
 -- this means actual internal inventory size while crafing mode is true is == 7
+local inventory_size = 32
+local used_up_capacity = 0
+
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 local tool_belt_slots = {}
 
 local crafting_table_clear = false
 local use_self_craft = true
 
+local internal_ledger = MetaLedger:new()
+
+-- Slot Definition et al. {{{
+
 local SlotDefinition = {
     slot_number = nil,
-    material = nil,
-    item_name = nil,
-    item_level = nil,
+    special_definiiton = nil,
 }
 --function SlotDefinition:newFromCurrent(slot_numbers, material, item_name, item_level)
 
 -- slot_numbers, might actually be a non-table number!
 function SlotDefinition:new(slot_number, item_name)
     local new = deep_copy.copy(self, pairs)
+
+    new.special_definition = SpecialDefinition:new(item_name)
     new.slot_number = slot_number
-    new.material = "none"
-    new.item_name = item_name
-    new.item_level = -1
 
     table.insert(tool_belt_slots, slot_number) -- important
-
     return new
 end
 
@@ -117,8 +123,9 @@ slot_manager.add(sd:new(28, "shovel"))
 slot_manager.add(sd:new(32, "sword"))
 sd = nil
 
+---}}}
 
---->>-- Iterator Shit --<<-----
+--->>-- Local Functions --<<-----{{{
 --local tool_belt_slots = {}
 local function in_tool_slot(slot_num)
     for _, forbidden in ipairs(tool_belt_slots) do
@@ -162,37 +169,7 @@ local function free_slot_iter()
     end
 end
 
-
---->>-- Ledger Shit --<<-----
-
-local special_ledger = {} -- ledger for things that have a definition, rather than just a lable/and_or/name
-local function s_ledger_add_or_create()
- -- TODO
-end
-
-local internal_ledger = {}  -- using just the lables should be fine, but I'll keep "name" here because
-                            -- it might become useful in the future
---init_ledger()
-for _, bucket in ipairs(item_buckets) do
-    internal_ledger[bucket] = {}
-end
-
-local function i_ledger_add_or_create(name, lable, quantity)
-    --if string.find(name, "gt.metaitem") then -- the question of meta-items is complex and I gave it thought
-    local bucket, is_special = bucket_functions.identify(name, lable)
-    if is_special ~= nil then
-        s_ledger_add_or_create()
-        return
-    end
-
-    local entry_quantity = internal_ledger[bucket][lable]
-    if entry_quantity == nil then
-        internal_ledger[bucket][lable] = quantity
-        return
-    end
-    internal_ledger[bucket][lable] = entry_quantity + quantity
-end
-
+--
 local function find_in_slot(block_id, lable_type)
     if lable_type == "lable" then
         for index = 1, inventory_size, 1 do
@@ -221,8 +198,9 @@ local function find_in_slot(block_id, lable_type)
 
     return -1 -- in case nothing was found
 end
+---}}}
 
--->>-- Useful shit? --<<--
+-->>-- Clear Any Slot --<<-- {{{
 
 local function clear_any_slot(iter, target_count)
     if robot.count(target_count) == 0 then return true end -- nothing needs to be done
@@ -250,8 +228,9 @@ end
 local function clear_first_slot(iter)
     return clear_any_slot(iter, 1)
 end
+---}}}
 
---->>-- Tool Use --<<-----
+--->>-- Tool Use --<<-----{{{
 -- Assume that the tools are in their correct slots at all the times, it is not the responsibility
 -- of this function to make sure that the items are in the desitred slot, unless of course, the
 -- thing is about returning currently equiped tools to the correct slot
@@ -314,8 +293,10 @@ end
 function module.blind_swing_up()
     return swing_general(robot.swingUp, sides_api.up)
 end
+---}}}
 
---->>-- Block Placing --<<----
+
+--->>-- Block Placing --<<----{{{
 function module.place_block(dir, block_identifier, lable_type)
     if type(block_identifier) == "table" then
         if lable_type == "lable" then block_identifier = block_identifier.lable
@@ -344,11 +325,12 @@ function module.place_block(dir, block_identifier, lable_type)
     robot.select(1)
     return true
 end
-
+---}}}
 
 --TODO interaction with external inventories and storage inventories
 
---->>-- Crafter Shit --<<-----
+
+--->>-- Crafter Shit --<<-----{{{
 
 function module.isCraftActive()
     return use_self_craft
@@ -361,11 +343,13 @@ function module.debug_force_add()
 
         local item = inventory.getStackInInternalSlot(i)
         local name = item.name; local lable = item.label
-        i_ledger_add_or_create(name, lable, quantity)
+        internal_ledger:add_or_create(name, lable, quantity)
 
         ::continue::
     end
 end
+
+---}}}
 
 -- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
 -- with things that drop more than one item; in that case uhhhhhhh we need better accounting
@@ -383,7 +367,7 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(1)
         local name = item.name; local lable = item.label
-        i_ledger_add_or_create(name, lable, quantity)
+        internal_ledger:add_or_create(name, lable, quantity)
     end
 
     if use_self_craft then
@@ -391,7 +375,5 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
     end
     return clear_first_slot(free_slot_iter)
 end
-
-
 
 return module

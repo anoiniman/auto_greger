@@ -29,10 +29,10 @@ function module.identify(name, lable)
     elseif string.find(lable, "Ingot$") then
         return "ingot"
     elseif string.find(lable, "Sword") or string.find(lable, "sword") then
-        return "sword" -- TODO - feed to special identify
+        return "sword", true
     end
 
-    return "generic"
+    return "generic", nil
 end
 
 return {module, buckets}

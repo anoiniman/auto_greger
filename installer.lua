@@ -167,6 +167,10 @@ local function robot_inventory()
     download("/robot/inventory/inv_obj.lua", "self")
     download("/robot/inventory/item_buckets.lua", "self")
     download("/robot/inventory/special_cases.lua", "self")
+
+    download("/robot/inventory/MetaExternalInventory.lua", "self")
+    download("/robot/inventory/MetaLedger.lua", "self")
+    download("/robot/inventory/SpecialDefinition.lua", "self")
 end
 
 
