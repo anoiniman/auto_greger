@@ -36,8 +36,16 @@ function Module:doBuild()
         return false
     end
 
-    local result = self:is_extra("top_to_bottom")
-    return self.s_interface:doBuild(result) -- string, 3d-coords, symbol
+    local reverse = self:is_extra("top_to_bottom")
+    local result, status, instruction = self.s_interface:doBuild(reverse) -- string, 3d-coords, symbol
+
+    if self.extra_sauce ~= nil then -- for now this is fine
+        for _, str_name in ipairs(self.extra_sauce) do
+            instruction.addExtra(str_name, nil)
+        end
+    end
+
+    return result, status, instruction
 end
 
 function Module:is_extra(str)

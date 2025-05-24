@@ -68,3 +68,7 @@ guarenteed by the way scripts worky anyway, but we can never be sure,
 act with intencionality
 
 tool chest in crafting area
+
+
+For now I won't do the force clear things, because, uhhhhh we can just fill everything
+with air I guess

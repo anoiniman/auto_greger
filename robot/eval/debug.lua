@@ -4,26 +4,22 @@ local module = {}
 local serialize = require("serialization")
 
 -- local imports
+local deep_copy = require("deep_copy")
 local comms = require("comms")
+
 
 local geolyzer = require("geolyzer_wrapper")
 local nav = require("nav_module.nav_obj")
+local map = require("nav_module.map_obj")
+local inv = require("inventory.inv_obj")
+local reason = require("reasoning.reasoning_obj")
 
---[[
-local debug = false -- bool
-function module.set_debug(boolean)
-    debug = boolean
-end
 
-local old_print = print
-function new_print(...)
-    if debug == true then
-        local args = {...}
-        old_print(args)
-    end
+local function print_obj(obj)
+    local copy = deep_copy.copy_no_functions(obj, pairs)
+    local serial = serialize.serialize(copy, 50)
+    comms.robot_send("info", serial)
 end
-local print = new_print
---]]
 
 function module.echo(arguments)
     local text = serialize.serialize(arguments, true)
@@ -84,6 +80,18 @@ function module.debug(arguments)
             return nil
         end
         nav.set_height(height)
+    elseif arguments[1] == "print" then
+        if arguments[2] == "nav" then
+            print_obj(nav)
+        elseif arguments[2] == "inv" then
+            print_obj(inv)
+        elseif arguments[2] == "map" then
+            print_obj(map)
+        elseif arguments[2] == "reason" then
+            print_obj(reason)
+        else
+            print(comms.robot_send("error", "invalid object provided"))
+        end
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end

@@ -303,6 +303,11 @@ function module.place_block(dir, block_identifier, lable_type)
         elseif lable_type == "name" then block_identifier = block_identifier.name
         else block_identifier = "invalid \"lable_type\"" end
     end
+    if block_identifier == "air" then
+        if dir == "up" then module.blind_swing_up()
+        elseif dir == "down" then module.blind_swing_down()
+        else print(comms.robot_send("warning", "place_block, invalid dir for now")) end
+    end
 
     local slot = find_in_slot(block_identifier, lable_type)
     if slot == -1 then
@@ -314,8 +319,11 @@ function module.place_block(dir, block_identifier, lable_type)
 
     robot.select(slot)
 
+    local place_result
     if dir == "down" then
-        robot.placeDown()
+        place_result = robot.placeDown()
+    elseif dir == "up then
+        place_result = robot.placeUp()
     else
         print(comms.robot_send("error", "not yet implemented, inv_obj.place_block"))
         robot.select(1)
@@ -323,7 +331,7 @@ function module.place_block(dir, block_identifier, lable_type)
     end
 
     robot.select(1)
-    return true
+    return place_result
 end
 ---}}}
 

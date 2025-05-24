@@ -46,11 +46,11 @@ function module.setup_move(door_info_table, cur_position)
     move_setup = true
 end
 
-local function last_move()
-    if goal_rel[1] == 0 then nav.debug_move("east", 1, 0)
-    elseif goal_rel[1] == 15 then nav.debug_move("west", 1, 0)
-    elseif goal_rel[2] == 15 then nav.debug_move("north", 1, 0)
-    elseif goal_rel[2] == 0 then nav.debug_move("south", 1, 0)
+local function last_move() -- changed to 2, but could be 1 idk
+    if goal_rel[1] == 0 then nav.debug_move("east", 2, 0)
+    elseif goal_rel[1] == 15 then nav.debug_move("west", 2, 0)
+    elseif goal_rel[2] == 15 then nav.debug_move("north", 2, 0)
+    elseif goal_rel[2] == 0 then nav.debug_move("south", 2, 0)
     else
         print(comms.robot_send("warning", "door_move.last_move() -- couldn't last move!"))
     end

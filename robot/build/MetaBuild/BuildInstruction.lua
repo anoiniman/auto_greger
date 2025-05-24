@@ -102,11 +102,18 @@ end
 -- smart clear by default
 -- prob unecessary to do all these ifs idk
 function Module:addExtra(str_name, args) -- luacheck: ignore args
+    for _, cur_str in ipairs(self.extra_sauce) do
+        if cur_str == str_name then
+            print(comms.robot_send("debug", "BuildInstruction, instruction already present, skipping"))
+            return
+        end
+    end
+
     if str_name == "top_to_bottom" then
         table.insert(self.extra_sauce, str_name)
     elseif str_name == "build_shell" then
         error(comms.robot_send("fatal", "BuildInstruction: non-implemented instruction"))
-    elseif str_name == "force_clear" then
+    elseif str_name == "no_force_clear" then
         error(comms.robot_send("fatal", "BuildInstruction: non-implemented instruction"))
     else
         error(comms.robot_send("fatal", "BuildInstruction: non-recognized instruction"))

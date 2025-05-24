@@ -79,7 +79,11 @@ function module.nav_and_build(instructions, post_run)
     if not rel.is_setup() then
         -- a little hack to optimize building, basically, we are pre-moving up, rather than going up
         -- and down to place blocks, theoretically saving a lot of time and energy
-        rel_coords[3] = rel_coords[3] + 1
+        if not instructions:includes("top_to_bottom") then
+            rel_coords[3] = rel_coords[3] + 1
+        else
+            rel_coords[3] = rel_coords[3] - 1
+        end
 
         nav.setup_navigate_rel(rel_coords)
     end
@@ -87,12 +91,21 @@ function module.nav_and_build(instructions, post_run)
 
     local result, err = nav.navigate_rel()
     if result == -1 then -- movement completed (place block, and go back to build_function)
-        --nav.debug_move("up", 1, false) >-----< No longer needed
-        if not inv.place_block("down", block_info, "lable") then
-            -- Real error handling will come some other time
-            if not inv.blind_swing_down() then -- just break the damn block and try again
-                print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
-                return nil
+        if not instructions:includes("top_to_bottom") then
+            if not inv.place_block("down", block_info, "lable") then
+                -- Real error handling will come some other time
+                if not inv.blind_swing_down() then -- just break the damn block and try again
+                    print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
+                    return nil
+                end
+            end
+        else
+            if not inv.place_block("up", block_info, "lable") then
+                -- Real error handling will come some other time
+                if not inv.blind_swing_up() then -- just break the damn block and try again
+                    print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
+                    return nil
+                end
             end
         end
 
