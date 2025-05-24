@@ -304,9 +304,13 @@ function module.place_block(dir, block_identifier, lable_type)
         else block_identifier = "invalid \"lable_type\"" end
     end
     if block_identifier == "air" then
-        if dir == "up" then module.blind_swing_up()
-        elseif dir == "down" then module.blind_swing_down()
+        local swing_result
+        if dir == "up" then 
+            swing_result = module.blind_swing_up()
+        elseif dir == "down" then 
+            swing_result = module.blind_swing_down()
         else print(comms.robot_send("warning", "place_block, invalid dir for now")) end
+        return swing_result
     end
 
     local slot = find_in_slot(block_identifier, lable_type)
