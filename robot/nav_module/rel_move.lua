@@ -40,6 +40,11 @@ local function navigate_opaque(nav_obj, goal_rel)
     local result = nil
     local data
 
+    -- Safety check! Time to crash and burn --
+    if nav_obj.rel[1] > 15 or nav_obj.rel[2] > 15 or nav_obj.rel[1] < 0 or nav_obj.rel[2] < 0 then
+        print(comms.robot_send("error", "rel_move, INVARIANT BROKEN!"))
+    end
+
     -- attempt to move on the x axis, if not possible, attempt to move on the z axis, if not possible etc.
     -- this won't solve mazes, but we won't need to
 
@@ -107,13 +112,14 @@ local sweep_start = {0, 0, 0}
 local sweep_end = {0, 0, 0}
 local is_sweep = false
 local move_to_start = false
+local sweep_reverse = false
 
-local function sweep_z_axis(nav_obj)
+local function sweep_x_axis(nav_obj)
     local dir = nil -- luacheck: ignore
-    if sweep_start[2] == 0 then
-        dir = "west"
-    else
+    if sweep_start[1] == 0 then
         dir = "east"
+    else
+        dir = "west"
     end
     attempt_surface_move(nav_obj, dir)
 end
@@ -131,6 +137,8 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         if nav_obj.rel[2] > 6 then sweep_start[2] = 15
         else sweep_start[2] = 0 end
 
+        sweep_reverse = not (sweep_start[2] == 0) -- Important
+
         if height ~= nil then
             sweep_start[3] = height[1]
             sweep_end[3] = height[2]
@@ -140,7 +148,11 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         end
 
         sweep_end[1] = math.abs(16 - sweep_start[1])
-        sweep_end[2] = math.abs(16 - sweep_start[2])
+        -- FOR WHY WE COMMENTED THIS OUT, CHECK OUR DRAWING
+        --sweep_end[2] = math.abs(16 - sweep_start[2])
+        
+        sweep_end[2] = sweep_start[2]
+
         return true -- true to continue
     end
     if move_to_start then
@@ -158,25 +170,21 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         end
     end
 
-    local height_bool = sweep_start[3] == -1 or (nav_obj.rel[3] == sweep_end[3])
+    local height_bool = (sweep_start[3] == -1) or (nav_obj.rel[3] == sweep_end[3])
     if nav_obj.rel[1] == sweep_end[1] and nav_obj.rel[2] == sweep_end[2] and height_bool then
         is_sweep = false
         return false -- stop sweeping
     end
 
     local result = nil; local data = nil
-    if sweep_start[1] == 0 then
-        if nav_obj.rel[1] >= 15 then
-            result, data = sweep_z_axis(nav_obj)
-        else
-            result, data = attempt_surface_move(nav_obj, "south")
-        end
-    elseif sweep_start[1] == 15  then
-        if nav_obj.rel <= 0 then
-            result, data = sweep_z_axis(nav_obj)
-        else
-            result, data = attempt_surface_move(nav_obj, "north")
-        end
+    if nav_obj.rel[2] >= 15 or (nav_obj.rel[2] <= 0 and sweep_reverse) then
+        result, data = sweep_x_axis(nav_obj)
+        sweep_reverse = not sweep_reverse
+    else
+        local dir
+        if not sweep_reverse then dir = "south"
+        else dir = "north" end
+        result, data = attempt_surface_move(nav_obj, dir)
     end
 
     return result, data
