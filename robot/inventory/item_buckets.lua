@@ -1,13 +1,24 @@
 local module = {}
 
 -- takes some data as input, and returns other data as output :D
-local special_dictionary = {
-    --TODO
+-- Names == Tinkers, durability == GT
+local material_dictionary = {
+    Bronze = 3, -- Level == Max_level, rather than min. exp level
+    Iron = 3,
+
+    Copper = 2,
+
+    Flint = 1,
 }
 
 
-local function special_identify(full_lable, tool_type)
-    --TODO
+function module.material_identify(lable) -- Lable won't work for GT pickaxe
+    for material, level in pairs(material_dictionary) do
+        if string.find(lable, material) then
+            return material, level
+        end
+    end
+    return nil
 end
 
 

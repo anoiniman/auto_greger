@@ -68,9 +68,6 @@ function MetaSchematic:parseStringArr(string_array, y_coord)
     local square = return_or_init_table_table(self, y_coord)
     local special_table = nil
 
-    --local line = nil
-    --local max_line = 0
-
     local z_coord = 0
     for _, str in ipairs(string_array) do
         local x_coord = 0
@@ -94,11 +91,5 @@ function MetaSchematic:parseStringArr(string_array, y_coord)
     end -- for str
     return special_table
 end
-
--->>--------------------------------------<<--
-
---[[function MetaSchematic:lookUp(height, z, x) -- returns MsChunk
-    return MetaSchematic[height][z][x]
-end--]]
 
 return MetaSchematic

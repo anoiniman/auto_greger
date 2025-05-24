@@ -107,4 +107,8 @@ function MetaQuad:doBuild()
     return self.build:doBuild()
 end
 
+function MetaQuad:finalizeBuild()
+    return self.build:finalizeBuild()
+end
+
 return MetaQuad

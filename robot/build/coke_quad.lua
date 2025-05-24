@@ -1,6 +1,7 @@
 local deep_copy = require("deep_copy")
 
-local meta_door = require("build.MetaBuild.MetaDoorInfo")
+local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
+local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 local general_functions = require("build.general_functions")
 
 local Module = {parent = nil}
@@ -37,7 +38,7 @@ Module.segments = { -- This nil assignment schtick makes it so for 99% of the ca
 }
 
 Module.doors = {}
-Module.doors[1] = meta_door:new()
+Module.doors[1] = MetaDoor:new()
 Module.doors[1]:doorX(6,2)
 
 -- consuming what function is to be executed
@@ -49,5 +50,21 @@ end
 function Module:new()
     return deep_copy.copy(self, pairs)
 end
+
+-- First element of the hook array == special_symbol "*", etc.
+Module.hooks = {
+    function()
+        return MetaLedger:new()
+    end,
+    function () -- anonymous function, hopefully
+        local input_items = {
+            MetaItem:new("log", nil, true, "Charcoal" ),
+            MetaItem:new(nil, "Coal", false, "Coal Coke"),
+            MetaItem:new(nil, "Block of Coal", false, "Block of Coal Coke")
+        }
+
+        return MetaInventory:newMachine(input_items)
+    end
+}
 
 return Module

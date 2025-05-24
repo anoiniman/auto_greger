@@ -100,7 +100,6 @@ function MetaChunk:getHeight()
     return nil
 end
 
--- TODO use this in the automated building thing
 function MetaChunk:getBuildRef(what_quad)
     if self.meta_quads == nil then return nil end
     local quad_in_question = self.meta_quads[what_quad]
@@ -183,7 +182,7 @@ function MetaChunk:setupBuild(what_quad_num)
 end
 
 function MetaChunk:doBuild(what_quad_num)
-    if not self:quadChecks(what_quad_num, "setupBuild") then return false end
+    if not self:quadChecks(what_quad_num, "doBuild") then return false end
 
     local this_quad = self.meta_quads[what_quad_num]
     if this_quad:isBuilt() then
@@ -191,6 +190,12 @@ function MetaChunk:doBuild(what_quad_num)
         return false
     end
     return this_quad:doBuild()
+end
+
+function MetaChunk:finalizeBuild(what_quad_num)
+    if not self:quadChecks(what_quad_num, "finalizeBuild") then return false end
+    local this_quad = self.meta_quads[what_quad_num]
+    this_quad:finalizeBuild()
 end
 
 -->>-----------------------------------<<--
@@ -321,6 +326,8 @@ function module.do_build(what_chunk, what_quad)
         local primitive_name = map_chunk:getName(what_quad)
         if primitive_name == nil then error(comms.robot_send("fatal", "Impossible state, map_obj.do_build")) end
         known_buildings:insert(primitive_name, map_chunk:getBuildRef())
+
+        map_chunk:finalizeBuild(what_quad)
     end
 
     return result_bool, result_string, coords, symbol

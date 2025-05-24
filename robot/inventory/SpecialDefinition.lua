@@ -1,7 +1,7 @@
 local deep_copy = require("deep_copy")
 local Module = {
     material = nil,
-    item_name = nil,
+    item_name = nil, -- a base name such as "sword"
     item_level = nil,
 }
 

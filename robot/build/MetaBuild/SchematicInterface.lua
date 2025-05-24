@@ -38,9 +38,17 @@ function SchematicInterface:init(dict, origin)
     self.dictionary = dict
 end
 
+function SechematicInterface:getSpecialBlocks()
+    return self.special_blocks
+end
+
 function SchematicInterface:parseStringArr(string_array, square_index)
     local special_blocks = self.schematic:parseStringArr(string_array, square_index)
-    if special_blocks ~= nil then self.special_blocks = special_blocks end
+    if special_blocks ~= nil then
+        for _, special in ipairs(special_blocks) do
+            table.insert(self.special_blocks, special)
+        end
+    end
 
     if #self.schematic == 0 then print(comms.robot_send("error", "we ballsd up good :(")) end
 end

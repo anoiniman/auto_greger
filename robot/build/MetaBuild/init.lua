@@ -16,6 +16,8 @@ local primitive_cache = {}  -- as you might have noticed this value exists outsi
 local Module = {
     name = nil,
     extra_sauce = nil,
+    post_build_hooks = nil,
+    post_build_state = nil,
 
     is_nil = true,
     built = false,
@@ -41,6 +43,7 @@ end
 function Module:is_extra(str)
     if self.extra_sauce == nil then return false end
 
+    local result = false
     for _, sauce in ipairs(self.extra_sauce) do
         if type(sauce) == "table" then
             error("not implemented yet")
@@ -55,6 +58,7 @@ function Module:is_extra(str)
 
         ::continue::
     end
+    return result
 end
 
 function Module:initPrimitive()
@@ -111,7 +115,7 @@ function Module:setupBuild()
     -- its ok to retain this after dumping the primitive because of GC, I think
     self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
     if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
-        s_interface.build_stack.logical_y = self.primitive.height
+        self.s_interface.build_stack.logical_y = self.primitive.height
     end
 
     if self:checkHumanMap(base_table, self.primitive.name) ~= 0 then -- sanity check
@@ -160,11 +164,52 @@ function Module:require(name)
     self.primitive = build_table:new()
     self.name = self.primitive.name
     self.extra_sauce = self.primitive.extra_sauce -- effective change of ownership
+    self.post_build_hooks = self.primitive.hooks
+    --self.post_build_state = self.primitive.state
+    if self.post_build_state == nil then self.post_build_state = {} end
 
     primitive_cache[name] = build_table
     self:initPrimitive()
 
     return true
+end
+
+local PublicState = {
+    name = "default",
+    inner = nil
+}
+function PublicState:new(inner)
+    local new = deep_copy.copy(self, pairs)
+    new.inner = inner
+    return new
+end
+
+
+-- build state == 1 chunk wide state
+function Module:finalizeBuild()
+    self.built = true
+    if self.post_build_state[1] == nil then self.post_build_state[1] = {} end
+    local new_state_ref = self.post_build_hooks[1]()
+    table.insert(self.post_build_state[1], PublicState:new(new_state_ref))
+
+    for index, special in ipairs(self.s_interface.getSpecialBlocks()) do
+        if special == "*" then -- build state >= 2 specific states
+            if self.post_build_state[2] == nil then self.post_build_state[2] = {} end
+
+            local hook = self.post_build_hooks[2]
+            if hook == nil then
+                print(comms.robot_send("error", "No post_build_hook in index 1, for symbol *"))
+                goto die
+            end
+            local new_state_ref = hook() --luacheck: ignore
+            table.insert(self.post_build_state[2], new_state_ref) -- yay, done? -- yay, done?
+        else
+            error(comms.robot_send("fatal", "MetaBuild:finalizeBuild(), symbol: \"" .. special  .. "\" unimplimented"))
+        end
+    end
+    ::die::
+
+    self.s_interface = nil -- :)
 end
 
 function Module:getName()

@@ -1,4 +1,7 @@
 local deep_copy = require("deep_copy")
+local comms = require("comms")
+
+local SpecialDefinition = require("inventory.SpecialDefinition")
 local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
 
 local Module = {ledger_proper = nil, special_ledger = nil}
@@ -18,7 +21,7 @@ function Module:add_or_create(name, lable, quantity)
     --if string.find(name, "gt.metaitem") then -- the question of meta-items is complex and I gave it thought
     local bucket, is_special = bucket_functions.identify(name, lable)
     if is_special ~= nil then
-        self:special_add_or_create(lable)
+        self:special_add_or_create(bucket, lable)
         return
     end
 
@@ -30,9 +33,16 @@ function Module:add_or_create(name, lable, quantity)
     self.ledger_proper[bucket][lable] = entry_quantity + quantity
 end
 
-function Module:special_add_or_create(lable) -- specials are probably non-stackable, right? Maybe not
-    -- TODO
-    error("TODO, MetaLedger")
+function Module:special_add_or_create(bucket, lable) -- specials are probably non-stackable, right? Maybe not
+    local new_definition = Special:definition:new(bucket)
+    local material, level = bucket_funcions.material.identify(lable)
+    if material == nil then
+        error(comms.robot_send("fatal", "wasn't able to identify special, ID of GT tools still unimplemented"))
+        --return false
+    end
+    new_definition.material = material
+    new_definition.item_level = level
+    table.insert(self.special_ledger, new_definition)
 end
 
 return Module
