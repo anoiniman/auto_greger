@@ -124,37 +124,39 @@ local function sweep_x_axis(nav_obj)
     attempt_surface_move(nav_obj, dir)
 end
 
--- height[1] = start height, height[2] = end height
-function module.sweep(nav_obj, is_surface, height)
+-- returns current state and clears current state
+function module.interrupt_sweep()
+
+end
+
+function module.setup_sweep(nav_obj)
+    is_sweep = true
+    move_to_start = true
+
+    if nav_obj.rel[1] > 6 + rect_offset then sweep_start[1] = 15
+    else sweep_start[1] = 0 end
+
+    if nav_obj.rel[2] > 6 then sweep_start[2] = 15
+    else sweep_start[2] = 0 end
+
+    sweep_reverse = (sweep_start[2] == 15) -- Important
+
+    sweep_end[1] = math.abs(16 - sweep_start[1])
+    -- FOR WHY WE COMMENTED THIS OUT, CHECK OUR DRAWING
+    --sweep_end[2] = math.abs(16 - sweep_start[2])
+
+    sweep_end[2] = sweep_start[2]
+
+    return true -- true to continue
+end
+
+function module.sweep(nav_obj, is_surface)
     if not is_surface then error("todo, rel_move:sweep()") end
-
     if not is_sweep then
-        is_sweep = true
-        move_to_start = true
-        if nav_obj.rel[1] > 6 then sweep_start[1] = 15
-        else sweep_start[1] = 0 end
-
-        if nav_obj.rel[2] > 6 then sweep_start[2] = 15
-        else sweep_start[2] = 0 end
-
-        sweep_reverse = (sweep_start[2] == 15) -- Important
-
-        if height ~= nil then
-            sweep_start[3] = height[1]
-            sweep_end[3] = height[2]
-        else
-            sweep_start[3] = -1
-            sweep_end[3] = -1
-        end
-
-        sweep_end[1] = math.abs(16 - sweep_start[1])
-        -- FOR WHY WE COMMENTED THIS OUT, CHECK OUR DRAWING
-        --sweep_end[2] = math.abs(16 - sweep_start[2])
-
-        sweep_end[2] = sweep_start[2]
-
-        return true -- true to continue
+        print(comms.robot_send("error", "sweep not setup"))
+        return false
     end
+
     if move_to_start then
         if not navigation_setup then
             module.setup_navigate_rel(sweep_start[1], sweep_start[2], -1)
@@ -170,8 +172,7 @@ function module.sweep(nav_obj, is_surface, height)
         end
     end
 
-    local height_bool = (sweep_start[3] == -1) or (nav_obj.rel[3] == sweep_end[3])
-    if nav_obj.rel[1] == sweep_end[1] and nav_obj.rel[2] == sweep_end[2] and height_bool then
+    if nav_obj.rel[1] == sweep_end[1] and nav_obj.rel[2] == sweep_end[2] then
         is_sweep = false
         return false -- stop sweeping
     end

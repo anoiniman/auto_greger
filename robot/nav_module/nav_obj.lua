@@ -102,16 +102,20 @@ function module.is_setup_door_move()
 end
 
 function module.setup_door_move(door_table)
-    return door_move.setup_move(door_table, module.get_rel())
+    return door_move.setup_move(door_table, nav_obj)
 end
 
 function module.door_move()
-    return door_move.do_move()
+    return door_move.do_move(nav_obj)
 end
 
--- Careful, sweep auto_sets up itself
-function module.sweep()
+-- Future prep basically, doesn't to much
+function module.setup_sweep()
+    return rel_move.setup_sweep(nav_obj)
+end
 
+function module.sweep(is_surface)
+    return rel_move.setup(nav_obj, is_surface)
 end
 
 
