@@ -125,7 +125,7 @@ local function sweep_x_axis(nav_obj)
 end
 
 -- height[1] = start height, height[2] = end height
-function module.sweep(nav_obj, is_surface, height, do_dig)
+function module.sweep(nav_obj, is_surface, height)
     if not is_surface then error("todo, rel_move:sweep()") end
 
     if not is_sweep then
@@ -137,7 +137,7 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         if nav_obj.rel[2] > 6 then sweep_start[2] = 15
         else sweep_start[2] = 0 end
 
-        sweep_reverse = not (sweep_start[2] == 0) -- Important
+        sweep_reverse = (sweep_start[2] == 15) -- Important
 
         if height ~= nil then
             sweep_start[3] = height[1]
@@ -150,7 +150,7 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         sweep_end[1] = math.abs(16 - sweep_start[1])
         -- FOR WHY WE COMMENTED THIS OUT, CHECK OUR DRAWING
         --sweep_end[2] = math.abs(16 - sweep_start[2])
-        
+
         sweep_end[2] = sweep_start[2]
 
         return true -- true to continue
@@ -176,7 +176,7 @@ function module.sweep(nav_obj, is_surface, height, do_dig)
         return false -- stop sweeping
     end
 
-    local result = nil; local data = nil
+    local result = nil; local data = nil -- luacheck: ignore
     if nav_obj.rel[2] >= 15 or (nav_obj.rel[2] <= 0 and sweep_reverse) then
         result, data = sweep_x_axis(nav_obj)
         sweep_reverse = not sweep_reverse

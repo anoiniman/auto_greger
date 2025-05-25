@@ -1,6 +1,7 @@
 local module = {}
 local MetaRecipe = require("reasoning.MetaRecipe")
 local nav_obj = require("nav_module.nav_obj")
+local sweep = require("complex_algorithms.sweep")
 
 -- As you know very well, there are certain, specific, recipes that require oak logs rather than
 -- any log, and others (more plentiful than the former) that function only with vanilla logs
@@ -20,7 +21,7 @@ local oak_log = MetaRecipe:newGathering("oak_log", "axe", 0, log_algo, algo_pass
 -- change_state at first will be a chunk table {0, 0}
 local function grav_algo(state, change_state, nav_obj) -- nav_obj will be algo_pass[1]
     local what_chunk = change_state[1] -- or -- local what_chunk = change_state?
-    local result, data = nav_obj.sweep(what_chunk)
+    local result, data = sweep(what_chunk) -- very much temporary
     if result == false then
         if data ~= nil then -- probably means that we've run into an obstacle
             -- TODO stuff with this obstacle data 

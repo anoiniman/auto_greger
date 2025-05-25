@@ -94,19 +94,17 @@ local function robot_navigation()
        filesystem.makeDirectory("/home/robot/nav_module")
     end
 
+    --download("/robot/nav_module/base_sweep.lua", "self")
     download("/robot/nav_module/chunk_move.lua", "self")
     download("/robot/nav_module/door_move.lua", "self")
 
     download("/robot/nav_module/map_obj.lua", "self")
     download("/robot/nav_module/MetaQuad.lua", "self")
 
-    download("/robot/nav_module/nav_build.lua", "self")
-
     download("/robot/nav_module/nav_interface.lua", "self")
     download("/robot/nav_module/nav_obj.lua", "self")
 
     download("/robot/nav_module/rel_move.lua", "self")
-    download("/robot/nav_module/road_build.lua", "self")
 end
 
 local function robot_build_primitives()
@@ -173,6 +171,16 @@ local function robot_inventory()
     download("/robot/inventory/SpecialDefinition.lua", "self")
 end
 
+local function robot_complex_algorithms()
+    if not filesystem.isDirectory("/home/robot/complex_algorithms") then
+       filesystem.makeDirectory("/home/robot/complex_algorithms")
+    end
+
+    download("/robot/complex_algorithms/nav_build.lua", "self")
+    download("/robot/complex_algorithms/road_build.lua", "self")
+    download("/robot/complex_algorithms/quarry.lua", "self")
+end
+
 
 if check_in_args(args, "--debug-branch") then branch = "debug" end
 
@@ -187,6 +195,7 @@ if args[1] == "robot" then
     if is_all or check_in_args(args, "mbld" )    then    robot_meta_build()         end
     if is_all or check_in_args(args, "reas" )    then    robot_reasoning()          end
     if is_all or check_in_args(args, "inv"  )    then    robot_inventory()          end
+    if is_all or check_in_args(args, "algo" )    then    robot_complex_algorithms() end
 
 elseif args[1] == "controller" then
     if not filesystem.isDirectory("/home/controller") then

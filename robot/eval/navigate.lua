@@ -8,8 +8,8 @@ local comms = require("comms")
 
 local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
-local nb = require("nav_module.nav_build")
-local rb = require("nav_module.road_build")
+local nb = require("complex_algorithms.nav_build")
+local rb = require("complex_algorithms.road_build")
 
 
 function module.navigate_chunk(arguments)

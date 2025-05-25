@@ -109,6 +109,11 @@ function module.door_move()
     return door_move.do_move()
 end
 
+-- Careful, sweep auto_sets up itself
+function module.sweep()
+
+end
+
 
 --temp
 nav_obj.height = 69
