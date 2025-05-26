@@ -54,7 +54,6 @@ local SlotDefinition = {
 -- slot_numbers, might actually be a non-table number!
 function SlotDefinition:new(slot_number, item_name)
     local new = deep_copy.copy(self, pairs)
-
     new.special_definition = SpecialDefinition:new(item_name)
     new.slot_number = slot_number
 
@@ -62,17 +61,18 @@ function SlotDefinition:new(slot_number, item_name)
     return new
 end
 
+
 local slot_managed = {}
 local slot_manager = {}
 function slot_manager.add(obj)
-    local sd = obj.special_definition
-    if sd.item_name ~= nil then
-        local name = sd.item_name
+    if obj.special_definition ~= nil then
+        local name = obj.special_definition.item_name
         if slot_managed[name] == nil then slot_managed[name] = {} end
         table.insert(slot_managed[name], obj)
         return
     end
 
+    local sd = obj.special_definition
     for _, slot_def in ipairs(obj) do
         local name = slot_def.special_definition.item_name
         if slot_managed[name] == nil then slot_managed[name] = {} end
@@ -86,7 +86,7 @@ function slot_manager.find_all(item_name, level)
         for _, slot_def in pairs(multi_def) do
             local def = slot_def.special_definition
             if def.item_name == item_name and def.item_level >= level then
-                table.insert(return_table, def)
+                table.insert(return_table, slot_def)
             end
         end
     end
@@ -127,6 +127,7 @@ function slot_manager.put_from_slot(from_slot, item_name)
     robot.select(old_select)
     return result
 end
+
 
 --- Write more slot definitions :)
 --
