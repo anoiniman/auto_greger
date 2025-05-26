@@ -28,7 +28,7 @@ local used_up_capacity = 0
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 local tool_belt_slots = {}
 
-local crafting_table_clear = false
+local crafting_table_clear = true
 local use_self_craft = true
 
 local internal_ledger = MetaLedger:new()

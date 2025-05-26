@@ -124,9 +124,22 @@ local function sweep_x_axis(nav_obj)
     attempt_surface_move(nav_obj, dir)
 end
 
--- returns current state and clears current state
-function module.interrupt_sweep()
+function module.is_sweep_setup()
+    return is_sweep
+end
 
+-- interrupts, marks as finished, and returns/saves current state
+-- We assume that we only interrupt AFTER we finish move_to_start
+function module.interrupt_sweep(nav_obj)
+    -- I think all we need to return is sweep_reverse and current position
+    is_sweep = false
+    return nav.obj.get_rel(), sweep_reverse
+end
+
+function module.resume_sweep(nav_obj, prev_position)
+    module.setup_sweep(nav_obj)
+    sweep_start[1] = prev_position[1]
+    sweep_start[2] = prev_position[2]
 end
 
 function module.setup_sweep(nav_obj)

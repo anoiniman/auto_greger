@@ -148,6 +148,7 @@ local function robot_reasoning()
     end
 
     --download("/robot/reasoning/recipes/stone_age/essential01.lua", "self")
+    download("/robot/reasoning/recipes/stone_age/gathering01.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/scripts/debug") then
        filesystem.makeDirectory("/home/robot/reasoning/scripts/debug")

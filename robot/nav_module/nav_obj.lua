@@ -109,6 +109,10 @@ function module.door_move()
     return door_move.do_move(nav_obj)
 end
 
+function module.is_sweep_setup()
+    return rel_move.is_sweep_setup()
+end
+
 -- Future prep basically, doesn't to much
 function module.setup_sweep()
     return rel_move.setup_sweep(nav_obj)

@@ -75,6 +75,10 @@ end
 -- and smart accessing of disc and remote stored data eventually, so I'll not use string indeces.
 -- is_home basically means: is a part of the base
 local MetaChunk = {
+    x = 0,
+    z = 0,
+    marks = nil,
+
     parent_area = nil,
     height_override = nil,
     meta_quads = nil,
@@ -82,8 +86,25 @@ local MetaChunk = {
                             -- multi-level areas become a thing, unless we simply "layer" MetaChunks
                             -- like cake, that might be the obvious thing
 }
-function MetaChunk:new() -- lazy initialization :I
-    return deep_copy.copy_table(self, pairs)
+function MetaChunk:new(x, z) -- lazy initialization :I (one day :) )
+    local new = deep_copy.copy_table(self, pairs)
+    new.x = x
+    new.z = z
+    return new
+end
+
+function MetaChunk:addMark(str)
+    if self.marks == nil then self.marks = {} end
+    table.insert(self.marks, str)
+end
+
+function MetaChunk:checkMarks(str)
+    for _, mark in ipairs(self.marks) do
+        if mark == str then
+            return true
+        end
+    end
+    return false
 end
 
 function MetaChunk:getName(what_quad)
@@ -237,7 +258,9 @@ function module.gen_map_obj(offset)
     for x = 1, size, 1 do
         map_obj[x] = {}
         for z = 1, size, 1 do
-            map_obj[x][z] = MetaChunk:new()
+            local real_x = what_chunk[1] - map_obj_offsets[1];
+            local real_z = what_chunk[2] - map_obj_offsets[2];
+            map_obj[x][z] = MetaChunk:new(real_x, real_z)
         end
     end
     return true
@@ -341,6 +364,10 @@ function module.get_buildings_num(name)
     if known_buildings[name] == nil then return 0 end
 
     return #known_buildings[name]
+end
+
+function module.get_area(name)
+    return areas_table:getArea(name)
 end
 
 

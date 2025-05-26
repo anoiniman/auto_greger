@@ -47,7 +47,7 @@ function MetaScript:step() -- most important function does everything, I think
     self:unlockPosterior()
     local best_goal, index, name = self:findBestGoal()
     if best_goal == nil then
-        print(comms.robot_send("error", "MetaScript:step() -- couldn't find best goal"))
+        print(comms.robot_send("debug", "MetaScript:step() -- couldn't find best goal"))
         return "fail", nil
     end
 
@@ -57,7 +57,7 @@ function MetaScript:step() -- most important function does everything, I think
         return "end", nil
     end
 
-    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute"))
+    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute: " .. best_goal.name))
     return "continue", result
 end
 
@@ -117,9 +117,7 @@ function BuildingConstraint:check()
         end
 
         if heap[name] <= 0 then -- we've run out of buildings, aka, we're below the target
-            if structure.lock[1] == 0 then -- if we've NOT already started working on this
-                return index, name -- returns where we failed
-            end -- else we want to fall through
+            return index, name -- returns where we failed
         else
             heap[name] = heap[name] - 1
         end
@@ -128,7 +126,7 @@ function BuildingConstraint:check()
     return 0, nil -- check passed
 end
 
-function BuildingConstraint:step(index, name) -- returns command to be evaled
+function BuildingConstraint:step(index, name, priority) -- returns command to be evaled
     local structure_to_build = nil
     local occurence = 0
     for _, structure in ipairs(self.structures) do
@@ -217,11 +215,11 @@ function Constraint:check()
     return index, name
 end
 
-function Constraint:step(index, name) -- useful only for Building Constraints
+function Constraint:step(index, name, priority) -- useful only for Building Constraints
     if self.const_type ~= "building" then
         error(comms.robot_send("fatal", "Constraint:step used for non building"))
     end
-    return self.const_obj:step(index, name)
+    return self.const_obj:step(index, name, priority)
 end
 
 -- goals depend on other goals (goals will have names, but not inside their struct definition)
@@ -234,9 +232,10 @@ end
 -- the requires schematic, so it is much more a case of extracting the required
 -- user interaction from the user -- this is to say, the recipes are the buildings
 -- themselves which are self-explaining, unlike items which require explanations
-local Goal = {dependencies = nil, constraint = nil, recipe = nil, priority = 0}
-function Goal:new(dependencies, constraint, recipe, priority)
+local Goal = {name = "None", dependencies = nil, constraint = nil, recipe = nil, priority = 0}
+function Goal:new(dependencies, constraint, recipe, priority, name)
     local new = deep_copy.copy(self, pairs)
+    new.name = name
     new.dependencies = dependencies or nil
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
     new.recipe = recipe or nil
@@ -259,10 +258,9 @@ end
 
 function Goal:step(index, name)
     if self.recipe == nil then -- aka, is this a building constraint?
-        return self.constraint:step(index, name)
+        return self.constraint:step(index, name, self.priority)
     end
-    self.recipe:step() -- ?
-    return nil
+    return self.recipe:returnCommand(self.priority)
 end
 
 

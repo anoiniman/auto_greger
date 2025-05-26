@@ -9,14 +9,15 @@ local comms = require("comms")
 -- goal_block is what is recognizable by geolyzer, name is usually enough, but if it is a GT-Ore, for example
 -- colour and meta-data will probabily be necessary, these differences can be caught inside
 -- "algorithm" which is supposed to be a function that takes "Gathering"
-local Gathering = {tool = nil, level = nil, algorithm = nil, state = nil, algo_pass = nil}
-function Gathering:new(tool, level, algorithm, algo_pass)
+local Gathering = {tool = nil, level = nil, algorithm = nil, state = nil}
+function Gathering:new(tool, level, algorithm, state)
     local new = deep_copy.copy(self, pairs)
-    new.tool = tool; new.level = level; new.algorithm = algorithm; new.algo_pass = algo_pass
-    new.state = {}
-end
-function Gathering:call(change_state)
-    return self.algorithm(self.state, change_state, self.algo_pass)
+    new.tool = tool;
+    new.level = level;
+    new.algorithm = algorithm;
+    new.state = state
+
+    return new
 end
 
 -- Maybe make it so that once there is a crafting area in the base (maybe with a "cache"-like storage included
@@ -41,17 +42,17 @@ function MetaRecipe:new()
     return deep_copy.copy(self, pairs)
 end
 
-function MetaRecipe:newCraftingTable(output, recipe)
+function MetaRecipe:newCraftingTable(output, recipe_table)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
         return nil
     end
-    if recipe == nil or type(recipe) ~= "table" then
-        error(comms.robot_send("error", "recipe: \"" .. output .. "\" is nil or wrong type"))
+    if recipe_table == nil or type(recipe_table) ~= "table" then
+        error(comms.robot_send("error", "recipe_table: \"" .. output .. "\" is nil or wrong type"))
         return nil
     end
-    if #recipe < 1 and #recipe > 9 then
-        error(comms.robot_send("error", "recipe: \"" .. output .. "\" is invalid size"))
+    if #recipe_table < 1 and #recipe_table > 9 then
+        error(comms.robot_send("error", "recipe_table: \"" .. output .. "\" is invalid size"))
         return nil
     end
 
@@ -59,7 +60,7 @@ function MetaRecipe:newCraftingTable(output, recipe)
     new.meta_type = "crafting_table"
     new.output = output
 
-    new.mechanism = CraftingTable:new(recipe)
+    new.mechanism = CraftingTable:new(recipe_table)
     return new
 end
 
@@ -81,6 +82,19 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, goal_block)
 
     new.mechanism = Gathering:new(tool, level, algorithm, goal_block)
     return new
+end
+
+-- TODO programme this for crafting recipes
+function MetaRecipe:returnCommand(priority)
+    if self.meta_type == "gathering" then
+        self.mechanism.state.priority = priority
+        return {prio, self.mechanism.algorithm, self.mechanism }
+    elseif self.meta_type == "crafting_table" then
+        error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
+    else
+        error(comms.robot_send("fatal", "Unimplemented meta_type selected for returnCommand in MetaRecipe: \""
+            .. self.meta_type .. "\""))
+    end
 end
 
 return MetaRecipe

@@ -72,3 +72,25 @@ tool chest in crafting area
 
 For now I won't do the force clear things, because, uhhhhh we can just fill everything
 with air I guess
+
+Remember to test geolyzer for versioning issues
+
+VVVVVVVVVVVVVVVVVV
+robo_routine, when we get an interected event, don't set it to false immediatly, instead only
+set it to false after the loop so we can try to push forward every "sleeping" command, because
+it might not be the highest on the list the one who got an update -- IMPORTANT
+
+Add extra-chunk based information, so that chunks are marked as having a certain ore depostion, or
+as impassible for navigation, we then need to update navigation in order to deal with these chunks
+hopefully a dumb fix is enough
+
+Add code that orders robot to build a sort of "covering" over a specified hole useful to safe
+le command known as chunk_move("surface")
+
+Tests to run:
+> build road
+> navigate door
+> build hole_home (filled with air)
+> gathering scripts
+> making sure internal inventory gets updated currectly (do some introspection)
+

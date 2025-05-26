@@ -49,10 +49,12 @@ function module.navigate_rel(arguments)
         return nb.nav_and_build(instructions, return_table)
     elseif flag == "road_build" then
         return rb.step(instructions, return_table)
+    elseif flag == "and_gather" then
+        -- Here instructions are no longer a build instruction, but rather the gathering algorithm to employ
+        -- Here return_table takes the shape of simply being the arguments fed into the thingy-mabob
+        return instructions(return_table)
     elseif flag == "and_clear" then
-
-    elseif flag == "smart_clear" then
-    elseif flag == "no_build" then
+        print(comms.robot_send("error", "\"and_clear\" is not implemented"))
     else
         print(comms.robot_send("error", "eval_navigate: flag is incorrect?"))
     end
