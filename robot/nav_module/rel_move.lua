@@ -121,7 +121,9 @@ local function sweep_x_axis(nav_obj)
     else
         dir = "west"
     end
-    attempt_surface_move(nav_obj, dir)
+    local result, data = attempt_surface_move(nav_obj, dir)
+    if result then return 0 end
+    return 1, data
 end
 
 function module.is_sweep_setup()
@@ -163,11 +165,12 @@ function module.setup_sweep(nav_obj)
     return true -- true to continue
 end
 
+-- 1 for fail, -1 for end, 0 for continue
 function module.sweep(nav_obj, is_surface)
     if not is_surface then error("todo, rel_move:sweep()") end
     if not is_sweep then
         print(comms.robot_send("error", "sweep not setup"))
-        return false
+        return 1
     end
 
     if move_to_start then
@@ -177,17 +180,17 @@ function module.sweep(nav_obj, is_surface)
         local result, data = module.navigate_rel(nav_obj)
         if result == 1 then
             print(comms.robot_send("error", "from: move_rel.sweep, navigate_rel returned err"))
-            return false, data
+            return 1, data
         elseif result == -1 then
             move_to_start = false
         else
-            return true
+            return 0
         end
     end
 
     if nav_obj.rel[1] == sweep_end[1] and nav_obj.rel[2] == sweep_end[2] then
         is_sweep = false
-        return false -- stop sweeping
+        return -1 -- finished sweeping
     end
 
     local result = nil; local data = nil -- luacheck: ignore
@@ -199,6 +202,8 @@ function module.sweep(nav_obj, is_surface)
         if not sweep_reverse then dir = "south"
         else dir = "north" end
         result, data = attempt_surface_move(nav_obj, dir)
+
+        if result then return 0 end
     end
 
     return result, data

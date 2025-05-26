@@ -64,13 +64,13 @@ function MetaRecipe:newCraftingTable(output, recipe_table)
     return new
 end
 
-function MetaRecipe:newGathering(output, tool, level, algorithm, goal_block)
+function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
         return nil
     end
     if tool == nil or level == nil or algorithm == nil
-            or type(algorithm) ~= "function" or goal_block == nil then
+            or type(algorithm) ~= "function" or state_primitive == nil then
 
         error(comms.robot_send("error", "MetaRecipe:newGathering, we did a fucky-wucky oopie wooppies"))
         return nil
@@ -80,7 +80,9 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, goal_block)
     new.meta_type = "gathering"
     new.output = output
 
-    new.mechanism = Gathering:new(tool, level, algorithm, goal_block)
+    local state = deep_copy.copy(state_primitive, pairs)
+
+    new.mechanism = Gathering:new(tool, level, algorithm, state)
     return new
 end
 

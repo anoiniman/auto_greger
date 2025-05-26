@@ -25,17 +25,20 @@ function module.compare(match_string, method, side) -- returns bool
     if method == nil then return false end
 
     local table_id = geo_table[match_string]
+    local analysis = geo.analyze(side)
+    module.sub_compare(match_string, method, analysis)
+end
+
+function module.sub_compare(match_string, method, analysis)
+    local string_id = analysis["name"]
 
     if method == "simple" then
         if table_id == nil then return false end -- which means not found
-        local string_id = geo.analyze(side)["name"]
 
         return string_id == table_id
     elseif method == "naive_contains" then
-        local string_id = geo.analyze(side)["name"]
         return string.find(string_id, match_string) ~= nil
     elseif method == "direct" then
-        local string_id = geo.analyze(side)["name"]
         return string_id == match_string
     else
         print(comms.robot_send("error", "Geo Compare, unrecognized method"))

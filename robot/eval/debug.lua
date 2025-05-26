@@ -92,6 +92,11 @@ function module.debug(arguments)
         else
             print(comms.robot_send("error", "invalid object provided"))
         end
+    elseif arguments[1] == "inv" or arguments[1] == "inventory" then
+        if arguments[2] == "print" and arguments[3] == "internal" then
+            local serial = serialize.serialize(inv.internal_ledger, 100)
+            print(comms.robot_send("info", "Internal Inventory: \n" .. serial))
+        end
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end

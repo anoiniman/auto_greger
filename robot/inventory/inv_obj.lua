@@ -32,6 +32,16 @@ local crafting_table_clear = true
 local use_self_craft = true
 
 local internal_ledger = MetaLedger:new()
+local equiped_tool = nil
+
+--->>-- Check on the ledgers --<<-----{{{
+-- TODO external_ledgers
+function module.how_many_internal(name, lable)
+    local quantity = internal_ledger:howMany(name, lable)
+    return quantity
+end
+
+---}}}
 
 -- Slot Definition et al. {{{
 
@@ -88,6 +98,11 @@ function slot_manager.find_slot(item_name, level) -- returns a slot number
     return result[1].slot_number
 end
 
+function slot_manager.find_first(item_name, level)
+    local result = slot_manager.find_all(item_name, level)
+    return result[1]
+end
+
 function slot_manager.find_empty_slot(item_name) -- returns a slot number
     -- This filters two times, but the performance drop is acceptable
     local result = slot_manager.find_all(item_name, -1)
@@ -99,6 +114,7 @@ function slot_manager.find_empty_slot(item_name) -- returns a slot number
     return nil
 end
 
+-- puts item from x slot into appropriate tool slot
 function slot_manager.put_from_slot(from_slot, item_name)
     local result = slot_manager.find_empty_slot(item_name)
     if result == nil then return false end -- return failure, aka, no empty slot, or no good item
@@ -231,15 +247,33 @@ end
 ---}}}
 
 --->>-- Tool Use --<<-----{{{
+function module.get_equiped_tool_name()
+    return equiped_tool.item_name
+end
+
 -- Assume that the tools are in their correct slots at all the times, it is not the responsibility
 -- of this function to make sure that the items are in the desitred slot, unless of course, the
 -- thing is about returning currently equiped tools to the correct slot
 function module.equip_tool(tool_type, wanted_level)
-    local slot = slot_manager.find(tool_type, wanted_level)
+    -- First, check if it already equiped
+    if equiped_tool.item_name == tool_type and equiped_tool.item_level >= wanted_level then
+        return true -- "We equipped it succesefully"
+    end
+
+    local first_tool = slot_manager.find_first(tool_type, wanted_level)
+    local slot = first_tool.slot_number
+    local sp_definition = first_tool.special_definition
+
+    -- Equip required tool if found else return false
     if slot == nil then return false end
     robot.select(slot)
     local result = inventory.equip()
+    equiped_tool = sp_definition -- ref
 
+    -- Check if something was swapped (aka there was already something equiped) and if it is a
+    -- tool move it to the appropriate slot, else try to move item to an availabe free slot
+    -- (since it was swapped into a forbiden slot)
+    -- if it was tool and wasn't moved succesefully, just try and clear it from the current slot
     local new_item = inventory.getStackInInternalSlot(slot)
     local what_item = bucket_functions.identify(new_item.name, new_item.lable)
     local is_tool = slot_manager.find(what_item, -1)
@@ -279,7 +313,7 @@ local function swing_general(swing_function, dir)
         module.maybe_something_added_to_inv()
     end
 
-    return result
+    return result, info
 end
 
 function module.blind_swing_front()
@@ -326,7 +360,7 @@ function module.place_block(dir, block_identifier, lable_type)
     local place_result
     if dir == "down" then
         place_result = robot.placeDown()
-    elseif dir == "up then
+    elseif dir == "up" then
         place_result = robot.placeUp()
     else
         print(comms.robot_send("error", "not yet implemented, inv_obj.place_block"))
@@ -355,7 +389,7 @@ function module.debug_force_add()
 
         local item = inventory.getStackInInternalSlot(i)
         local name = item.name; local lable = item.label
-        internal_ledger:add_or_create(name, lable, quantity)
+        internal_ledger:addOrCreate(name, lable, quantity)
 
         ::continue::
     end
@@ -379,7 +413,7 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(1)
         local name = item.name; local lable = item.label
-        internal_ledger:add_or_create(name, lable, quantity)
+        internal_ledger:addOrCreate(name, lable, quantity)
     end
 
     if use_self_craft then

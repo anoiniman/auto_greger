@@ -27,10 +27,29 @@ local buckets = {
     "gt_raw_ore",
     "ingot",
     "generic",
+    "duplicate" -- aka things such as: Coke Oven Brick (block) and Coke Oven Brick (item)
     -- sword?
 }
 
+local function duplicate_identify(name, lable)
+    if lable == "Coke Oven Brick" then
+        print(comms.robot_send("debug", "No Mangling!"))
+        return true
+    elseif lable == "CokeOvenBrick" then
+        print(comms.robot_send("error", "Mangling happened!"))
+        return true
+    end
+    return false
+end
+
 function module.identify(name, lable)
+    if name == nil then name = "nil" end
+
+    local dupe = duplicate_identify(name, lable)
+    if dupe then
+        return "duplicate"
+    end
+
     if string.find(name, "^minecraft:") then
         return "minecraft"
     elseif string.find(name, "^gregtech:") then

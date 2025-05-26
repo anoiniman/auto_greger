@@ -95,10 +95,14 @@ end
 
 function MetaChunk:addMark(str)
     if self.marks == nil then self.marks = {} end
+    if self:checkMarks(str) then return end 
+
     table.insert(self.marks, str)
 end
 
 function MetaChunk:checkMarks(str)
+    if self.marks == nil then return false end
+
     for _, mark in ipairs(self.marks) do
         if mark == str then
             return true

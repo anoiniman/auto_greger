@@ -15,7 +15,7 @@ local MetaRecipe = require("reasoning.MetaRecipe")
 -- Add to unlocking behaviour automatic unloading behaviour for scripts that deprecate
 -- with the unlocking og the condition I guess
 -- Maybe add "current_goal" param, so we don't have to search for best goal everytime idk
-local MetaScript = {desc = nil, goals = {}, posterior = nil, p_unlock_condition = nil}
+local MetaScript = {desc = nil, goals = {}, posterior = nil, p_unlock_condition = nil, recipes = {}}
 function MetaScript:new() return deep_copy.copy(self, pairs) end
 function MetaScript:addGoal(goal)
     if goal == nil or goal.constraint == nil then
@@ -50,28 +50,45 @@ function MetaScript:step() -- most important function does everything, I think
         print(comms.robot_send("debug", "MetaScript:step() -- couldn't find best goal"))
         return "fail", nil
     end
+    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute: " .. best_goal.name))
 
     local result = best_goal:step(index, name)
-    if result == nil and index == 1 then -- activate power saving, or change active scripts
+    if result == nil and index >= 1 then -- activate power saving, or change active scripts
         print(comms.robot_send("warning", "MetaScript:step() -- ran out of goals!"))
         return "end", nil
     end
 
-    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute: " .. best_goal.name))
     return "continue", result
 end
 
 -- Possible filters = "strict", "loose", <!"gt_ore"!> (maybe not anymore)
 -- perfect string match, imperfect match, item_name is actually a table
-local ItemConstraint = {item_name = nil, total_count = nil, filter = nil}
-function ItemConstraint:new(item_name, total_count, filter)
+local ItemConstraint = {item_name = nil, total_count = nil, filter = nil, internal = true, lock = {0}}
+function ItemConstraint:new(item_name, total_count, filter, internal)
     local new = deep_copy.copy(self, pairs)
     new.item_name = item_name
     new.total_count = total_count
     new.filter = filter
+    new.internal = internal
+
+    return new
 end
-function ItemConstraint:check()
-    error(comms.robot_send("fatal", "ItemConstraint:check() TODO!"))
+function ItemConstraint:check() -- so this was easy?
+    if not do_once and self.lock[1] == 2 then -- le reset switch :)
+        self.lock[1] = 0
+    end
+    if self.lock ~= 0 then return 0, nil end
+
+    if internal then
+        if inv.how_many_internal(self.item_name.name, self.item_name.lable) < self.total_count then
+            return 1, self.item_name
+        end
+    else
+        -- TODO
+        error(comms.robot_send("fatal", "ItemConstraint:check() -> internal == false -- not implemented!"))
+    end
+
+    return 0, nil
 end
 
 -- chunk_x_offset and chunk_z_offset btw
@@ -99,7 +116,11 @@ function BuildingConstraint:new(structures, chunk_centre)
     new.chunk_centre = chunk_centre or nil
     return new
 end
-function BuildingConstraint:check()
+function BuildingConstraint:check(do_once)
+    if not do_once and self.lock[1] == 2 then -- le reset switch :)
+        self.lock[1] = 0
+    end
+
     -- early return
     if self.lock[1] ~= 0 then return 0, nil end
 
@@ -206,13 +227,14 @@ function Constraint:newBuildingConstraint(structures, centre, slacking)
     return new
 end
 
-function Constraint:check()
-    local index, name = self.const_obj:check()
-    if index ~= 0 then
-        print(comms.robot_send("debug", "check for building of name: \"" .. name .. "\", index -- " .. index))
-    end
+function Constraint:check(do_once)
+    local index, name = self.const_obj:check(do_once)
 
     return index, name
+end
+
+function Constraint:returnType()
+    return self.const_type
 end
 
 function Constraint:step(index, name, priority) -- useful only for Building Constraints
@@ -232,19 +254,19 @@ end
 -- the requires schematic, so it is much more a case of extracting the required
 -- user interaction from the user -- this is to say, the recipes are the buildings
 -- themselves which are self-explaining, unlike items which require explanations
-local Goal = {name = "None", dependencies = nil, constraint = nil, recipe = nil, priority = 0}
-function Goal:new(dependencies, constraint, recipe, priority, name)
+local Goal = {name = "None", dependencies = nil, constraint = nil, priority = 0, do_once = false}
+function Goal:new(dependencies, constraint, recipe, priority, name, do_once)
     local new = deep_copy.copy(self, pairs)
     new.name = name
+    new.do_once = do_once or false
     new.dependencies = dependencies or nil
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
-    new.recipe = recipe or nil
     new.priority = priority or 0
     return new
 end
 
 function Goal:selfSatisfied()
-    return self.constraint:check()
+    return self.constraint:check(self.do_once)
 end
 
 function Goal:depSatisfied()
@@ -257,9 +279,10 @@ function Goal:depSatisfied()
 end
 
 function Goal:step(index, name)
-    if self.recipe == nil then -- aka, is this a building constraint?
+    if self.constraint:returnType() == "building" then -- aka, is this a building constraint?
         return self.constraint:step(index, name, self.priority)
     end
+    self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
     return self.recipe:returnCommand(self.priority)
 end
 
@@ -270,6 +293,11 @@ function MSBuilder:new_w_desc(desc)
     local new = self:new()
     new.base_script.desc = desc
     return new
+end
+
+function MSBuilder:addRecipe(recipe)
+    table.insert(self.base_script.recipes, recipe)
+    return self
 end
 
 function MSBuilder:addGoal(goal)

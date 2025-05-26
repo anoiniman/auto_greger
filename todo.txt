@@ -75,17 +75,25 @@ with air I guess
 
 Remember to test geolyzer for versioning issues
 
-VVVVVVVVVVVVVVVVVV
-robo_routine, when we get an interected event, don't set it to false immediatly, instead only
-set it to false after the loop so we can try to push forward every "sleeping" command, because
-it might not be the highest on the list the one who got an update -- IMPORTANT
-
 Add extra-chunk based information, so that chunks are marked as having a certain ore depostion, or
 as impassible for navigation, we then need to update navigation in order to deal with these chunks
 hopefully a dumb fix is enough
 
 Add code that orders robot to build a sort of "covering" over a specified hole useful to safe
 le command known as chunk_move("surface")
+
+Temp Bridging algorithm as a movement "mode"/"what"
+
+Besides the "force-update all inventory" command add a "force-update these slots" command
+Use "change_orientation" (not set) in order to orient stairs in the x-z axis, and use side of up/down
+MetaScript, make the stepping of a goal calculate the requirements, both for items and buildings
+also, to calculate the buildings requirements simple add a dry-mode to the do_build thingy mabob
+accessing/creating a temp SchematicInterface directly and summing up the calculated blocks, and then
+looking up how to obtain these blocks in a recursive manner
+
+checks in recipes when output is a table or a simple string
+
+add variation to chunk move that places blocks in the walls so that it may climb :)
 
 Tests to run:
 > build road
