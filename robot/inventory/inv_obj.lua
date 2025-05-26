@@ -65,24 +65,26 @@ end
 local slot_managed = {}
 local slot_manager = {}
 function slot_manager.add(obj)
-    if obj.item_name ~= nil then
-        local name = obj.item_name
+    local sd = obj.special_definition
+    if sd.item_name ~= nil then
+        local name = sd.item_name
         if slot_managed[name] == nil then slot_managed[name] = {} end
         table.insert(slot_managed[name], obj)
         return
     end
 
-    for _, definition in ipairs(obj) do
-        local name = definition.item_name
+    for _, slot_def in ipairs(obj) do
+        local name = slot_def.special_definition.item_name
         if slot_managed[name] == nil then slot_managed[name] = {} end
-        table.insert(slot_managed[name], definition)
+        table.insert(slot_managed[name], slot_def)
     end
 end
 
 function slot_manager.find_all(item_name, level)
     local return_table = {}
     for _, multi_def in pairs(slot_managed) do
-        for _, def in pairs(multi_def) do
+        for _, slot_def in pairs(multi_def) do
+            local def = slot_def.special_definition
             if def.item_name == item_name and def.item_level >= level then
                 table.insert(return_table, def)
             end
@@ -106,7 +108,8 @@ end
 function slot_manager.find_empty_slot(item_name) -- returns a slot number
     -- This filters two times, but the performance drop is acceptable
     local result = slot_manager.find_all(item_name, -1)
-    for _, def in ipairs(result) do
+    for _, slot_def in ipairs(result) do
+        local def = slot_def.special_definition
         if def.item_level == -1 then
             return def.slot_number
         end

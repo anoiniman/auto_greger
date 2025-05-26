@@ -6,7 +6,7 @@ local bucket_functions, item_buckets = table.unpack(require("inventory.item_buck
 
 local Module = {ledger_proper = nil, special_ledger = nil}
 function Module:new()
-    local new = deep_copy(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     local new_ledger = {}
     for _, bucket in ipairs(item_buckets) do
         new_ledger[bucket] = {}
