@@ -192,9 +192,14 @@ end
 
 -- for now forget argument remais for compatibility, but needs to be refactored in the future
 function module.debug_move(dir, distance, forget, nav_obj)
+    local any_error = false
     for i = 1, distance, 1 do
-        real_move("free", dir, nav_obj)
+        local issa_ok = real_move("free", dir, nav_obj)
+        if not issa_ok then
+            any_error = true
+        end
     end
+    return any_error
 end
 
 

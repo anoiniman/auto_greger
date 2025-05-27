@@ -35,8 +35,8 @@ local function do_down_stroke(cur_height, height_target)
     if not result then print(comms.robot_send("error", "BuildRoad: my oh so perfect assertion failed")) end
 
     -- See if after this move we got there (uncomment if etc)
-    -- return cur_height == height_target
-    return false
+    return cur_height == height_target
+    --return false
 end
 
 local function do_up_stroke()
@@ -164,6 +164,8 @@ function module.step(instructions, return_table)
         has_up_stroked = do_up_stroke()
         return return_table
     end
+
+    -- THIS IS A DISGUSTING FALL THROUGH
 
     if not has_up_stroked then
         has_up_stroked = do_up_stroke()
