@@ -35,8 +35,8 @@ local function do_down_stroke(cur_height, height_target)
     if not result then print(comms.robot_send("error", "BuildRoad: my oh so perfect assertion failed")) end
 
     -- See if after this move we got there (uncomment if etc)
-    return cur_height == height_target
-    --return false
+    -- return cur_height == height_target
+    return false
 end
 
 local function do_up_stroke()
@@ -157,13 +157,15 @@ function module.step(instructions, return_table)
         in_ground = (cur_height == height_target)
     end
 
+    -- Removed this optimization that was fucking everything up
+    --[[
     if not closer_to_ceiling and not in_ground and not has_down_stroked then
         has_down_stroked = do_down_stroke(cur_height, height_target)
         return return_table
     elseif closer_to_ceiling and not geolyzer.can_see_sky() and not has_up_stroked then
         has_up_stroked = do_up_stroke()
         return return_table
-    end
+    end--]]
 
     -- THIS IS A DISGUSTING FALL THROUGH
 
