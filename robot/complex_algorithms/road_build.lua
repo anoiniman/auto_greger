@@ -21,8 +21,8 @@ local function do_down_stroke(cur_height, height_target)
         local result = inv.blind_swing_down()
         if not result then -- we report the warning, and we skip to the next block
             print(comms.robot_send("warning", "BuildRoad: failed to swing down"))
-            return true
         end
+        return true
     end
 
     local result, _ = nav.debug_move("down", 1, 0) -- I think this will always return true
@@ -36,8 +36,9 @@ local function do_up_stroke()
     if block_up then
         local result = inv.blind_swing_up()
         if not result then -- we report the warning, and we skip to the next block
-            return true
+            print(comms.robot_send("warning", "BuildRoad: failed to swing down"))
         end
+        return true
     end
 
     local result = nav.debug_move("up", 1, 0)
