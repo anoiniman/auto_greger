@@ -31,8 +31,8 @@ function module.eval_command(command_arguments)
 
     --- IF not a function pointer
 
-    local serial_arguments = serialize.serialize(arguments, true)
-    print(comms.robot_send("eval", "Attempting to Eval -- \"" .. command .. "\":\n" .. serial_arguments))
+    --local serial_arguments = serialize.serialize(arguments, true)
+    --print(comms.robot_send("eval", "Attempting to Eval -- \"" .. command .. "\":\n" .. serial_arguments))
     if command == "echo" then
         return debug.echo(arguments)
     elseif command == "debug" then

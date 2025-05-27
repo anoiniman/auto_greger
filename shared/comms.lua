@@ -86,7 +86,7 @@ function module.robot_send(part1, part2) -- part1 & 2 must be strings
 
     table.insert(final_table, 2, " |>")
     table.insert(final_table, 1, "<| ")
-    local final_string = final_table.concat()
+    local final_string = table.concat(final_table)
     return final_string
 end
 

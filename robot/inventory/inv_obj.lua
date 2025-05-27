@@ -259,8 +259,10 @@ end
 -- of this function to make sure that the items are in the desitred slot, unless of course, the
 -- thing is about returning currently equiped tools to the correct slot
 function module.equip_tool(tool_type, wanted_level)
+    print(comms.robot_send("debug", "Equiping tool: " .. tool_type .. ", " .. wanted_level))
+
     -- First, check if it already equiped
-    if equiped_tool.item_name == tool_type and equiped_tool.item_level >= wanted_level then
+    if equiped_tool ~= nil and equiped_tool.item_name == tool_type and equiped_tool.item_level >= wanted_level then
         return true -- "We equipped it succesefully"
     end
 
