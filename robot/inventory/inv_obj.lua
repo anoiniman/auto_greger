@@ -105,7 +105,7 @@ end
 
 function slot_manager.find_first(item_name, level)
     local result = slot_manager.find_all(item_name, level)
-    if result[1] ~= nil then
+    if result ~= nil then
         return result[1]
     end
     return nil
@@ -265,6 +265,10 @@ end
 -- of this function to make sure that the items are in the desitred slot, unless of course, the
 -- thing is about returning currently equiped tools to the correct slot
 function module.equip_tool(tool_type, wanted_level)
+    -- Listen, it might start swinging at air with a sword but who cares
+    if tool_type == nil or wanted_level == nil then
+        return true
+    end
     print(comms.robot_send("debug", "Equiping tool: " .. tool_type .. ", " .. wanted_level))
 
     -- First, check if it already equiped

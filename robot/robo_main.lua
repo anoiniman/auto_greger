@@ -89,13 +89,6 @@ local function blocking_prompt() -- Return Command
     local post_read = text.tokenize(read)
     print(#post_read)
 
-    if post_read == nil or #post_read < 1 or #post_read > 2 then
-        print("Invalid command lenght: \"" .. read .. "\"")
-        return nil
-    elseif #post_read == 1 then
-        table.insert(post_read, nil)
-    end
-
     table.insert(post_read, 1, -1)
 
     return post_read -- Special command to stop blocking "run_auto"
