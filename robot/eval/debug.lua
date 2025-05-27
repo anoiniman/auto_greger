@@ -76,7 +76,7 @@ function module.debug(arguments)
     elseif arguments[1] == "set_height" then
         local height = tonumber(arguments[2])
         if height == nil then
-            print(comms.robot_send("error", "set_height: no orientation provided"))
+            print(comms.robot_send("error", "set_height: no valid number provided"))
             return nil
         end
         nav.set_height(height)

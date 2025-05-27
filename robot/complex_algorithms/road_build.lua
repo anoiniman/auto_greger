@@ -122,31 +122,40 @@ local function next_block(cur_rel)
     return false
 end
 
+local closer_to_ceiling = nil
+local in_ground = nil
+
 function module.step(instructions, return_table)
     local what_chunk = instructions.what_chunk
     local height_target = instructions.rel_coords[3]
+
+    local cur_height = nav.get_height()
+    local cur_rel = nav.get_rel()
 
     if what_chunk == nil then print(comms.robot_send("error", "road_build.step(), no what_chunk provided!")) end
 
     local cur_chunk = nav.get_chunk()
     local is_chunk_setup = nav.is_setup_navigate_chunk()
     -- Get to the read
-    if is_chunk_setup or (cur_chunk[1] ~= 15 and cur_chunk[1] ~= 0 and cur_chunk[2] ~= 0 and cur_chunk[2] ~= 15) then
+    if is_chunk_setup
+        or (cur_rel[1] ~= 15 and cur_rel[1] ~= 0 and cur_rel[2] ~= 0 and cur_rel[2] ~= 15)
+        or (cur_chunk[1] ~= what_chunk[1] or cur_chunk[2] ~= what_chunk[2]) then
+
         if not is_chunk_setup then
             nav.setup_navigate_chunk(what_chunk)
         end
         nav.navigate_chunk("surface")
     end
 
-    local cur_height = nav.get_height()
-    local cur_rel = nav.get_rel()
     if starting_coords[1] == -1 or starting_coords[2] == -1 then
         starting_coords[1] = cur_rel[1]
         starting_coords[2] = cur_rel[2]
     end
 
-    local closer_to_ceiling = (cur_height - height_target > 4)
-    local in_ground = (cur_height == height_target)
+    if closer_to_ceiling == nil then
+        closer_to_ceiling = (cur_height - height_target > 3)
+        in_ground = (cur_height == height_target)
+    end
 
     if not closer_to_ceiling and not in_ground and not has_down_stroked then
         has_down_stroked = do_down_stroke(cur_height, height_target)
@@ -171,6 +180,8 @@ function module.step(instructions, return_table)
         has_up_stroked = false
         has_down_stroked = false
         moved_once_already = false
+        closer_to_ceiling = nil
+        in_ground = nil
     end
 
     if finished then
