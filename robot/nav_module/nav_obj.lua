@@ -102,11 +102,11 @@ function module.is_setup_door_move()
 end
 
 function module.setup_door_move(door_table)
-    return door_move.setup_move(door_table, nav_obj)
+    return door_move.setup_move(door_table, module.get_rel())
 end
 
 function module.door_move()
-    return door_move.do_move(nav_obj)
+    return door_move.do_move(module)
 end
 
 function module.is_sweep_setup()

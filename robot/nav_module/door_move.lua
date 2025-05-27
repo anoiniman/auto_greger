@@ -32,8 +32,7 @@ local function table_search(door_info_table, cur_position)
 end
 
 -- we assume that our cur position is already on a road
-function module.setup_move(door_info_table, nav_obj)
-    local cur_position = nav_obj.get_rel()
+function module.setup_move(door_info_table, cur_position)
     if type(door_info_table) ~= "table" then
         print(comms.robot_send("warning", "door_move, door_info is not a table, this is non-standard"))
         finish_setup(door_info_table)
@@ -46,19 +45,19 @@ function module.setup_move(door_info_table, nav_obj)
     move_setup = true
 end
 
-local function last_move(nav_obj) -- changed to 2, but could be 1 idk
-    if goal_rel[1] == 0 then nav_obj.debug_move("east", 2, 0)
-    elseif goal_rel[1] == 15 then nav_obj.debug_move("west", 2, 0)
-    elseif goal_rel[2] == 15 then nav_obj.debug_move("north", 2, 0)
-    elseif goal_rel[2] == 0 then nav_obj.debug_move("south", 2, 0)
+local function last_move(nav_obj_functions) -- changed to 2, but could be 1 idk
+    if goal_rel[1] == 0 then nav_obj_functions.debug_move("east", 2, 0)
+    elseif goal_rel[1] == 15 then nav_obj_functions.debug_move("west", 2, 0)
+    elseif goal_rel[2] == 15 then nav_obj_functions.debug_move("north", 2, 0)
+    elseif goal_rel[2] == 0 then nav_obj_functions.debug_move("south", 2, 0)
     else
         print(comms.robot_send("warning", "door_move.last_move() -- couldn't last move!"))
     end
 end
 
-function module.do_move(nav_obj)
+function module.do_move(nav_obj_functions)
     if not move_setup then return 1 end
-    local result, data = nav_obj.navigate_rel_opaque(goal_rel)
+    local result, data = nav_obj_functions.navigate_rel_opaque(goal_rel)
 
     if result == nil then -- luacheck: ignore
     elseif result == 0 then return 0 end
@@ -66,7 +65,7 @@ function module.do_move(nav_obj)
     local dir = result
     if dir == nil then
         -- This means that we've arrived at the spot
-        last_move(nav_obj)
+        last_move(nav_obj_functions)
         move_setup = false
         return -1
     end

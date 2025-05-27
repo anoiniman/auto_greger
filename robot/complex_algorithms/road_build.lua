@@ -100,7 +100,7 @@ local function next_block(cur_rel)
     elseif not result then
         local swing_result = inv.blind_swing_front()
         if swing_result == false then
-
+            print(comms.robot_send("error", "BuildRoad, couldn't swing forward"))
         end
     end
 
