@@ -58,9 +58,7 @@ function module.robot_routine(message)
         --message = nil
     end
 
-
-    local extend_queue = {}
-
+    local extend_queue = {} -- yes, its an array alloc every loop who cares
     -- ugly cludge, fix later
     local where = #task_list
 
@@ -72,13 +70,14 @@ function module.robot_routine(message)
             if cur_task[1] == -2 then
                 if INTERACTED then
                     gate_delay = false
-                    extend_queue = eval.eval_command(cur_task)
+                    table.insert(extend_queue, eval.eval_command(cur_task))
                     table.remove(task_list, where)
+                    where = where - 1
                 else
                     where = where - 1
                 end
             else
-                extend_queue = eval.eval_command(cur_task)
+                table.insert(extend_queue, eval.eval_command(cur_task))
                 table.remove(task_list, where)
                 break
             end
@@ -92,13 +91,9 @@ function module.robot_routine(message)
     end
 
     --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
-    if extend_queue ~= nil then
-        if type(extend_queue[1]) ~= "table" then
-            prio_insert(task_list, extend_queue)
-        else
-            for _, element in ipairs(extend_queue) do
-                prio_insert(task_list, element)
-            end
+    if #extend_queue > 0 then
+        for _, element in ipairs(extend_queue) do
+            prio_insert(task_list, element)
         end
     end
 end
