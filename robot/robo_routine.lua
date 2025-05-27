@@ -59,13 +59,14 @@ function module.robot_routine(message)
     end
 
 
-    local extend_queue = nil
+    local extend_queue = {}
 
     -- ugly cludge, fix later
     local where = #task_list
-    local gate_delay = INTERACTED
+
+    local gate_delay = nil
     while where > 0 do
-        cur_task = task_list[#task_list]
+        cur_task = task_list[where]
 
         if cur_task ~= nil and #cur_task ~= 0 then
             if cur_task[1] == -2 then
@@ -86,7 +87,9 @@ function module.robot_routine(message)
             break
         end
     end
-    INTERACTED = gate_delay
+    if gate_delay ~= nil then
+        INTERACTED = gate_delay
+    end
 
     --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
     if extend_queue ~= nil then

@@ -38,7 +38,7 @@ function SchematicInterface:init(dict, origin)
     self.dictionary = dict
 end
 
-function SechematicInterface:getSpecialBlocks()
+function SchematicInterface:getSpecialBlocks()
     return self.special_blocks
 end
 

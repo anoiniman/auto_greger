@@ -94,6 +94,7 @@ looking up how to obtain these blocks in a recursive manner
 checks in recipes when output is a table or a simple string
 
 add variation to chunk move that places blocks in the walls so that it may climb :)
+Use OOS to aura farm
 
 Tests to run:
 > build road

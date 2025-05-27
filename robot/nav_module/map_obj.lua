@@ -262,8 +262,8 @@ function module.gen_map_obj(offset)
     for x = 1, size, 1 do
         map_obj[x] = {}
         for z = 1, size, 1 do
-            local real_x = what_chunk[1] - map_obj_offsets[1];
-            local real_z = what_chunk[2] - map_obj_offsets[2];
+            local real_x = x - map_obj_offsets[1];
+            local real_z = z - map_obj_offsets[2];
             map_obj[x][z] = MetaChunk:new(real_x, real_z)
         end
     end
