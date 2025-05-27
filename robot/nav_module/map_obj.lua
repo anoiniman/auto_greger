@@ -383,7 +383,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 
     -- Temporary value?
     local prio = 70
-
+    DOOR_MOVE_DONE = false -- SO STUPID, CHANGE THIS WHEN YOUR HEADACHE STOPS
     if what_step <= 0 then
         -- if this crashes add the to_string's
         local hr_table = {
