@@ -34,8 +34,9 @@ local function do_down_stroke(cur_height, height_target)
     local result, _ = nav.debug_move("down", 1, 0) -- I think this will always return true
     if not result then print(comms.robot_send("error", "BuildRoad: my oh so perfect assertion failed")) end
 
-    -- See if after this move we got there
-    return cur_height == height_target
+    -- See if after this move we got there (uncomment if etc)
+    -- return cur_height == height_target
+    return false
 end
 
 local function do_up_stroke()
@@ -55,8 +56,9 @@ local function do_up_stroke()
     local result = nav.debug_move("up", 1, 0)
     -- if not result then: just go to the next thing
 
-    -- See if after this move we got there
-    return (geolyzer.can_see_sky() or not result)
+    -- See if after this move we got there (uncomment if sudden brokey brokey)
+    --return (geolyzer.can_see_sky() or not result)
+    return false
 end
 
 -- move it counter-clockwise
