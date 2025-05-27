@@ -1,6 +1,7 @@
 local deep_copy = require("deep_copy")
 
 local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
+local MetaLedger = require("inventory.MetaLedger")
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 local general_functions = require("build.general_functions")
 

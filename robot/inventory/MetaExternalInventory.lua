@@ -21,10 +21,10 @@ end
 
 
 local Module = {
-    item_defs = nil
-    storage = true -- compared to being a production inventory that consumes items
+    item_defs = nil,
+    storage = true, -- compared to being a production inventory that consumes items
 
-    ledger = nil
+    ledger = nil,
     rel_location = nil -- access location
 }
 
