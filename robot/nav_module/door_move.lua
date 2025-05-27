@@ -19,7 +19,7 @@ local function table_search(door_info_table, cur_position)
     local cur_distance = 100 -- default value
     local cur_door = nil
     for _, door in ipairs(door_info_table) do
-        print(comms.robot_send("debug", "Door(: " .. door.x .. ", " .. door.y .. ")"))
+        print(comms.robot_send("debug", "Door(: " .. door.x .. ", " .. door.z .. ")"))
         if cur_position[1] == door.x and math.abs(cur_position[2] - door.z) < cur_distance then
             cur_distance = cur_position[2] - door.z
             cur_door = door

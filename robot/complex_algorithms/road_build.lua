@@ -183,7 +183,6 @@ function module.step(instructions, return_table)
         finished = next_block(cur_rel)
         has_up_stroked = false
         has_down_stroked = false
-        moved_once_already = false
         closer_to_ceiling = nil
         in_ground = nil
     end

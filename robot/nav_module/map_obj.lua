@@ -525,5 +525,6 @@ end
 -- temp
 module.create_named_area("home", "green", 69, "dirt")
 module.gen_map_obj({1,1})
+module.get_chunk({-2,1}).road_cleared = true
 
 return module
