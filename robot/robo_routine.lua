@@ -70,14 +70,16 @@ function module.robot_routine(message)
             if cur_task[1] == -2 then
                 if INTERACTED then
                     gate_delay = false
-                    table.insert(extend_queue, eval.eval_command(cur_task))
+                    local maybe_extend = eval.eval_command(cur_task)
+                    if maybe_extend ~= nil then table.insert(extend_queue, maybe_extend) end
                     table.remove(task_list, where)
                     where = where - 1
                 else
                     where = where - 1
                 end
             else
-                table.insert(extend_queue, eval.eval_command(cur_task))
+                local maybe_extend = eval.eval_command(cur_task)
+                if maybe_extend ~= nil then table.insert(extend_queue, maybe_extend) end
                 table.remove(task_list, where)
                 break
             end
