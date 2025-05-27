@@ -97,12 +97,18 @@ end
 -- I think this is fine
 function slot_manager.find_slot(item_name, level) -- returns a slot number
     local result = slot_manager.find_all(item_name, level)
-    return result[1].slot_number
+    if result ~= nil then 
+       return result[1].slot_number
+    end
+    return nil
 end
 
 function slot_manager.find_first(item_name, level)
     local result = slot_manager.find_all(item_name, level)
-    return result[1]
+    if result[1] ~= nil then
+        return result[1]
+    end
+    return nil
 end
 
 function slot_manager.find_empty_slot(item_name) -- returns a slot number
@@ -267,8 +273,12 @@ function module.equip_tool(tool_type, wanted_level)
     end
 
     local first_tool = slot_manager.find_first(tool_type, wanted_level)
-    local slot = first_tool.slot_number
-    local sp_definition = first_tool.special_definition
+    local slot = nil
+    local sp_definition = nil
+    if first_tool ~= nil then
+        slot = first_tool.slot_number
+        sp_definition = first_tool.special_definition
+    end
 
     -- Equip required tool if found else return false
     if slot == nil then return false end
