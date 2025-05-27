@@ -70,9 +70,11 @@ function module.nav_and_build(instructions, post_run)
         if result == 1 then
             if err == nil then err = "nil" end
             if err ~= "swong" then error(comms.robot_send("fatal", "nav_build: this is unexpected!")) end
+            return self_return
         elseif result == -1 then
             instructions:delete("door_info") -- necessary for code to advance to rel_move section
-        elseif result == 0 then return self_return end
+        elseif result == 0 then return self_return
+        else error(comms.robot_send("fatal", "nav_build: unexpected2!")) end
     end
 
     -------- DO MOVE REL -----------

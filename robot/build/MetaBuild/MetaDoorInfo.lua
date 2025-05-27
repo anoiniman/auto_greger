@@ -27,11 +27,11 @@ function MetaDoorInfo:doorZ(z, len) -- this assumes quad 2
 end
 
 function MetaDoorInfo:mirror(x_axis, z_axis) -- arguments are bools, function returns nothing
-    if x_axis then
+    if z_axis then
         self.x = self.x
         self.z = math.abs(15 - self.z)
     end
-    if z_axis then
+    if x_axis then
         self.x = math.abs(15 - self.x)
         self.z = self.z
     end

@@ -90,7 +90,7 @@ function module.setup_navigate_rel(what_coords)
 end
 
 function module.navigate_rel_opaque(what_coords)
-    rel_move.access_opaque(nav_obj, what_coords)
+    return rel_move.access_opaque(nav_obj, what_coords)
 end
 
 function module.navigate_rel()

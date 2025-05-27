@@ -98,7 +98,7 @@ Use OOS to aura farm
 
 Tests to run:
 > build road
-> navigate door
+> navigate door ------- Support doors that are not in 0x/0z :)
 > build hole_home (filled with air)
 > gathering scripts
 > making sure internal inventory gets updated currectly (do some introspection)
