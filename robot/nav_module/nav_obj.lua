@@ -82,7 +82,7 @@ function module.navigate_chunk(what_kind)
 end
 
 function module.debug_move(dir, distance, forget)
-    interface.debug_move(dir, distance, forget, nav_obj)
+    return interface.debug_move(dir, distance, forget, nav_obj)
 end
 
 function module.setup_navigate_rel(what_coords)
