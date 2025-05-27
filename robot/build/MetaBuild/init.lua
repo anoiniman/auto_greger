@@ -200,7 +200,7 @@ function Module:finalizeBuild()
     local new_state_ref = self.post_build_hooks[1]()
     table.insert(self.post_build_state[1], PublicState:new(new_state_ref))
 
-    for index, special in ipairs(self.s_interface.getSpecialBlocks()) do
+    for index, special in ipairs(self.s_interface:getSpecialBlocks()) do
         if special == "*" then -- build state >= 2 specific states
             if self.post_build_state[2] == nil then self.post_build_state[2] = {} end
 
