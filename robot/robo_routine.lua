@@ -64,15 +64,14 @@ function module.robot_routine(message)
     -- ugly cludge, fix later
     local where = #task_list
 
-    --local gate_delay = nil
+    local gate_delay = nil
     while where > 0 do
         cur_task = task_list[where]
 
         if cur_task ~= nil and #cur_task ~= 0 then
             if cur_task[1] == -2 then
                 if INTERACTED then
-                    --gate_delay = false
-                    INTERACTED = false
+                    gate_delay = false
                     extend_queue = eval.eval_command(cur_task)
                     table.remove(task_list, where)
                 else
@@ -88,9 +87,9 @@ function module.robot_routine(message)
             break
         end
     end
-    --[[if gate_delay ~= nil then
+    if gate_delay ~= nil then
         INTERACTED = gate_delay
-    end --]]
+    end
 
     --if extend_queue ~= nil then table.insert(task_list, extend_queue) end
     if extend_queue ~= nil then
