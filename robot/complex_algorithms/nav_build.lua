@@ -32,6 +32,9 @@ local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     return false
 end
 
+-- THIS VARIABLE IS DANGEROUS AND STUPID AND I DON'T CARE
+local door_move_done = false
+
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
@@ -63,7 +66,7 @@ function module.nav_and_build(instructions, post_run)
         error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?"))
     end
     -------- DO MOVE DOOR ----------
-    if door_info ~= nil then
+    if not door_move_done then
         if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
         local result, err = nav.door_move()
 
@@ -72,7 +75,8 @@ function module.nav_and_build(instructions, post_run)
             if err ~= "swong" then error(comms.robot_send("fatal", "nav_build: this is unexpected!")) end
             return self_return
         elseif result == -1 then
-            instructions:delete("door_info") -- necessary for code to advance to rel_move section
+            door_move_done = true
+            --instructions:delete("door_info") -- necessary for code to advance to rel_move section
         elseif result == 0 then return self_return
         else error(comms.robot_send("fatal", "nav_build: unexpected2!")) end
     end
@@ -111,6 +115,8 @@ function module.nav_and_build(instructions, post_run)
             end
         end
 
+        -- STUPIDITY HAPPENS HERE; IT'LL HAUNT YOU IN THE FUTURE AND YOU'LL HATE IT
+        door_move_done = false
         return post_run
     elseif result == 1 then
         if err == nil then err = "nil" end
