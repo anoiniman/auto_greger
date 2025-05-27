@@ -84,7 +84,7 @@ function module.robot_routine(message)
                 break
             end
         else
-            task_list[#task_list] = nil
+            task_list[where] = nil
             break
         end
     end

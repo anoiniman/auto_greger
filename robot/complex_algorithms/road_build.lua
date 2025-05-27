@@ -13,9 +13,15 @@ local geolyzer = require("geolyzer_wrapper")
 -- it'll be going down-up-move-down-move-up..... etc.
 local has_up_stroked = false
 local has_down_stroked = false
+local moved_once_already = false
 local starting_coords = {-1,-1}
 
 local function do_down_stroke(cur_height, height_target)
+    -- If we're already there then don't bother
+    if cur_height == height_target then
+        return true
+    end
+
     local block_down = robot.detectDown()
     if block_down then
         local result = inv.blind_swing_down()
@@ -28,10 +34,15 @@ local function do_down_stroke(cur_height, height_target)
     local result, _ = nav.debug_move("down", 1, 0) -- I think this will always return true
     if not result then print(comms.robot_send("error", "BuildRoad: my oh so perfect assertion failed")) end
 
+    -- See if after this move we got there
     return cur_height == height_target
 end
 
 local function do_up_stroke()
+    if geolyzer.can_see_sky() then
+        return true
+    end
+
     local block_up = robot.detectUp()
     if block_up then
         local result = inv.blind_swing_up()
@@ -44,13 +55,14 @@ local function do_up_stroke()
     local result = nav.debug_move("up", 1, 0)
     -- if not result then: just go to the next thing
 
+    -- See if after this move we got there
     return (geolyzer.can_see_sky() or not result)
 end
 
 -- move it counter-clockwise
 local function next_block(cur_rel)
     local dir = nil -- luacheck: ignore
-    if cur_rel[1] == starting_coords[1] and cur_rel[2] == starting_coords[2] then
+    if cur_rel[1] == starting_coords[1] and cur_rel[2] == starting_coords[2] and moved_once_already then
         return true
     end
 
@@ -104,6 +116,7 @@ local function next_block(cur_rel)
         end
     end
 
+    moved_once_already = true
     return false
 end
 
@@ -155,6 +168,7 @@ function module.step(instructions, return_table)
         finished = next_block(cur_rel)
         has_up_stroked = false
         has_down_stroked = false
+        moved_once_already = false
     end
 
     if finished then

@@ -83,7 +83,11 @@ function module.robot_send(part1, part2) -- part1 & 2 must be strings
     local hello = serialize.serialize(final_table)
 
     tunnel.send(hello)
-    return part1, part2
+
+    table.insert(final_table, " |>" , 2)
+    table.insert(final_table, "<| " , 1)
+    local final_string = final_table.concat()
+    return final_string
 end
 
 return module

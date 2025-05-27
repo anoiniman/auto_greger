@@ -31,7 +31,7 @@ term.setCursorBlink(false)
 
 --luacheck: globals CRON_TIME DO_REASONING REASON_ONCE
 CRON_TIME = 5
-DO_REASONING = false
+DO_REASONING = true
 REASON_ONCE = false
 
 local cron_time_interval = computer.uptime()
