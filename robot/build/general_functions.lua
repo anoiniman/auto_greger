@@ -39,20 +39,31 @@ function module.mirror_x(base_table, segments)
     local watch_dog = false
     -- Reverse the base
     for key, base in pairs(base_table) do
-        if base[1] == "def" then -- because there might be multiple refs to "def" we only need to reverse it once
-            if watch_dog == false then
-                watch_dog = true
-            else
-                goto continue
+        -- segments == nil -> we are not using meta-date -> etc
+        local square_to_reverse
+        if segments ~= nil then
+            if base[1] == "def" then -- because there might be multiple refs to "def" we only need to reverse it once
+                if watch_dog == false then
+                    watch_dog = true
+                else
+                    goto continue
+                end
             end
+            square_to_reverse = base[2]
+        else
+            square_to_reverse = base
         end
 
-        for index, x_segment in ipairs(base[2]) do
+        for index, x_segment in ipairs(square_to_reverse) do
             x_segment = string.reverse(x_segment)
-            base[2][index] = x_segment
+            square_to_reverse[index] = x_segment
         end
+
         ::continue::
     end
+
+    -- Early Return
+    if segments == nil then return end
 
     -- Reverse the segments
     for _, seg in pairs(segments) do
@@ -66,15 +77,21 @@ function module.mirror_z(base_table, segments)
     local watch_dog = false
     -- Reverse the base
     for key, base in pairs(base_table) do
-        if base[1] == "def" then -- because there might be multiple refs to "def" we only need to reverse it once
-            if watch_dog == false then
-                watch_dog = true
-            else
-                goto continue
+        local human_readable
+
+        if segments ~= nil then
+            if base[1] == "def" then -- because there might be multiple refs to "def" we only need to reverse it once
+                if watch_dog == false then
+                    watch_dog = true
+                else
+                    goto continue
+                end
             end
+            human_readable = base[2]
+        else
+            human_readable = base
         end
 
-        local human_readable = base[2]
         local jindex = 1
         for index = #human_readable, 1, -1 do
             local temp = human_readable[jindex]
@@ -85,6 +102,9 @@ function module.mirror_z(base_table, segments)
 
         ::continue::
     end
+
+    -- Early Return
+    if segments == nil then return end
 
     local quad_size_logic = 8 -- imagine this is a const, it's 7+1, the actual size of a quad + 1
     -- Reverse the segments

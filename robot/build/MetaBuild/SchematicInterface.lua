@@ -121,7 +121,7 @@ function SchematicInterface:doBuild(top_down)
     rel[2] = self.origin_block[2] + (b_stack.logical_z - 1)
     rel[1] = self.origin_block[1] + chunk.x
 
-    local instruction = self:InstructionConstruction(chunk) 
+    local instruction = self:InstructionConstruction(chunk, rel) 
 
     return true, "continue", instruction
 end
@@ -148,7 +148,7 @@ local function interpret_element(element, index, do_error)
     end
 end
 
-function SchematicInterface:InstructionConstruction(chunk)
+function SchematicInterface:InstructionConstruction(chunk, rel)
     local translated_symbol = self.dictionary[chunk.symbol]
     if translated_symbol == nil then
         print(comms.robot_send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
