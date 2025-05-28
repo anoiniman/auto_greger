@@ -157,7 +157,9 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
     print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
     if type(translated_symbol) ~= "table" then
         print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
-    else
+    else -- if it IS a table
+        translated_symbol = deep_copy.copy(translated_symbol, ipairs) -- Yes I should do this in place, no I don't care for now 
+
         local serial = serialize.serialize(translated_symbol, true)
         print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))
     end
@@ -168,7 +170,7 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
         return BuildInstruction:newBasic(coords, translated_symbol)
     end
 
-    local instruction = nil
+    local instruction
     local first = table.remove(translated_symbol, 1) -- should be lable
     local peek = interpret_element(translated_symbol[1], 1, false)
     if peek == nil then
