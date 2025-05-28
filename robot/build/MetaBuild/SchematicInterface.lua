@@ -1,4 +1,4 @@
---local serialize = require("serialization")
+local serialize = require("serialization")
 local io = require("io")
 
 local comms = require("comms")
@@ -155,7 +155,12 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
         return false
     end
     print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
-    print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
+    if type(translated_symbol) ~= "table" then
+        print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
+    else
+        local serial = serialize.serialize(translated_symbol, true)
+        print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))
+    end
 
     local coords = deep_copy.copy(rel, ipairs)
 
@@ -175,7 +180,7 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
 
     for index, element in ipairs(translated_symbol) do
         local i_str, arg = interpret_element(element, index, true)
-        BuildInstruction:addExtra(i_str, arg)
+        BuildInstruction:addExtra(i_str, arg) -- here
     end
 
     if instruction == nil then
