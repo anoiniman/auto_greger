@@ -120,21 +120,9 @@ end
 -- smart clear by default
 -- prob unecessary to do all these ifs idk
 function Module:addExtra(str_name, args)
-    for _, cur_str in ipairs(self.extra_sauce) do
-        if type(cur_str) == "table" then -- it doesn't care about arguments
-            if cur_str[1] == str_name then
-               print(comms.robot_send("debug", "BuildInstruction, instruction already present (in table), skipping"))
-               return
-            end
-            goto continue
-        end
-
-        if cur_str == str_name then
-            print(comms.robot_send("debug", "BuildInstruction, instruction already present, skipping"))
-            return
-        end
-
-        ::continue::
+    if self:includes(str_name) then 
+        print(comms.robot_send("warning", "Attempted to add an already added extra: \"" .. str_name .. "\""))
+        return 
     end
 
     local to_insert = str_name
