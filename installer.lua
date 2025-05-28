@@ -114,6 +114,8 @@ local function robot_build_primitives()
 
     download("/robot/build/coke_quad.lua", "self")
     download("/robot/build/hole_home.lua", "self")
+    download("/robot/build/storeroom_north.lua", "self")
+    download("/robot/build/storeroom_south.lua", "self")
 end
 
 local function robot_meta_build()
@@ -155,6 +157,7 @@ local function robot_reasoning()
     end
     download("/robot/reasoning/scripts/debug/01.lua", "self")
     download("/robot/reasoning/scripts/debug/02.lua", "self")
+    download("/robot/reasoning/scripts/debug/03.lua", "self")
 end
 
 local function robot_inventory()

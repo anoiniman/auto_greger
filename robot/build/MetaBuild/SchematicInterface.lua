@@ -121,6 +121,34 @@ function SchematicInterface:doBuild(top_down)
     rel[2] = self.origin_block[2] + (b_stack.logical_z - 1)
     rel[1] = self.origin_block[1] + chunk.x
 
+    local instruction = self:InstructionConstruction(chunk) 
+
+    return true, "continue", instruction
+end
+
+-- place for the side argument in place
+-- orientation to have the robot change it's orientation before placing
+
+local function interpret_element(element, index, do_error)
+    if element == nil then
+        print(comms.robot_send("error", "SI:interpret_element, element nil! Expected a table to have more than 1 element"))
+        return nil
+    end
+
+    if element == "west" or "east" or "north" or "south" or "up" or "down" then
+        if index == 1 then return "place", element
+        elseif index == 2 then return "orient", element
+        else error(comms.robot_send("fatal", "interpret_element: as of yet unsupported!")) end
+
+    else -- non instruction element
+        if do_error then
+            print(comms.robot_send("error", "SI:IC, instruction: \"" .. element .. "\" not recognized"))
+        end
+        return nil
+    end
+end
+
+function SchematicInterface:InstructionConstruction(chunk)
     local translated_symbol = self.dictionary[chunk.symbol]
     if translated_symbol == nil then
         print(comms.robot_send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
@@ -130,9 +158,30 @@ function SchematicInterface:doBuild(top_down)
     print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
 
     local coords = deep_copy.copy(rel, ipairs)
-    local instruction = BuildInstruction:newBasic(coords, translated_symbol)
 
-    return true, "continue", instruction
+    if type(translated_symbol) ~= "table" then
+        return BuildInstruction:newBasic(coords, translated_symbol)
+    end
+
+    local instruction = nil
+    local first = table.remove(translated_symbol, 1) -- should be lable
+    local peek = interpret_element(translated_symbol[1], 1, false)
+    if peek == nil then
+        local second = table.remove(translated_symbol, 1)
+        instruction = BuildInstruction:newBasic(coords, first, second)
+    else
+        instruction = BuildInstruction:newBasic(coords, first, nil)
+    end
+
+    for index, element in ipairs(translated_symbol) do
+        local i_str, arg = interpret_element(element, index, true)
+        BuildInstruction:addExtra(i_str, arg)
+    end
+
+    if instruction == nil then
+        error(comms.robot_send("fatal", "SI:InstructionConstruction, no instruction was created!"))
+    end
+    return instruction
 end
 
 return SchematicInterface

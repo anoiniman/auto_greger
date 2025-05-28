@@ -351,7 +351,10 @@ end
 
 
 --->>-- Block Placing --<<----{{{
-function module.place_block(dir, block_identifier, lable_type)
+function module.place_block(dir, block_identifier, lable_type, side)
+    -- if side is nil it doesn't matter
+    if side ~= nil then side = sides_api[side] end
+
     if type(block_identifier) == "table" then
         if lable_type == "lable" then block_identifier = block_identifier.lable
         elseif lable_type == "name" then block_identifier = block_identifier.name
@@ -379,7 +382,7 @@ function module.place_block(dir, block_identifier, lable_type)
 
     local place_result
     if dir == "down" then
-        place_result = robot.placeDown()
+        place_result = robot.placeDown(side)
     elseif dir == "up" then
         place_result = robot.placeUp()
     else

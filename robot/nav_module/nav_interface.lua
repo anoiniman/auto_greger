@@ -39,6 +39,10 @@ function update_pos(direction, nav_obj) -- assuming forward move
     nav_obj.height = height
 end
 
+function module.c_orientation(goal, nav_obj)
+    return change_orientation(goal, nav_obj)
+end
+
 function change_orientation(goal, nav_obj)
     local orientation = nav_obj.orientation
 

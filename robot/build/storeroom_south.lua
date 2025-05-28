@@ -1,4 +1,5 @@
 -- Made by Rine0333
+-- and correct by me :)
 
 local deep_copy = require("deep_copy")
 
@@ -6,21 +7,21 @@ local meta_door = require("build.MetaBuild.MetaDoorInfo")
 local general_functions = require("build.general_functions")
 
 local Module = {parent = nil}
-Module.name = "chest.storeroomSouth"
+Module.name = "storeroom_south"
 
 Module.dictionary = {
-    ["0"] = "Quarried Brick"
+    ["0"] = "Quarried Brick",
     ["1"] = "Birch Wood Planks",
     ["2"] = "Spruce Wood Planks",
-    ["3"] = "Torch"
+    ["3"] = "Torch",
     -- Chest
     ["4"] = {"Chest", "north"},
     ["5"] = {"Trap Chest", "north"},
     -- Birch Wood Slab
-    ["6"] = {"Birch Wood Slab", "up"}, 
+    ["6"] = {"Birch Wood Slab", "up"},
     ["7"] = {"Birch Wood Slab", "down"},
     -- Spruce Wood Slab
-    ["c"] = {"Spruce Wood Slab", "up"}, 
+    ["c"] = {"Spruce Wood Slab", "up"},
     ["e"] = {"Spruce Wood Slab", "down"},
     -- Stone Brick Slab
     ["8"] = {"Stone Brick Slab", "up"},
@@ -56,12 +57,13 @@ Module.dictionary = {
     ["A"] = {"Stone Bricks Stairs", "down", "south"},
     ["B"] = {"Stone Bricks Stairs", "down", "east"},
     ["C"] = {"Stone Bricks Stairs", "down", "west"},
+    -- Special
+    -- ["D"] = {"Dirt", "temp"}
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)
 -- create rotation function somewhere
 Module.layer0 = {
-    {
     "b000db2",
     "b0000b2",
     "b0000b2",
@@ -69,10 +71,8 @@ Module.layer0 = {
     "b000db2",
     "b000002",
     "adddddd",
-    }
 }
 Module.layer1 = {
-    {
     "A22d---",
     "9255---",
     "9244---",
@@ -80,10 +80,8 @@ Module.layer1 = {
     "922dt--",
     "z2111l-",
     "aBC8yB-",
-    }
 }
 Module.layer2 = {
-    {
     "A12d3--",
     "-155---",
     "-144---",
@@ -91,10 +89,8 @@ Module.layer2 = {
     "-12dp--",
     "v1111--",
     "ax-----",
-    }
 }
 Module.layer3 = {
-    {
     "z12d---",
     "A155---",
     "9144---",
@@ -102,10 +98,8 @@ Module.layer3 = {
     "912dt--",
     "z1111h-",
     "aBAACx-",
-    }
 }
 Module.layer4 = {
-    {
     "v12d---",
     "w155---",
     "8144---",
@@ -113,10 +107,8 @@ Module.layer4 = {
     "812dp--",
     "v11111h",
     "axAAAAx",
-    }
 }
 Module.layer5 = {
-    {
     "w12d---",
     "-155---",
     "-144---",
@@ -124,10 +116,8 @@ Module.layer5 = {
     "-12dteu",
     "z111111",
     "aB99999",
-    }
 }
 Module.layer6 = {
-    {
     "w21a---",
     "8211---",
     "8211---",
@@ -135,10 +125,8 @@ Module.layer6 = {
     "821apte",
     "v211111",
     "ax88888",
-    }
 }
 Module.layer7 = {
-    {
     "bb1adp-",
     "bb11---",
     "bb11---",
@@ -146,10 +134,8 @@ Module.layer7 = {
     "bb1adp-",
     "bb11199",
     "adddd--",
-    }
 }
 Module.layer8 = {
-    {
     "--baadp",
     "--bb---",
     "--bb---",
@@ -157,10 +143,8 @@ Module.layer8 = {
     "--baadp",
     "--ba1--",
     "--aaad-",
-    }
 }
 Module.layer9 = {
-    {
     "----aad",
     "----b--",
     "----b--",
@@ -168,7 +152,6 @@ Module.layer9 = {
     "----aad",
     "----a88",
     "----add",
-    }
 }
 
 
@@ -196,4 +179,4 @@ function Module:new()
     return deep_copy.copy(self, pairs)
 end
 
-return Modulea
+return Module

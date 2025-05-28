@@ -64,6 +64,10 @@ function module.set_rel(x, z)
     nav_obj.rel[2] = z
 end
 
+function module.change_orientation(orient)
+    return interface.c_orientation(orient, nav_obj)
+end
+
 function module.set_orientation(orient)
     nav_obj.orientation = orient
 end

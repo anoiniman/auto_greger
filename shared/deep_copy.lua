@@ -3,6 +3,7 @@ local comms = require("comms")
 local module = {}
 
 function module.copy(obj, iter_func) -- I'm dumb, I've had to create this function
+    if obj == nil then return nil end
     if type(obj) == "table" then
         return module.copy_table(obj, iter_func)
     else
@@ -11,6 +12,7 @@ function module.copy(obj, iter_func) -- I'm dumb, I've had to create this functi
 end
 
 function module.copy_table(old_table, iter_func) -- pair or ipair
+    if old_table == nil then return nil end
     local new_table = {}
 
     local old_meta = getmetatable(old_table)

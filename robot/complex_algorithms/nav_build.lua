@@ -41,9 +41,6 @@ local DOOR_MOVE_DONE = false
 local non_smart_keywords = {"no_smart_build", "force_clear"} -- this is now useless since I decided to make force_clear the default
 function module.nav_and_build(instructions, post_run)
     local rel_coords, what_chunk, door_info, block_info = instructions:nav_and_build_unpack()
-    if instructions:includesOr(non_smart_keywords) then
-        error(comms.robot_send("fatal", "nav_and_build_ non-smart building not yet supported"))
-    end
 
     -- I know this shit should be done in place, I don't have the time to code good for now
     -- post_run is a command to be run after this one is finished
@@ -66,7 +63,7 @@ function module.nav_and_build(instructions, post_run)
         error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?"))
     end
     -------- DO MOVE DOOR ----------
-    if not DOOR_MOVE_DONE then
+    if not DOOR_MOVE_DONE and door_info ~= nil and #door_info ~= 0 then
         if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
         local result, err = nav.door_move()
 
@@ -93,30 +90,36 @@ function module.nav_and_build(instructions, post_run)
 
         nav.setup_navigate_rel(rel_coords)
     end
-    -------------------------------
-
     local result, err = nav.navigate_rel()
+    -----------------------------------------
+
     if result == -1 then -- movement completed (place block, and go back to build_function)
-        if not instructions:includes("top_to_bottom") then
-            if not inv.place_block("down", block_info, "lable") then
-                -- Real error handling will come some other time
-                if not inv.blind_swing_down() then -- just break the damn block and try again
-                    print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
-                    return nil
-                end
-            end
+        local new_orient = instructions:getArg("orient")
+        if new_orient ~= nil then
+            nav.change_orientation(new_orient)
+        end
+
+        local place_dir
+        local swing_func
+        if instructions:includes("top_to_bottom") then
+            place_dir = "up"
+            swing_func = inv.blind_swing_up
         else
-            if not inv.place_block("up", block_info, "lable") then
-                -- Real error handling will come some other time
-                if not inv.blind_swing_up() then -- just break the damn block and try again
-                    print(comms.robot_send("error", "Could not break block below during move and build smart_cleanup"))
-                    return nil
-                end
+            place_dir = "down"
+            swing_func = inv.blind_swing_down
+        end
+
+        local place_side = instructions:getArg("place")
+        if not inv.place_block(place_dir, block_info, "lable") then
+            -- Real error handling will come some other time
+            if not swing_func() then -- just break the damn block and try again
+                print(comms.robot_send("error", "Could not break block: \"" .. place_dir .. "\"during move and build smart_cleanup"))
+                return nil
             end
         end
 
         return post_run
-    elseif result == 1 then
+    elseif result == 1 then -- means error
         if err == nil then err = "nil" end
 
         if err == "swong" then print("debug", "noop") -- not a big error we keep going
