@@ -110,11 +110,12 @@ function module.nav_and_build(instructions, post_run)
         end
 
         local place_side = instructions:getArg("place")
-        if not inv.place_block(place_dir, block_info, "lable") then
+        if not inv.place_block(place_dir, block_info, "lable", place_side) then
             -- Real error handling will come some other time
             if not swing_func() then -- just break the damn block and try again
                 print(comms.robot_send("error", "Could not break block: \"" .. place_dir .. "\"during move and build smart_cleanup"))
-                return nil
+                return post_run -- continue as if the block had been placed
+                --return nil
             end
         end
 
