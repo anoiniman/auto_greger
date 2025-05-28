@@ -16,7 +16,7 @@ Module.dictionary = {
     ["3"] = "Torch",
     -- Chest
     ["4"] = "Chest",
-    ["5"] = "Trap Chest",
+    ["5"] = "Trapped Chest",
     -- Birch Wood Slab
     ["6"] = {"Birch Wood Slab", "up"},
     ["7"] = {"Birch Wood Slab", "down"},
