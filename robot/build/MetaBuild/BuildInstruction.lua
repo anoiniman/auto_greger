@@ -89,7 +89,6 @@ end
 
 function Module:getArg(str)
     if self.extra_sauce == nil then return nil end
-    local found = nil
     for _, sauce in ipairs(self.extra_sauce) do
         if type(sauce) ~= "table" then goto continue end
         if sauce[1] == str then return sauce end
@@ -120,9 +119,11 @@ end
 -- smart clear by default
 -- prob unecessary to do all these ifs idk
 function Module:addExtra(str_name, args)
-    if self:includes(str_name) then 
+    if self.extra_sauce == nil then self.extra_sauce = {} end
+
+    if self:includes(str_name) then
         print(comms.robot_send("warning", "Attempted to add an already added extra: \"" .. str_name .. "\""))
-        return 
+        return
     end
 
     local to_insert = str_name
