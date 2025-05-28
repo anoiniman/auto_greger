@@ -87,11 +87,12 @@ function Module:includes(str)
     return false
 end
 
+-- return FIRST ARGUMENT
 function Module:getArg(str)
     if self.extra_sauce == nil then return nil end
     for _, sauce in ipairs(self.extra_sauce) do
         if type(sauce) ~= "table" then goto continue end
-        if sauce[1] == str then return sauce end
+        if sauce[1] == str then return sauce[2] end
 
         ::continue::
     end
