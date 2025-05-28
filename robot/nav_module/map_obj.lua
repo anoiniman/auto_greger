@@ -154,7 +154,7 @@ function MetaChunk:getDoors(what_quad_num)
     if not self:quadChecks(what_quad_num, "getDoors") then return nil end
     local this_quad = self.meta_quads[what_quad_num]
     local doors = this_quad:getDoors()
-    if doors == nil then print(comms.robot_send("error", "MetaChunk:getDoors, got nil doors xO")) end
+    --if doors == nil then print(comms.robot_send("error", "MetaChunk:getDoors, got nil doors xO")) end
     return doors
 end
 

@@ -24,8 +24,8 @@ Module.dictionary = {
     ["c"] = {"Spruce Wood Slab", "up"},
     ["e"] = {"Spruce Wood Slab", "down"},
     -- Stone Brick Slab
-    ["8"] = {"Stone Brick Slab", "up"},
-    ["9"] = {"Stone Brick Slab", "down"},
+    ["8"] = {"Stone Bricks Slab", "up"},
+    ["9"] = {"Stone Bricks Slab", "down"},
     -- Spruce Wood
     ["a"] = {"Spruce Wood", "up"},
     ["b"] = {"Spruce Wood", "north"},
@@ -49,14 +49,14 @@ Module.dictionary = {
     ["t"] = {"Spruce Wood Stairs", "down", "east"},
     ["u"] = {"Spruce Wood Stairs", "down", "west"},
     -- Stone Bricks Stairs
-    ["v"] = {"Stone Bricks Stairs", "up", "north"},
-    ["w"] = {"Stone Bricks Stairs", "up", "south"},
-    ["x"] = {"Stone Bricks Stairs", "up", "east"},
-    ["y"] = {"Stone Bricks Stairs", "up", "west"},
-    ["z"] = {"Stone Bricks Stairs", "down", "north"},
-    ["A"] = {"Stone Bricks Stairs", "down", "south"},
-    ["B"] = {"Stone Bricks Stairs", "down", "east"},
-    ["C"] = {"Stone Bricks Stairs", "down", "west"},
+    ["v"] = {"Stone Brick Stairs", "up", "north"},
+    ["w"] = {"Stone Brick Stairs", "up", "south"},
+    ["x"] = {"Stone Brick Stairs", "up", "east"},
+    ["y"] = {"Stone Brick Stairs", "up", "west"},
+    ["z"] = {"Stone Brick Stairs", "down", "north"},
+    ["A"] = {"Stone Brick Stairs", "down", "south"},
+    ["B"] = {"Stone Brick Stairs", "down", "east"},
+    ["C"] = {"Stone Brick Stairs", "down", "west"},
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)

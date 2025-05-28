@@ -182,7 +182,7 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
 
     for index, element in ipairs(translated_symbol) do
         local i_str, arg = interpret_element(element, index, true)
-        BuildInstruction:addExtra(i_str, arg) -- here
+        BuildInstruction:addExtra(i_str, arg)
     end
 
     if instruction == nil then
