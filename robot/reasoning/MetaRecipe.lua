@@ -1,6 +1,7 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+-- Output can be a name or lable if specified
 local MetaRecipe = {
     output = nil,
     strict = "strict", -- if the names listed in output are strict matching or what sort of liniences they have
@@ -12,14 +13,18 @@ local MetaRecipe = {
     state = nil
 }
 -- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
-function MetaRecipe:new(state_primitive, strict)
+function MetaRecipe:new(output, state_primitive, strict)
     local new = deep_copy.copy(self, pairs)
-    new.state = deep_copy.copy(state_primitive, pairs)
 
+    new.state = deep_copy.copy(state_primitive, pairs)
     if strict ~= nil then
         new.strict = strict
     end
 
+    if type(output) ~= table then
+        output = {lable = output, name = nil}
+    end
+    new.output = output
     return new
 end
 
@@ -65,10 +70,9 @@ function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_p
         return nil
     end
 
-    local new = self:new(state_primitive, strict)
+    local new = self:new(output, state_primitive, strict)
     new.dependencies = dependencies
     new.meta_type = "crafting_table"
-    new.output = output
 
     new.mechanism = CraftingTable:new(recipe_table)
     return new
@@ -86,10 +90,9 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive
         return nil
     end
 
-    local new = self:new(state_primitive, strict)
+    local new = self:new(output, state_primitive, strict)
     new.dependencies = dependencies
     new.meta_type = "gathering"
-    new.output = output
 
     new.mechanism = Gathering:new(tool, level, algorithm)
     return new

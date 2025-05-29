@@ -4,12 +4,14 @@ local inv = require("inventory.inv_obj")
 
 -- Possible filters = "strict", "loose", <!"gt_ore"!> (maybe not anymore)
 -- perfect string match, imperfect match, item_name is actually a table
-local ItemConstraint = {item_name = nil, total_count = nil, filter = nil, internal = true, lock = {0}}
-function ItemConstraint:new(item_name, total_count, filter) -- maybe this internal thing will never be used
+local ItemConstraint = {item_lable = nil, item_name = nil, total_count = nil, filter = nil, internal = true, lock = {0}}
+function ItemConstraint:new(item_name, item_lable, total_count, filter) -- maybe this internal thing will never be used
     local new = deep_copy.copy(self, pairs)
-    new.item_name = item_name
     new.total_count = total_count
     new.filter = filter
+    new.item_name = item_name
+    new.item_lable = item_lable
+
     --new.internal = internal
     new.internal = true -- not that it matters much for now
 
@@ -22,8 +24,8 @@ function ItemConstraint:check(do_once) -- so this was easy?
     if self.lock[1] ~= 0 then return 0, nil end
 
     if self.internal then
-        if inv.how_many_internal(self.item_name.name, self.item_name.lable) < self.total_count then
-            return 1, self.item_name
+        if inv.how_many_internal(self.item_name, self.item_lable) < self.total_count then
+            return 1, {name = self.item_name, lable = self.item_lable}
         end
     else
         -- TODO

@@ -30,6 +30,7 @@ function MetaScript:unlockPosterior()
 end
 
 -- TODO improve matching to follow the "strict" instruction
+-- For now we support only lables, no names
 -- It prefers "singular" matches over table matches, table matches are only resolved after the loop
 function MetaScript:findRecipe(for_what)
     if self.recipes == nil then
@@ -39,14 +40,14 @@ function MetaScript:findRecipe(for_what)
     local table_found = nil
     for _, recipe in ipairs(self.recipes) do
         local output = recipe.output
-        if type(output) == "table" then -- aka, an equal mult-output recipe (not merely by-products)
-            for _, element in ipairs(recipe) do
-                if element == for_what then table_found = recipe end
+        if output.lable == nil then -- aka, an equal mult-output recipe (not merely by-products)
+            for _, element in ipairs(output) do
+                if element.lable == for_what then table_found = recipe end
             end
             goto continue
         end
 
-        if output == for_what then return recipe end
+        if output.lable == for_what then return recipe end
         ::continue::
     end
     
@@ -127,7 +128,7 @@ function Goal:step(index, name, parent_script)
         return self.constraint:step(index, name, self.priority)
     end
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
-    local needed_recipe = deep_copy.copy(parent_script:findRecipe(name), pairs) -- :) copy it so that the state isn't mutated
+    local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable), pairs) -- :) copy it so that the state isn't mutated
 
     local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock)
     return return_table
