@@ -30,16 +30,18 @@ function MetaScript:unlockPosterior()
 end
 
 -- TODO improve matching to follow the "strict" instruction
+-- It prefers "singular" matches over table matches, table matches are only resolved after the loop
 function MetaScript:findRecipe(for_what)
     if self.recipes == nil then
         error(comms.robot_send("fatal", "MetaScript: \"" .. self.desc .. "\"NO RECIPES!"))
     end
 
+    local table_found = nil
     for _, recipe in ipairs(self.recipes) do
         local output = recipe.output
         if type(output) == "table" then -- aka, an equal mult-output recipe (not merely by-products)
             for _, element in ipairs(recipe) do
-                if element == for_what then return recipe end
+                if element == for_what then table_found = recipe end
             end
             goto continue
         end
@@ -47,7 +49,11 @@ function MetaScript:findRecipe(for_what)
         if output == for_what then return recipe end
         ::continue::
     end
+    
+    if table_found ~= nil then return table_found end
+
     print(comms.robot_send("error", "No recipe for: \"" .. for_what .. "\" found!"))
+    return nil
 end
 
 function MetaScript:findBestGoal()
