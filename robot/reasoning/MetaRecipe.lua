@@ -1,7 +1,10 @@
 local MetaRecipe = {
     output = nil,
+    dependencies = nil,
     meta_type = nil,
-    mechanism = nil
+    mechanism = nil,
+
+    state = nil
 }
 local deep_copy = require("deep_copy")
 local comms = require("comms")
@@ -9,13 +12,14 @@ local comms = require("comms")
 -- goal_block is what is recognizable by geolyzer, name is usually enough, but if it is a GT-Ore, for example
 -- colour and meta-data will probabily be necessary, these differences can be caught inside
 -- "algorithm" which is supposed to be a function that takes "Gathering"
-local Gathering = {tool = nil, level = nil, algorithm = nil, state = nil}
-function Gathering:new(tool, level, algorithm, state)
+--
+local Gathering = {tool = nil, level = nil, algorithm = nil}
+function Gathering:new(tool, level, algorithm, state_primitive)
     local new = deep_copy.copy(self, pairs)
     new.tool = tool;
     new.level = level;
     new.algorithm = algorithm;
-    new.state = state
+    new.state = deep_copy.copy(state_primitive, pairs)
 
     return new
 end
@@ -34,15 +38,13 @@ end
                                             -- is the one that will have to do the crafting itself
 --end
 
---[[local MetaRecipe.output = nil
-local MetaRecipe.meta_type = nil
-local MetaRecipe.mechanism = nil--]]
+-- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
+function MetaRecipe:new(state, lock)
+    local new = deep_copy.copy(self, pairs)
 
-function MetaRecipe:new()
-    return deep_copy.copy(self, pairs)
 end
 
-function MetaRecipe:newCraftingTable(output, recipe_table)
+function MetaRecipe:newCraftingTable(output, recipe_table, dependencies)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
         return nil
@@ -57,6 +59,7 @@ function MetaRecipe:newCraftingTable(output, recipe_table)
     end
 
     local new = self:new()
+    new.dependencies = dependencies
     new.meta_type = "crafting_table"
     new.output = output
 
@@ -64,7 +67,7 @@ function MetaRecipe:newCraftingTable(output, recipe_table)
     return new
 end
 
-function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive)
+function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive, dependencies)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
         return nil
@@ -77,12 +80,11 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive
     end
 
     local new = self:new()
+    new.dependencies = dependencies
     new.meta_type = "gathering"
     new.output = output
 
-    local state = deep_copy.copy(state_primitive, pairs)
-
-    new.mechanism = Gathering:new(tool, level, algorithm, state)
+    new.mechanism = Gathering:new(tool, level, algorithm, state_primitive)
     return new
 end
 
