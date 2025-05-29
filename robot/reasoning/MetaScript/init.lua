@@ -101,7 +101,7 @@ end
 local Goal = {name = "None", dependencies = nil, constraint = nil, priority = 0, do_once = false}
 function Goal:new(dependencies, constraint, priority, name, do_once)
     local new = deep_copy.copy(self, pairs)
-    new.name = name
+    new.name = name or "None"
     new.do_once = do_once or false
     new.dependencies = dependencies or nil
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
