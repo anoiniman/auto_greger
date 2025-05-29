@@ -119,7 +119,16 @@ function module.start_auto_build(arguments)
     -- prio is not passed into function :) (on purpose)
     --local serial = serialize.serialize(arguments, true)
     --print(comms.robot_send("debug", "start auto build arguments: " .. serial))
-    return map_obj.start_auto_build(arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments)
+    return map_obj.start_auto_build(
+        arguments[1],
+        arguments[2],
+        arguments[3],
+        arguments[4],
+        arguments[5],
+        arguments[6],
+        arguments[7],
+        arguments
+    )
 end
 
 return module

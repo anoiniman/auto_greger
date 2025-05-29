@@ -184,14 +184,13 @@ function BuildingConstraint:step(index, name, priority) -- returns command to be
 
     self.lock[1] = 1 -- signals that constraint is in the middle of processing and to not do more requests
     local id = -1
-    local prio = 60
     local command = eval_build.start_auto_build
     -- lock will not be released unless building fails in a specific manner, but it's still worth
     -- for it to be around, because, hey, that might happen, and we might want to unluck the
     -- build and "start over", aka, tell the system it is ok to re-try
-    local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, prio}
+    local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, priority}
     -- TODO define prio dynamically somehow
-    return {prio, command, table.unpack(arguments)} -- the common format, you know it welll
+    return {priority, command, table.unpack(arguments)} -- the common format, you know it welll
 end
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met
@@ -283,7 +282,7 @@ function Goal:step(index, name)
         return self.constraint:step(index, name, self.priority)
     end
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
-    return self.recipe:returnCommand(self.priority)
+    local reasoning_table = self.recipe:returnCommand(self.priority)
 end
 
 

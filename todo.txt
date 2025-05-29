@@ -73,8 +73,6 @@ tool chest in crafting area
 For now I won't do the force clear things, because, uhhhhh we can just fill everything
 with air I guess
 
-Remember to test geolyzer for versioning issues
-
 Add extra-chunk based information, so that chunks are marked as having a certain ore depostion, or
 as impassible for navigation, we then need to update navigation in order to deal with these chunks
 hopefully a dumb fix is enough
@@ -105,3 +103,20 @@ Tests to run:
 
 UNLOCK "FRAME-RATE" PLZ
 Add bridge nav to nav_interface, should be relatively easy to implement
+Add the improved move algorithms
+Add recipe resolution
+Connect the the gatherting test script up
+TEST!
+
+FIND A WAY TO GET THE SUCK UPGRADE ON; OTHERWISE gathering saplings WILL BE DIFFICULT
+
+Writing to Disk (prob easy)
+Slightly Improved Navigation
+Test our clay gathering script
+Tree-Scanning gathering + (suck)
+Tree-GROWING gathering
+Mineral MINING
+LAVA GATHERING
+Storage
+Crafting
+GG
