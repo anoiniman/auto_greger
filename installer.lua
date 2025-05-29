@@ -138,8 +138,21 @@ local function robot_reasoning()
     end
 
     download("/robot/reasoning/MetaRecipe.lua", "self")
-    download("/robot/reasoning/MetaScript.lua", "self")
     download("/robot/reasoning/reasoning_obj.lua", "self")
+
+
+    if not filesystem.isDirectory("/home/robot/reasoning/MetaScript") then
+       filesystem.makeDirectory("/home/robot/reasoning/MetaScript")
+    end
+    download("/robot/reasoning/MetaScript/init.lua", "self")
+
+    if not filesystem.isDirectory("/home/robot/reasoning/MetaScript/Constraint") then
+       filesystem.makeDirectory("/home/robot/reasoning/MetaScript/Constraint")
+    end
+
+    download("/robot/reasoning/MetaScript/Constraint/init.lua", "self")
+    download("/robot/reasoning/MetaScript/Constraint/BuildingConstraint.lua", "self")
+    download("/robot/reasoning/MetaScript/Constraint/ItemConstraint.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/recipes") then
        filesystem.makeDirectory("/home/robot/reasoning/recipes")
