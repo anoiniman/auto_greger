@@ -116,7 +116,10 @@ local function automatic(state) -- hopefully I don't have to make this global
     return false
 end
 
-local function surface_resource_sweep(mechanism)
+local function surface_resource_sweep(arguments)
+    local mechanism = arguments[1]
+    local lock = arguments[2]
+
     local state = mechanism.state
     if state.interrupt == true then
         return {mechanism.priority, mechanism.algorithm, mechanism}
@@ -126,6 +129,7 @@ local function surface_resource_sweep(mechanism)
         if not is_finished then
             return {mechanism.priority, mechanism.algorithm, mechanism}
         else
+            lock[1] = 0 -- Unlock the lock
             return nil
         end
     elseif state.mode == "manual" then

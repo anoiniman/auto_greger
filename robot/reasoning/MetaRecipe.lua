@@ -39,12 +39,14 @@ end
 --end
 
 -- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
-function MetaRecipe:new(state, lock)
+function MetaRecipe:new(state_primitive)
     local new = deep_copy.copy(self, pairs)
+    new.state = deep_copy.copy(state_primitive, pairs)
 
+    return new
 end
 
-function MetaRecipe:newCraftingTable(output, recipe_table, dependencies)
+function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_primitive)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
         return nil
@@ -58,7 +60,7 @@ function MetaRecipe:newCraftingTable(output, recipe_table, dependencies)
         return nil
     end
 
-    local new = self:new()
+    local new = self:new(state_primitive)
     new.dependencies = dependencies
     new.meta_type = "crafting_table"
     new.output = output
@@ -79,7 +81,7 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive
         return nil
     end
 
-    local new = self:new()
+    local new = self:new(state_primitive)
     new.dependencies = dependencies
     new.meta_type = "gathering"
     new.output = output
@@ -89,10 +91,10 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive
 end
 
 -- TODO programme this for crafting recipes
-function MetaRecipe:returnCommand(priority)
+function MetaRecipe:returnCommand(priority, lock_ref)
     if self.meta_type == "gathering" then
         self.mechanism.state.priority = priority
-        return {prio, self.mechanism.algorithm, self.mechanism }
+        return {priority, self.mechanism.algorithm, self.mechanism, lock_ref }
     elseif self.meta_type == "crafting_table" then
         error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
     else

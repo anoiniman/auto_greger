@@ -114,7 +114,7 @@ function Goal:step(index, name, parent_script)
     end
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
     local needed_recipe = parent_script:findRecipe(name)
-    local return_table = needed_recipe:returnCommand(self.priority)
+    local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock)
     return return_table
 end
 
