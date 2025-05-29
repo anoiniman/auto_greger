@@ -1,5 +1,7 @@
 local MetaRecipe = {
     output = nil,
+    strict = "strict", -- if the names listed in output are strict matching or what sort of liniences they have
+
     dependencies = nil,
     meta_type = nil,
     mechanism = nil,
@@ -28,10 +30,10 @@ end
 -- in such an area) the robot will no longer use/keep empty reserved it's internal crafting slot, and instead
 -- fully relies on the base's crafting areas, because of the possible "caching" effect, and freeing up
 -- robot internal inventory space this might be an amazing idea
-local CraftingTable = {recipe = nil}
+local CraftingTable = {crafting_recipe = nil}
 function CraftingTable:new(array)
     local new = deep_copy.copy(self, pairs)
-    new.recipe = array
+    new.crafting_recipe = array
     return new
 end
 -- function CraftingTable:craft(dictionary)    -- this definition is probably useless, because prob. the inventory manager
@@ -39,14 +41,17 @@ end
 --end
 
 -- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
-function MetaRecipe:new(state_primitive)
+function MetaRecipe:new(state_primitive, strict)
     local new = deep_copy.copy(self, pairs)
     new.state = deep_copy.copy(state_primitive, pairs)
+    if strict ~= nil then
+        new.strict = strict
+    end
 
     return new
 end
 
-function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_primitive)
+function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_primitive, strict)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
         return nil
@@ -60,7 +65,7 @@ function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_p
         return nil
     end
 
-    local new = self:new(state_primitive)
+    local new = self:new(state_primitive, strict)
     new.dependencies = dependencies
     new.meta_type = "crafting_table"
     new.output = output
@@ -69,7 +74,7 @@ function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_p
     return new
 end
 
-function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive, dependencies)
+function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive, dependencies, strict)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
         return nil
@@ -81,7 +86,7 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive
         return nil
     end
 
-    local new = self:new(state_primitive)
+    local new = self:new(state_primitive, strict)
     new.dependencies = dependencies
     new.meta_type = "gathering"
     new.output = output

@@ -140,9 +140,9 @@ local function surface_resource_sweep(arguments)
 
 end
 
-local gravel_only = MetaRecipe:newGathering("gravel", "shovel", 0, surface_resource_sweep, el_state)
+local gravel_only = MetaRecipe:newGathering("Gravel", "shovel", 0, surface_resource_sweep, el_state)
 
-local all_table = {"gravel", "sand", "clay"}
+local all_table = {"Gravel", "Sand", "Clay"}
 el_state.sub_set = deep_copy.copy(all_table, ipairs)
 local all_gather = MetaRecipe:newGathering(all_table, "shovel", 0, surface_resource_sweep, el_state)
 

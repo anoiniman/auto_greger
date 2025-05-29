@@ -29,15 +29,23 @@ function MetaScript:unlockPosterior()
     -- TODO
 end
 
+-- TODO improve matching to follow the "strict" instruction
 function MetaScript:findRecipe(for_what)
     if self.recipes == nil then
         error(comms.robot_send("fatal", "MetaScript: \"" .. self.desc .. "\"NO RECIPES!"))
     end
 
-    for index, recipe in ipairs(self.recipes) do
-        if recipe.output == for_what then
-            return recipe
+    for _, recipe in ipairs(self.recipes) do
+        local output = recipe.output
+        if type(output) == "table" then -- aka, an equal mult-output recipe (not merely by-products)
+            for _, element in ipairs(recipe) do
+                if element == for_what then return recipe end
+            end
+            goto continue
         end
+
+        if output == for_what then return recipe end
+        ::continue::
     end
     print(comms.robot_send("error", "No recipe for: \"" .. for_what .. "\" found!"))
 end
