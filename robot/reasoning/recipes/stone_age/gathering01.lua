@@ -118,9 +118,9 @@ end
 
 local function surface_resource_sweep(arguments)
     local mechanism = arguments[1]
-    local lock = arguments[2]
+    local state = arguments[2]
+    local lock = arguments[3]
 
-    local state = mechanism.state
     if state.interrupt == true then
         return {mechanism.priority, mechanism.algorithm, mechanism}
     end

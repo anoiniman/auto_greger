@@ -1,6 +1,11 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+-- Whole recipe get copied/cloned by the caller so that state is not changed in the primitive object for a given recipe
+-- this decouples the definition of behaviour and data structure from its execution and state-change when in-vivo.
+-- Of course, this relies on the caller properly clonning us, but we don't really have a good way to enforce this
+-- from within MetaRecipe itself, so just be very very careful ok?
+--
 -- Output can be a name or lable if specified
 local MetaRecipe = {
     output = nil,
@@ -35,9 +40,9 @@ end
 local Gathering = {tool = nil, level = nil, algorithm = nil}
 function Gathering:new(tool, level, algorithm)
     local new = deep_copy.copy(self, pairs)
-    new.tool = tool;
-    new.level = level;
-    new.algorithm = algorithm;
+    new.tool = tool
+    new.level = level
+    new.algorithm = algorithm
 
     return new
 end
@@ -101,8 +106,8 @@ end
 -- TODO programme this for crafting recipes
 function MetaRecipe:returnCommand(priority, lock_ref)
     if self.meta_type == "gathering" then
-        self.mechanism.state.priority = priority
-        return {priority, self.mechanism.algorithm, self.mechanism, lock_ref }
+        self.state.priority = priority
+        return {priority, self.mechanism.algorithm, self.mechanism, self.state, lock_ref }
     elseif self.meta_type == "crafting_table" then
         error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
     else
