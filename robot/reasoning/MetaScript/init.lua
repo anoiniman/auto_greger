@@ -127,7 +127,8 @@ function Goal:step(index, name, parent_script)
         return self.constraint:step(index, name, self.priority)
     end
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
-    local needed_recipe = parent_script:findRecipe(name)
+    local needed_recipe = deep_copy.copy(parent_script:findRecipe(name), pairs) -- :) copy it so that the state isn't mutated
+
     local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock)
     return return_table
 end

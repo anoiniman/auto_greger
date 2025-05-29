@@ -129,7 +129,8 @@ local function surface_resource_sweep(arguments)
         if not is_finished then
             return {mechanism.priority, mechanism.algorithm, mechanism}
         else
-            lock[1] = 0 -- Unlock the lock
+            --lock[1] = 0 -- Unlock the lock
+            lock[1] = 2 -- "Unlock" the lock (will be unlocked based on "do_once"'s value
             return nil
         end
     elseif state.mode == "manual" then

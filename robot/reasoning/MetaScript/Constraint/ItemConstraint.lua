@@ -19,7 +19,7 @@ function ItemConstraint:check(do_once) -- so this was easy?
     if not do_once and self.lock[1] == 2 then -- le reset switch :)
         self.lock[1] = 0
     end
-    if self.lock ~= 0 then return 0, nil end
+    if self.lock[1] ~= 0 then return 0, nil end
 
     if self.internal then
         if inv.how_many_internal(self.item_name.name, self.item_name.lable) < self.total_count then

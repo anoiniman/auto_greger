@@ -1,3 +1,6 @@
+local deep_copy = require("deep_copy")
+local comms = require("comms")
+
 local MetaRecipe = {
     output = nil,
     strict = "strict", -- if the names listed in output are strict matching or what sort of liniences they have
@@ -8,20 +11,28 @@ local MetaRecipe = {
 
     state = nil
 }
-local deep_copy = require("deep_copy")
-local comms = require("comms")
+-- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
+function MetaRecipe:new(state_primitive, strict)
+    local new = deep_copy.copy(self, pairs)
+    new.state = deep_copy.copy(state_primitive, pairs)
+
+    if strict ~= nil then
+        new.strict = strict
+    end
+
+    return new
+end
 
 -- goal_block is what is recognizable by geolyzer, name is usually enough, but if it is a GT-Ore, for example
 -- colour and meta-data will probabily be necessary, these differences can be caught inside
 -- "algorithm" which is supposed to be a function that takes "Gathering"
 --
 local Gathering = {tool = nil, level = nil, algorithm = nil}
-function Gathering:new(tool, level, algorithm, state_primitive)
+function Gathering:new(tool, level, algorithm)
     local new = deep_copy.copy(self, pairs)
     new.tool = tool;
     new.level = level;
     new.algorithm = algorithm;
-    new.state = deep_copy.copy(state_primitive, pairs)
 
     return new
 end
@@ -39,17 +50,6 @@ end
 -- function CraftingTable:craft(dictionary)    -- this definition is probably useless, because prob. the inventory manager
                                             -- is the one that will have to do the crafting itself
 --end
-
--- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
-function MetaRecipe:new(state_primitive, strict)
-    local new = deep_copy.copy(self, pairs)
-    new.state = deep_copy.copy(state_primitive, pairs)
-    if strict ~= nil then
-        new.strict = strict
-    end
-
-    return new
-end
 
 function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_primitive, strict)
     if output == nil then
@@ -91,7 +91,7 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive
     new.meta_type = "gathering"
     new.output = output
 
-    new.mechanism = Gathering:new(tool, level, algorithm, state_primitive)
+    new.mechanism = Gathering:new(tool, level, algorithm)
     return new
 end
 
