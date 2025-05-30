@@ -82,6 +82,27 @@ function inward_facing.convert_orientation(orientation)
     end
 end
 
+function inward_facing.get_opposite_orientation(nav_obj)
+    local orientation = nav_obj.orientation
+    if orientation == "north" then
+        return "south"
+    elseif orientation == "east" then
+        return "west"
+    elseif orientation == "south" then
+        return "north"
+    elseif orientation == "west" then
+        return "east"
+    elseif orientation == "up" then
+        return "down"
+    elseif orientation == "down" then
+        return "up"
+    else
+        print(comms.robot_send("error", "get_opposite_orientation, Logical Impossibility found"))
+        print(comms.robot_send("error", "orientation: " .. orientation))
+        return nil
+    end
+end
+
 function inward_facing.change_orientation(goal, nav_obj)
     local orientation = nav_obj.orientation
 

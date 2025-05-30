@@ -43,6 +43,9 @@ function module.get_height()
     return nav_obj.height
 end
 
+function module.get_orientation()
+    return nav_obj.orientation
+end
 
 function module.set_chunk(x, z)
     nav_obj.chunk[1] = x

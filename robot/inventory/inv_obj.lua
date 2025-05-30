@@ -373,7 +373,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
             swing_result = module.blind_swing_up()
         elseif dir == "down" then 
             swing_result = module.blind_swing_down()
-        else print(comms.robot_send("warning", "place_block, invalid dir for now")) end
+        else print(comms.robot_send("warning", "place_block, punching air in: invalid dir for now")) end
         return swing_result
     end
 
@@ -391,9 +391,16 @@ function module.place_block(dir, block_identifier, lable_type, side)
     if dir == "down" then
         place_result = robot.placeDown(side)
     elseif dir == "up" then
-        place_result = robot.placeUp()
+        place_result = robot.placeUp(side)
+    elseif dir == "front" then
+        place_result = robot.place(side)
+    elseif dir == "back" or dir == "left" or dir == "right" then
+        print(comms.robot_send("error", "not yet implemented, and unlikely to be implemented inv_obj.place_block"))
+        robot.select(1)
+        return false
     else
-        print(comms.robot_send("error", "not yet implemented, inv_obj.place_block"))
+        print(comms.robot_send("error", "inv_obj.place_block -- Invalid direction: \"" .. dir .. "\""))
+        print(comms.robot_send("error", "\n" .. debug.stracktrace()))
         robot.select(1)
         return false
     end
