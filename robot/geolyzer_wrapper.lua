@@ -24,7 +24,6 @@ function module.compare(match_string, method, side) -- returns bool
     if match_string == nil then return false end
     if method == nil then return false end
 
-    local table_id = geo_table[match_string]
     local analysis = geo.analyze(side)
     module.sub_compare(match_string, method, analysis)
 end
@@ -33,6 +32,7 @@ function module.sub_compare(match_string, method, analysis)
     local string_id = analysis["name"]
 
     if method == "simple" then
+        local table_id = geo_table[match_string]
         if table_id == nil then return false end -- which means not found
 
         return string_id == table_id
