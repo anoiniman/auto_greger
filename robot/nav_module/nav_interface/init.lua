@@ -1,16 +1,23 @@
-local module = {}
+local to_export = {}
+local inward_facing = {}
 
+---- Global Imports -----
 --local math = require("math")
 local robot = require("robot")
 --local sides_api = require("sides")
-local serialize = require("serialization")-- luacheck: ignore
+local serialize = require("serialization") -- luacheck: ignore
 
+---- Shared Imports -----
 local comms = require("comms")
+
+---- Local Imports ------
+local strat = require("nav_module.nav_interface.strategies")
 
 local geolyzer = require("geolyzer_wrapper")
 local inv = require("inventory.inv_obj")
 
-local function update_pos(direction, nav_obj) -- assuming forward move
+
+function inward_facing.update_pos(direction, nav_obj) -- assuming forward move
     local abs = nav_obj.abs
     local rel = nav_obj.rel
 
@@ -39,7 +46,7 @@ local function update_pos(direction, nav_obj) -- assuming forward move
     nav_obj.height = height
 end
 
-local function un_convert_orientation(num_side)
+function inward_facing.un_convert_orientation(num_side)
     if num_side == 1 then
         return "down"
     elseif num_side == 2 then
@@ -59,7 +66,7 @@ local function un_convert_orientation(num_side)
 end
 
 -- NOT SIDES_API COMPATIBLE ANYMORE
-local function convert_orientation(orientation)
+function inward_facing.convert_orientation(orientation)
     if orientation == "north" then
         return 3
     elseif orientation == "east" then
@@ -75,11 +82,11 @@ local function convert_orientation(orientation)
     end
 end
 
-local function change_orientation(goal, nav_obj)
+function inward_facing.change_orientation(goal, nav_obj)
     local orientation = nav_obj.orientation
 
-    local numeric = convert_orientation(orientation) - 2 -- (alignement)
-    local num_goal = convert_orientation(goal) - 2
+    local numeric = inward_facing.convert_orientation(orientation) - 2 -- (alignement)
+    local num_goal = inward_facing.convert_orientation(goal) - 2
 
     local difference = numeric - num_goal
 
@@ -106,12 +113,12 @@ local function change_orientation(goal, nav_obj)
     nav_obj.orientation = goal
 end
 
-function module.c_orientation(goal, nav_obj)
-    return change_orientation(goal, nav_obj)
+function to_export.c_orientation(goal, nav_obj)
+    return inward_facing.change_orientation(goal, nav_obj)
 end
 
 
-local function base_move(direction, nav_obj) -- return result and error string
+function inward_facing.base_move(direction, nav_obj) -- return result and error string
     local result
     local err
 
@@ -120,7 +127,7 @@ local function base_move(direction, nav_obj) -- return result and error string
     elseif direction == "down" then
         result, err = robot.down()
     else
-        change_orientation(direction, nav_obj)
+        inward_facing.change_orientation(direction, nav_obj)
         result, err = robot.forward()
     end
 
@@ -131,66 +138,37 @@ end
 local empty_table = {}
 -- TODO -> better cave/hole detection so we don't lose ourselves underground
 -- Returning true means move sucesseful
-local function real_move(what_kind, direction, nav_obj, extra_sauce)
+function inward_facing.real_move(strat_name, direction, nav_obj, extra_sauce)
     if extra_sauce == nil then extra_sauce = empty_table end -- nice hack!
 
     if nav_obj == nil then
         print(comms.robot_send("error", "No nav obj provided!"))
     end
 
-    -- WE NO LONGER AUTO-CHOP TREES
-    if what_kind == "surface" then
-        local result, err = base_move(direction, nav_obj)
-        --print("post base_move")
-        if err ~= nil and err == "impossible move" then
-            -- for know we just panic, maybe one day we'll add better AI
-            print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
-            return false, "impossible"
-        elseif err ~= nil and err ~= "impossible move" then -- TODO check that is not an entity
-            if extra_sauce[1] ~= "no_auto_up" then
-                return real_move("free", "up", nav_obj) -- This is the case for a non tree terrain feature
-            end
-            local obstacle = geolyzer.simple_return()
-            return false, obstacle
-        end
-        -- Only AFTER (not before) we've been succeseful do we try to move down
-        local can_move, block_type = robot.detectDown()
-        if block_type == "air" or block_type == "liquid" then
-            --print("look for air")
-            robot.down()
-            update_pos("down", nav_obj)
-            return true, nil
-        end
+    -- accept the direct injection without looking twice -- using this for other purposes is UB :>
+    -- ('other' is defined as: not executing a movement strategy)
+    if type(strat_name) == "function" then
+        return strat_name(direction, nav_obj, extra_sauce)
+    end
 
-        return true, nil
-    elseif what_kind == "free" then
-        --print("free move")
-        local result, err = base_move(direction, nav_obj)
-        if result == nil then
-            print(comms.robot_send("debug", "real_move: \"" .. what_kind .. "\" || error: \"" .. err .. "\""))
-            if err == "entity" then
-                inv.equip_tool("sword")
-                robot.swing()
-                return false, "swong"
-            elseif err ~= "impossible move" then
-                return false, err
-            elseif err == "impossible move" then
-                return false, "impossible"
-            end
-        end
-        return true, nil
+    local what_strat
+    if strat_name == "surface" then
+        what_strat = strat.surface
+    elseif strat_name == "free" then
+        what_strat = strat.free
     else
-        print(comms.robot_send("error", "real_move: \"" .. what_kind .. "\" unimplemented"))
+        print(comms.robot_send("error", "real_move: \"" .. strat_name .. "\" unimplemented"))
         return false, nil
     end
-    error("unreachable code at nav_interface.real_move")
+
+    return what_strat(inward_facing, direction, nav_obj, extra_sauce)
 end
 
 -- for now forget argument remais for compatibility, but needs to be refactored in the future
-function module.debug_move(dir, distance, forget, nav_obj)
+function to_export.debug_move(dir, distance, forget, nav_obj)
     local any_error = false
     for i = 1, distance, 1 do
-        local issa_ok = real_move("free", dir, nav_obj)
+        local issa_ok = inward_facing.real_move("free", dir, nav_obj)
         if not issa_ok then
             any_error = true
         end
@@ -198,9 +176,9 @@ function module.debug_move(dir, distance, forget, nav_obj)
     return any_error
 end
 
-function module.r_move(a,b,c)
-    return real_move(a,b,c)
+function to_export.r_move(a,b,c,d)
+    return inward_facing.real_move(a,b,c,d)
 end
 
 
-return module
+return to_export

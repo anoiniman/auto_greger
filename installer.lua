@@ -101,10 +101,15 @@ local function robot_navigation()
     download("/robot/nav_module/map_obj.lua", "self")
     download("/robot/nav_module/MetaQuad.lua", "self")
 
-    download("/robot/nav_module/nav_interface.lua", "self")
     download("/robot/nav_module/nav_obj.lua", "self")
-
     download("/robot/nav_module/rel_move.lua", "self")
+
+    if not filesystem.isDirectory("/home/robot/nav_module/nav_interface") then
+       filesystem.makeDirectory("/home/robot/nav_module/nav_interface")
+    end
+    download("/robot/nav_module/nav_interface/init.lua", "self")
+    download("/robot/nav_module/nav_interface/strategies.lua", "self")
+
 end
 
 local function robot_build_primitives()
