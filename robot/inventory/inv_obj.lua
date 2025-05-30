@@ -315,8 +315,14 @@ function module.equip_tool(tool_type, wanted_level)
     return result, secondary_result
 end
 
-local function swing_general(swing_function, dir)
-    local g_info = geolyzer.simple_return(dir) -- hopefully this dir is relative to robot, run some tests
+local function swing_general(swing_function, dir, pre_analysis)
+    local g_info
+    if pre_analysis ~= nil then
+        g_info = pre_analysis
+    else
+        g_info = geolyzer.simple_return(dir) -- hopefully this dir is relative to robot, run some tests
+    end
+
     if g_info == nil then return true end -- returning true is more ideomatic, I think.
 
     local needed_level = g_info.harvestLevel
@@ -336,16 +342,17 @@ local function swing_general(swing_function, dir)
     return result, info
 end
 
-function module.blind_swing_front()
-    return swing_general(robot.swing, sides_api.front)
+-- in the case we already have a geo_analysis of what we want to mine send it in, :P saves some power
+function module.blind_swing_front(pre_analysis)
+    return swing_general(robot.swing, sides_api.front, pre_analysis)
 end
 
-function module.blind_swing_down()
-    return swing_general(robot.swingDown, sides_api.down)
+function module.blind_swing_down(pre_analysis)
+    return swing_general(robot.swingDown, sides_api.down, pre_analysis)
 end
 
-function module.blind_swing_up()
-    return swing_general(robot.swingUp, sides_api.up)
+function module.blind_swing_up(pre_analysis)
+    return swing_general(robot.swingUp, sides_api.up, pre_analysis)
 end
 ---}}}
 
