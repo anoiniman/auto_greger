@@ -120,3 +120,6 @@ LAVA GATHERING
 Storage
 Crafting
 GG
+
+Test Sweep until the end to make sure it terminates gracefully
+Make the robot auto-break textile gardens? It will be necessary, and maybe grain + soy gardens?

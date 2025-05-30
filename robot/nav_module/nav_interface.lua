@@ -10,7 +10,7 @@ local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 local inv = require("inventory.inv_obj")
 
-function update_pos(direction, nav_obj) -- assuming forward move
+local function update_pos(direction, nav_obj) -- assuming forward move
     local abs = nav_obj.abs
     local rel = nav_obj.rel
 
@@ -39,11 +39,43 @@ function update_pos(direction, nav_obj) -- assuming forward move
     nav_obj.height = height
 end
 
-function module.c_orientation(goal, nav_obj)
-    return change_orientation(goal, nav_obj)
+local function un_convert_orientation(num_side)
+    if num_side == 1 then
+        return "down"
+    elseif num_side == 2 then
+        return "up"
+    elseif num_side == 3 then
+        return "north"
+    elseif num_side == 4 then
+        return "east"
+    elseif num_side == 5 then
+        return "south"
+    elseif num_side == 6 then
+        return "west"
+    else
+        print(comms.robot_send("error", "un_convert_orientation, logical impossibility"))
+        return "error"
+    end
 end
 
-function change_orientation(goal, nav_obj)
+-- NOT SIDES_API COMPATIBLE ANYMORE
+local function convert_orientation(orientation)
+    if orientation == "north" then
+        return 3
+    elseif orientation == "east" then
+        return 4
+    elseif orientation == "south" then
+        return 5
+    elseif orientation == "west" then
+        return 6
+    else
+        print(comms.robot_send("error", "convert_Orientation, Logical Impossibility found"))
+        print(comms.robot_send("error", "orientation: " .. orientation))
+        return -1
+    end
+end
+
+local function change_orientation(goal, nav_obj)
     local orientation = nav_obj.orientation
 
     local numeric = convert_orientation(orientation) - 2 -- (alignement)
@@ -74,46 +106,14 @@ function change_orientation(goal, nav_obj)
     nav_obj.orientation = goal
 end
 
-function un_convert_orientation(num_side)
-    if num_side == 1 then
-        return "down"
-    elseif num_side == 2 then
-        return "up"
-    elseif num_side == 3 then
-        return "north"
-    elseif num_side == 4 then
-        return "east"
-    elseif num_side == 5 then
-        return "south"
-    elseif num_side == 6 then
-        return "west"
-    else
-        print(comms.robot_send("error", "un_convert_orientation, logical impossibility"))
-        return "error"
-    end
+function module.c_orientation(goal, nav_obj)
+    return change_orientation(goal, nav_obj)
 end
 
--- NOT SIDES_API COMPATIBLE ANYMORE
-function convert_orientation(orientation)
-    if orientation == "north" then
-        return 3
-    elseif orientation == "east" then
-        return 4
-    elseif orientation == "south" then
-        return 5
-    elseif orientation == "west" then
-        return 6
-    else
-        print(comms.robot_send("error", "convert_Orientation, Logical Impossibility found"))
-        print(comms.robot_send("error", "orientation: " .. orientation))
-        return -1
-    end
-end
 
-function base_move(direction, nav_obj) -- return result and error string
-    local result = nil
-    local err = nil
-    --print("base_move")
+local function base_move(direction, nav_obj) -- return result and error string
+    local result
+    local err
 
     if direction == "up" then
         result, err = robot.up()
@@ -123,23 +123,15 @@ function base_move(direction, nav_obj) -- return result and error string
         change_orientation(direction, nav_obj)
         result, err = robot.forward()
     end
-    --print("post thing")
 
     if result ~= nil then update_pos(direction, nav_obj) end
     return result, err
 end
 
-function module.r_move(a,b,c)
-    --print("r_move used")
-    --io.read()
-    return real_move(a,b,c)
-end
-
 local empty_table = {}
 -- TODO -> better cave/hole detection so we don't lose ourselves underground
 -- Returning true means move sucesseful
-function real_move(what_kind, direction, nav_obj, extra_sauce)
-    --print("attempting real move")
+local function real_move(what_kind, direction, nav_obj, extra_sauce)
     if extra_sauce == nil then extra_sauce = empty_table end -- nice hack!
 
     if nav_obj == nil then
@@ -204,6 +196,10 @@ function module.debug_move(dir, distance, forget, nav_obj)
         end
     end
     return any_error
+end
+
+function module.r_move(a,b,c)
+    return real_move(a,b,c)
 end
 
 
