@@ -88,6 +88,7 @@ local MetaChunk = {
 }
 function MetaChunk:new(x, z) -- lazy initialization :I (one day :) )
     local new = deep_copy.copy_table(self, pairs)
+    -- x and z print fine in here
     new.x = x
     new.z = z
     return new
@@ -533,5 +534,7 @@ module.create_named_area("gather", "green", 69, "dirt")
 local area = areas_table:getArea("gather")
 area:addChunkToSelf(what_chunk)
 module.chunk_set_parent(what_chunk, area, nil)
+
+-- x and z are still fine here, even after assigning to area
 
 return module

@@ -47,7 +47,8 @@ local function automatic(state) -- hopefully I don't have to make this global
         end
 
         local chunk_to_act_upon
-        for _, chunk in ipairs(area.chunks) do
+        for _, chunk_coords in ipairs(area.chunks) do
+            local chunk = map.get_chunk(chunk_coords)
             if chunk.mark == nil or not chunk:checkMarks("surface_depleted") then
                 chunk_to_act_upon = chunk
                 break
@@ -127,7 +128,8 @@ local function surface_resource_sweep(arguments)
     if state.mode == "automatic" then
         local is_finished = automatic(state)
         if not is_finished then
-            return {mechanism.priority, mechanism.algorithm, mechanism}
+        -- I think everything is getting passed as ref so it's ok to pass arguments back in
+            return {mechanism.priority, mechanism.algorithm, table.unpack(arguments)}
         else
             --lock[1] = 0 -- Unlock the lock
             lock[1] = 2 -- "Unlock" the lock (will be unlocked based on "do_once"'s value
