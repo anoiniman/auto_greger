@@ -79,6 +79,9 @@ local function automatic(state) -- hopefully I don't have to make this global
         if not nav.is_sweep_setup() then
             nav.setup_sweep()
         end
+        state.step = 10
+
+    elseif state.step == 10 then -- sure
         local sweep_result = nav.sweep(true) -- goes forward one block
 
         if sweep_result == -1 then
@@ -111,7 +114,7 @@ local function automatic(state) -- hopefully I don't have to make this global
             -- luacheck: ignore
             --state.step = 4
         else
-            state.step = 3
+            state.step = 10
         end
     end
     return false

@@ -15,7 +15,7 @@ end
 
 local function attempt_surface_move(nav_obj, dir)
     if dir ~= nil then
-        local result, data = nav.real_move("surface", dir, nav_obj)
+        local result, data = nav.r_move("surface", dir, nav_obj)
         return result, data
     end
     return false, nil
@@ -144,11 +144,12 @@ function module.resume_sweep(nav_obj, prev_position)
     sweep_start[2] = prev_position[2]
 end
 
+-- rect_offset idea: to create smaller sweeps and shift them around, not for rn tho
 function module.setup_sweep(nav_obj)
     is_sweep = true
     move_to_start = true
 
-    if nav_obj.rel[1] > 6 + rect_offset then sweep_start[1] = 15
+    if nav_obj.rel[1] > 6 then sweep_start[1] = 15
     else sweep_start[1] = 0 end
 
     if nav_obj.rel[2] > 6 then sweep_start[2] = 15
@@ -194,7 +195,7 @@ function module.sweep(nav_obj, is_surface)
     end
 
     local result = nil; local data = nil -- luacheck: ignore
-    if nav_obj.rel[2] >= 15 or (nav_obj.rel[2] <= 0 and sweep_reverse) then
+    if (nav_obj.rel[2] >= 15 and not sweep_reverse) or (nav_obj.rel[2] <= 0 and sweep_reverse) then
         result, data = sweep_x_axis(nav_obj)
         sweep_reverse = not sweep_reverse
     else

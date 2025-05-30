@@ -123,7 +123,7 @@ function module.setup_sweep()
 end
 
 function module.sweep(is_surface)
-    return rel_move.setup(nav_obj, is_surface)
+    return rel_move.sweep(nav_obj, is_surface)
 end
 
 
