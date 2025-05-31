@@ -220,9 +220,9 @@ function module.free(parent, direction, nav_obj, extra_sauce)
             end
             print(comms.robot_send("error", "auto_bridge -- place -- exceeded watch_dog! Are we fighting windmills?"))
             return false, nil -- report that bridging failed, let the caller handle this
-
-            ::no_error::
         end
+        ::no_error::
+
         -- we can now assume that we've placed down a block, unless specified we now go back to collect the previous block
         if not table_contains(extra_sauce, "no_destroy") then
             local old_dir = nav_obj.get_orientation() -- this is more ideomatic than using direction
@@ -246,9 +246,9 @@ function module.free(parent, direction, nav_obj, extra_sauce)
 
                 print(comms.robot_send("error", "auto_bridge -- walk_back -- exceeded watch_dog! Are we fighting windmills?"))
                 return false, "auto_bridge"
-
-                ::no_error::
             end
+            ::no_error::
+
             -- Breaky The Block
             local result = inv.blind_swing_down()
             if not result then
@@ -266,16 +266,16 @@ function module.free(parent, direction, nav_obj, extra_sauce)
                     os.sleep(1)
 
                     local result, _ = parent.base_move(old_dir, nav_obj)
-                    if result then goto no_error end
+                    if result then goto no_error2 end
 
                     watch_dog = watch_dog + 1
                 end
 
                 print(comms.robot_send("error", "auto_bridge -- walk_back -- exceeded watch_dog! Are we fighting windmills?"))
                 return false, "auto_bridge"
-
-                ::no_error::
             end
+            ::no_error2::
+
         end
     end
 
