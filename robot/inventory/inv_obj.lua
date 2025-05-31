@@ -97,7 +97,7 @@ end
 -- I think this is fine
 function slot_manager.find_slot(item_name, level) -- returns a slot number
     local result = slot_manager.find_all(item_name, level)
-    if result ~= nil then 
+    if result ~= nil then
        return result[1].slot_number
     end
     return nil
@@ -209,34 +209,41 @@ local function find_in_slot(block_id, lable_type)
 
             -- somehow, now that we have BuildInstruction it doesn't get mangled???
             if reconstruct == block_id or item.label == block_id then
-                return index
+                return index, item
             end
 
             ::continue::
         end
     elseif lable_type == "name" then
         if block_id == "any:building_block" then
-            local last_cbbl_match
-            local last_dirt_match
+            local last_cbbl_match, last_dirt_match, cbbl_item, dirt_item
 
             for index = 1, inventory_size, 1 do
                 local item = inventory.getStackInInternalSlot(index)
                 if item == nil then goto continue end
 
                 if item.lable == "Cobblestone" then
+                    dirt_item = item
                     last_cbbl_match = index
                 elseif item.lable == "Dirt" then
+                    cbbl_item = item
                     last_dirt_match = index
                 end
 
                 ::continue::
             end
 
-            if last_cbbl_match ~= nil then return last_cbbl_match
-            elseif last_dirt_match ~= nil then return last_dirt_match end
+            local to_return, to_return2
+            if last_cbbl_match ~= nil then
+                to_return, to_return2 = last_cbbl_match, cbbl_item
+            elseif last_dirt_match ~= nil then
+                to_return, to_return2 = last_dirt_match, dirt_item
+            else
+                print(comms.robot_send("error", "inv_obj: no building block found in any slot"))
+                return -2
+            end
 
-            print(comms.robot_send("error", "inv_obj: no building block found in any slot"))
-            return -2
+            return to_return, to_return2
         end
 
         print(comms.robot_send("error", "inv_obj: not valid lable_type"))
@@ -383,7 +390,7 @@ end
 
 --->>-- Block Placing --<<----{{{
 
--- TODO: placing blocks is not updating the internal lable!
+-- TODO: placing blocks is not updating the internal ledger!
 function module.place_block(dir, block_identifier, lable_type, side)
     -- if side is nil it doesn't matter
     if side ~= nil then side = sides_api[side] end
@@ -395,15 +402,15 @@ function module.place_block(dir, block_identifier, lable_type, side)
     end
     if block_identifier == "air" then
         local swing_result
-        if dir == "up" then 
+        if dir == "up" then
             swing_result = module.blind_swing_up()
-        elseif dir == "down" then 
+        elseif dir == "down" then
             swing_result = module.blind_swing_down()
         else print(comms.robot_send("warning", "place_block, punching air in: invalid dir for now")) end
         return swing_result
     end
 
-    local slot = find_in_slot(block_identifier, lable_type)
+    local slot, item_def = find_in_slot(block_identifier, lable_type)
     if slot == -1 then
         print(comms.robot_send("warning", "couldn't find id: \"" .. block_identifier .. "\" lable -- " .. lable_type))
         return false
@@ -432,6 +439,19 @@ function module.place_block(dir, block_identifier, lable_type, side)
     end
 
     robot.select(1)
+
+    if place_result then
+        if item_def == nil then
+            print(comms.robot_send("error", "inv_obj.place_block -- item_def returned nil! But place was succeseful?"))
+            return false
+        elseif item_def.name == nil then
+            print(comms.robot_send("error", "inv_obj.place_block -- item_def has no name?"))
+            return false
+        end
+
+        local delete_result = internal_ledger:subtract(item_def.name, item_def.lable, 1)
+        if not delete_result then return false end
+    end
     return place_result
 end
 ---}}}
