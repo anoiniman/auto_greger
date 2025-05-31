@@ -142,8 +142,7 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
     elseif err ~= nil and err ~= "impossible move" then -- TODO check that is not an entity, about the log thing
                                                         -- maybe its better to let this up to the caller erm?
         if not table_contains(extra_sauce, "no_auto_up") then
-            local _, what = robot.detect()
-            if what == "entity" or what == "replaceable" then
+            if err == "entity" or err == "replaceable" then
                 robot.swing()
                 inv.maybe_something_added_to_inv()
                 return true, err -- Uhhh, hopefully this won't get us stuck in a infinite loop
