@@ -3,8 +3,8 @@ local module = {}
 -- import of globals
 local math = require("math")
 
---[[local text = require("text")
 local serialize = require("serialization")
+--[[local text = require("text")
 local comms = require("comms")--]]
 
 local eval = require("eval.eval_main")
@@ -15,13 +15,20 @@ local eval = require("eval.eval_main")
 -- linear search should be good enough, surely
 -- "-1" is max prio
 local function prio_insert(task_list, message)
+    local prio = message[1]
+    if prio == nil then
+        print(comms.robot_send("error", "prio is nil, from message (it'll be ignored), message is:"))
+        local serial = serialize.serialize(message, true)
+        print(comms.robot_send("error", serial))
+        return
+    end
+
     -- case task_list is empty
     if #task_list == 0 then
         table.insert(task_list, message)
         return
     end
 
-    local prio = message[1]
     if prio == -1 or prio == -2 then
         table.insert(task_list, message)
         return
@@ -31,6 +38,7 @@ local function prio_insert(task_list, message)
     for i=1, #task_list, 1 do
         local element = task_list[i]
         local value = element[1]
+
         if (value == -1) or (prio <= value) then
             local one_or_bigger = math.max(i-1, 1) -- protect against underflows
             table.insert(task_list, one_or_bigger, message)

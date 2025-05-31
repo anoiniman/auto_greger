@@ -112,6 +112,8 @@ function module.set_data_table(add_data, id)
         end
         wait_list[id].data_table = add_data
         return true
+    elseif t == "generic_hold" then
+        return true
     else
         --enable the following error message if we force data to be handled through requests
         --error(comms.robot_send("fatal", "this is not possible, ahrk, gamma ray inside ram-stick -- error 6969"))

@@ -3,6 +3,7 @@ local sides_api = require("sides")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")
+local interactive = require("interactive")
 
 local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
@@ -13,6 +14,7 @@ local MetaRecipe = require("reasoning.MetaRecipe")
 
 local el_state = {
     chunk = nil,
+    i_id = nil,
 
     sub_set = {"gravel"},
     interrupt = false,
@@ -39,12 +41,28 @@ local function check_subset(state)
     return false
 end
 
-local function automatic(state) -- hopefully I don't have to make this global
-    if state.step == 1 then -- determine what_chunk to sploink
+local function automatic(state)
+    -- (1x) determine what_chunk to sploink
+    if state.step == 1 then
+        -- Determine if we have a gather area anywhere
         local area = map.get_area("gather")
         if area == nil then -- we'll have to wait :)
-            return
+            if state.i_id == nil then
+                state.i_id = interactive.add("generic_hold", "gathering01 is holding for a gather area to be created")
+            end
+
+            return false, -2
         end
+
+        state.step = 11
+        if state.i_id ~= nil then
+            interactive.del_element(state.i_id)
+            state.i_id = nil
+        end
+
+    elseif state.step == 11 then
+        local area = map.get_area("gather")
+        if area == nil then state.step = 1; return false end
 
         local chunk_to_act_upon
         for _, chunk_coords in ipairs(area.chunks) do
@@ -55,7 +73,17 @@ local function automatic(state) -- hopefully I don't have to make this global
             end
         end
 
-        if chunk_to_act_upon == nil then return end -- wait more
+        if chunk_to_act_upon == nil then -- wait more
+            if state.i_id == nil then
+                state.i_id = interactive.add("generic_hold", "gathering01 is holding for chunks to be assigned to gather area")
+            end
+
+            return false, -2
+        end
+        if state.i_id ~= nil then
+            interactive.del_element(state.i_id)
+            state.i_id = nil
+        end
 
         state.chunk = chunk_to_act_upon
         state.step = 2
@@ -79,14 +107,14 @@ local function automatic(state) -- hopefully I don't have to make this global
         if not nav.is_sweep_setup() then
             nav.setup_sweep()
         end
-        state.step = 10
+        state.step = 31
 
-    elseif state.step == 10 then -- sure
+    elseif state.step == 31 then -- sure
         local sweep_result = nav.sweep(true) -- goes forward one block
 
         if sweep_result == -1 then
             state.chunk:addMark("surface_depleted")
-            return true
+            return true, nil
         elseif sweep_result == 0 then
             -- careful with hardened clay
             local interesting_block = check_subset(state)
@@ -114,10 +142,10 @@ local function automatic(state) -- hopefully I don't have to make this global
             -- luacheck: ignore
             --state.step = 4
         else
-            state.step = 10
+            state.step = 31
         end
     end
-    return false
+    return false, nil
 end
 
 local function surface_resource_sweep(arguments)
@@ -129,12 +157,15 @@ local function surface_resource_sweep(arguments)
         return {mechanism.priority, mechanism.algorithm, mechanism}
     end
     if state.mode == "automatic" then
-        local is_finished = automatic(state)
-        if not is_finished then
-        -- I think everything is getting passed as ref so it's ok to pass arguments back in
-            return {mechanism.priority, mechanism.algorithm, table.unpack(arguments)}
+        local is_finished, new_prio = automatic(state)
+        if not is_finished then -- I think everything is getting passed as ref so it's ok to pass arguments back in
+            local prio_to_return = mechanism.priority
+            if new_prio ~= nil then prio_to_return = new_prio end
+
+            -- return a priority given back by "automatic" OR default - mechanism.priority
+            return {prio_to_return, mechanism.algorithm, table.unpack(arguments)}
         else
-            --lock[1] = 0 -- Unlock the lock
+            state.chunk:addMark("surface_depleted") -- Will mark chunk such that we don't try to gather it again
             lock[1] = 2 -- "Unlock" the lock (will be unlocked based on "do_once"'s value
             return nil
         end

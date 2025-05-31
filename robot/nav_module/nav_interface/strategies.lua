@@ -139,7 +139,7 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
         print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
         return false, "impossible"
 
-    elseif err ~= nil and err ~= "impossible move" then -- TODO check that is not an entity
+    elseif err ~= nil and err ~= "impossible move" then -- TODO check that is not an entity, or log
         if not table_contains(extra_sauce, "no_auto_up") then
             return module.free(parent, "up", nav_obj, break_block)
         end

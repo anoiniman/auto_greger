@@ -144,6 +144,7 @@ function module.resume_sweep(nav_obj, prev_position)
     sweep_start[2] = prev_position[2]
 end
 
+-- TODO: turns out the z sweep_end is not equal to sweep_start, but rather in the other end, se if it's ok to do as such
 -- rect_offset idea: to create smaller sweeps and shift them around, not for rn tho
 function module.setup_sweep(nav_obj)
     is_sweep = true
@@ -159,7 +160,7 @@ function module.setup_sweep(nav_obj)
 
     sweep_end[1] = math.abs(16 - sweep_start[1])
     -- FOR WHY WE COMMENTED THIS OUT, CHECK OUR DRAWING
-    --sweep_end[2] = math.abs(16 - sweep_start[2])
+    sweep_end[2] = math.abs(16 - sweep_start[2])
 
     sweep_end[2] = sweep_start[2]
 

@@ -124,5 +124,4 @@ GG
 Test Sweep until the end to make sure it terminates gracefully
 Make the robot auto-break textile gardens? It will be necessary, and maybe grain + soy gardens?
 
-Fix Delimteres
-Make it so placing blocks updates de interal lable
+Add interactive to gathering01 so that it doesn't block as hard as it does (prio = -2 and all that shi)

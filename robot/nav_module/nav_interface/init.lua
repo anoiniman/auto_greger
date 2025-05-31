@@ -153,7 +153,7 @@ function inward_facing.base_move(direction, nav_obj) -- return result and error 
     end
 
     -- Translate result to boolean, since this is the standard we've been using in the rest of the programme
-    if result ~= nil then update_pos(direction, nav_obj)
+    if result ~= nil then inward_facing.update_pos(direction, nav_obj)
     else result = false end
 
     return result, err
