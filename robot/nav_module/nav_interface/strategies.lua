@@ -178,9 +178,10 @@ function module.free(parent, direction, nav_obj, extra_sauce)
             return false, "impossible"
         end
     end -- else happy path
-    
+
     local _, block_beneath = robot.detect(sides_api.down)
     if block_beneath ~= "solid" and table_contains(extra_sauce, "auto_bridge") then
+
         -- sanity check
         if direction == "up" or direction == "down" then
             print(comms.robot_send("warning", "free_move, passed a \"auto_bridge\" directive to an 'up' or 'down' direction"))
@@ -195,7 +196,7 @@ function module.free(parent, direction, nav_obj, extra_sauce)
                 print(comms.robot_send("warning", "During auto_bridge, could not break wierd block, be mindful"))
             end
         end
-        
+
         -- move forward (we assume that we were in a stable platform before), then place block; then we go back and
         -- remove the previous block, its up to the caller to introduce a "no_destroy" extra instruction
 
