@@ -139,9 +139,19 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
         print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
         return false, "impossible"
 
-    elseif err ~= nil and err ~= "impossible move" then -- TODO check that is not an entity, or log
+    elseif err ~= nil and err ~= "impossible move" then -- TODO check that is not an entity, about the log thing
+                                                        -- maybe its better to let this up to the caller erm?
         if not table_contains(extra_sauce, "no_auto_up") then
-            return module.free(parent, "up", nav_obj, break_block)
+            local _, what = robot.detect()
+            if what == "entity" or what == "replaceable" then
+                robot.swing()
+                inv.maybe_something_added_to_inv()
+                return true, err -- Uhhh, hopefully this won't get us stuck in a infinite loop
+            end
+
+            local result, err = module.free(parent, "up", nav_obj, break_block)
+            if result == true then return true, "auto_up" end
+            return result, err
         end
 
         local obstacle = geolyzer.simple_return()
@@ -180,7 +190,7 @@ function module.free(parent, direction, nav_obj, extra_sauce)
     end -- else happy path
 
     local _, block_beneath = robot.detect(sides_api.down)
-    if block_beneath ~= "solid" and table_contains(extra_sauce, "auto_bridge") then
+    if block_beneath ~= "solid" and table_contains(extra_sauce, "auto_bridge") then -- auto_bridge start
 
         -- sanity check
         if direction == "up" or direction == "down" then
@@ -277,7 +287,7 @@ function module.free(parent, direction, nav_obj, extra_sauce)
             ::no_error2::
 
         end
-    end
+    end -- Auto Bridge END
 
     return true, nil
 end

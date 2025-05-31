@@ -121,7 +121,7 @@ Storage
 Crafting
 GG
 
-Test Sweep until the end to make sure it terminates gracefully
 Make the robot auto-break textile gardens? It will be necessary, and maybe grain + soy gardens?
-
-Add interactive to gathering01 so that it doesn't block as hard as it does (prio = -2 and all that shi)
+<TEST> Add interactive to gathering01 so that it doesn't block as hard as it does (prio = -2 and all that shi)
+Add manual testing of the special moves?
+Add the basic material-bill obtain function to reasoning about buildings, and maybe eventually dry-run mode for building?
