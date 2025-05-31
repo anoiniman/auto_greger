@@ -11,6 +11,7 @@ local debug = require("eval.debug")
 local navigate = require("eval.navigate")
 local build = require("eval.build")
 local interactive = require("eval.interactive")
+local tasks = require("eval.tasks")
 
 
 -- I have created a sort of "abomination" command that in the command field it is a
@@ -37,6 +38,8 @@ function module.eval_command(command_arguments)
         return debug.echo(arguments)
     elseif command == "debug" then
         return debug.debug(arguments)
+    elseif command == "start_reason" then
+        DO_REASONING = true
     elseif command == "stop_reason" then
         DO_REASONING = false
     elseif command == "reason_once" then
@@ -51,9 +54,11 @@ function module.eval_command(command_arguments)
     elseif command == "generate_chunks" then
         return navigate.generate_chunks(arguments)
     elseif command == "create_named_area" then
-        return build.create_named_area(arguments)
+        return tasks.create_named_area(arguments)
     elseif command == "chunk_set_parent" then
-        return build.chunk_set_parent(arguments)
+        return tasks.chunk_set_parent(arguments)
+    elseif command == "chunk_add_mark" then
+        return tasks.chunk_add_mark(arguments)
 
     ---------------
     elseif command == "build_add_quad" then

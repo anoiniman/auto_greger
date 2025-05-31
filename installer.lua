@@ -82,11 +82,13 @@ local function robot_eval()
        filesystem.makeDirectory("/home/robot/eval")
     end
 
+    download("/robot/eval/eval_main.lua", "self")
+
     download("/robot/eval/build.lua", "self")
     download("/robot/eval/debug.lua", "self")
-    download("/robot/eval/eval_main.lua", "self")
     download("/robot/eval/navigate.lua", "self")
     download("/robot/eval/interactive.lua", "self")
+    download("/robot/eval/tasks.lua", "self")
 end
 
 local function robot_navigation()

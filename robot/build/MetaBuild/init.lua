@@ -176,7 +176,8 @@ function Module:require(name)
     --self.post_build_state = self.primitive.state
     if self.post_build_state == nil then self.post_build_state = {} end
 
-    primitive_cache[name] = build_table
+    -- THIS WAS REMOVED IN ORDER TO PERSERVE RAM
+    --primitive_cache[name] = build_table
     self:initPrimitive()
 
     return true
