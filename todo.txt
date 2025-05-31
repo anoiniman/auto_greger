@@ -125,3 +125,4 @@ Test Sweep until the end to make sure it terminates gracefully
 Make the robot auto-break textile gardens? It will be necessary, and maybe grain + soy gardens?
 
 Fix Delimteres
+Make it so placing blocks updates de interal lable

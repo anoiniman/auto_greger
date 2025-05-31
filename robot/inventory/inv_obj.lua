@@ -215,6 +215,30 @@ local function find_in_slot(block_id, lable_type)
             ::continue::
         end
     elseif lable_type == "name" then
+        if block_id == "any:building_block" then
+            local last_cbbl_match
+            local last_dirt_match
+
+            for index = 1, inventory_size, 1 do
+                local item = inventory.getStackInInternalSlot(index)
+                if item == nil then goto continue end
+
+                if item.lable == "Cobblestone" then
+                    last_cbbl_match = index
+                elseif item.lable == "Dirt" then
+                    last_dirt_match = index
+                end
+
+                ::continue::
+            end
+
+            if last_cbbl_match ~= nil then return last_cbbl_match
+            elseif last_dirt_match ~= nil then return last_dirt_match end
+
+            print(comms.robot_send("error", "inv_obj: no building block found in any slot"))
+            return -2
+        end
+
         print(comms.robot_send("error", "inv_obj: not valid lable_type"))
         return -2
     else
@@ -358,6 +382,8 @@ end
 
 
 --->>-- Block Placing --<<----{{{
+
+-- TODO: placing blocks is not updating the internal lable!
 function module.place_block(dir, block_identifier, lable_type, side)
     -- if side is nil it doesn't matter
     if side ~= nil then side = sides_api[side] end
