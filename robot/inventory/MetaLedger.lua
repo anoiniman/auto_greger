@@ -4,17 +4,24 @@ local comms = require("comms")
 local SpecialDefinition = require("inventory.SpecialDefinition")
 local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
 
+-- special_ledger does not have buckets
 local Module = {ledger_proper = nil, special_ledger = nil}
+-- Changed it so that there is an actual "duplicate" bucket rather than simply spilling the lables all over the place
 function Module:new()
     local new = deep_copy.copy(self, pairs)
-    local new_ledger = {}
-    for _, bucket in ipairs(item_buckets) do
-        new_ledger[bucket] = {}
-    end
-
-    new.ledger_proper = new_ledger
+    -- buckets will now be lazily initialised
+    new.ledger_proper = {}
 
     return new
+end
+
+local function access_bucket(ledger, bucket) -- returns inner_ref
+    if ledger == nil then
+        error(comms.robot_send("fatal", "MetaLedger, attempted to access non-existing ledger?!?!?!"))
+    end
+
+    if ledger[bucket] == nil then ledger[bucket] = {} end
+    return ledger[bucket]
 end
 
 function Module:addOrCreate(name, lable, quantity)
@@ -24,22 +31,27 @@ function Module:addOrCreate(name, lable, quantity)
         self:specialAddOrCreate(bucket, lable)
         return
     end
-    if bucket == "duplicate" then -- mfw no bucket, will fukkie wukkie if this still remains ambiguous :$
-        local entry_quantity = self.ledger_proper[bucket][lable]
+    if bucket == "duplicate" then -- will fukkie wukkie if this still remains ambiguous :$
+        local dup_bucket = access_bucket(self.ledger_proper, bucket)
+        local lable_bucket = access_bucket(dup_bucket, lable)
+        local entry_quantity = lable_bucket[name] -- num
+
         if entry_quantity == nil then
-            self.ledger_proper[lable][name] = quantity
+            lable_bucket[name] = quantity
             return
         end
-        self.ledger_proper[lable][name] = entry_quantity + quantity
+        lable_bucket[name] = entry_quantity + quantity
         return
     end
 
-    local entry_quantity = self.ledger_proper[bucket][lable]
+    local bucket_inner = access_bucket(self.ledger_proper, bucket)
+    local entry_quantity = bucket_innter[lable]
+
     if entry_quantity == nil then
-        self.ledger_proper[bucket][lable] = quantity
+        bucket_innter[lable] = quantity
         return
     end
-    self.ledger_proper[bucket][lable] = entry_quantity + quantity
+    bucket_innter[lable] = entry_quantity + quantity
 end
 
 function Module:specialAddOrCreate(bucket, lable) -- specials are probably non-stackable, right? Maybe not
@@ -63,14 +75,13 @@ function Module:subtract(name, lable, to_remove) -- does not accept special item
     end
 
     local identifier
-    local bucket_ref
+    local bucket_ref = access_bucket(self.ledger_proper, bucket)
 
     if bucket == "duplicate" then
         identifier = name
-        bucket_ref = self.proper_ledger[lable]
+        bucket_ref = access_bucket(self.ledger_proper, lable)
     else
         identifier = lable
-        bucket_ref = self.proper_ledger[bucket]
     end
     local quantity = bucket_ref[identifier]
 
@@ -102,6 +113,19 @@ function Module:howMany(name, lable) -- not implemented for special items, for n
     local to_return = self.ledger_proper[bucket][lable]
     if to_return == nil then return 0 end
     return to_return
+end
+
+-- Only compares ledger proper, not special ledgers
+function Module:compareWithLedger(other)
+    for bucket, identifiers in pairs(self.ledger_proper) do
+        if bucket == "duplicate" then
+            
+            
+            goto continue
+        end
+
+        ::continue::
+    end
 end
 
 -- We'll be assuming that name's always have a ':' in them and lables never have a ':' in them
