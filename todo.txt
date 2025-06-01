@@ -124,4 +124,6 @@ GG
 Make the robot auto-break textile gardens? It will be necessary, and maybe grain + soy gardens?
 <TEST> Add interactive to gathering01 so that it doesn't block as hard as it does (prio = -2 and all that shi)
 Add manual testing of the special moves?
+
 Add the basic material-bill obtain function to reasoning about buildings, and maybe eventually dry-run mode for building?
+^^^^ Implement using ledger comparison

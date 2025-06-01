@@ -1,8 +1,10 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+-- luacheck: push ignore item_buckets
 local SpecialDefinition = require("inventory.SpecialDefinition")
 local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
+-- luacheck: pop
 
 -- special_ledger does not have buckets
 local Module = {ledger_proper = nil, special_ledger = nil}
@@ -15,12 +17,11 @@ function Module:new()
     return new
 end
 
-local function access_bucket(ledger, bucket) -- returns inner_ref
-    if ledger == nil then
-        error(comms.robot_send("fatal", "MetaLedger, attempted to access non-existing ledger?!?!?!"))
-    end
+local function access_bucket(ledger, bucket, do_not_create) -- returns inner_ref
+    if ledger == nil then error(comms.robot_send("fatal", "MetaLedger, attempted to access non-existing ledger?!?!?!")) end
+    if do_not_create == nil then do_not_create = false end
 
-    if ledger[bucket] == nil then ledger[bucket] = {} end
+    if not do_not_create and ledger[bucket] == nil then ledger[bucket] = {} end
     return ledger[bucket]
 end
 
@@ -45,13 +46,13 @@ function Module:addOrCreate(name, lable, quantity)
     end
 
     local bucket_inner = access_bucket(self.ledger_proper, bucket)
-    local entry_quantity = bucket_innter[lable]
+    local entry_quantity = bucket_inner[lable]
 
     if entry_quantity == nil then
-        bucket_innter[lable] = quantity
+        bucket_inner[lable] = quantity
         return
     end
-    bucket_innter[lable] = entry_quantity + quantity
+    bucket_inner[lable] = entry_quantity + quantity
 end
 
 function Module:specialAddOrCreate(bucket, lable) -- specials are probably non-stackable, right? Maybe not
@@ -66,6 +67,20 @@ function Module:specialAddOrCreate(bucket, lable) -- specials are probably non-s
     table.insert(self.special_ledger, new_definition)
 end
 
+local function generic_bucket_ref(ledger, bucket, lable, name, do_not_create)
+    local bucket_ref = access_bucket(ledger, bucket)
+    local identifier
+
+    if bucket == "duplicate" then
+        identifier = name
+        bucket_ref = access_bucket(bucket_ref, lable, do_not_create)
+    else
+        identifier = lable
+    end
+
+    return bucket_ref, identifier
+end
+
 -- TODO --> We also need to programme in something that detects when tools break!
 function Module:subtract(name, lable, to_remove) -- does not accept special items
     local bucket, is_special = bucket_functions.identify(name, lable)
@@ -74,15 +89,7 @@ function Module:subtract(name, lable, to_remove) -- does not accept special item
         return false
     end
 
-    local identifier
-    local bucket_ref = access_bucket(self.ledger_proper, bucket)
-
-    if bucket == "duplicate" then
-        identifier = name
-        bucket_ref = access_bucket(self.ledger_proper, lable)
-    else
-        identifier = lable
-    end
+    local bucket_ref, identifier = generic_bucket_ref(self.ledger_proper, bucket, lable, name)
     local quantity = bucket_ref[identifier]
 
     if quantity == nil then
@@ -106,7 +113,7 @@ function Module:howMany(name, lable) -- not implemented for special items, for n
     end
 
     if bucket == "duplicate" then
-        local to_return = self.ledger_proper[lable][name]
+        local to_return = self.ledger_proper[bucket][lable][name]
         if to_return == nil then return 0 end
         return to_return
     end
@@ -115,17 +122,58 @@ function Module:howMany(name, lable) -- not implemented for special items, for n
     return to_return
 end
 
+local ComparisonDiff = {
+    name = nil,
+    lable = nil,
+    diff = 0
+}
+function ComparisonDiff:new(name, lable, diff)
+    local new = deep_copy.copy(self, pairs)
+    new.name = name
+    new.lable = lable
+    new.diff = diff
+
+    return new
+end
+
+
 -- Only compares ledger proper, not special ledgers
 function Module:compareWithLedger(other)
-    for bucket, identifiers in pairs(self.ledger_proper) do
-        if bucket == "duplicate" then
-            
-            
-            goto continue
-        end
+    local function inner_comparison(bucket, lable, name, own_quantity)
+        local remote_ref, remote_id = generic_bucket_ref(other, bucket, lable, name, true)
 
-        ::continue::
+        local other_quantity
+        if remote_ref == nil then other_quantity = nil
+        else other_quantity = remote_ref[remote_id] end
+        --
+        if other_quantity == nil then other_quantity = 0 end
+
+        local diff = own_quantity - other_quantity
+        local diff = ComparisonDiff:new(name, lable, diff)
+        return diff
     end
+
+    local diff_table = {}
+    for bucket_key, lable_table in pairs(self.ledger_proper) do
+        for lable, quantity in pairs(lable_table) do
+            if bucket_key == "duplicate" then   -- quantities aren't quantities they are a inner lable[name] table
+                -- luacheck: push ignore quantity (funny shadowing)
+                local name_table = quantity
+                for name, quantity in pairs(name_table) do
+                    local diff = inner_comparison(bucket_key, lable, name, quantity)
+                    table.insert(diff_table, diff)
+                end
+                goto skip_over
+            end -- else
+            -- luacheck: pop
+
+            local diff = inner_comparison(bucket_key, lable, nil, quantity)
+            table.insert(diff_table, diff)
+        end
+        ::skip_over::
+    end
+
+    return diff_table
 end
 
 -- We'll be assuming that name's always have a ':' in them and lables never have a ':' in them

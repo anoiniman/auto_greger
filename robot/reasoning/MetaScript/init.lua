@@ -30,11 +30,13 @@ function MetaScript:unlockPosterior()
 end
 
 -- TODO improve matching to follow the "strict" instruction
--- For now we support only lables, no names
 -- It prefers "singular" matches over table matches, table matches are only resolved after the loop
-function MetaScript:findRecipe(for_what)
+function MetaScript:findRecipe(lable, name)
     if self.recipes == nil then
         error(comms.robot_send("fatal", "MetaScript: \"" .. self.desc .. "\"NO RECIPES!"))
+    end
+    if lable == nil then
+        error(comms.robot_send("fatal", "MetaScript -- can't find a recipe when no lable provided dummy dumb dumb"))
     end
 
     local table_found = nil
@@ -42,18 +44,20 @@ function MetaScript:findRecipe(for_what)
         local output = recipe.output
         if output.lable == nil then -- aka, an equal mult-output recipe (not merely by-products)
             for _, element in ipairs(output) do
-                if element.lable == for_what then table_found = recipe end
+                if element.lable == lable and name == nil then table_found = recipe
+                elseif element.lable == lable and output.name == name then return recipe end
             end
             goto continue
         end
 
-        if output.lable == for_what then return recipe end
+        if output.lable == lable and name == nil then return recipe
+        elseif output.lable == lable and output.name == name then return recipe end
         ::continue::
     end
-    
+
     if table_found ~= nil then return table_found end
 
-    print(comms.robot_send("error", "No recipe for: \"" .. for_what .. "\" found!"))
+    print(comms.robot_send("error", "No recipe for: \"" .. lable .. "\" found!"))
     return nil
 end
 
@@ -79,10 +83,20 @@ function MetaScript:step() -- most important function does everything, I think
     end
     print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute: " .. best_goal.name))
 
-    local result = best_goal:step(index, name, self)
+    local result, extra = best_goal:step(index, name, self, false)
     if result == nil and index >= 1 then -- activate power saving, or change active scripts
         print(comms.robot_send("warning", "MetaScript:step() -- ran out of goals!"))
         return "end", nil
+    end
+
+    if extra == "try_recipe" then -- happens when a non recipe goal demands a recipe
+        -- luacheck: push ignore extra
+        result, extra = best_goal:step(nil, result, self, true)
+        if result == nil then
+            print(comms.robot_send("error", "MetaScript:step() -- Tried to force a recipe, but failed to find one"))
+            return "end", nil
+        end
+        -- luacheck: pop
     end
 
     return "continue", result
@@ -123,12 +137,25 @@ function Goal:depSatisfied()
     return true
 end
 
-function Goal:step(index, name, parent_script)
-    if self.constraint:returnType() == "building" then -- aka, is this a building constraint?
+-- Some day please fix the idiotic polymorphism of this whole code section
+function Goal:step(index, name, parent_script, force_recipe)
+    if self.constraint:returnType() == "building" and not force_recipe then -- aka, is this a building constraint?
         return self.constraint:step(index, name, self.priority)
     end
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
-    local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable), pairs) -- :) copy it so that the state isn't mutated
+    local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
+
+    local watch_dog = 0
+    while true do
+        if needed_recipe.meta_type == "gathering" then break end
+        -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
+        -- recursing until you endup in a gathering
+
+        if watch_dog > 20 then
+            error(comms.robot_send("fatal", "Goal:step() -- watch_dog exceeded, does recipe not get solved?"))
+        end
+        watch_dog = watch_dog + 1
+    end
 
     local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock)
     return return_table

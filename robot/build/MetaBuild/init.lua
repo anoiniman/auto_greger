@@ -7,6 +7,7 @@ local deep_copy = require("deep_copy")
 
 local general_functions = require("build.general_functions")
 local SchematicInterface = require("build.MetaBuild.SchematicInterface")
+local MetaLedger = require("inv.MetaLedger")
 
 
 local primitive_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
@@ -54,8 +55,9 @@ function Module:is_extra(str)
     local result = false
     for _, sauce in ipairs(self.extra_sauce) do
         if type(sauce) == "table" then
-            error("not implemented yet")
+            error(comms.robot_send("fatal", "not implemented yet, MetaBuild is_extra (use the included method in the instruction?)"))
             if sauce[1] == "do_wall" then
+                error("shutup the luacheck")
             end -- etc
         end
 
@@ -64,7 +66,7 @@ function Module:is_extra(str)
             break
         end
 
-        ::continue::
+        --::continue::
     end
     return result
 end
@@ -193,7 +195,6 @@ function PublicState:new(inner)
     return new
 end
 
-
 -- build state == 1 chunk wide state
 function Module:finalizeBuild()
     self.built = true
@@ -219,6 +220,26 @@ function Module:finalizeBuild()
     ::die::
 
     self.s_interface = nil -- :)
+end
+
+function Module:createAndReturnLedger()
+    -- We could try to pre-add-up every block by looping through the s_interface multiple times, and only
+    -- then increment the ledger entries, or we could just loop once and increment the ledger entries
+    -- 1-by-1, I don't know what solution is best, so I'll just use the easier one
+    local tmp_ledger = MetaLedger:new()
+
+
+    local result, status, instruction
+    while true do
+        result, status, instruction = self:doBuild()
+        if not result then error(comms.robot_send("fatal", "Failed to doBuild in createLedger, name is -- " .. self.name)) end
+        if status == "done" then break end
+
+        local block_lable, block_name = table.unpack(instruction.block_info)
+        tmp_ledger:addOrCreate(block_name, block_lable, 1)
+    end
+
+    return tmp_ledger
 end
 
 function Module:getName()

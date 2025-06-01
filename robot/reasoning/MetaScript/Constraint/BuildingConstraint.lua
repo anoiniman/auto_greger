@@ -1,6 +1,9 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
+
 local map_obj = require("nav_module.map_obj")
+local inv = require("inventory.inv_obj")
+local MetaBuild = require("build.MetaBuild")
 
 
 -- chunk_x_offset and chunk_z_offset btw
@@ -59,6 +62,28 @@ function BuildingConstraint:check(do_once)
     return 0, nil -- check passed
 end
 
+function BuildingConstraint:decideToBuild(to_build)
+    local tmp_build = MetaBuild:new()
+    -- I don't think it'll be a big deal to recalculate this everytime, but let's see
+    tmp_build:require(to_build.name)
+    tmp_build:setupBuild()
+
+    local tmp_ledger = tmp_build:createAndReturnLedger()
+    local internal_ledger = inv.internal_ledger
+
+    local diff = internal_ledger:compareWithLedger(tmp_ledger)
+    if diff == nil or #diff == 0 then return 0 end -- aka return a go-signal by default
+
+    -- element.lable, element.name
+    for _, element in ipairs(diff) do
+        if element.quantity < 0 then
+            return 1, element
+        end
+    end
+
+    return 0
+end
+
 function BuildingConstraint:step(index, name, priority) -- returns command to be evaled
     local structure_to_build = nil
     local occurence = 0
@@ -79,7 +104,18 @@ function BuildingConstraint:step(index, name, priority) -- returns command to be
         error(comms.robot_send("fatal", "impossible state BuildingConstraint:step()"))
     end
     local to_build = structure_to_build
+    local what_to_do, element = self:decideToBuild(to_build)
 
+    if what_to_do == 0 then
+        return self:doBuild(name, priority)
+    elseif what_to_do == 1 then
+        -- since element already contains fields = "lable" and "name", why not just send it over?
+        -- return {lable = element.lable, name = element.name}, "try_recipe"
+        return element, "try_recipe"
+    end
+end
+
+function BuildingConstraint:doBuild(name, priority)
     --luacheck: ignore
     local step = 0 -- 0 is interactive mode
     local what_chunk = {} -- what_chunk isn't dropped because of GC I think
