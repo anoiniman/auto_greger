@@ -89,6 +89,7 @@ function MetaScript:step() -- most important function does everything, I think
         return "end", nil
     end
 
+    -- TODO -> check if we only need to do fetch it from an external inventory or if we really need to recurse
     if extra == "try_recipe" then -- happens when a non recipe goal demands a recipe
         -- luacheck: push ignore extra
         result, extra = best_goal:step(nil, result, self, true)
