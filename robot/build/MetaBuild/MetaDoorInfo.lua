@@ -1,4 +1,5 @@
 local math = require("math")
+local comms = require("comms")
 local deep_copy = require("deep_copy")
 
 -- coords are chunk_rel, but are attached to quad, they need to be able to rotate with quad, if quad is rotatable

@@ -96,7 +96,7 @@ end
 
 function MetaChunk:addMark(str)
     if self.marks == nil then self.marks = {} end
-    if self:checkMarks(str) then return end 
+    if self:checkMarks(str) then return end
 
     table.insert(self.marks, str)
 end

@@ -96,22 +96,21 @@ Use OOS to aura farm
 
 Tests to run:
 > build road
-> navigate door ------- Support doors that are not in 0x/0z :)
+<DONE> > navigate door ------- Support doors that are not in 0x/0z :)
 > build hole_home (filled with air)
 > gathering scripts
 > making sure internal inventory gets updated currectly (do some introspection)
 
-UNLOCK "FRAME-RATE" PLZ
-Add bridge nav to nav_interface, should be relatively easy to implement
-Add the improved move algorithms
-Add recipe resolution
-Connect the the gatherting test script up
-TEST!
+<DONE-ish> UNLOCK "FRAME-RATE" PLZ
+<DONE> Add bridge nav to nav_interface, should be relatively easy to implement <wasn't that easy>
+<DONE> Add the improved move algorithms
+<On It> Add recipe resolution
+<DUSTED> Connect the the gatherting test script up
 
 FIND A WAY TO GET THE SUCK UPGRADE ON; OTHERWISE gathering saplings WILL BE DIFFICULT
 
 Writing to Disk (prob easy)
-Slightly Improved Navigation
+<DONE> Slightly Improved Navigation
 Test our clay gathering script
 Tree-Scanning gathering + (suck)
 Tree-GROWING gathering
@@ -125,5 +124,4 @@ Make the robot auto-break textile gardens? It will be necessary, and maybe grain
 <TEST> Add interactive to gathering01 so that it doesn't block as hard as it does (prio = -2 and all that shi)
 Add manual testing of the special moves?
 
-Add the basic material-bill obtain function to reasoning about buildings, and maybe eventually dry-run mode for building?
-^^^^ Implement using ledger comparison
+<TEST> Add the basic material-bill obtain function to reasoning about buildings, and maybe eventually dry-run mode for building?

@@ -3,9 +3,6 @@
 
 local deep_copy = require("deep_copy")
 
-local meta_door = require("build.MetaBuild.MetaDoorInfo")
-local general_functions = require("build.general_functions")
-
 local Module = {parent = nil}
 Module.name = "storeroom_north"
 

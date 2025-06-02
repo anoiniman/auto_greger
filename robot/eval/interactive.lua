@@ -1,3 +1,4 @@
+-- luacheck: globals INTERACTED
 local module = {}
 local interactive = require("interactive")
 local comms = require("comms")

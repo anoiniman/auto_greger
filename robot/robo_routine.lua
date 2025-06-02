@@ -4,8 +4,8 @@ local module = {}
 local math = require("math")
 
 local serialize = require("serialization")
---[[local text = require("text")
-local comms = require("comms")--]]
+--[[local text = require("text")--]]
+local comms = require("comms")
 
 local eval = require("eval.eval_main")
 

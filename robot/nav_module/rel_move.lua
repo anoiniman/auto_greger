@@ -135,7 +135,7 @@ end
 function module.interrupt_sweep(nav_obj)
     -- I think all we need to return is sweep_reverse and current position
     is_sweep = false
-    return nav.obj.get_rel(), sweep_reverse
+    return nav_obj.get_rel(), sweep_reverse
 end
 
 function module.resume_sweep(nav_obj, prev_position)

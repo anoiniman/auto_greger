@@ -38,7 +38,6 @@ local DOOR_MOVE_DONE = false
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
-local non_smart_keywords = {"no_smart_build", "force_clear"} -- this is now useless since I decided to make force_clear the default
 function module.nav_and_build(instructions, post_run)
     local rel_coords, what_chunk, door_info, block_info = instructions:nav_and_build_unpack()
 

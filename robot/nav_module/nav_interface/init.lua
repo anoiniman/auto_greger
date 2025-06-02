@@ -13,8 +13,8 @@ local comms = require("comms")
 ---- Local Imports ------
 local strat = require("nav_module.nav_interface.strategies")
 
-local geolyzer = require("geolyzer_wrapper")
-local inv = require("inventory.inv_obj")
+--local geolyzer = require("geolyzer_wrapper")
+--local inv = require("inventory.inv_obj")
 
 
 function inward_facing.update_pos(direction, nav_obj) -- assuming forward move

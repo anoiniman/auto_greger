@@ -54,7 +54,9 @@ local function do_up_stroke()
     end
 
     local result = nav.debug_move("up", 1, 0)
-    -- if not result then: just go to the next thing
+    if not result then --just go to the next thing
+        return true
+    end
 
     -- See if after this move we got there (uncomment if sudden brokey brokey)
     --return (geolyzer.can_see_sky() or not result)

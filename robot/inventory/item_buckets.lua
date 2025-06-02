@@ -1,4 +1,5 @@
 local module = {}
+local comms = require("comms")
 
 -- takes some data as input, and returns other data as output :D
 -- Names == Tinkers, durability == GT
@@ -31,7 +32,7 @@ local buckets = {
     -- sword?
 }
 
-local function duplicate_identify(name, lable)
+local function duplicate_identify(lable)
     if lable == "Coke Oven Brick" then
         print(comms.robot_send("debug", "No Mangling!"))
         return true
@@ -45,7 +46,7 @@ end
 function module.identify(name, lable)
     if name == nil then name = "nil" end
 
-    local dupe = duplicate_identify(name, lable)
+    local dupe = duplicate_identify(lable)
     if dupe then
         return "duplicate"
     end

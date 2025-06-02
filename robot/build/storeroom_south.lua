@@ -3,8 +3,7 @@
 
 local deep_copy = require("deep_copy")
 
-local meta_door = require("build.MetaBuild.MetaDoorInfo")
-local general_functions = require("build.general_functions")
+local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 
 local Module = {parent = nil}
 Module.name = "storeroom_south"
@@ -170,7 +169,7 @@ Module.base_table = {
 } -- def == default
 
 Module.doors = {}
-Module.doors[1] = meta_door:new()
+Module.doors[1] = MetaDoor:new()
 Module.doors[1]:doorX(6,2)
 
 -- consuming what function is to be executed

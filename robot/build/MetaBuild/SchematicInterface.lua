@@ -1,3 +1,4 @@
+-- luacheck: ignore io
 local serialize = require("serialization")
 local io = require("io")
 
@@ -121,7 +122,7 @@ function SchematicInterface:doBuild(top_down)
     rel[2] = self.origin_block[2] + (b_stack.logical_z - 1)
     rel[1] = self.origin_block[1] + chunk.x
 
-    local instruction = self:InstructionConstruction(chunk, rel) 
+    local instruction = self:InstructionConstruction(chunk, rel)
 
     return true, "continue", instruction
 end
@@ -158,7 +159,7 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
     if type(translated_symbol) ~= "table" then
         print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
     else -- if it IS a table
-        translated_symbol = deep_copy.copy(translated_symbol, ipairs) -- Yes I should do this in place, no I don't care for now 
+        translated_symbol = deep_copy.copy(translated_symbol, ipairs) -- Yes I should do this in place, no I don't care for now
 
         local serial = serialize.serialize(translated_symbol, true)
         print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))

@@ -1,4 +1,6 @@
 local module = {}
+local comms = require("comms")
+local map_obj = require("nav_module.map_obj")
 
 function module.create_named_area(arguments)
     local name = arguments[1]
@@ -82,8 +84,7 @@ function module.chunk_remove_mark(arguments)
         return nil
     end
 
-
-    if not map_obj.try_remove_mark_from_chunk(what_chunk, str, false) then
+    if not map_obj.try_remove_mark_from_chunk(what_chunk, remove_what, false) then
         print(comms.robot_send("error", "chunk_remove_mark -- failed in the final step"))
     end
 end
