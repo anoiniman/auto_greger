@@ -100,8 +100,8 @@ function module.navigate_rel_opaque(what_coords)
     return rel_move.access_opaque(nav_obj, what_coords)
 end
 
-function module.navigate_rel()
-    return rel_move.navigate_rel(nav_obj)
+function module.navigate_rel(extra_sauce)
+    return rel_move.navigate_rel(nav_obj, extra_sauce)
 end
 
 function module.is_setup_door_move()

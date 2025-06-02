@@ -5,15 +5,15 @@ local comms = require("comms")
 
 local math = require("math")
 
-local function attempt_move(nav_obj, dir)
+local function attempt_move(nav_obj, dir, extra_sauce)
     if dir ~= nil then
-        local result, err = nav.r_move("free", dir, nav_obj)
+        local result, err = nav.r_move("free", dir, nav_obj, extra_sauce)
         return result, err
     end
     return false, nil
 end
 
-local function attempt_surface_move(nav_obj, dir)
+local function attempt_surface_move(nav_obj, dir, extra_sauce)
     if dir ~= nil then
         local result, data = nav.r_move("surface", dir, nav_obj)
         return result, data
@@ -35,7 +35,7 @@ function module.setup_navigate_rel(x,z,y)
     navigation_setup = true
 end
 
-local function navigate_opaque(nav_obj, goal_rel)
+local function navigate_opaque(nav_obj, goal_rel, extra_sauce)
     local dir = nil
     local result = nil
     local data
@@ -54,7 +54,7 @@ local function navigate_opaque(nav_obj, goal_rel)
     elseif x_dif < 0 then dir = "east" end
 
     if dir ~= nil then
-        result, data = attempt_move(nav_obj, dir)
+        result, data = attempt_move(nav_obj, dir, extra_sauce)
     end
     if result then return 0 end
 
@@ -64,7 +64,7 @@ local function navigate_opaque(nav_obj, goal_rel)
     elseif z_dif < 0 then dir = "south" end
 
     if dir ~= nil then
-        result, data = attempt_move(nav_obj, dir)
+        result, data = attempt_move(nav_obj, dir, extra_sauce)
     end
     if result then return 0 end
 
@@ -76,24 +76,24 @@ local function navigate_opaque(nav_obj, goal_rel)
     end
 
     if dir ~= nil then
-        result, data = attempt_move(nav_obj, dir)
+        result, data = attempt_move(nav_obj, dir, extra_sauce)
     end
     if result then return 0 end
 
     return dir, data
 end
 
-function module.access_opaque(nav_obj, goal_rel)
-    return navigate_opaque(nav_obj, goal_rel)
+function module.access_opaque(nav_obj, goal_rel, extra_sauce)
+    return navigate_opaque(nav_obj, goal_rel, extra_sauce)
 end
 
-function module.navigate_rel(nav_obj)
+function module.navigate_rel(nav_obj, extra_sauce)
     if not navigation_setup then
         print(comms.robot_send("error", "navigate_rel, navigation not setup"))
         return 2
     end
 
-    local result, data = navigate_opaque(nav_obj, singleton_goal_rel)
+    local result, data = navigate_opaque(nav_obj, singleton_goal_rel, extra_sauce)
     if result == nil then -- luacheck: ignore (hacky, I like it)
     elseif result == 0 then return 0 end
 

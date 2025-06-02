@@ -8,7 +8,7 @@ local inv = require("inventory.inv_obj")
 local nav = require("nav_module.nav_obj")
 local rel = require("nav_module.rel_move")
 
--- TODO fix this mess
+-- For now I'll be doing nothing with this, but maybe one day who knows
 -- the algorithm doesn't take into account the way we always place blocks from the top
 local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     local cur_rel = nav.get_rel()
@@ -28,12 +28,13 @@ local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     if geolyzer.compare(block_info.lable, "simple", -1) then return true end
     if geolyzer.compare(block_info.name, "direct", -1) then return true end
 
-    -- TODO add more thorough comparisons comparision
+    -- todo add more thorough comparisons comparision
     return false
 end
 
--- THIS VARIABLE IS DANGEROUS AND STUPID AND I DON'T CARE
+-- THESE VARIABLES ARE DANGEROUS AND STUPID AND I DON'T CARE
 local DOOR_MOVE_DONE = false
+local BRIDGE_MODE = false
 
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
@@ -89,7 +90,12 @@ function module.nav_and_build(instructions, post_run)
 
         nav.setup_navigate_rel(rel_coords)
     end
-    local result, err = nav.navigate_rel()
+    local extra_sauce = nil
+    if BRIDGE_MODE then
+        extra_sauce = {"auto_bridge"}
+    end
+
+    local result, err = nav.navigate_rel(extra_sauce)
     -----------------------------------------
 
     if result == -1 then -- movement completed (place block, and go back to build_function)
@@ -124,7 +130,13 @@ function module.nav_and_build(instructions, post_run)
 
         if err == "swong" then print("debug", "noop") -- not a big error we keep going
         else
-            if err == "impossible" then error(comms.robot_send("fatal", "Can't deal with this yeat"))
+            if err == "impossible" then
+                local result = inv.place_block("down", "any:building_block", "name")
+                BRIDGE_MODE = true
+                if not result then
+                    error(comms.robot_send("fatal", "Wasn't able to place down bridge block in nav_build"))
+                end
+
             elseif err ~= "solid" then error(comms.robot_send("fatal", "Is this even possible")) end
 
             --[[if block_already_valid(rel_coords, block_info) then
