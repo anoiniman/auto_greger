@@ -45,7 +45,8 @@ end
 local function work_stroke(state)
     -- We don't really care if it fails to equip tool since we can mine the blocks with our "hands" anyway
     local _ = inv.equip_tool("shovel", 0)
-    local break_result = inv.blind_swing_down()
+    local break_result = robot.swingDown()
+    inv.maybe_something_added_to_inv()
     if not break_result then
         print(comms.robot_send("warning", "surface_resource_sweep, I thought the block was a block we \z
                                 wanted, but in the end I was unable to break it, worrying"))
@@ -95,8 +96,10 @@ end
 
 local gravel_only = MetaRecipe:newGathering("Gravel", "shovel", 0, surface_resource_sweep, el_state)
 
+local all_table = {"gravel", "sand", "clay"}
+el_state.sub_set = all_table
+
 local all_table = {"Gravel", "Sand", "Clay"}
-el_state.sub_set = deep_copy.copy(all_table, ipairs)
 local all_gather = MetaRecipe:newGathering(all_table, "shovel", 0, surface_resource_sweep, el_state)
 
 

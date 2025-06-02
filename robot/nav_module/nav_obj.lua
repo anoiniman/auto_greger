@@ -92,6 +92,10 @@ function module.debug_move(dir, distance, forget)
     return interface.debug_move(dir, distance, forget, nav_obj)
 end
 
+function module.force_forward()
+    return interface.debug_move(nav_obj.orientation, 1, nil, nav_obj)
+end
+
 function module.setup_navigate_rel(what_coords)
     rel_move.setup_navigate_rel(what_coords[1], what_coords[2], what_coords[3])
 end
