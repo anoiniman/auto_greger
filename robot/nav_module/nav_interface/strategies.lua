@@ -128,9 +128,63 @@ local function try_break_block(direction)
     return true, nil
 end
 
+local function break_log_down(direction, nav_obj)
+end
+
+local empty_table = {}
+local entity_watch_dog = 0
+local climb_watch_dog = 0
+
+-- Added this "entry-function" so that I can capture the results, and track some state (evil)
+function module.surface(parent, direction, nav_obj, extra_sauce)
+    local result, err = surface(parent, direction, nav_obj, extra_sauce)
+    if result then
+        entity_watch_dog = 0
+        if err == nil or err ~= "auto_up" then
+            climb_watch_dog = 0
+        end
+    elseif err ~= "entity" or err ~= "replaceable" then
+        entity_watch_dog = 0
+    end
+
+    if entity_watch_dog == 32 then
+        print(comms.robot_send("warning", "Warning, surface move got stuck on entity"))
+        entity_watch_dog = 0
+    end
+    if climb_watch_dog == 2 then -- let's see if there is a tree ahead of us, and in front as whell (fat trees)
+        local analysis = geolyzer.simple_return()
+        if geolyzer.sub_compare("log", "naive_contains", analysis) then
+            -- forward
+            inv.equip_tool("axe", 0) -- maybe unneeded?
+            robot.swing() -- will succeed
+            inv.maybe_something_added_to_inv()
+            module.free(parent, direction, nav_obj, empty_table) -- must succeed
+
+            -- 1
+            robot.swingDown()
+            inv.maybe_something_added_to_inv()
+            local result, err = module.free(parent, "down", nav_obj, empty_table)
+            if not result then goto get_out end
+
+
+            -- 2
+            robot.swingDown()
+            inv.maybe_something_added_to_inv()
+            local result, err = module.free(parent, "down", nav_obj, empty_table)
+            if not result then goto get_out end
+
+        else -- maybe one day check if mountain=
+            climb_watch_dog = 0
+        end
+    end
+    ::get_out::
+
+    return result, err
+end
+
 
 local break_block = {"break_block"}
-function module.surface(parent, direction, nav_obj, extra_sauce)
+local function surface(parent, direction, nav_obj, extra_sauce)
     -- luacheck: push ignore result
     local result, err = parent.base_move(direction, nav_obj)
 
@@ -139,18 +193,21 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
         print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
         return false, "impossible"
 
-    elseif err ~= nil and err ~= "impossible move" then -- TODO check that is not an entity, about the log thing
-                                                        -- maybe its better to let this up to the caller erm?
+    elseif err ~= nil and err ~= "impossible move" then
         if not table_contains(extra_sauce, "no_auto_up") then
-            if err == "entity" or err == "replaceable" then
-                robot.swing()
-                inv.maybe_something_added_to_inv()
-                return true, err -- Uhhh, hopefully this won't get us stuck in a infinite loop
-            end
-
             local result, err = module.free(parent, "up", nav_obj, break_block)
-            if result == true then return true, "auto_up" end
+            if result == true then 
+                climb_watch_dog = climb_watch_dog + 1
+                return true, "auto_up" 
+            end
             return result, err
+        end
+
+        if err == "entity" or err == "replaceable" then
+            robot.swing()
+            inv.maybe_something_added_to_inv()
+            entity_watch_dog = entity_watch_dog + 1
+            return true, err -- Uhhh, hopefully this won't get us stuck in a infinite loop
         end
 
         local obstacle = geolyzer.simple_return()
