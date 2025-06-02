@@ -105,6 +105,7 @@ local function robot_navigation()
 
     download("/robot/nav_module/nav_obj.lua", "self")
     download("/robot/nav_module/rel_move.lua", "self")
+    download("/robot/nav_module/simple_elevator.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/nav_module/nav_interface") then
        filesystem.makeDirectory("/home/robot/nav_module/nav_interface")
@@ -164,6 +165,7 @@ local function robot_reasoning()
     if not filesystem.isDirectory("/home/robot/reasoning/recipes") then
        filesystem.makeDirectory("/home/robot/reasoning/recipes")
     end
+    download("/robot/reasoning/recipes/sweep_gathering_general.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/recipes/stone_age") then
        filesystem.makeDirectory("/home/robot/reasoning/recipes/stone_age")

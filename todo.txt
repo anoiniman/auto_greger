@@ -125,3 +125,5 @@ Make the robot auto-break textile gardens? It will be necessary, and maybe grain
 Add manual testing of the special moves?
 
 <TEST> Add the basic material-bill obtain function to reasoning about buildings, and maybe eventually dry-run mode for building?
+Over y height just dig throught he mountain, lol?
+
