@@ -20,16 +20,16 @@ local function update_chunk_nav(nav_obj)
     local chunk = nav_obj["chunk"]
 
     if rel[1] > 15 then
-        rel[1] = 0
+        rel[1] = rel[1] - 16
         chunk[1] = chunk[1] + 1
     elseif rel[1] < 0 then
-        rel[1] = 15
+        rel[1] = rel[1] + 16
         chunk[1] = chunk[1] - 1
     elseif rel[2] > 15 then
-        rel[2] = 0
+        rel[2] = rel[2] - 16
         chunk[2] = chunk[2] + 1
     elseif rel[2] < 0 then
-        rel[2] = 15
+        rel[2] = rel[2] + 16
         chunk[2] = chunk[2] - 1
     end
 
