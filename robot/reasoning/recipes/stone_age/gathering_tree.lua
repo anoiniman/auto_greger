@@ -6,6 +6,9 @@ local comms = require("comms")
 -- local interactive = require("interactive")
 
 local robot = require("robot")
+local component = require("component")
+local os = require("os")
+
 local nav = require("nav_module.nav_obj")
 -- local map = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
@@ -13,12 +16,13 @@ local generic = require("reasoning.recipes.sweep_gathering_general")
 
 local MetaRecipe = require("reasoning.MetaRecipe")
 
+local sucker = component.getPrimary("tractor_beam")
+
 
 local el_state = {
     chunk = nil,
     i_id = nil,
 
-    up_stroke = false,
     sub_set = {"log"},
     interrupt = false,
     mode = "automatic", -- will search for areas tagged with "gather"
@@ -51,43 +55,50 @@ local function check_subset(state, do_up) -- (do up is optional and abuses polym
     return false
 end
 
--- TODO: climb up, climb down, suck, plant!
-as
-local function climb_loop(state)
-
-
+local function come_down()
+    local _
+    local moved_down = true
+    while moved_down do
+        moved_down, _ = nav.debug_move("down", 1, 0)
+    end -- if we leave the loop we assume we've hit the ground
 end
 
-local function work_stroke(state)
-    local f_swing
-    if not state.up_stroke then
-        f_swing = robot.swing()
-    else
-        f_swing = robot.swingUp()
-    end
+-- luacheck: push ignore err
+local function climb_loop(state)
+    local result, err
+    local block_intersting = true
+    while block_intersting do
+        result = robot.swingUp() -- make sure this returns false on hitting air
+        if not result then break end
+        inv.maybe_something_added_to_inv()
 
+        result, err = nav.debug_move("up", 1, 0)
+        if not result then break end
+        block_intersting  = check_subset(state, true)
+    end
+end
+-- luacheck: pop
+
+
+local function work_stroke(state)
     -- We don't really care if it fails to equip tool since we can mine the blocks with our "hands" anyway
     local _ = inv.equip_tool("axe", 0)
-    local break_result, _ = f_swing() -- yurp
+    local break_result, _ = robot.swing() -- yurp
     inv.maybe_something_added_to_inv()
 
     if not break_result then
         print(comms.robot_send("warning", "surface_resource_sweep, I thought the block was a block we \z
                                 wanted, but in the end I was unable to break it, worrying"))
+        return false -- this won't bite us in the ass
     end
 
-    -- luacheck: ignore err
-    local result, err
-    if not state.up_stroke then
-        result, err = nav.force_forward()
-    else
-        result, err = nav.debug_move("up", 1, 0)
-    end
+    nav.force_forward()
+    climb_loop(state)
+    come_down()
+    os.sleep(10) -- wait for leaves to decay
+    sucker.suck() -- assuming all this goes into first slot, otherwise we need to change the inv code
+    inv.maybe_something_added_to_inv()
 
-    local interesting_block = check_subset(state, true)
-    if interesting_block == true and result then -- makes it so that when we impossible move we don't loop forever
-        return true
-    end
     return false
 end
 
