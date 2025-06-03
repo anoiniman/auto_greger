@@ -53,7 +53,7 @@ function Module:new()
 end
 
 -- First element of the hook array == special_symbol "*", etc.
-Module.state_init = {
+Module.hooks = {
     function()
         return MetaLedger:new()
     end,
@@ -64,9 +64,7 @@ Module.state_init = {
             MetaItem:new(nil, "Block of Coal", false, "Block of Coal Coke")
         }
 
-        local new_machine = MetaInventory:newMachine(input_items)
-        new_machine["state_type"] = "inventory"
-        return new_machine
+        return MetaInventory:newMachine(input_items)
     end
 }
 

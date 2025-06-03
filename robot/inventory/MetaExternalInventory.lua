@@ -2,6 +2,7 @@
 local deep_copy = require("deep_copy")
 local MetaLedger = require("inventory.MetaLedger")
 
+-- as obvious, if it is an item inside a static storage it has no output
 local MetaItem = {
     name = nil,
     lable = nil,

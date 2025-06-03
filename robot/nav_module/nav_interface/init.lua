@@ -82,6 +82,10 @@ function inward_facing.convert_orientation(orientation)
     end
 end
 
+function to_export.get_opposite_orientation(nav_obj)
+    return inward_facing.get_opposite_orientation(nav_obj)
+end
+
 function inward_facing.get_opposite_orientation(nav_obj)
     local orientation = nav_obj.orientation
     if orientation == "north" then

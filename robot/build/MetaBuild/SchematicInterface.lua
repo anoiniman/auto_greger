@@ -110,7 +110,7 @@ function SchematicInterface:doBuild(top_down)
         end
         return self:doBuild(top_down)
     end
-    if chunk.symbol == '*' then -- or other such special characters
+    if chunk.symbol == '*' or chunk.symbol == '+' then -- or other such special characters
         b_stack.logical_x = b_stack.logical_x + 1
         return self:doBuild(top_down)
     end
