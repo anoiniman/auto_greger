@@ -304,8 +304,17 @@ function module.equip_tool(tool_type, wanted_level)
 
     -- First, check if it already equiped
     if equiped_tool ~= nil and equiped_tool.item_name == tool_type and equiped_tool.item_level >= wanted_level then
+        -- Update internal representation if the tool is now broken
+        robot.select(1) -- empty slot 
+        inv.equip()
+        if robot.count(1) == 0 then -- tool broke
+            goto fall_through
+        end -- else tool is good!
+        inv.equip() -- equip it again
+
         return true -- "We equipped it succesefully"
     end
+    goto ::fall_through::
 
     local first_tool = slot_manager.find_first(tool_type, wanted_level)
     local slot = nil

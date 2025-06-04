@@ -82,6 +82,21 @@ function inward_facing.convert_orientation(orientation)
     end
 end
 
+function to_export.rotate_right(nav_obj)
+    local orient = nav_obj.get_orientation()
+    if orient == "north" then 
+        inward_facing.change_orientation("east", nav_obj)
+    elseif orient == "east" then
+        inward_facing.change_orientation("south", nav_obj)
+    elseif orient == "south" then
+        inward_facing.change_orientation("west", nav_obj)
+    elseif orient == "west" then
+        inward_facing.change_orientation("north", nav_obj)
+    else
+        error(comms.robot_send("fatal", "invalid state nav_interface.rotate_right")) 
+    end
+end
+
 function to_export.get_opposite_orientation(nav_obj)
     return inward_facing.get_opposite_orientation(nav_obj)
 end

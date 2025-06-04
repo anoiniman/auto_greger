@@ -75,6 +75,10 @@ function module.get_opposite_orientation()
     return interface.get_opposite_orientation(nav_obj)
 end
 
+function module.rotate_right()
+    return interface.rotate_right(nav_obj)
+end
+
 function module.set_orientation(orient)
     nav_obj.orientation = orient
 end
