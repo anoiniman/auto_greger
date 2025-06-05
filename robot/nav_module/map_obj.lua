@@ -246,6 +246,17 @@ end
 
 -->>-----------------------------------<<--
 
+local known_buildings = {}
+function known_buildings:insert(name, build_ref)
+    if self[name] == nil then self[name] = {} end
+    local size = #self[name]
+    self[name][size + 1] = build_ref
+end
+
+
+
+-->>-----------------------------------<<--
+
 local default_map_size = 31 -- generate 31x31 square of chunks
 local current_map_size = default_map_size
 local map_obj = {}
@@ -257,13 +268,6 @@ local map_obj_offsets = {1,1}   -- offsets logical 0,0 in the array in order to 
 
 if default_map_size % 2 == 0 then
     error(comms.robot_send("fatal", "default_map_size is divisble by 2"))
-end
-
-local known_buildings = {}
-function known_buildings:insert(name, build_ref)
-    if self[name] == nil then self[name] = {} end
-    local size = #self[name]
-    self[name][size + 1] = build_ref
 end
 
 function module.gen_map_obj(offset)
@@ -390,6 +394,7 @@ function module.get_buildings_num(name)
 
     return #known_buildings[name]
 end
+
 
 function module.get_area(name)
     return areas_table:getArea(name)

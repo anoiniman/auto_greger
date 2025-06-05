@@ -32,12 +32,21 @@ local crafting_table_clear = true
 local use_self_craft = true
 
 local internal_ledger = MetaLedger:new()
+local external_ledgers = {}
 local equiped_tool = nil
 
 --->>-- Check on the ledgers --<<-----{{{
 -- TODO external_ledgers
 function module.how_many_internal(name, lable)
     local quantity = internal_ledger:howMany(name, lable)
+    return quantity
+end
+
+function module.how_many_total(name, lable)
+    local quantity = internal_ledger:howMany(name, lable)
+    for _, ledger in ipairs(external_ledgers) do
+        quantity = quantity + ledger:howMany(name, lable)
+    end
     return quantity
 end
 

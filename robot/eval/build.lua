@@ -91,4 +91,9 @@ function module.start_auto_build(arguments)
     )
 end
 
+function module.use_building(arguments)
+    -- TODO
+    return map_obj.use_building()
+end
+
 return module

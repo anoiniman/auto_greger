@@ -202,7 +202,7 @@ function Module:initAtIndex(index)
 
     local init = self.post_build_s_init[index]
     if hook == nil then
-        print(comms.robot_send("error", "No post_build_init in index " .. index))
+        print(comms.robot_send("error", "No post_build_s_init in index " .. index))
         return false
     end
     local new_state_ref = init(index)
@@ -230,6 +230,12 @@ function Module:finalizeBuild()
 
     self.s_interface = nil -- :)
 end
+
+-- if check_mode is true then simply check if building is available
+function Module:useBuilding(check_mode)
+    return self.post_build_hooks[1](self.post_build_state[1], check_mode) -- first hook must correspond to this pattern 
+end
+
 
 function Module:createAndReturnLedger()
     -- We could try to pre-add-up every block by looping through the s_interface multiple times, and only

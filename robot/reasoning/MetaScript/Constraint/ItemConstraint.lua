@@ -4,10 +4,22 @@ local inv = require("inventory.inv_obj")
 
 -- Possible filters = "strict", "loose", <!"gt_ore"!> (maybe not anymore)
 -- perfect string match, imperfect match, item_name is actually a table
-local ItemConstraint = {item_lable = nil, item_name = nil, total_count = nil, filter = nil, internal = true, lock = {0}}
-function ItemConstraint:new(item_name, item_lable, total_count, filter) -- maybe this internal thing will never be used
+local ItemConstraint = {
+    item_lable = nil,
+    item_name = nil,
+    filter = nil,
+
+    set_count = nil
+    reset_count = nil,
+
+    internal = true, -- to be removed
+    lock = {0}
+}
+
+function ItemConstraint:new(item_name, item_lable, set_count, reset_count, filter) -- maybe this internal thing will never be used
     local new = deep_copy.copy(self, pairs)
-    new.total_count = total_count
+    new.set_count = set_count
+    new.reset_count = reset_count
     new.filter = filter
     new.item_name = item_name
     new.item_lable = item_lable
@@ -23,15 +35,11 @@ function ItemConstraint:check(do_once) -- so this was easy?
     end
     if self.lock[1] ~= 0 then return 0, nil end
 
-    if self.internal then
-        if inv.how_many_internal(self.item_name, self.item_lable) < self.total_count then
-            return 1, {name = self.item_name, lable = self.item_lable}
-        end
-    else
-        -- TODO
-        error(comms.robot_send("fatal", "ItemConstraint:check() -> internal == false -- not implemented!"))
+    -- removed the how_many_internal thing, it is useful to dictate if we have to pick something up, but that
+    -- is not the responsability of this code
+    if inv.how_many_total(self.item_name, self.item_lable) < self.reset_count then
+        return 1, {name = self.item_name, lable = self.item_lable}
     end
-
     return 0, nil
 end
 

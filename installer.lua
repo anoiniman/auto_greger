@@ -151,9 +151,14 @@ local function robot_reasoning()
        filesystem.makeDirectory("/home/robot/reasoning")
     end
 
-    download("/robot/reasoning/MetaRecipe.lua", "self")
     download("/robot/reasoning/reasoning_obj.lua", "self")
 
+    if not filesystem.isDirectory("/home/robot/reasoning/MetaRecipe") then
+       filesystem.makeDirectory("/home/robot/reasoning/MetaRecipe")
+    end
+
+    download("/robot/reasoning/MetaRecipe/init.lua", "self")
+    download("/robot/reasoning/MetaRecipe/MetaDependency.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/MetaScript") then
        filesystem.makeDirectory("/home/robot/reasoning/MetaScript")

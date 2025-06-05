@@ -13,32 +13,6 @@ local module.dictionary = { ol = "oak_log", g = "gravel", f = "flint", s = "stic
 local temp = nil
 local algo_pass = nil
 
-
--- If tool level is 0 then it means it may also be broken by hand
-local oak_log = MetaRecipe:newGathering("oak_log", "axe", 0, log_algo, algo_pass)
-
-
--- change_state at first will be a chunk table {0, 0}
-local function grav_algo(state, change_state, nav_obj) -- nav_obj will be algo_pass[1]
-    local what_chunk = change_state[1] -- or -- local what_chunk = change_state?
-    local result, data = sweep(what_chunk) -- very much temporary
-    if result == false then
-        if data ~= nil then -- probably means that we've run into an obstacle
-            -- TODO stuff with this obstacle data 
-        else
-            print(comms.robot_send("error", "grav_algo ran into unrecoverable error in navigation"))
-            return false -- error
-        end
-    end
-    -- TODO Now we need to check if there is anything of interest below us and stuff
-
-
-    return true
-end
-
-algo_pass[1] = nav_obj -- nav_obj is passed by reference, as should be obvious
-local gravel = MetaRecipe:newGathering("gravel", "shovel", 0, grav_algo, algo_pass)
-
 -- fing a way to include the 2 flint recipes, and only to the "better one" when a certain
 -- milestone is passed
 -- TODO: Add milestones to distinguish which recipe with the same output to use
@@ -60,8 +34,10 @@ temp = {
 -- but since many "outputs" have different recipes that make them the namespace is already à priori
 -- polluted????? FFFAAAAAAAAKKKKKK
 local flint_pickaxe = MetaRecipe:newCraftingTable("flint_pickaxe", temp)
+-- module[1] = flint; module[2] = flint_pickaxe
 
-module[1] = flint; module[2] = flint_pickaxe
 
+-- is setting the dependency really needed
+local charcoal = MetaRecipe:newBuildingUser("Charcoal", "coke_quad")
 
 return module

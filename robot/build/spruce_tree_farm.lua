@@ -80,7 +80,7 @@ end
 
 -- First element of the hook array == special_symbol "*", etc.
 Module.state_init = {
-    function()
+    function() -- general state
         return {ledger = MetaLedger:new(), last_checked = computer.uptime()}
     end,
     function(index)
@@ -176,6 +176,13 @@ end
 
 -- This is: 22 minutes for oak (1x1) farms -- and 11 minutes for spruce (2x2) farms
 Module.hooks = {
+    -- takes control in between the specific * and + functions
+    -- if check is true return true on start conditions being true, otherwise execute main code
+    function(state, only_check)
+        if computer.uptime() - state.last_checked < 60 * 11 then return false end
+        if only_check then return true end 
+        -- TODO (the rest)
+    end,
     function() -- only call this once the last_check is x minutos after uptime
 
         local analysis = geolyzer.simple_return(sides_api.front)

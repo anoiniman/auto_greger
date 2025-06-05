@@ -1,6 +1,9 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+local map = require("nav_module.map_obj")
+local inv = require("nav_module.inv_obj")
+
 -- Whole recipe get copied/cloned by the caller so that state is not changed in the primitive object for a given recipe
 -- this decouples the definition of behaviour and data structure from its execution and state-change when in-vivo.
 -- Of course, this relies on the caller properly clonning us, but we don't really have a good way to enforce this
@@ -33,6 +36,29 @@ function MetaRecipe:new(output, state_primitive, strict)
     return new
 end
 
+-- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
+function MetaRecipe:isSatisfied(quantity)
+    if self.meta_type == "gathering" then
+        -- Check if we got the tools
+        error(comms.robot_send("fatal", "MetaRecipe todo01"))
+    elseif self.meta_type == "crafting_table" then
+        -- Check if we have enough materials to craft the given quantitu
+        error(comms.robot_send("fatal", "MetaRecipe todo02"))
+    elseif self.meta_type == "building_user" then
+        -- Check if the building was built
+        local name = self.mechanism.bd_name
+        local buildings = map.get_buildings(name)
+        if buildings == nil or #buildings == 0 then return false end
+
+        for _, build in ipairs(buildings) do
+            if build:useBuilding(true) then return true end
+        end
+        return false
+    else
+        error(comms.robot_send("fatal", "meta_type was badly set somewhere!"))
+    end
+end
+
 -- goal_block is what is recognizable by geolyzer, name is usually enough, but if it is a GT-Ore, for example
 -- colour and meta-data will probabily be necessary, these differences can be caught inside
 -- "algorithm" which is supposed to be a function that takes "Gathering"
@@ -44,6 +70,26 @@ function Gathering:new(tool, level, algorithm)
     new.level = level
     new.algorithm = algorithm
 
+    return new
+end
+
+function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive, dependencies, strict)
+    if output == nil then
+        error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
+        return nil
+    end
+    if tool == nil or level == nil or algorithm == nil
+            or type(algorithm) ~= "function" or state_primitive == nil then
+
+        error(comms.robot_send("error", "MetaRecipe:newGathering, we did a fucky-wucky oopie wooppies"))
+        return nil
+    end
+
+    local new = self:new(output, state_primitive, strict)
+    new.dependencies = dependencies
+    new.meta_type = "gathering"
+
+    new.mechanism = Gathering:new(tool, level, algorithm)
     return new
 end
 
@@ -83,23 +129,19 @@ function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_p
     return new
 end
 
-function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive, dependencies, strict)
-    if output == nil then
-        error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
-        return nil
-    end
-    if tool == nil or level == nil or algorithm == nil
-            or type(algorithm) ~= "function" or state_primitive == nil then
+local BuildingUser = { -- This sort of recipe passes all the implementation over to the "build" module
+    bd_name = nil,
+}
+function BuildingUser:new()
+    return deep_copy.copy(self, pairs)
+end
 
-        error(comms.robot_send("error", "MetaRecipe:newGathering, we did a fucky-wucky oopie wooppies"))
-        return nil
-    end
-
-    local new = self:new(output, state_primitive, strict)
+function MetaRecipe:newBuildingUser(output, bd_name, dependencies)
+    local new = self:new(output)
     new.dependencies = dependencies
-    new.meta_type = "gathering"
+    new.meta_type = "building_user"
 
-    new.mechanism = Gathering:new(tool, level, algorithm)
+    new.mechanism = BuildingUser:new()
     return new
 end
 
@@ -108,6 +150,11 @@ function MetaRecipe:returnCommand(priority, lock_ref)
     if self.meta_type == "gathering" then
         self.state.priority = priority
         return {priority, self.mechanism.algorithm, self.mechanism, self.state, lock_ref }
+    elseif self.meta_type == "building_user" then
+        -- TODO
+       local build = map.get_buildings(self.mechanism.bd_name)
+
+       return {priority, build.useBuilding, build, priority, lock_ref} -- ??? TODO
     elseif self.meta_type == "crafting_table" then
         error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
     else

@@ -57,7 +57,7 @@ Module.state_init = {
     function()
         return MetaLedger:new()
     end,
-    function () -- anonymous function, hopefully
+    function() -- anonymous function, hopefully
         local input_items = {
             MetaItem:new("log", nil, true, "Charcoal" ),
             MetaItem:new(nil, "Coal", false, "Coal Coke"),
@@ -67,6 +67,17 @@ Module.state_init = {
         local new_machine = MetaInventory:newMachine(input_items)
         new_machine["state_type"] = "inventory"
         return new_machine
+    end
+}
+
+-- TODO (low priority) add auto-clear creosote oil when abcd
+-- time calculation assuming that each log takes 3000 ticks (150 seconds) to turn into charcoal
+Module.hooks = { -- TODO this
+    function()
+
+    end,
+    function()
+
     end
 }
 

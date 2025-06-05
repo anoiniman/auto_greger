@@ -26,6 +26,7 @@ end
 -- check if posterior script file can be unlocked
 function MetaScript:unlockPosterior()
     if self.posterior == nil then return nil end
+    error(comms.robot_send("fatal", "todo MetaScript unlock posterior"))
     -- TODO
 end
 
@@ -138,6 +139,31 @@ function Goal:depSatisfied()
     return true
 end
 
+local recurse_watch_dog = 0
+-- recurse through the recipe tree to find out in what place in the tree can we start to fulfil a certain request
+local function recurse_recipe_tree(head_recipe, needed_quantity)
+    local recurse = false
+    local recipe_to_execute = head_recipe
+
+    if needed_recipe.dependencies == nil then return nil end
+    for _, dependency in ipairs(needed_recipe.dependencies) do
+        if not dependency:isSatisfied(needed_quantity) then
+            recurse = true
+            recipe_to_execute = dependency
+            break
+        end -- else will continue to check all dependencies
+    end
+
+    if not recurse then return recipe_to_execute end
+
+    if recurse_watch_dog > 20 then
+        error(comms.robot_send("fatal", "Goal:step() -- watch_dog exceeded, does recipe not get solved?"))
+    end
+    watch_dog = watch_dog + 1
+
+    return recurse_recipe_tree(recipe_to_execute, needed_quantity) -- tail recursion
+end
+
 -- Some day please fix the idiotic polymorphism of this whole code section
 function Goal:step(index, name, parent_script, force_recipe)
     if self.constraint:returnType() == "building" and not force_recipe then -- aka, is this a building constraint?
@@ -147,15 +173,17 @@ function Goal:step(index, name, parent_script, force_recipe)
     local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
 
     local watch_dog = 0
-    while true do
-        if needed_recipe.meta_type == "gathering" then break end
-        -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
-        -- recursing until you endup in a gathering
+    -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
+    -- recursing until you endup in a gathering
+    local needed_quantity = self.constraint.const_obj.reset_count
+    if needed_recipe:isSatisfied(needed_quantity) then break end
+    local needed_recipe = recurse_recipe_tree(needed_recipe, needed_quantity)
 
-        if watch_dog > 20 then
-            error(comms.robot_send("fatal", "Goal:step() -- watch_dog exceeded, does recipe not get solved?"))
-        end
-        watch_dog = watch_dog + 1
+    -- TODO implement mechanism to unlock this lock
+    if needed_recipe == nil then
+        -- TODO -- add different lock number for: "we check again after this many seconds"
+        self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
+        return nil
     end
 
     local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock)
