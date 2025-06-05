@@ -1,10 +1,12 @@
 local deep_copy = require("deep_copy")
+local comms = require("comms")
 
 local computer = require("computer")
 local os = require("os")
 local robot = require("robot")
 local sides_api = require("sides")
 local component = require("component")
+local serialize = require("serialization")
 
 local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
 local MetaLedger = require("inventory.MetaLedger")
@@ -17,6 +19,7 @@ local nav_to_build = require("nav_module.nav_to_build")
 local inv = require("inventory.inv_obj")
 
 local suck = component.getPrimary("tractor_beam")
+local inv_component = component.getPrimary("inventory_controller")
 
 local Module = {parent = nil}
 Module.name = "oak_tree_farm"
@@ -82,12 +85,16 @@ Module.state_init = {
             ledger = MetaLedger:new(),
             last_checked = computer.uptime() - 60 * 21, -- temp thing
             -- last_checked = computer.uptime(),
-            state.fsm = 1,
+
+            fsm = 1,
+            in_what_asterisk = 1,
+            temp_reg = nil,
+
             in_building = false
         } -- we only wait 1 minute now
     end,
     function()
-        return { state_type = "action" }
+        return { state_type = "action" } -- le chop trees
     end,
     function(index)
         local item
@@ -140,6 +147,45 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
     end
 end
 
+local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm)
+    if not nav.is_setup_navigte_rel() then
+        nav.setup_navigate_rel(target_coords)
+    end
+
+    local jmp_to_func
+    local set_fsm = origin_fsm
+
+    local result = nav.navigate_rel()
+    if result == 1 then error(comms.robot_send("fatal", "Couldn't rel_move oak_tree_farm, are we stupid? (2)"))
+    elseif result == 0 then jmp_to_func = 1 -- hopefully this isn't arbitrary
+    elseif result == -1 then -- we've arrived
+        set_fsm = target_fsm
+        jmp_to_func = target_jmp
+    end
+
+    return jmp_to_func, set_fsm
+end
+
+local function count_occurence_of_symbol(what_symbol, how_much, where)
+    local to_return = nil
+    local num_to_return = nil
+
+    local hits = 0
+    for _, symbol in ipairs(where) do
+        if symbol[1] == what_symbol then hits = hits + 1 end
+        if hits == how_much then
+            num_to_return = how_much + 1
+            local copy = deep_copy.copy(symbol, ipairs)
+            table.remove(copy, 1)
+            to_return = copy
+            break
+        end
+    end
+
+    return to_return, num_to_return
+end
+
+-- TODO: write code that when the chests in the farm get to full transfers things into long-term storage
 -- This is: 22 minutes for oak (1x1) farms -- and 11 minutes for spruce (2x2) farms
 Module.hooks = {
     function(state, parent, only_check)
@@ -147,6 +193,10 @@ Module.hooks = {
             if computer.uptime() - state.last_checked < 60 * 22 then return false end
             return true
         end
+        -- small debug thing for me :) to do le testing
+        local serial = serialize.serialize(state, true)
+        print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
+
 
         local cur_chunk = nav.get_chunk()
         if not state.in_building and (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[1] ~= parent.what_chunk[2]) then
@@ -155,18 +205,12 @@ Module.hooks = {
             end
             return 1
         end
-        
+
         -- after these checks and basic movement, we'll now rel move towards the cache (remember that x-move comes first)
         if state.fsm == 1 then
+
             if not nav.is_setup_navigte_rel() then
-                local target_coords = nil
-                for index, symbol in parent.s_interface:getSpecialBlocks() do
-                    if symbol[1] == '?' then  -- let us hope this works, wow, this interface wasn't very well designed
-                        local copy = deep_copy.copy(symbol, ipairs)
-                        table.remove(copy, 1)
-                        target_coords = copy
-                    end
-                end
+                local target_coords, _ = count_occurence_of_symbol('?', 1, parent.s_interface:getSpecialBlocks())
                 if target_coords == nil then error(comms.robot_send("fatal", "There is no '?' symbol, oak_tree_farm")) end
                 nav.setup_navigate_rel(target_coords)
             end
@@ -179,13 +223,74 @@ Module.hooks = {
 
                 nav.change_orientation("east")
                 local check, _ = robot.detect()
-                if check then return 3 end
-                
+                if check then return 4 end
+
                 nav.change_orientation("west")
                 check, _ = robot.detect()
                 if not check then error(comms.robot_send("fatal", "Couldn't face chest oak_tree_farm")) end
-                return 3
+                return 4
             end
+
+        elseif state.fsm == 2 then -- time to look at the *'s
+            local what_asterisk = state.in_what_asterisk
+            local success, new_what_asterisk = count_occurence_of_symbol('*', what_asterisk, parent.s_interface:getSpecialBlocks())
+
+            if success == nil then -- we have run out of asterisks, time to go to state 4 ('+')
+                state.in_what_asterisk = 1
+                state.tmp_reg = nil
+                state.fsm = 3
+                return 1
+            end -- else goto asterisk code (change to state 3 -- aka move towards '*')
+            state.in_what_asterisk = new_what_asterisk
+            state.temp_reg = success
+            state.fsm = 21
+            return 1
+
+        elseif state.fsm == 21 then
+
+            local target_coords = state.temp_reg
+            local jmp_to_func, new_fsm = navigate_to_rel(target_coords, state.fsm, 2, 2)
+
+            state.fsm = new_fsm
+            return jmp_to_func
+
+        elseif state.fsm == 3 then
+            local what_plus = state.in_what_asterisk -- le reuse of registry
+            local success, new_what_plus = count_occurence_of_symbol('+', what_plus, parent.s_interface:getSpecialBlocks())
+
+            if success == nil then -- this means we've run out of +'s (go back to '?' and retrieve our items)
+                state.in_what_asterisk = 1 -- prob useless
+                state.tmp_reg = nil
+                state.fsm = 4
+                return 1
+            end
+
+            state.in_what_asterisk = new_what_plus
+            state.temp_reg = success
+            state.fsm = 31
+            return 1
+        elseif state.fsm == 31 then
+            local target_coords = state.temp_reg
+            local target_func = 3
+
+            local jmp_to_func, new_fsm = navigate_to_rel(target_coords, state.fsm, target_func, 3)
+
+            if jmp_to_func == target_func then
+                nav.change_orientation("east")
+                local check, _ = robot.detect()
+                if check then goto a_after_turn end
+
+                nav.change_orientation("west")
+                check, _ = robot.detect()
+                if not check then error(comms.robot_send("fatal", "Couldn't face chest (+) oak_tree_farm")) end
+                goto a_after_turn
+            end
+            ::a_after_turn::
+
+            state.fsm = new_fsm
+            return jmp_to_func
+        else
+            error(comms.robot_send("fatal", "state.fsm went into undefined state"))
         end
     end,
     function() -- only call this once the last_check is x minutes after uptime
@@ -215,8 +320,16 @@ Module.hooks = {
         end -- only then try to suck-up saplings
 
         os.sleep(6)
-        suck.suck() -- once again I hope it sucks it to the first slot
+        suck.suck() -- once again I hope it sucks it to the first slot (fuck, apples?)
+        -- IMPORTANT (TODO) CHECK IF APPLES ARE SUCKED SIMULTANEOSLY (we'll need to succcc several (2) slots at once)
         inv.maybe_something_added_to_inv()
+
+        return 1
+    end,
+    function()
+        -- TODO here
+
+        return 1
     end,
     function() -- let's make stateless in a kind of stupid way
         local result = inv_component.getStackInSlot(sides_api.front, 1) -- check first slot

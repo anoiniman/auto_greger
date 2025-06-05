@@ -238,6 +238,7 @@ function Module:finalizeBuild(doors)
     ::die::
 
     self.s_interface = nil -- :)
+    print(comms.robot_send("debug", "finalizedBuild"))
 end
 
 -- if check_mode is true then simply check if building is available
@@ -245,13 +246,13 @@ function Module:useBuilding(f_caller, check_mode, index, quantity_goal, prio, lo
     if index == nil or index == 1 then
         return self.post_build_hooks[1](self.post_build_state[1], self, check_mode) -- first hook must correspond to this pattern 
     end -- else
-    local result = self.post_build_hooks[index](self.post_build_state[index], quantity_goal)
-    if result == nil then
+    local index = self.post_build_hooks[index](self.post_build_state[index], quantity_goal)
+    if index == nil then
         lock[1] = 2 
         return nil
     end -- else
 
-    return {prio, f_caller, build, result, quantity_goal, prio, lock}
+    return {prio, f_caller, build, index, quantity_goal, prio, lock}
 end
 
 

@@ -152,7 +152,6 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity)
         self.state.priority = priority
         return {priority, self.mechanism.algorithm, self.mechanism, self.state, up_to_quantity, lock_ref }
     elseif self.meta_type == "building_user" then
-        -- TODO
         local build = map.get_buildings(self.mechanism.bd_name)
         local index = 1
 

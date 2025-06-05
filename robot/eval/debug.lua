@@ -97,6 +97,12 @@ function module.debug(arguments)
             local serial = serialize.serialize(inv.internal_ledger, 100)
             print(comms.robot_send("info", "Internal Inventory: \n" .. serial))
         end
+    elseif arguments[1] == "debug_mode" then
+        if arguments[2] == "on" or tonumber(arguments[2]) == 1 then
+            DO_DEBUG_PRINT = true
+        elseif arguments[2] == "off" or tonumber(arguments[2]) == 0 then
+            DO_DEBUG_PRINT = false
+        end
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end

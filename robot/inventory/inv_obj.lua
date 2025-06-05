@@ -477,18 +477,62 @@ end
 --->>-- External Inventories --<<-------
 --TODO interaction with external inventories and storage inventories
 
+local function in_array(index, array)
+    for _, slot_num in ipairs(array) do
+        if slot_num == index then return false end
+    end
+    return false
+end
+
 function module.suck_all() -- runs no checks what-so-ever (assumes that we're facing the inventory)
     local result = true
     while result do
-        result = robot.suck()
+        result = robot.suck() -- plz fall into the first slot :sob:
+        maybe_something_added_to_inv()
     end
 end
 
--- TODO
+-- Blud you're forgetting the update the ledger :P (TODO) [in all of these functions]
 function module.dump_all_possible() -- respect "special slots" (aka, don't dump them tehe)
+    for index = 1, used_up_capacity, 1 do
+        if in_array(index, tool_belt_slots) then -- dumbest way possible
+            goto continue     
+        end -- else
+        robot.select(index)
+        if not robot.drop() then return false end
 
+        ::continue::
+    end
+    robot.select(1)
+    return true
 end
 
+function module.dump_all_named(name, lable, id_type)
+    if id_type == "lable" then
+
+        for index = 1, used_up_capacity, 1 do
+            local what_in_slot = inventory.getStackInInternalSlot(index)
+
+            if  in_array(index, tool_belt_slots) -- dumbest way possible
+                or what_in_slot.label ~= lable 
+            then
+                goto continue     
+            end -- else
+            robot.select(index)
+            if not robot.drop() then return false end
+
+            ::continue::
+        end
+
+    elseif id_type == "name" then
+        error(comms.robot_send("fatal", "inventory, id_type: \"name\" not implemented"))
+    else
+        error(comms.robot_send("fatal", "inventory, id_type is invalid"))
+    end
+
+    robot.select(1)
+    return true
+end
 
 --->>-- Crafter Shit --<<-----{{{
 
