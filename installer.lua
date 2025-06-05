@@ -106,6 +106,7 @@ local function robot_navigation()
     download("/robot/nav_module/nav_obj.lua", "self")
     download("/robot/nav_module/rel_move.lua", "self")
     download("/robot/nav_module/simple_elevator.lua", "self")
+    download("/robot/nav_module/nav_to_build.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/nav_module/nav_interface") then
        filesystem.makeDirectory("/home/robot/nav_module/nav_interface")
@@ -189,9 +190,9 @@ local function robot_reasoning()
     if not filesystem.isDirectory("/home/robot/reasoning/scripts/debug") then
        filesystem.makeDirectory("/home/robot/reasoning/scripts/debug")
     end
-    download("/robot/reasoning/scripts/debug/01.lua", "self")
-    download("/robot/reasoning/scripts/debug/02.lua", "self")
-    download("/robot/reasoning/scripts/debug/03.lua", "self")
+    --download("/robot/reasoning/scripts/debug/01.lua", "self")
+    --download("/robot/reasoning/scripts/debug/02.lua", "self")
+    --download("/robot/reasoning/scripts/debug/03.lua", "self")
     download("/robot/reasoning/scripts/debug/04.lua", "self")
 end
 

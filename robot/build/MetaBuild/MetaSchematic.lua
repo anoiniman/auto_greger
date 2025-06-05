@@ -49,7 +49,7 @@ end
 
 local function record_special(symbol, x, z, y, tbl) -- because a table is ref/pointer it's fine
     local obj_detected = false
-    if symbol == '*' or symbol == '+' then
+    if symbol == '*' or symbol == '+' or symbol == '?' then
         obj_detected = true
     end
 

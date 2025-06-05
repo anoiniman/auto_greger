@@ -474,7 +474,20 @@ function module.place_block(dir, block_identifier, lable_type, side)
 end
 ---}}}
 
+--->>-- External Inventories --<<-------
 --TODO interaction with external inventories and storage inventories
+
+function module.suck_all() -- runs no checks what-so-ever (assumes that we're facing the inventory)
+    local result = true
+    while result do
+        result = robot.suck()
+    end
+end
+
+-- TODO
+function module.dump_all_possible() -- respect "special slots" (aka, don't dump them tehe)
+
+end
 
 
 --->>-- Crafter Shit --<<-----{{{

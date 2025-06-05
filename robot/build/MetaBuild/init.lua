@@ -17,12 +17,15 @@ local primitive_cache = {}  -- as you might have noticed this value exists outsi
 local Module = {
     name = nil,
     extra_sauce = nil,
+    what_chunk = nil,
+
     post_build_s_init = nil,
     post_build_hooks = nil,
     post_build_state = nil,
 
     is_nil = true,
     built = false,
+    doors = nil,
 
     primitive = {},
     s_interface = nil
@@ -156,7 +159,7 @@ function Module:setupBuild()
     return true
 end
 
-function Module:require(name)
+function Module:require(name, what_chunk)
     if primitive_cache[name] ~= nil then
         self.primitive = primitive_cache[name]:new()
         self:initPrimitive()
@@ -177,7 +180,9 @@ function Module:require(name)
     self.extra_sauce = self.primitive.extra_sauce -- effective change of ownership
     self.post_build_s_init = self.primitive.state_init
     self.post_build_hooks = self.primitive.hooks
-    --self.post_build_state = self.primitive.state
+
+    self.what_chunk = what_chunk
+
     if self.post_build_state == nil then self.post_build_state = {} end
 
     -- THIS WAS REMOVED IN ORDER TO PERSERVE RAM
@@ -201,27 +206,31 @@ function Module:initAtIndex(index)
     if self.post_build_state[index] == nil then self.post_build_state[index] = {} end
 
     local init = self.post_build_s_init[index]
-    if hook == nil then
+    --[[ if init == nil then
         print(comms.robot_send("error", "No post_build_s_init in index " .. index))
         return false
-    end
+    end --]]
     local new_state_ref = init(index)
     table.insert(self.post_build_state[index], new_state_ref) -- yay, done? -- yay, done?
     return true
 end
 
 -- build state == 1 chunk wide state
-function Module:finalizeBuild()
+function Module:finalizeBuild(doors)
     self.built = true
+    self.doors = doors -- lame cludge for now, fix later
+
     if self.post_build_state[1] == nil then self.post_build_state[1] = {} end
     local new_state_ref = self.post_build_s_init[1]()
     table.insert(self.post_build_state[1], PublicState:new(new_state_ref))
 
     for index, special in ipairs(self.s_interface:getSpecialBlocks()) do
-        if special == "*" then -- build state >= 2 specific states
+        if special[1] == '*' then -- build state >= 2 specific states
             if not self:initAtIndex(2) then goto die end
-        elseif special == "+" then
+        elseif special[1] == '+' then
             if not self:initAtIndex(3) then goto die end
+        elseif special[1] == '?' then
+            if not self:initAtIndex(4) then goto die end
         else
             error(comms.robot_send("fatal", "MetaBuild:finalizeBuild(), symbol: \"" .. special  .. "\" unimplimented"))
         end
@@ -232,8 +241,17 @@ function Module:finalizeBuild()
 end
 
 -- if check_mode is true then simply check if building is available
-function Module:useBuilding(check_mode)
-    return self.post_build_hooks[1](self.post_build_state[1], check_mode) -- first hook must correspond to this pattern 
+function Module:useBuilding(f_caller, check_mode, index, quantity_goal, prio, lock)
+    if index == nil or index == 1 then
+        return self.post_build_hooks[1](self.post_build_state[1], self, check_mode) -- first hook must correspond to this pattern 
+    end -- else
+    local result = self.post_build_hooks[index](self.post_build_state[index], quantity_goal)
+    if result == nil then
+        lock[1] = 2 
+        return nil
+    end -- else
+
+    return {prio, f_caller, build, result, quantity_goal, prio, lock}
 end
 
 

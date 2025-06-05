@@ -73,9 +73,9 @@ function MetaQuad:requireBuild(name)
     return true
 end
 
-function MetaQuad:setQuad(quad_num, name)
+function MetaQuad:setQuad(quad_num, name, what_chunk)
     self.quad = quad_num
-    return self:requireBuild(name)
+    return self:requireBuild(name, what_chunk)
 end
 
 function MetaQuad:setupBuild(chunk_height)
@@ -108,7 +108,7 @@ function MetaQuad:doBuild()
 end
 
 function MetaQuad:finalizeBuild()
-    return self.build:finalizeBuild()
+    return self.build:finalizeBuild(self.doors)
 end
 
 return MetaQuad

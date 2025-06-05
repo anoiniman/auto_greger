@@ -26,13 +26,19 @@ local Module = {
     storage = true, -- compared to being a production inventory that consumes items
 
     ledger = nil,
-    rel_location = nil -- access location
+    rel_location = nil -- access location [Is this variable necessary?]
 }
 
 function Module:new(item_defs)
     local new = deep_copy(self, pairs)
     new.item_defs = item_defs
     new.ledger = MetaLedger:new()
+    return new
+end
+
+-- this is where the robot dumps its inventory temporarily in order to work a building, basically a fat ledger
+function Module:newSelfCache()
+    local new = self:new()
     return new
 end
 

@@ -188,32 +188,33 @@ function MetaChunk:quadChecks(what_quad_num, from_where)
     return true
 end
 
-function MetaChunk:addQuadCommon(what_quad_num, what_build)
+function MetaChunk:addQuadCommon(what_quad_num, what_build, what_chunk)
     local this_quad = self.meta_quads[what_quad_num]
-    local result = this_quad:setQuad(what_quad_num, what_build)
+    local result = this_quad:setQuad(what_quad_num, what_build, what_chunk)
 
     if result == true then
         return true
     end
     print(comms.robot_send("error", "couldn't add build to quad"))
+    -- TODO if this happens reset the chunk?
     return false
 end
 
-function MetaChunk:addQuad(what_quad_num, what_build)
+function MetaChunk:addQuad(what_quad_num, what_build, what_chunk)
     if not self:quadChecks(what_quad_num, "addQuad") then return false end
     if self.meta_quads[what_quad_num]:getNum() ~= 0 then
         print(comms.robot_send("error", "trying to overwrite already defined quad, without specifing desire to overwrite!"))
     end
-    return self:addQuadCommon(what_quad_num, what_build)
+    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
-function MetaChunk:replaceQuad(what_quad_num, what_build)
+function MetaChunk:replaceQuad(what_quad_num, what_build, what_chunk)
     if not self:quadChecks(what_quad_num, "replaceQuad") then return false end
     local this_quad = self.meta_quads[what_quad_num]
     if this_quad:getNum() ~= 0 and this_quad:isBuilt() then
         print(comms.robot_send("error", "trying to overwrite already BUILT quad, UNIMPLEMENTED!"))
     end
-    self:addQuadCommon(what_quad_num, what_build)
+    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
 function MetaChunk:setupBuild(what_quad_num)
@@ -359,7 +360,7 @@ function module.add_quad(what_chunk, what_quad, primitive_name)
     local map_chunk = chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
-    return map_chunk:addQuad(what_quad, primitive_name)
+    return map_chunk:addQuad(what_quad, primitive_name, what_chunk)
 end
 
 function module.setup_build(what_chunk, what_quad)
@@ -377,7 +378,7 @@ function module.do_build(what_chunk, what_quad)
     if result_string == "done" then
         local primitive_name = map_chunk:getName(what_quad)
         if primitive_name == nil then error(comms.robot_send("fatal", "Impossible state, map_obj.do_build")) end
-        known_buildings:insert(primitive_name, map_chunk:getBuildRef())
+        known_buildings:insert(primitive_name, map_chunk:getBuildRef(), what_chunk)
 
         map_chunk:finalizeBuild(what_quad)
     end

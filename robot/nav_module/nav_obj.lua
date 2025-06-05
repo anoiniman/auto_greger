@@ -104,6 +104,10 @@ function module.force_forward()
     return interface.debug_move(nav_obj.orientation, 1, nil, nav_obj)
 end
 
+function module.is_setup_navigate_rel()
+    return rel_move.is_setup()
+end
+
 function module.setup_navigate_rel(what_coords)
     rel_move.setup_navigate_rel(what_coords[1], what_coords[2], what_coords[3])
 end

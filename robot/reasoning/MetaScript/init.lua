@@ -174,19 +174,21 @@ function Goal:step(index, name, parent_script, force_recipe)
 
     local watch_dog = 0
     -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
-    -- recursing until you endup in a gathering
-    local needed_quantity = self.constraint.const_obj.reset_count
-    if needed_recipe:isSatisfied(needed_quantity) then break end
-    local needed_recipe = recurse_recipe_tree(needed_recipe, needed_quantity)
+    -- recursing until you endup in a gathering (or into a satisfied inventory)
+    local needed_quantity = self.constraint.const_obj.set_count
+    if not needed_recipe:isSatisfied(needed_quantity) then 
+        local needed_recipe = recurse_recipe_tree(needed_recipe, needed_quantity)
 
-    -- TODO implement mechanism to unlock this lock
-    if needed_recipe == nil then
-        -- TODO -- add different lock number for: "we check again after this many seconds"
-        self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
-        return nil
+        -- TODO implement mechanism to unlock this lock
+        if needed_recipe == nil then
+            -- TODO -- add different lock number for: "we check again after this many seconds"
+            self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
+            return nil
+        end
     end
 
-    local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock)
+    local up_to_quantity = self.constraint.const_obj.reset_count
+    local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock, up_to_quantity)
     return return_table
 end
 

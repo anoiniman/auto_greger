@@ -92,8 +92,13 @@ function module.start_auto_build(arguments)
 end
 
 function module.use_building(arguments)
-    -- TODO
-    return map_obj.use_building()
+    local build = arguments[1]
+    local index = arguments[2]
+    local quantity_goal = arguments[3]
+    local prio = arguments[4]
+    local lock = arguments[5]
+
+    return build.useBuilding(module.use_building, false, index, quantity_goal, prio, lock)
 end
 
 return module
