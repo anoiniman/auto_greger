@@ -3,6 +3,17 @@ local reason_obj = {}
 local comms = require("comms")
 local deep_copy = require("deep_copy") -- luacheck: ignore
 
+-- TODO combing through the wait list
+-- if element.useBuilding ~= nil and element:useBuilding("check")
+
+REASON_WAIT_LIST = {}
+function REASON_WAIT_LIST:checkAndAdd(build)
+    for _, element in ipairs(self) do
+        if element == build then return end
+    end
+    table.insert(self, build)
+end
+
 --[[
 local MetaRecipe = require("reasoning.MetaRecipe")
 local MSBuilder, Goal, Requirement = table.unpack(require("reasoning.MetaScript"))

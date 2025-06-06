@@ -81,7 +81,7 @@ end
 Module.state_init = {
     function()
         return {
-            last_checked = computer.uptime() - 60 * 21, -- temp thing
+            last_checked = computer.uptime() - 60 * 23, -- temp thing
             -- last_checked = computer.uptime(),
 
             fsm = 1,
@@ -147,12 +147,9 @@ Module.hooks = {
     -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
     function(state, parent, flag)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            -- TODO, maybe one day the check will return something more interesting than true or false, it might
-            -- return "un-available", "you need an axe", "still waiting", etc. in order to give the reasoning
-            -- module more agency/informatio in choosing the path to take
-
-            if computer.uptime() - state.last_checked < 60 * 22 then return false end
-            return true
+            -- TODO other checks, like tool checks
+            if computer.uptime() - state.last_checked < 60 * 22 then return "wait" end
+            return "all_good"
         elseif flag ~=  "raw_usage" or flag ~= "no_store" then
             error(comms.robot_send("fatal", "oak_farm -- todo (3)"))
         end

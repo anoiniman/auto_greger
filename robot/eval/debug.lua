@@ -93,10 +93,14 @@ function module.debug(arguments)
             print(comms.robot_send("error", "invalid object provided"))
         end
     elseif arguments[1] == "inv" or arguments[1] == "inventory" then
+
         if arguments[2] == "print" and arguments[3] == "internal" then
             local serial = serialize.serialize(inv.internal_ledger, 100)
             print(comms.robot_send("info", "Internal Inventory: \n" .. serial))
+        elseif arguments[2] == "force" and arguments[3] == "add_all" then
+            inv.force_add_all_to_ledger()
         end
+
     elseif arguments[1] == "debug_mode" then
         if arguments[2] == "on" or tonumber(arguments[2]) == 1 then
             DO_DEBUG_PRINT = true

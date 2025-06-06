@@ -16,15 +16,21 @@ end
 
 -- very temporary code
 function module.keep_alive()
-    local count = gen.count()
-    -- for now we assume we only have logs as fuel, otherwise errors will ensue
-    if count < 60 then
-        local prev_select = robot.select()
-        robot.select(2)
-        gen.insert(64 - count)
-        robot.select(prev_select)
+    local fuel_count = gen.count()
+    if fuel_count > 60 then
+        return
     end
+    
+    local fuel_defs = inv.special_slot_find_all("fuel", -1)
+    for _, def in ipairs(slot_defs) do
+        local slot_num = def.slot_number
+        robot.select(slot_num)
+        if robot.count() > 0 then
+            gen.insert(64 - fuel_count) 
+            break
+        end
+    end
+    robot.select(1)
 end
-
 
 return module

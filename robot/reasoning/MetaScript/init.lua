@@ -141,17 +141,33 @@ end
 
 local recurse_watch_dog = 0
 -- recurse through the recipe tree to find out in what place in the tree can we start to fulfil a certain request
-local function recurse_recipe_tree(head_recipe, needed_quantity)
+-- needed_quantity will need to be mutated because, for example: 1 pickaxe -> 3 flint -> 9 gravel (TODO)
+local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
     local recurse = false
     local recipe_to_execute = head_recipe
 
-    if needed_recipe.dependencies == nil then return nil end
-    for _, dependency in ipairs(needed_recipe.dependencies) do
-        if not dependency:isSatisfied(needed_quantity) then
-            recurse = true
-            recipe_to_execute = dependency
-            break
-        end -- else will continue to check all dependencies
+    local check, missing_thing = head_recipe:isSatisfied(needed_quantity)
+    if check == "search" then
+        recurse = true
+        recipe_to_execute = deep_copy.copy(parent_script:findRecipe(missing_thing.lable, missing_thing.name), pairs)
+        if recipe_to_execute == nil then
+            error(comms.robot_send("fatal", "recurse_recipe_tree, couldn't find a recipe for what we're missing at recipe: "
+                                    .. recipe_to_execute.output .. ", dep: " .. missing_thing))
+        end
+
+        break
+    elseif check == "breadth" then -- will continue to check all dependencies
+        recurse = true
+        recipe_to_execute = dependency
+    elseif check == "all_good" then
+        break
+    elseif check == "no_resources" then
+        error(comms.robot_send("fatal", "recurse_recipe_tree, not implemented"))
+    elseif check == "non_fatal_error" then
+        print(comms.robot_send("warning", "recurse_recipe_tree non_fatal_error, check your ils for more information"))
+        return nil
+    else
+        error(comms.robot_send("fatal", "recurse_recipe_tree, unknown"))
     end
 
     if not recurse then return recipe_to_execute end
@@ -176,16 +192,15 @@ function Goal:step(index, name, parent_script, force_recipe)
     -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
     -- recursing until you endup in a gathering (or into a satisfied inventory)
     local needed_quantity = self.constraint.const_obj.set_count
-    if not needed_recipe:isSatisfied(needed_quantity) then 
-        local needed_recipe = recurse_recipe_tree(needed_recipe, needed_quantity)
+    needed_recipe = recurse_recipe_tree(needed_recipe, needed_quantity)
 
-        -- TODO implement mechanism to unlock this lock
-        if needed_recipe == nil then
-            -- TODO -- add different lock number for: "we check again after this many seconds"
-            self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
-            return nil
-        end
+    -- TODO implement mechanism to unlock this lock
+    if needed_recipe == nil then
+        -- TODO -- add different lock number for: "we check again after this many seconds"
+        self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
+        return nil
     end
+    print(comms.robot_send("Found needed_recipe after recursion"))
 
     local up_to_quantity = self.constraint.const_obj.reset_count
     local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock, up_to_quantity)

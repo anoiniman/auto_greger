@@ -63,7 +63,7 @@ Module.state_init = {
     function()
         return {
             --last_checked = computer.uptime()
-            last_checked = computer.uptime() - 1100 -- temp (s)-
+            last_checked = computer.uptime() - 1500 -- temp (s)-
 
             fsm = 1,
             in_what_asterisk = 1,
@@ -97,8 +97,8 @@ Module.state_init = {
 Module.hooks = { -- TODO this
     function(state, parent, flag)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            if computer.uptime() - state.last_checked < 1150 then return false end
-            return true
+            if computer.uptime() - state.last_checked < 1450 then return "wait" end
+            return "all_good"
         elseif flag ~=  "raw_usage" or flag ~= "no_store" then
             error(comms.robot_send("fatal", "oak_farm -- todo (3)"))
         end

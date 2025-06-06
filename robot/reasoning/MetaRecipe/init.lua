@@ -1,3 +1,5 @@
+-- luacheck: globals REASON_WAIT_LIST
+
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
@@ -21,8 +23,10 @@ local MetaRecipe = {
 
     state = nil
 }
+
+-- variable "strict" is related to the interpretation of the output
 -- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
-function MetaRecipe:new(output, state_primitive, strict)
+function MetaRecipe:new(output, state_primitive, strict, dependencies)
     local new = deep_copy.copy(self, pairs)
 
     new.state = deep_copy.copy(state_primitive, pairs)
@@ -30,31 +34,47 @@ function MetaRecipe:new(output, state_primitive, strict)
         new.strict = strict
     end
 
-    if type(output) ~= table then
+    if type(output) ~= "table" then
         output = {lable = output, name = nil}
     end
     new.output = output
+
+    if type(dependencies) ~= "table" then
+        dependencies = {dependencies}
+    end
+    new.dependencies = dependencies
+
     return new
 end
 
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
+-- If we need to go into the dependencies which return what we're missing
 function MetaRecipe:isSatisfied(quantity)
     if self.meta_type == "gathering" then
         -- Check if we got the tools
         error(comms.robot_send("fatal", "MetaRecipe todo01"))
     elseif self.meta_type == "crafting_table" then
-        -- Check if we have enough materials to craft the given quantitu
+        -- Check if we have enough materials to craft the given quantity
         error(comms.robot_send("fatal", "MetaRecipe todo02"))
     elseif self.meta_type == "building_user" then
         -- Check if the building was built
         local name = self.mechanism.bd_name
         local buildings = map.get_buildings(name)
-        if buildings == nil or #buildings == 0 then return false end
+        if buildings == nil or #buildings == 0 then return "non_fatal_error", "building" end
 
+        -- search: You need to find something in my children that can be executed / is valid
         for _, build in ipairs(buildings) do
-            if build:useBuilding(true) then return true end
+            local result = build:useBuilding("only_check")
+            if result == "all_good" then return "all_good", nil
+            elseif result == "wait" then
+                REASON_WAIT_LIST:checkAndAdd(build)
+            elseif result == "no_resources" then
+                -- TODO trigger inner search and see if we can logistics ourselves out of this
+                return "search", "missing_resource" -- fill in missing_resource with variable when possible (TODO)
+            end
         end
-        return false
+        return "breath" -- At last, least priority, we look into the other branches if possible
+                        -- AKA: This is blocked right now, please do down another sister branch
     else
         error(comms.robot_send("fatal", "meta_type was badly set somewhere!"))
     end
@@ -74,6 +94,7 @@ function Gathering:new(tool, level, algorithm)
     return new
 end
 
+-- gathering depends on tools, add tool_recipe when possible?
 function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive, dependencies, strict)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newGathering, output param is nil"))
@@ -86,10 +107,9 @@ function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive
         return nil
     end
 
-    local new = self:new(output, state_primitive, strict)
-    new.dependencies = dependencies
-    new.meta_type = "gathering"
+    local new = self:new(output, state_primitive, strict, dependencies)
 
+    new.meta_type = "gathering"
     new.mechanism = Gathering:new(tool, level, algorithm)
     return new
 end
@@ -122,10 +142,9 @@ function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_p
         return nil
     end
 
-    local new = self:new(output, state_primitive, strict)
-    new.dependencies = dependencies
-    new.meta_type = "crafting_table"
+    local new = self:new(output, state_primitive, strict, dependencies)
 
+    new.meta_type = "crafting_table"
     new.mechanism = CraftingTable:new(recipe_table)
     return new
 end
@@ -142,11 +161,10 @@ function BuildingUser:new(bd_name, usage_flag)
     return new
 end
 
-function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, dependencies)
-    local new = self:new(output)
-    new.dependencies = dependencies
-    new.meta_type = "building_user"
+function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, strict, dependencies)
+    local new = self:new(output, nil, strict, dependencies)
 
+    new.meta_type = "building_user"
     new.mechanism = BuildingUser:new(bd_name, usage_flag)
     return new
 end

@@ -168,6 +168,10 @@ slot_manager.add(sd:new(28, "shovel"))
 slot_manager.add(sd:new(32, "sword"))
 sd = nil
 
+function module.special_slot_find_all(item_name, level)
+    return slot_manager.find_all(item_name, level)
+end
+
 ---}}}
 
 --->>-- Local Functions --<<-----{{{
@@ -418,7 +422,6 @@ end
 
 --->>-- Block Placing --<<----{{{
 
--- TODO: placing blocks is not updating the internal ledger!
 function module.place_block(dir, block_identifier, lable_type, side)
     -- if side is nil it doesn't matter
     if side ~= nil then side = sides_api[side] end
@@ -478,13 +481,16 @@ function module.place_block(dir, block_identifier, lable_type, side)
         end
 
         local delete_result = internal_ledger:subtract(item_def.name, item_def.lable, 1)
-        if not delete_result then return false end
+        if not delete_result then 
+            print(comms.robot_send("error", "inv_obj.place_block -- we weren't able to subtract from ledger!"))
+            return false 
+        end
     end
     return place_result
 end
 ---}}}
 
---->>-- External Inventories --<<-------
+--->>-- External Inventories --<<-------{{{
 --TODO interaction with external inventories and storage inventories
 
 local function in_array(index, array)
@@ -560,6 +566,9 @@ function module.dump_all_named(name, lable, id_type, external_ledger)
     return true
 end
 
+--}}}
+
+
 --->>-- Crafter Shit --<<-----{{{
 
 function module.isCraftActive()
@@ -612,6 +621,7 @@ function module.try_add_to(external_ledger, internal_slot)
     return true
 end
 
+
 -- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
 -- with things that drop more than one item; in that case uhhhhhhh we need better accounting
 -- algorithms that detect if something is in the inventory that was not there previously,
@@ -635,6 +645,23 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
          return clear_first_slot(non_craft_slot_iter)
     end
     return clear_first_slot(free_slot_iter)
+end
+
+function module.force_add_in_slot(slot) -- ahr ahr
+    local quantity = robot.count(slot)
+    if quantity > 0 then
+        used_up_capacity = used_up_capacity + 1
+        local item = inventory.getStackInInternalSlot(slot)
+        local name = item.name; local lable = item.label
+        internal_ledger:addOrCreate(name, lable, quantity)
+    end
+    -- Separate out into a function that clears the crafting table for us?
+end
+
+function module.force_add_all_to_ledger()
+    for index = 1, inventory_size, 1 do
+        module.force_add_in_slot(index)
+    end
 end
 
 return module
