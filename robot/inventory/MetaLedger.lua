@@ -101,6 +101,10 @@ function Module:subtract(name, lable, to_remove) -- does not accept special item
     end
 
     local calc = quantity - to_remove
+    if calc < 0 then
+        bucket_ref[identifier] = nil
+        return true
+    end
     bucket_ref[identifier] = math.max(calc, 0)
     return true
 end

@@ -139,6 +139,8 @@ local function robot_meta_build()
     end
 
     download("/robot/build/general_functions.lua", "self")
+    download("/robot/build/generic_hooks.lua", "self")
+
     download("/robot/build/MetaBuild/init.lua", "self")
     download("/robot/build/MetaBuild/MetaDoorInfo.lua", "self")
     download("/robot/build/MetaBuild/MetaSchematic.lua", "self")

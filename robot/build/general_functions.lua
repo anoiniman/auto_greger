@@ -14,16 +14,15 @@ function module.iter(base_table, goal, segments)
 
         local cur_base = base_table[iteration]
         if cur_base == nil then cur_base = base_table["def"] end
-        --if cur_base == nil then cur_base = base_table["o_def"] end
 
         local cur_segment = segments[iteration]
         if cur_segment == nil then
             print(comms.robot_send("debug", "iter_func -- segment at iter: " .. tostring(iteration) .. " -- is null"))
-            return iteration, cur_base[2]
+            return iteration, cur_base
         end
 
-        local square_segment_to_return = deep_copy.copy_table(cur_base[2], ipairs)  -- as you can see meta-data is stripped, I mean,
-                                                                                    -- it simply isn't returned
+        local square_segment_to_return = deep_copy.copy_table(cur_base, ipairs)
+
         for _, replaces in pairs(cur_segment) do
             local term = replaces[1]
             for _, replace_index in pairs(replaces[2]) do
@@ -36,30 +35,13 @@ function module.iter(base_table, goal, segments)
 end
 
 function module.mirror_x(base_table, segments)
-    local watch_dog = false
     -- Reverse the base
     for key, base in pairs(base_table) do
         -- segments == nil -> we are not using meta-date -> etc
-        local square_to_reverse
-        if segments ~= nil then
-            if base[1] == "def" then -- because there might be multiple refs to "def" we only need to reverse it once
-                if watch_dog == false then
-                    watch_dog = true
-                else
-                    goto continue
-                end
-            end
-            square_to_reverse = base[2]
-        else
-            square_to_reverse = base
-        end
-
-        for index, x_segment in ipairs(square_to_reverse) do
+        for index, x_segment in ipairs(base) do
             x_segment = string.reverse(x_segment)
-            square_to_reverse[index] = x_segment
+            base[index] = x_segment
         end
-
-        ::continue::
     end
 
     -- Early Return
@@ -74,33 +56,15 @@ function module.mirror_x(base_table, segments)
 end
 
 function module.mirror_z(base_table, segments)
-    local watch_dog = false
     -- Reverse the base
-    for key, base in pairs(base_table) do
-        local human_readable
-
-        if segments ~= nil then
-            if base[1] == "def" then -- because there might be multiple refs to "def" we only need to reverse it once
-                if watch_dog == false then
-                    watch_dog = true
-                else
-                    goto continue
-                end
-            end
-            human_readable = base[2]
-        else
-            human_readable = base
-        end
-
+    for _, base in pairs(base_table) do
         local jindex = 1
-        for index = #human_readable, 1, -1 do
-            local temp = human_readable[jindex]
-            human_readable[jindex] = human_readable[index]
-            human_readable[index] = temp
+        for index = #base, 1, -1 do
+            local temp = base[jindex]
+            base[jindex] = base[index]
+            base[index] = temp
             jindex = jindex + 1
         end
-
-        ::continue::
     end
 
     -- Early Return

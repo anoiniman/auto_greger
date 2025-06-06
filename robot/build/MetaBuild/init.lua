@@ -202,19 +202,6 @@ function PublicState:new(inner)
     return new
 end
 
-function Module:initAtIndex(index)
-    if self.post_build_state[index] == nil then self.post_build_state[index] = {} end
-
-    local init = self.post_build_s_init[index]
-    --[[ if init == nil then
-        print(comms.robot_send("error", "No post_build_s_init in index " .. index))
-        return false
-    end --]]
-    local new_state_ref = init(index)
-    table.insert(self.post_build_state[index], new_state_ref) -- yay, done? -- yay, done?
-    return true
-end
-
 -- build state == 1 chunk wide state
 function Module:finalizeBuild(doors)
     self.built = true
@@ -224,27 +211,19 @@ function Module:finalizeBuild(doors)
     local new_state_ref = self.post_build_s_init[1]()
     table.insert(self.post_build_state[1], PublicState:new(new_state_ref))
 
-    for index, special in ipairs(self.s_interface:getSpecialBlocks()) do
-        if special[1] == '*' then -- build state >= 2 specific states
-            if not self:initAtIndex(2) then goto die end
-        elseif special[1] == '+' then
-            if not self:initAtIndex(3) then goto die end
-        elseif special[1] == '?' then
-            if not self:initAtIndex(4) then goto die end
-        else
-            error(comms.robot_send("fatal", "MetaBuild:finalizeBuild(), symbol: \"" .. special  .. "\" unimplimented"))
-        end
+    for index, func in ipairs(self.post_build_s_init) do
+        self.post_build_state[index] = func(self)
     end
-    ::die::
 
     self.s_interface = nil -- :)
     print(comms.robot_send("debug", "finalizedBuild"))
 end
 
--- if check_mode is true then simply check if building is available
-function Module:useBuilding(f_caller, check_mode, index, quantity_goal, prio, lock)
+-- flag determines if we are running a check or a determinate logistic action 
+-- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
+function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
     if index == nil or index == 1 then
-        return self.post_build_hooks[1](self.post_build_state[1], self, check_mode) -- first hook must correspond to this pattern 
+        return self.post_build_hooks[1](self.post_build_state[1], self, flag) -- first hook must correspond to this pattern 
     end -- else
     local index = self.post_build_hooks[index](self.post_build_state[index], quantity_goal)
     if index == nil then

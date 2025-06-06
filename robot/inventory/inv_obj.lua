@@ -31,12 +31,21 @@ local tool_belt_slots = {}
 local crafting_table_clear = true
 local use_self_craft = true
 
+-- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
+-- rather than having to create a sort of universal ledger
 local internal_ledger = MetaLedger:new()
+
+-- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_ledgers = {}
+
 local equiped_tool = nil
 
 --->>-- Check on the ledgers --<<-----{{{
--- TODO external_ledgers
+
+function module.register_ledger(fat_ledger)
+    table.insert(external_ledgers, fat_ledger)
+end
+
 function module.how_many_internal(name, lable)
     local quantity = internal_ledger:howMany(name, lable)
     return quantity
@@ -44,7 +53,8 @@ end
 
 function module.how_many_total(name, lable)
     local quantity = internal_ledger:howMany(name, lable)
-    for _, ledger in ipairs(external_ledgers) do
+    for _, fat_ledger in ipairs(external_ledgers) do
+        local ledger = fat_ledger.ledger
         quantity = quantity + ledger:howMany(name, lable)
     end
     return quantity
@@ -314,16 +324,16 @@ function module.equip_tool(tool_type, wanted_level)
     -- First, check if it already equiped
     if equiped_tool ~= nil and equiped_tool.item_name == tool_type and equiped_tool.item_level >= wanted_level then
         -- Update internal representation if the tool is now broken
-        robot.select(1) -- empty slot 
-        inv.equip()
+        robot.select(1) -- empty slot
+        inventory.equip()
         if robot.count(1) == 0 then -- tool broke
             goto fall_through
         end -- else tool is good!
-        inv.equip() -- equip it again
+        inventory.equip() -- equip it again
 
         return true -- "We equipped it succesefully"
     end
-    goto ::fall_through::
+    ::fall_through::
 
     local first_tool = slot_manager.find_first(tool_type, wanted_level)
     local slot = nil
@@ -484,50 +494,66 @@ local function in_array(index, array)
     return false
 end
 
-function module.suck_all() -- runs no checks what-so-ever (assumes that we're facing the inventory)
+function module.suck_all(external_ledger) -- runs no checks what-so-ever (assumes that we're facing the inventory)
     local result = true
     while result do
-        result = robot.suck() -- plz fall into the first slot :sob:
-        maybe_something_added_to_inv()
+        result = module.try_remove_any_from(external_ledger)
+        module.maybe_something_added_to_inv()
     end
 end
 
 -- Blud you're forgetting the update the ledger :P (TODO) [in all of these functions]
-function module.dump_all_possible() -- respect "special slots" (aka, don't dump them tehe)
+function module.dump_all_possible(external_ledger) -- respect "special slots" (aka, don't dump them tehe)
     for index = 1, used_up_capacity, 1 do
         if in_array(index, tool_belt_slots) then -- dumbest way possible
-            goto continue     
+            goto continue
         end -- else
-        robot.select(index)
-        if not robot.drop() then return false end
 
+        module.try_add_to(external_ledger, index)
         ::continue::
     end
     robot.select(1)
     return true
 end
 
-function module.dump_all_named(name, lable, id_type)
+local function id_by_lable(what_in_slot, name, lable)
+    return what_in_slot.label == lable
+end
+
+local function id_by_naive_contains(what_in_slot, name, lable)
+    return string.find(what_in_slot.name, name) ~= nil
+end
+
+function module.dump_all_named(name, lable, id_type, external_ledger)
+    local eval_func
     if id_type == "lable" then
-
-        for index = 1, used_up_capacity, 1 do
-            local what_in_slot = inventory.getStackInInternalSlot(index)
-
-            if  in_array(index, tool_belt_slots) -- dumbest way possible
-                or what_in_slot.label ~= lable 
-            then
-                goto continue     
-            end -- else
-            robot.select(index)
-            if not robot.drop() then return false end
-
-            ::continue::
-        end
-
+        eval_func = id_by_lable
+    elseif id_type == "naive_contains" then
+        eval_func = id_by_naive_contains
     elseif id_type == "name" then
         error(comms.robot_send("fatal", "inventory, id_type: \"name\" not implemented"))
     else
         error(comms.robot_send("fatal", "inventory, id_type is invalid"))
+    end
+
+    for index = 1, used_up_capacity, 1 do
+        local what_in_slot = inventory.getStackInInternalSlot(index)
+
+        if  in_array(index, tool_belt_slots) -- dumbest way possible
+            or not eval_func(what_in_slot, name, lable)
+        then
+            goto continue
+        end -- else
+
+        if type(external_ledger) ~= "number" then -- hard crash if we haven't an external ledger and we don't acknoledge that fact
+            module.try_add_to(external_ledger, index)
+        else
+            robot.select(index)
+            if not robot.drop() then goto continue end
+            internal_ledger:subtract(what_in_slot.name, what_in_slot.label, what_in_slot.size)
+        end
+
+        ::continue::
     end
 
     robot.select(1)
@@ -554,6 +580,37 @@ function module.debug_force_add()
 end
 
 ---}}}
+
+-- assuming it gets sucked into slot 1 yadda yadda
+function module.try_remove_any_from(external_ledger)
+    robot.select(1)
+    if not robot.suck() then return false end
+
+    local item = inventory.getStackInInternalSlot(1)
+    if item == nil then
+        print(comms.robot_send("error", "we sucked yet item stack was nil"))
+        return false
+    end
+
+    external_ledger:subtract(item.name, item.label, item.size)
+    return true
+end
+
+function module.try_add_to(external_ledger, internal_slot)
+    local item = inventory.getStackInInternalSlot(internal_slot)
+    if item == nil then return true end
+
+    robot.select(internal_slot)
+    if not robot.drop() then
+        return false
+    end
+
+    robot.select(1)
+    external_ledger:addOrCreate(item.name, item.label, item.size)
+    internal_ledger:subtract(item.name, item.label, item.size)
+
+    return true
+end
 
 -- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
 -- with things that drop more than one item; in that case uhhhhhhh we need better accounting

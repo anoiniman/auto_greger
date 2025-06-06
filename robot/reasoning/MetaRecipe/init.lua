@@ -132,17 +132,22 @@ end
 
 local BuildingUser = { -- This sort of recipe passes all the implementation over to the "build" module
     bd_name = nil,
+    usage_flag = nil, -- I think that it is in recipe level that it is appropriate to decide the flag
 }
-function BuildingUser:new()
-    return deep_copy.copy(self, pairs)
+function BuildingUser:new(bd_name, usage_flag)
+    local new = deep_copy.copy(self, pairs)
+    new.bd_name = bd_name
+    new.usage_flag = usage_flag
+
+    return new
 end
 
-function MetaRecipe:newBuildingUser(output, bd_name, dependencies)
+function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, dependencies)
     local new = self:new(output)
     new.dependencies = dependencies
     new.meta_type = "building_user"
 
-    new.mechanism = BuildingUser:new()
+    new.mechanism = BuildingUser:new(bd_name, usage_flag)
     return new
 end
 
@@ -153,11 +158,12 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity)
         return {priority, self.mechanism.algorithm, self.mechanism, self.state, up_to_quantity, lock_ref }
     elseif self.meta_type == "building_user" then
         local build = map.get_buildings(self.mechanism.bd_name)
+        local usage_flag = self.mechanism.usage_flag
         local index = 1
 
         -- callee then determins how many inputs are needed and does all the inventory management
         -- reasoning should not be doing any invenotry management fr fr
-        return {priority, build_eval.use_build, build, 1, up_to_quantity, priority, lock_ref}
+        return {priority, build_eval.use_build, build, usage_flag, 1, up_to_quantity, priority, lock_ref}
     elseif self.meta_type == "crafting_table" then
         error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
     else

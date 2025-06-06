@@ -1,6 +1,7 @@
 -- You hook this up to anything you want to register as an external inventory
 local deep_copy = require("deep_copy")
 local MetaLedger = require("inventory.MetaLedger")
+local inv = require("inventory.inv_obj")
 
 -- as obvious, if it is an item inside a static storage it has no output
 local MetaItem = {
@@ -22,6 +23,8 @@ end
 
 
 local Module = {
+    parent_build = nil,
+
     item_defs = nil,
     storage = true, -- compared to being a production inventory that consumes items
 
@@ -29,26 +32,56 @@ local Module = {
     rel_location = nil -- access location [Is this variable necessary?]
 }
 
-function Module:new(item_defs)
+function Module:new(item_defs, parent, is_cache)
+    if not is_cache and parent == nil then
+        print(comms.robot_send("error", "MetaExtInventory, parent is nil"))
+        print(comms.robot_send("stack", debug.traceback()))
+    end
+
     local new = deep_copy(self, pairs)
     new.item_defs = item_defs
     new.ledger = MetaLedger:new()
+    new.parent = parent
+
+    inv.register_ledger(new) -- important
     return new
+end
+
+function Module:itemDefIter()
+    local iteration = 0
+
+    -- checks if it is not a plain def
+    if self.item_defs["permissive"] ~= nil then
+        return function()
+            iteration = iteration + 1
+            if iteration > 1 then return nil end
+
+            return self.item_defs
+        end
+    end
+
+    return function()
+        iteration = iteration + 1
+        local item_def = self.item_defs[iteration]
+        if item_def == nil then return nil end
+
+        return iteration, item_def
+    end
 end
 
 -- this is where the robot dumps its inventory temporarily in order to work a building, basically a fat ledger
 function Module:newSelfCache()
-    local new = self:new()
+    local new = self:new(nil, nil, true)
     return new
 end
 
-function Module:newStorage(item_defs)
-    local new = self:new(item_defs)
+function Module:newStorage(item_defs, parent)
+    local new = self:new(item_defs, parent)
     return new
 end
 
-function Module:newMachine(item_defs)
-    local new = self:new(item_defs)
+function Module:newMachine(item_defs, parent)
+    local new = self:new(item_defs, parent)
     new.storage = false
     return new
 end

@@ -93,12 +93,14 @@ end
 
 function module.use_building(arguments)
     local build = arguments[1]
-    local index = arguments[2]
-    local quantity_goal = arguments[3]
-    local prio = arguments[4]
-    local lock = arguments[5]
+    local flag = arguments[2]
 
-    return build.useBuilding(module.use_building, false, index, quantity_goal, prio, lock)
+    local index = arguments[3]
+    local quantity_goal = arguments[4]
+    local prio = arguments[5]
+    local lock = arguments[6]
+
+    return build.useBuilding(module.use_building, flag, index, quantity_goal, prio, lock)
 end
 
 return module
