@@ -223,9 +223,9 @@ end
 -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
 function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
     if index == nil or index == 1 then
-        return self.post_build_hooks[1](self.post_build_state[1], self, flag) -- first hook must correspond to this pattern 
+        return self.post_build_hooks[1](self.post_build_state[1], self, flag, quantity_goal) -- first hook must correspond to this pattern 
     end -- else
-    local index = self.post_build_hooks[index](self.post_build_state[index], quantity_goal)
+    local index = self.post_build_hooks[index](self.post_build_state[index])
     if index == nil then
         lock[1] = 2 
         return nil

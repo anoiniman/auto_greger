@@ -186,4 +186,9 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     end
 end
 
+-- TODO implement
+function module.go_through_lables(what_symbol) -- +, *, etc.
+    error(comms.robot_send("fatal", "todo implementation here!"))
+end
+
 return module

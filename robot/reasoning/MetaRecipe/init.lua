@@ -17,7 +17,7 @@ local MetaRecipe = {
     output = nil,
     strict = "strict", -- if the names listed in output are strict matching or what sort of liniences they have
 
-    dependencies = nil,
+    dependencies = nil, -- of MetaDependency type, which is a fat ref to Recipe
     meta_type = nil,
     mechanism = nil,
 
@@ -49,7 +49,7 @@ end
 
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
-function MetaRecipe:isSatisfied(quantity)
+function MetaRecipe:isSatisfied(needed_quantity)
     if self.meta_type == "gathering" then
         -- Check if we got the tools
         error(comms.robot_send("fatal", "MetaRecipe todo01"))
@@ -62,15 +62,40 @@ function MetaRecipe:isSatisfied(quantity)
         local buildings = map.get_buildings(name)
         if buildings == nil or #buildings == 0 then return "non_fatal_error", "building" end
 
+
         -- search: You need to find something in my children that can be executed / is valid
         for _, build in ipairs(buildings) do
-            local result = build:useBuilding("only_check")
+            local result = build:useBuilding(nil, nil, "only_check", needed_quantity)
+
             if result == "all_good" then return "all_good", nil
             elseif result == "wait" then
-                REASON_WAIT_LIST:checkAndAdd(build)
+                REASON_WAIT_LIST:checkAndAdd(build) -- aka, set cron to use the building when as soon as possible
+
             elseif result == "no_resources" then
-                -- TODO trigger inner search and see if we can logistics ourselves out of this
-                return "search", "missing_resource" -- fill in missing_resource with variable when possible (TODO)
+                local found_dep
+                for _, dep in ipairs(self.dependencies) do
+                    local inner = dep.inlying_recipe
+
+                    local count = inv.how_many_internal(inner.output.name, inner.output.lable)
+                    -- we have the stuff with us (make sure that the hook can handle this fact, aka, that we won't dump the needed
+                    -- stuff into an entry-cache chest ('?' symbol)
+                    if count >= needed_quantity then return goto continue end -- check next dep
+                    
+                    -- TODO: if there is enough in long term storage return "all_good" + where we can find this, else recurse deeper
+                    -- into our dependency tree by ways of searching inside ti for this output
+                    
+                    -- if ledger_exists(inner.output.name, inner.output.lable, required_quantity) then
+                    --      return "needs_logitics", extra_information
+                    -- else if this fails to then it must mean that this dependency is unsatisfied:
+                
+                    local found_dep = dep
+                    break
+
+                    ::continue:: 
+                end
+                if found_dep == nil then return "all_good", nil end
+
+                return "depth", found_dep
             end
         end
         return "breath" -- At last, least priority, we look into the other branches if possible

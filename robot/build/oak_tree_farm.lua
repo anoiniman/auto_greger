@@ -145,10 +145,14 @@ end
 Module.hooks = {
     -- flag determines if we are running a check or a determinate logistic action
     -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
-    function(state, parent, flag)
+    function(state, parent, flag, quantity_goal)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             -- TODO other checks, like tool checks
             if computer.uptime() - state.last_checked < 60 * 22 then return "wait" end
+            -- TODO generisize this harder, in the sense, that'll look specifically for what the caller is trying to
+            -- check, not just hardcoded "Oak Log"
+            if not generic_hooks.go_through_lables("+", 1, "Oak Log") then return "no_resources" end
+
             return "all_good"
         elseif flag ~=  "raw_usage" or flag ~= "no_store" then
             error(comms.robot_send("fatal", "oak_farm -- todo (3)"))
