@@ -34,6 +34,7 @@ local use_self_craft = true
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
 local internal_ledger = MetaLedger:new()
+module.internal_ledger = internal_ledger -- ref?
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_ledgers = {}

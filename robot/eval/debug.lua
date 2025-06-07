@@ -17,7 +17,7 @@ local reason = require("reasoning.reasoning_obj")
 
 
 local function print_obj(obj)
-    local copy = deep_copy.copy_no_functions(obj, pairs)
+    local copy = deep_copy.copy_no_functions(obj)
     local serial = serialize.serialize(copy, 50)
     comms.robot_send("info", serial)
 end
@@ -96,10 +96,12 @@ function module.debug(arguments)
     elseif arguments[1] == "inv" or arguments[1] == "inventory" then
 
         if arguments[2] == "print" and arguments[3] == "internal" then
-            local serial = serialize.serialize(inv.internal_ledger, 100)
+            local serial = serialize.serialize(inv.internal_ledger.ledger_proper, 100)
             print(comms.robot_send("info", "Internal Inventory: \n" .. serial))
         elseif arguments[2] == "force" and arguments[3] == "add_all" then
             inv.force_add_all_to_ledger()
+        else
+            print(comms.robot_send("error", "invalid arguments"))
         end
 
     elseif arguments[1] == "debug_mode" then
@@ -107,6 +109,8 @@ function module.debug(arguments)
             DO_DEBUG_PRINT = true
         elseif arguments[2] == "off" or tonumber(arguments[2]) == 0 then
             DO_DEBUG_PRINT = false
+        else
+            print(comms.robot_send("error", "invalid arguments"))
         end
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))

@@ -31,7 +31,7 @@ function module.copy_table(old_table, iter_func) -- pair or ipair
     return new_table
 end
 
-function module.copy_no_functions(old_table, iter_func)
+function module.copy_no_functions(old_table)
     local new_table = {}
 
     local old_meta = getmetatable(old_table)
@@ -39,9 +39,9 @@ function module.copy_no_functions(old_table, iter_func)
         setmetatable(new_table, old_meta)
     end
 
-    for k, v in iter_func(old_table) do
+    for k, v in pairs(old_table) do
         if type(v) == "table" then
-            v = module.copy_table(v, iter_func)
+            v = module.copy_no_functions(v)
         end
 
         if type(v) ~= "function" then

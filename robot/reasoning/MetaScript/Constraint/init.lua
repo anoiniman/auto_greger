@@ -2,7 +2,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 local ItemConstraint = require("reasoning.MetaScript.Constraint.ItemConstraint")
-local BuildingConstraint = require("reasoning.MetaScript.Constraint.BuildingConstraint")
+local _, BuildingConstraint = table.unpack(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met
 -- the force or the constraint is slackened, might be unimplemented for now
