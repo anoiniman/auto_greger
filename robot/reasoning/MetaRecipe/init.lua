@@ -5,7 +5,7 @@ local comms = require("comms")
 
 local build_eval = require("eval.build")
 local map = require("nav_module.map_obj")
-local inv = require("nav_module.inv_obj")
+local inv = require("inventory.inv_obj")
 
 -- Whole recipe get copied/cloned by the caller so that state is not changed in the primitive object for a given recipe
 -- this decouples the definition of behaviour and data structure from its execution and state-change when in-vivo.

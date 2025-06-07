@@ -7,7 +7,7 @@ local deep_copy = require("deep_copy")
 
 local general_functions = require("build.general_functions")
 local SchematicInterface = require("build.MetaBuild.SchematicInterface")
-local MetaLedger = require("inv.MetaLedger")
+local MetaLedger = require("inventory.MetaLedger")
 
 
 local primitive_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
