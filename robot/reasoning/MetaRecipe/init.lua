@@ -72,6 +72,11 @@ function MetaRecipe:isSatisfied(needed_quantity)
                 REASON_WAIT_LIST:checkAndAdd(build) -- aka, set cron to use the building when as soon as possible
 
             elseif result == "no_resources" then
+                -- The below intuition is not true, because if it can return "no_resources" then we must have dependencies
+                -- if this is not the case then we've failed in configurating and we should crash
+                -- if self.dependencies == nil then return "all_good", nil end
+                if self.dependencies == nil then error(comms.robot_send("fatal", "MetaScript no dependencies when we should have some")) end
+
                 local found_dep
                 for _, dep in ipairs(self.dependencies) do
                     local inner = dep.inlying_recipe
