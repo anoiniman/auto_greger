@@ -37,12 +37,13 @@ end
 
 -- take unserialized data and restores it into an actual "MetaBuild"
 function Module:instantiate(self_table)
-    local new = deep_copy.copy(self, pairs)
+    error(comms.robot_send("fatal", "to be removed!"))
+    --[[local new = deep_copy.copy(self, pairs)
     --[[for k, v in pairs(new) do -- this won't work with all the nil initalised crap I have
         if self_table[k] ~= nil then
             new[k] = self_table[k]
         end
-    end--]]
+    end --\]\]
     -- The regex went crazy
     new.name = self_table.name
     new.extra_sauce = self_table.extra_sauce
@@ -59,7 +60,7 @@ function Module:instantiate(self_table)
     new.primitive = self_table.primitive
     new.s_interface = self_table.s_interface
 
-    return new
+    return new--]]
 end
 
 function Module:doBuild()
@@ -284,7 +285,9 @@ function Module:createAndReturnLedger()
         if not result then error(comms.robot_send("fatal", "Failed to doBuild in createLedger, name is -- " .. self.name)) end
         if status == "done" then break end
 
-        local block_lable, block_name = table.unpack(instruction.block_info)
+        local block_name = instruction.block_info.name
+        local block_lable = instruction.block_info.lable
+
         tmp_ledger:addOrCreate(block_name, block_lable, 1)
     end
 

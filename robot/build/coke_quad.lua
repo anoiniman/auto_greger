@@ -19,7 +19,7 @@ local Module = {parent = nil}
 Module.name = "coke_quad"
 
 Module.dictionary = {
-    ["c"] = "Coke Oven Brick",  -- remember to add name tag
+    ["c"] = {"Coke Oven Brick", "Railcraft:machine.alpha" } -- if this doesn't work then ouch
     ["d"] = "Chest"
 }
 
