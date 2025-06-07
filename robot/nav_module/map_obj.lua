@@ -248,17 +248,6 @@ end
 
 -->>-----------------------------------<<--
 
-local function chunk_exists(what_chunk)
-    local x = what_chunk[1] + map_obj_offsets[1];
-    local z = what_chunk[2] + map_obj_offsets[2];
-
-    if map_obj[x] == nil or map_obj[x][z] == nil then
-        print(comms.robot_send("error", "ungenerated chunk"))
-        return nil
-    end
-    return map_obj[x][z]
-end
-
 local known_buildings = {}
 function known_buildings:insert(name, build_ref)
     if self[name] == nil then self[name] = {} end
@@ -266,7 +255,7 @@ function known_buildings:insert(name, build_ref)
     self[name][size + 1] = build_ref
 end
 
-local module.all_builds = known_buildings
+module.all_builds = known_buildings
 
 -- turns out this is more difficult than I thought originally because of the not saving functions things
 -- we'll prob need to serialize more data than just the build :)
@@ -280,7 +269,7 @@ function module.load_builds_from_file()
 
     for name, inner_table in pairs(real_data) do
         local new = MetaBuild:instantiate(inner_table)
-        local chunk = chunk_exists(new.what_chunk)
+        local chunk = module.chunk_exists(new.what_chunk)
 
         -- TODO (this is not finished, chunk:forceAdd is not added)
         if not chunk:forceAdd(new) then -- if build was a repeat
@@ -330,7 +319,7 @@ function module.gen_map_obj(offset)
 end
 
 local function get_door_info(what_chunk, what_quad)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then
         print(comms.robot_send("error", "map_obj, failed to get door info -- chunk doesn't exist"))
         return nil
@@ -357,43 +346,54 @@ function module.create_named_area(name, colour, height, floor_block)
     return true
 end
 
+function module.chunk_exists(what_chunk)
+    local x = what_chunk[1] + map_obj_offsets[1];
+    local z = what_chunk[2] + map_obj_offsets[2];
+
+    if map_obj[x] == nil or map_obj[x][z] == nil then
+        print(comms.robot_send("error", "ungenerated chunk"))
+        return nil
+    end
+    return map_obj[x][z]
+end
+
 function module.chunk_set_parent(what_chunk, what_area, height_override)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:setParent(what_area, height_override)
 end
 
 function module.get_height(what_chunk)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return -1 end
 
     return map_chunk:getHeight()
 end
 
 function module.get_chunk(what_chunk) -- Evil function!
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return -1 end
 
     return map_chunk
 end
 
 function module.add_quad(what_chunk, what_quad, primitive_name)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:addQuad(what_quad, primitive_name, what_chunk)
 end
 
 function module.setup_build(what_chunk, what_quad)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:setupBuild(what_quad) -- pay attention to what are we returning
 end
 
 function module.do_build(what_chunk, what_quad)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     local result_bool, result_string, coords, symbol = map_chunk:doBuild(what_quad) -- pay attention to what are we returning
@@ -416,7 +416,7 @@ function module.pretend_build(area_name, name, what_chunk, what_quad) -- I think
 
     area:addChunkToSelf(what_chunk)
 
-    local chunk = chunk_exists(what_chunk)
+    local chunk = module.chunk_exists(what_chunk)
     if chunk == nil then return 2 end
     if not module.add_quad(what_chunk, what_quad, name) then return 3 end
     if not module.setup_build(what_chunk, what_quad) then return 4 end
@@ -443,14 +443,14 @@ function module.get_area(name)
 end
 
 function module.add_mark_to_chunk(what_chunk, str)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:addMark(str)
 end
 
 function module.try_remove_mark_from_chunk(what_chunk, str, can_fail)
-    local map_chunk = chunk_exists(what_chunk)
+    local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
     return map_chunk:tryRemoveMark(str, can_fail)
@@ -548,7 +548,7 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         prio = old_prio
         -- old return
     elseif what_step == 4 then
-        local chunk_ref = chunk_exists(what_chunk)
+        local chunk_ref = module.chunk_exists(what_chunk)
         if chunk_ref.roads_cleared == false then
             local self_table = {prio, "start_auto_build", table.unpack(return_table)}
             local build_height = module.get_height(what_chunk)

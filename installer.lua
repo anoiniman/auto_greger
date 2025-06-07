@@ -106,7 +106,7 @@ local function robot_navigation()
     download("/robot/nav_module/nav_obj.lua", "self")
     download("/robot/nav_module/rel_move.lua", "self")
     download("/robot/nav_module/simple_elevator.lua", "self")
-    download("/robot/nav_module/nav_to_build.lua", "self")
+    download("/robot/nav_module/nav_to_building.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/nav_module/nav_interface") then
        filesystem.makeDirectory("/home/robot/nav_module/nav_interface")
