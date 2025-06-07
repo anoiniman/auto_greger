@@ -7,6 +7,7 @@ local serialize = require("serialization")
 -- local imports
 local deep_copy = require("deep_copy")
 local comms = require("comms")
+local post_exit = require("post_exit")
 
 
 local geolyzer = require("geolyzer_wrapper")
@@ -17,8 +18,8 @@ local reason = require("reasoning.reasoning_obj")
 
 
 local function print_obj(obj)
-    local copy = deep_copy.copy_no_functions(obj)
-    local serial = serialize.serialize(copy, 50)
+    local copy = deep_copy.copy_no_functions(obj) -- this prob no worky because of how require works :/
+    local serial = serialize.serialize(copy, 70)
     comms.robot_send("info", serial)
 end
 
@@ -111,6 +112,34 @@ function module.debug(arguments)
             DO_DEBUG_PRINT = false
         else
             print(comms.robot_send("error", "invalid arguments"))
+        end
+    elseif arguments[1] == "save" then
+        if arguments[2] == "build" then
+            post_exit.save_builds()
+        else
+            print(comms.robot_send("error", "invalid arguments"))
+        end
+    elseif arguments[2] == "load" then
+        if arguments[2] == "build" then
+            map.load_builds_from_file()
+        else
+            print(comms.robot_send("error", "invalid arguments"))
+        end
+    elseif arguments[2] == "pretend_build" then
+        local area_name = tostring(arguments[3])
+        local name = tostring(arguments[4])
+        local x = tonumber(arguments[5])
+        local z = tonumber(arguments[6])
+        local quad = tonumber(arguments[7])
+
+        if name == nil or x == nil or z == nil or quad == nil then
+            print(comms.robot_send("error", "pretend_build invalid arguments"))
+            return nil
+        end
+        local what_chunk = {x, z}
+        local err = map.pretend_build(area_name, name, what_chunk, quad)
+        if err ~= 0 then
+            print(comms.robot_send("error", "error in pretending at: " .. err))
         end
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))

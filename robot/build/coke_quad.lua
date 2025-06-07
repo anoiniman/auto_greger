@@ -41,7 +41,7 @@ Module.base_table = { def = Module.human_readable, [1] = Module.human_readable }
 local one_seven = {1, 7}
 local two_six = {2, 6}
 Module.segments = { -- This nil assignment schtick makes it so for 99% of the cases 'ipairs' no longer works :) btw
-    [1] = {{"-ccc*--", two_six}, {"-ccc-+d"}, one_seven},   -- for height 1 change this
+    [1] = {{"-ccc*--", two_six}, {"-ccc-+d", one_seven}},   -- for height 1 change this
     [2] = {{"-c-c---", two_six}},   -- for height 2 change this
     [3] = nil                       -- ..
 }
@@ -131,7 +131,7 @@ Module.hooks = { -- TODO this
         if check then goto after_turn end
 
         nav.change_orientation("west")
-        local check, _ = robot.detect()
+        check, _ = robot.detect()
         if check then goto after_turn end
 
         ::after_turn::

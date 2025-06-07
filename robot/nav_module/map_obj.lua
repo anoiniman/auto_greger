@@ -1,7 +1,7 @@
 local module = {}
 
 ------- Sys Requires -------
---local io = require("io")
+local io = require("io")
 local serialize = require("serialization")
 
 ------- Own Requires -------
@@ -243,9 +243,21 @@ function MetaChunk:finalizeBuild(what_quad_num)
     if not self:quadChecks(what_quad_num, "finalizeBuild") then return false end
     local this_quad = self.meta_quads[what_quad_num]
     this_quad:finalizeBuild()
+    return true
 end
 
 -->>-----------------------------------<<--
+
+local function chunk_exists(what_chunk)
+    local x = what_chunk[1] + map_obj_offsets[1];
+    local z = what_chunk[2] + map_obj_offsets[2];
+
+    if map_obj[x] == nil or map_obj[x][z] == nil then
+        print(comms.robot_send("error", "ungenerated chunk"))
+        return nil
+    end
+    return map_obj[x][z]
+end
 
 local known_buildings = {}
 function known_buildings:insert(name, build_ref)
@@ -254,7 +266,28 @@ function known_buildings:insert(name, build_ref)
     self[name][size + 1] = build_ref
 end
 
+local module.all_builds = known_buildings
 
+-- turns out this is more difficult than I thought originally because of the not saving functions things
+-- we'll prob need to serialize more data than just the build :)
+--
+-- OR, we might just do what "debug pretend_build name, x,z,q" does but automated
+function module.load_builds_from_file()
+
+    local file = io.open("/home/robot/save_state/build.save", "r")
+    local serial_data = file:read("*a")
+    local real_data = serialize.unserialize(serial_data)
+
+    for name, inner_table in pairs(real_data) do
+        local new = MetaBuild:instantiate(inner_table)
+        local chunk = chunk_exists(new.what_chunk)
+
+        -- TODO (this is not finished, chunk:forceAdd is not added)
+        if not chunk:forceAdd(new) then -- if build was a repeat
+            known_buildings:insert(new.name, new)
+        end
+    end
+end
 
 -->>-----------------------------------<<--
 
@@ -294,17 +327,6 @@ function module.gen_map_obj(offset)
         end
     end
     return true
-end
-
-local function chunk_exists(what_chunk)
-    local x = what_chunk[1] + map_obj_offsets[1];
-    local z = what_chunk[2] + map_obj_offsets[2];
-
-    if map_obj[x] == nil or map_obj[x][z] == nil then
-        print(comms.robot_send("error", "ungenerated chunk"))
-        return nil
-    end
-    return map_obj[x][z]
 end
 
 local function get_door_info(what_chunk, what_quad)
@@ -384,6 +406,25 @@ function module.do_build(what_chunk, what_quad)
     end
 
     return result_bool, result_string, coords, symbol
+end
+
+-- This might be a bitch to update if we change the way we do builds posteriorly, I hope not, at least not
+-- so soon
+function module.pretend_build(area_name, name, what_chunk, what_quad) -- I think this is all
+    local area = areas_table:getArea(area_name)
+    if area == nil then return 1 end
+
+    area:addChunkToSelf(what_chunk)
+
+    local chunk = chunk_exists(what_chunk)
+    if chunk == nil then return 2 end
+    if not module.add_quad(what_chunk, what_quad, name) then return 3 end
+    if not module.setup_build(what_chunk, what_quad) then return 4 end
+
+    known_buildings:insert(name, chunk:getBuildRef(), what_chunk) -- important lol
+    if not chunk:finalizeBuild(what_quad) then return 5 end
+
+    return 0
 end
 
 function module.get_buildings(name)
@@ -533,7 +574,8 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
         what_step = 6
         return_table[4] = what_step
         -- old return
-    elseif what_step == -100 then
+    elseif what_step == -100 then -- quite an important TODO if I say so myself
+        -- Do things like filling in the floor so monsters don't spawn etc. !
         module.clear_quad()
         error("TODO")
 

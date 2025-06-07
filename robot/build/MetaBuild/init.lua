@@ -17,7 +17,7 @@ local primitive_cache = {}  -- as you might have noticed this value exists outsi
 local Module = {
     name = nil,
     extra_sauce = nil,
-    what_chunk = nil,
+    what_chunk = nil, -- It's not a ref, they're coordinates to the chunk
 
     post_build_s_init = nil,
     post_build_hooks = nil,
@@ -33,6 +33,33 @@ local Module = {
 
 function Module:new()
     return deep_copy.copy(self, pairs)
+end
+
+-- take unserialized data and restores it into an actual "MetaBuild"
+function Module:instantiate(self_table)
+    local new = deep_copy.copy(self, pairs)
+    --[[for k, v in pairs(new) do -- this won't work with all the nil initalised crap I have
+        if self_table[k] ~= nil then
+            new[k] = self_table[k]
+        end
+    end--]]
+    -- The regex went crazy
+    new.name = self_table.name
+    new.extra_sauce = self_table.extra_sauce
+    new.what_chunk = self_table.what_chunk
+
+    new.post_build_s_init = self_table.post_build_s_init
+    new.post_build_hooks = self_table.post_build_hooks
+    new.post_build_state = self_table.post_build_state
+
+    new.is_nil = self_table.is_nil
+    new.built = self_table.built
+    new.doors = self_table.doors
+
+    new.primitive = self_table.primitive
+    new.s_interface = self_table.s_interface
+
+    return new
 end
 
 function Module:doBuild()

@@ -14,7 +14,7 @@ local MetaItem = {
     output = nil
 }
 function MetaItem:new(name, lable, permissive, output)
-    local new = deep_copy(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     new.name = name
     new.lable = lable
     new.permissive = permissive
@@ -41,7 +41,7 @@ function Module:new(item_defs, parent, is_cache)
         print(comms.robot_send("stack", debug.traceback()))
     end
 
-    local new = deep_copy(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     new.item_defs = item_defs
     new.ledger = MetaLedger:new()
     new.parent = parent
