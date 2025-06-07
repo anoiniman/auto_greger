@@ -1,8 +1,17 @@
 local deep_copy = require("deep_copy")
+local comms = require("comms")
+
+local computer = require("computer")
+local serialize = require("serialization")
+local robot = require("robot")
 
 local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
-local MetaLedger = require("inventory.MetaLedger")
+--local MetaLedger = require("inventory.MetaLedger")
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
+
+local nav = require("nav_module.nav_obj")
+local inv = require("inventory.inv_obj")
+
 local general_functions = require("build.general_functions")
 local generic_hooks = require("build.generic_hooks")
 
@@ -63,7 +72,7 @@ Module.state_init = {
     function()
         return {
             --last_checked = computer.uptime()
-            last_checked = computer.uptime() - 1000 -- temp (s)-
+            last_checked = computer.uptime() - 1000, -- temp (s)-
 
             fsm = 1,
             in_what_asterisk = 1,
@@ -104,7 +113,7 @@ Module.hooks = { -- TODO this
             local storage_table = state_table[3][1]
             local input_storage = storage_table[1]
             if input_storage.lable:tryDetermineHowMany("log", nil, "naive_contains") < quantity_goal then
-                return "no_resources" 
+                return "no_resources"
             end -- else
 
             return "all_good"

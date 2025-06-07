@@ -100,7 +100,7 @@ function module.use_building(arguments)
     local prio = arguments[5]
     local lock = arguments[6]
 
-    return build.useBuilding(module.use_building, flag, index, quantity_goal, prio, lock)
+    return build:useBuilding(module.use_building, flag, index, quantity_goal, prio, lock)
 end
 
 return module

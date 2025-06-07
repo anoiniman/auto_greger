@@ -1,3 +1,4 @@
+-- luacheck: globals DO_DEBUG_PRINT
 local module = {}
 
 -- import of globals

@@ -62,7 +62,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
 
         if not nav.is_setup_navigte_rel() then
             local target_coords, _ = count_occurence_of_symbol('?', 1, parent.s_interface:getSpecialBlocks())
-            if target_coords == nil then 
+            if target_coords == nil then
                 state.fsm = 2
                 return 1
             end
@@ -173,7 +173,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
             return 4
         end
     elseif state.fsm == 5 then -- we done, let us reset ourselves
-        print(comms.robot_send("info", "FSM finished " .. name)) -- TODO change this to debug 
+        print(comms.robot_send("info", "FSM finished " .. name)) -- TODO change this to debug
          -- reset state
         local new_state = state_init_func()
         for key, value in pairs(new_state) do

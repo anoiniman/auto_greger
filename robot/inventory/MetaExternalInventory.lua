@@ -1,5 +1,7 @@
 -- You hook this up to anything you want to register as an external inventory
 local deep_copy = require("deep_copy")
+local comms = require("comms")
+
 local MetaLedger = require("inventory.MetaLedger")
 local inv = require("inventory.inv_obj")
 

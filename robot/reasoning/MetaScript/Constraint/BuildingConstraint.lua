@@ -1,6 +1,8 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+local serialize = require("serialization")
+
 local map_obj = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local MetaBuild = require("build.MetaBuild")
@@ -69,6 +71,9 @@ function BuildingConstraint:decideToBuild(to_build)
     tmp_build:setupBuild()
 
     local tmp_ledger = tmp_build:createAndReturnLedger()
+    local serial = serialize.serialize(tmp_ledger, 50)
+    print(comms.robot_send("debug", "decideToBuild tmp_ledger = \n" .. serial))
+
     local internal_ledger = inv.internal_ledger
 
     local diff = internal_ledger:compareWithLedger(tmp_ledger)

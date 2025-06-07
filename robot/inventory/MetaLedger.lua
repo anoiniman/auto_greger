@@ -116,7 +116,9 @@ function Module:macroExpand(name, expansion_rule)
     elseif expansion_rule == "naive_contains" then
         error(comms.robot_send("fatal", "MetaLedger todo!"))
     elseif expansion_rule == "expand_bucket" then
-        return self.ledger_proper[bucket]
+        return self.ledger_proper[name]
+    else
+        error(comms.robot_send("fatal", "MetaLedger marcoExpand bad option!"))
     end
 end
 
@@ -127,7 +129,7 @@ function Module:tryDetermineHowMany(name, lable, check_type)
         error(comms.robot_send("fatal", "unsupported"))
     elseif name ~= "nil" then
         local matches = self:macroExpand(name, check_type)
-        for name, quantity in ipairs(matches) do
+        for _, quantity in ipairs(matches) do
             count = count + quantity
         end
     else

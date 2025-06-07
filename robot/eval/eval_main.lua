@@ -2,7 +2,8 @@
 local module = {}
 
 -- import of globals
-local serialize = require("serialization")
+local serialize = require("serialization")  -- luacheck: push no unused
+                                            -- luacheck: pop
 
 -- local imports
 local comms = require("comms")

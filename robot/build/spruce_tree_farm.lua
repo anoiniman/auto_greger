@@ -180,7 +180,7 @@ Module.hooks = {
     -- if check is true return true on start conditions being true, otherwise execute main code
     function(state, only_check)
         if computer.uptime() - state.last_checked < 60 * 11 then return false end
-        if only_check then return true end 
+        if only_check then return true end
         -- TODO (the rest)
     end,
     function() -- only call this once the last_check is x minutos after uptime

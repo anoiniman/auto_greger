@@ -19,14 +19,14 @@ local algo_pass = nil
 temp = {
 'g', 'g',  0 ,
  0 , 'g',  0 ,
- 0 ,  0 ,  0 
+ 0 ,  0 ,  0
 }
 local flint = MetaRecipe:newCraftingTable("flint", temp)
 
 temp = {
 'f', 'f', 'f',
  0 , 's',  0 ,
- 0 , 's',  0 
+ 0 , 's',  0
 }
 -- Have it so both "full-names" and "dictionary-names" can be used in the "output" space/variable/slot
 -- or maybe "output" name it is not necessary since, it is alredy identified by variable name inside

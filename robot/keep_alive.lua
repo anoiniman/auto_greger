@@ -20,13 +20,13 @@ function module.keep_alive()
     if fuel_count > 60 then
         return
     end
-    
+
     local fuel_defs = inv.special_slot_find_all("fuel", -1)
-    for _, def in ipairs(slot_defs) do
+    for _, def in ipairs(fuel_defs) do
         local slot_num = def.slot_number
         robot.select(slot_num)
         if robot.count() > 0 then
-            gen.insert(64 - fuel_count) 
+            gen.insert(64 - fuel_count)
             break
         end
     end

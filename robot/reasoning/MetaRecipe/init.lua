@@ -66,7 +66,7 @@ function MetaRecipe:isSatisfied(needed_quantity)
         for _, build in ipairs(buildings) do
             local result = build:runBuildCheck(needed_quantity)
 
-            if result == "all_good" then 
+            if result == "all_good" then
                 return "all_good", build
 
             elseif result == "wait" then
@@ -93,19 +93,19 @@ function MetaRecipe:isSatisfied(needed_quantity)
                     local count = inv.how_many_internal(inner.output.name, inner.output.lable)
                     -- we have the stuff with us (make sure that the hook can handle this fact, aka, that we won't dump the needed
                     -- stuff into an entry-cache chest ('?' symbol)
-                    if count >= needed_quantity then return goto continue end -- check next dep
-                    
+                    if count >= needed_quantity then goto continue end -- check next dep
+
                     -- TODO: if there is enough in long term storage return "all_good" + where we can find this, else recurse deeper
                     -- into our dependency tree by ways of searching inside ti for this output
-                    
+
                     -- if ledger_exists(inner.output.name, inner.output.lable, required_quantity) then
                     --      return "needs_logitics", extra_information
                     -- else if this fails to then it must mean that this dependency is unsatisfied:
-                
-                    local found_dep = dep
+
+                    found_dep = dep
                     break
 
-                    ::continue:: 
+                    ::continue::
                 end
 
                 -- TODO: this works in the case we have the missing resources in our inventory, however if these missing resources are

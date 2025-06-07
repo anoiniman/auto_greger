@@ -147,7 +147,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
     local recipe_to_execute = head_recipe
 
     -- Type of extra_info and its usage is dependent of check value returned
-    local return_info = nil
+    local return_info
     local check, extra_info = head_recipe:isSatisfied(needed_quantity)
     if check == "breadth" then -- will return back and tell caller to find a sister if possible
         return 1
@@ -156,7 +156,6 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
         recipe_to_execute = extra_info
     elseif check == "all_good" then
         return_info = extra_info
-        break
     elseif check == "no_resources" then
         error(comms.robot_send("fatal", "recurse_recipe_tree, not implemented"))
     elseif check == "non_fatal_error" then
@@ -166,12 +165,12 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
         error(comms.robot_send("fatal", "recurse_recipe_tree, unknown"))
     end
 
-    if not recurse then return recipe_to_execute, extra_info end
+    if not recurse then return recipe_to_execute, return_info end
 
     if recurse_watch_dog > 20 then
         error(comms.robot_send("fatal", "Goal:step() -- watch_dog exceeded, does recipe not get solved?"))
     end
-    watch_dog = watch_dog + 1
+    recurse_watch_dog = recurse_watch_dog + 1
 
     return recurse_recipe_tree(recipe_to_execute, needed_quantity, parent_script) -- tail recursion
 end
@@ -184,12 +183,11 @@ function Goal:step(index, name, parent_script, force_recipe)
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
     local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
 
-    local watch_dog = 0
     -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
     -- recursing until you endup in a gathering (or into a satisfied inventory)
     local needed_quantity = self.constraint.const_obj.set_count
 
-    local extra_info = nil
+    local extra_info
     needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity)
 
     -- TODO implement mechanism to unlock this lock

@@ -131,6 +131,44 @@ end
 local function break_log_down(direction, nav_obj)
 end
 
+local break_block = {"break_block"}
+local function surface(parent, direction, nav_obj, extra_sauce)
+    -- luacheck: push ignore result
+    local result, err = parent.base_move(direction, nav_obj)
+
+    if err ~= nil and err == "impossible move" then
+        -- for know we just panic, maybe one day we'll add better AI
+        print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
+        return false, "impossible"
+
+    elseif err ~= nil and err ~= "impossible move" then
+        if not table_contains(extra_sauce, "no_auto_up") then
+            local result, err = module.free(parent, "up", nav_obj, break_block)
+            if result == true then
+                climb_watch_dog = climb_watch_dog + 1
+                return true, "auto_up"
+            end
+            return result, err
+        end
+
+        if err == "entity" or err == "replaceable" then
+            robot.swing()
+            inv.maybe_something_added_to_inv()
+            entity_watch_dog = entity_watch_dog + 1
+            return true, err -- Uhhh, hopefully this won't get us stuck in a infinite loop
+        end
+
+        local obstacle = geolyzer.simple_return()
+        return false, obstacle
+    end
+
+    -- luacheck: pop
+    -- Only AFTER (not before) we've been succeseful do we try to move down
+    local result, err = maybe_move_down(parent, nav_obj, extra_sauce)
+
+    return result, err
+end
+
 local empty_table = {}
 local entity_watch_dog = 0
 local climb_watch_dog = 0
@@ -182,44 +220,6 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
     return result, err
 end
 
-
-local break_block = {"break_block"}
-local function surface(parent, direction, nav_obj, extra_sauce)
-    -- luacheck: push ignore result
-    local result, err = parent.base_move(direction, nav_obj)
-
-    if err ~= nil and err == "impossible move" then
-        -- for know we just panic, maybe one day we'll add better AI
-        print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
-        return false, "impossible"
-
-    elseif err ~= nil and err ~= "impossible move" then
-        if not table_contains(extra_sauce, "no_auto_up") then
-            local result, err = module.free(parent, "up", nav_obj, break_block)
-            if result == true then 
-                climb_watch_dog = climb_watch_dog + 1
-                return true, "auto_up" 
-            end
-            return result, err
-        end
-
-        if err == "entity" or err == "replaceable" then
-            robot.swing()
-            inv.maybe_something_added_to_inv()
-            entity_watch_dog = entity_watch_dog + 1
-            return true, err -- Uhhh, hopefully this won't get us stuck in a infinite loop
-        end
-
-        local obstacle = geolyzer.simple_return()
-        return false, obstacle
-    end
-
-    -- luacheck: pop
-    -- Only AFTER (not before) we've been succeseful do we try to move down
-    local result, err = maybe_move_down(parent, nav_obj, extra_sauce)
-
-    return result, err
-end
 
 -- Auto bridging behaviour is, as defined, entirly self-sufficient, but highly inneficient, but doing a more
 -- efficient version of such a bridging behaviour would force us to add state to these functions

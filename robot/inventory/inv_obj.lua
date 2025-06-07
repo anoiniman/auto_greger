@@ -481,9 +481,9 @@ function module.place_block(dir, block_identifier, lable_type, side)
         end
 
         local delete_result = internal_ledger:subtract(item_def.name, item_def.lable, 1)
-        if not delete_result then 
+        if not delete_result then
             print(comms.robot_send("error", "inv_obj.place_block -- we weren't able to subtract from ledger!"))
-            return false 
+            return false
         end
     end
     return place_result
@@ -522,15 +522,21 @@ function module.dump_all_possible(external_ledger) -- respect "special slots" (a
     return true
 end
 
+-- luacheck: push ignore name
 local function id_by_lable(what_in_slot, name, lable)
     return what_in_slot.label == lable
 end
+-- luacheck: pop
 
+-- luacheck: push ignore lable
 local function id_by_naive_contains(what_in_slot, name, lable)
     return string.find(what_in_slot.name, name) ~= nil
 end
+-- luacheck: pop
 
 local function return_eval_func(id_type)
+    local eval_func
+
     if id_type == "lable" then
         eval_func = id_by_lable
     elseif id_type == "naive_contains" then
@@ -540,6 +546,8 @@ local function return_eval_func(id_type)
     else
         error(comms.robot_send("fatal", "inventory, id_type is invalid"))
     end
+
+    return eval_func
 end
 
 function module.search_external_ledger()

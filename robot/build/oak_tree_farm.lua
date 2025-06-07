@@ -147,6 +147,8 @@ end
 Module.hooks = {
     -- flag determines if we are running a check or a determinate logistic action
     -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
+
+    -- luacheck: no unused args
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             -- TODO other checks, like tool checks

@@ -84,7 +84,7 @@ end
 
 function to_export.rotate_right(nav_obj)
     local orient = nav_obj.get_orientation()
-    if orient == "north" then 
+    if orient == "north" then
         inward_facing.change_orientation("east", nav_obj)
     elseif orient == "east" then
         inward_facing.change_orientation("south", nav_obj)
@@ -93,7 +93,7 @@ function to_export.rotate_right(nav_obj)
     elseif orient == "west" then
         inward_facing.change_orientation("north", nav_obj)
     else
-        error(comms.robot_send("fatal", "invalid state nav_interface.rotate_right")) 
+        error(comms.robot_send("fatal", "invalid state nav_interface.rotate_right"))
     end
 end
 

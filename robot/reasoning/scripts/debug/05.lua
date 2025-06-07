@@ -1,13 +1,11 @@
 local MSBuilder, Goal, Constraint, StructureDeclaration = table.unpack(require("reasoning.MetaScript"))
-local MetaRecipe = require("reasoning.MetaRecipe")
 
 -- includes a charcoal recipe and a Oak Log recipe
 local debug_recipes = require("reasoning.recipes.debug.01")
-local gravel_only, _ = require("reasoning.recipes.stone_age.gathering01")
 
 local desc = "Debug 05 - Big Impressive Test Challenges Hopelessness BIT-CH"
 local builder = MSBuilder:new_w_desc(desc)
-local constraint 
+local constraint
 
 -- remember to put needed materials in the robot's inventory and force_update the inventory
 local oak_tree_farm = StructureDeclaration:new("oak_tree_farm", 0, 0, 3)

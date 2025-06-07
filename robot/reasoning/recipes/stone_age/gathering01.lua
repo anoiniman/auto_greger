@@ -1,5 +1,6 @@
 local geolyzer = require("geolyzer_wrapper")
 local sides_api = require("sides")
+local robot = require("robot")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")

@@ -6,6 +6,7 @@ local deep_copy = require("deep_copy") -- luacheck: ignore
 -- TODO combing through the wait list
 -- if element.useBuilding ~= nil and element:useBuilding("check")
 
+-- luacheck: globals REASON_WAIT_LIST
 REASON_WAIT_LIST = {}
 function REASON_WAIT_LIST:checkAndAdd(build)
     for _, element in ipairs(self) do
