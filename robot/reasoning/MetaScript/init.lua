@@ -8,7 +8,7 @@ local prio_insert = require("prio_insert")
 ---- Other ----
 --local MetaRecipe = require("reasoning.MetaRecipe")
 local Constraint = require("reasoning.MetaScript.Constraint")
-local StructureDeclaration, _ = require("reasoning.MetaScript.Constraint.BuildingConstraint")
+local StructureDeclaration, _ = table.unpack(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
 
 -- Have name param as well?
 -- Add to unlocking behaviour automatic unloading behaviour for scripts that deprecate
