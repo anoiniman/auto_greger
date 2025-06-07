@@ -143,7 +143,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
 
             nav.change_orientation("west")
             check, _ = robot.detect()
-            if not check then error(comms.robot_send("fatal", "Couldn't face chest (+) oak_tree_farm")) end
+            if not check then error(comms.robot_send("fatal", "Couldn't face chest (+) " .. name)) end
             goto a_after_turn
         end
         ::a_after_turn::
@@ -153,12 +153,12 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     elseif state.fsm == 4 then
         if not nav.is_setup_navigte_rel() then
             local target_coords, _ = count_occurence_of_symbol('?', 1, parent.s_interface:getSpecialBlocks())
-            if target_coords == nil then error(comms.robot_send("fatal", "There is no '?' symbol, oak_tree_farm")) end
+            if target_coords == nil then error(comms.robot_send("fatal", "There is no '?' symbol, " .. name)) end
             nav.setup_navigate_rel(target_coords)
         end
 
         local result = nav.navigate_rel()
-        if result == 1 then error(comms.robot_send("fatal", "Couldn't rel_move oak_tree_farm, are we stupid?"))
+        if result == 1 then error(comms.robot_send("fatal", "Couldn't rel_move, are we stupid: "  .. name))
         elseif result == 0 then return 1
         elseif result == -1 then -- we've arrived (face towards the chest and return)
             state.fsm = 5 -- aka, after function no.4 returns, function no.1 will be exiting
@@ -169,11 +169,11 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
 
             nav.change_orientation("west")
             check, _ = robot.detect()
-            if not check then error(comms.robot_send("fatal", "Couldn't face chest oak_tree_farm")) end
+            if not check then error(comms.robot_send("fatal", "Couldn't face chest" .. name)) end
             return 4
         end
     elseif state.fsm == 5 then -- we done, let us reset ourselves
-        print(comms.robot_send("info", "FSM finished")) -- TODO change this to debug 
+        print(comms.robot_send("info", "FSM finished " .. name)) -- TODO change this to debug 
          -- reset state
         local new_state = state_init_func()
         for key, value in pairs(new_state) do
@@ -182,13 +182,8 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
 
         return nil
     else
-        error(comms.robot_send("fatal", "state.fsm went into undefined state"))
+        error(comms.robot_send("fatal", "state.fsm went into undefined state " .. name))
     end
-end
-
--- TODO implement
-function module.go_through_lables(what_symbol) -- +, *, etc.
-    error(comms.robot_send("fatal", "todo implementation here!"))
 end
 
 return module

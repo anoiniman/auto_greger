@@ -13,9 +13,11 @@ local nav_obj = require("nav_module.nav_obj")
 local temp = nil
 local algo_pass = nil
 
-local tree_build = MetaRecipe:newBuildingUser("Oak Log", "oak_tree_farm", "no_store", nil, nil) -- no dep for testing
+-- "raw_usage", "no_store" are possible modes of operation
+
+local tree_build = MetaRecipe:newBuildingUser("Oak Wood", "oak_tree_farm", "no_store", nil, nil) -- no dep for testing
 
 local c_tree_build = MetaDependency:new(tree_build, 1) -- aka, it's 1 to 1
-local charcoal = MetaRecipe:newBuildingUser("Charcoal", "coke_quad", "raw_usage", nil, c_tree_build)
+local charcoal = MetaRecipe:newBuildingUser("Charcoal", "coke_quad", "no_store", nil, c_tree_build)
 
-return charcoal
+return {tree_build, charcoal}

@@ -63,19 +63,28 @@ function MetaRecipe:isSatisfied(needed_quantity)
         if buildings == nil or #buildings == 0 then return "non_fatal_error", "building" end
 
 
-        -- search: You need to find something in my children that can be executed / is valid
         for _, build in ipairs(buildings) do
-            local result = build:useBuilding(nil, nil, "only_check", needed_quantity)
+            local result = build:runBuildCheck(needed_quantity)
 
-            if result == "all_good" then return "all_good", nil
+            if result == "all_good" then 
+                return "all_good", build
+
             elseif result == "wait" then
-                REASON_WAIT_LIST:checkAndAdd(build) -- aka, set cron to use the building when as soon as possible
+                REASON_WAIT_LIST:checkAndAdd(build) -- building was sent to waiting list, cron will the re-rerun checks
+                                                    -- if we still need to use the building and it becomes avaliable use it
+                                                    -- otherwise remove it form list (TODO)
 
             elseif result == "no_resources" then
                 -- The below intuition is not true, because if it can return "no_resources" then we must have dependencies
                 -- if this is not the case then we've failed in configurating and we should crash
                 -- if self.dependencies == nil then return "all_good", nil end
                 if self.dependencies == nil then error(comms.robot_send("fatal", "MetaScript no dependencies when we should have some")) end
+
+                -- For example if we fail: No resources -> Oak Log, or No resources -> any:log etc. we should have a gathering or
+                -- farming (building) dependency that provides such log etc.
+                -- But, for example: if the thing that causes us to fail is something like: lack of flint, yet in the dependency
+                -- resolution we come to understand first that there is lack of sticks, it's ok if the stick branch is chosen to
+                -- performe a "depth" operation, because eventually, no matter de order, the deps will be solved
 
                 local found_dep
                 for _, dep in ipairs(self.dependencies) do
@@ -98,7 +107,11 @@ function MetaRecipe:isSatisfied(needed_quantity)
 
                     ::continue:: 
                 end
-                if found_dep == nil then return "all_good", nil end
+
+                -- TODO: this works in the case we have the missing resources in our inventory, however if these missing resources are
+                -- in fact in long-term storage we'll need to return something different, so that the robot may first retrieve these
+                -- items and only then proceed to the building we want to use
+                if found_dep == nil then return "all_good", build end
 
                 return "depth", found_dep
             end
@@ -200,18 +213,21 @@ function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, strict, depende
 end
 
 -- TODO programme this for crafting recipes
-function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity)
+function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info)
     if self.meta_type == "gathering" then
         self.state.priority = priority
         return {priority, self.mechanism.algorithm, self.mechanism, self.state, up_to_quantity, lock_ref }
     elseif self.meta_type == "building_user" then
-        local build = map.get_buildings(self.mechanism.bd_name)
+        -- here extra info should be a ref to the building we need to use
+        local build = extra_info
+        if build == nil then error(comms.robot_send("fatal", "MetaRecipe:returnCommand, extra_info was nil when it shouldn't")) end
+
         local usage_flag = self.mechanism.usage_flag
-        local index = 1
+        local hook_exec_index = 1
 
         -- callee then determins how many inputs are needed and does all the inventory management
         -- reasoning should not be doing any invenotry management fr fr
-        return {priority, build_eval.use_build, build, usage_flag, 1, up_to_quantity, priority, lock_ref}
+        return {priority, build_eval.use_build, build, usage_flag, hook_exec_index, up_to_quantity, priority, lock_ref}
     elseif self.meta_type == "crafting_table" then
         error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
     else

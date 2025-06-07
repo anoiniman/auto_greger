@@ -26,7 +26,8 @@ local Module = {
     parent_build = nil,
 
     item_defs = nil,
-    storage = true, -- compared to being a production inventory that consumes items
+    storage = false, -- compared to being a production inventory that consumes items
+    long_term_storage = false, -- compared to being an inventory associated with this 1 specific building
 
     ledger = nil,
     rel_location = nil -- access location [Is this variable necessary?]
@@ -51,7 +52,7 @@ function Module:itemDefIter()
     local iteration = 0
 
     -- checks if it is not a plain def
-    if self.item_defs["permissive"] ~= nil then
+    if self.item_defs["permissive"] == nil then
         return function()
             iteration = iteration + 1
             if iteration > 1 then return nil end
@@ -69,14 +70,24 @@ function Module:itemDefIter()
     end
 end
 
+
+function Module:newLongTermStorage(item_defs, parent)
+    local new = self:new(item_defs, parent)
+    new.storage = true
+    new.long_term_storage = true
+    return new
+end
+
 -- this is where the robot dumps its inventory temporarily in order to work a building, basically a fat ledger
 function Module:newSelfCache()
     local new = self:new(nil, nil, true)
+    new.storage = true
     return new
 end
 
 function Module:newStorage(item_defs, parent)
     local new = self:new(item_defs, parent)
+    new.storage = true
     return new
 end
 

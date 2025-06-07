@@ -28,6 +28,7 @@ local buckets = {
     "gt_raw_ore",
     "ingot",
     "generic",
+    "log",
     "duplicate" -- aka things such as: Coke Oven Brick (block) and Coke Oven Brick (item)
     -- sword?
 }
@@ -51,7 +52,11 @@ function module.identify(name, lable)
         return "duplicate"
     end
 
-    if string.find(name, "^minecraft:") then
+    if string.find(name, "log") then    -- this could have awful results if something that isn't a log is caught,
+                                        -- check NEI and improve the regex if needed
+        return "log"
+
+    elseif string.find(name, "^minecraft:") then
         return "minecraft"
     elseif string.find(name, "^gregtech:") then
         if string.find(lable, "^Raw") and string.find(lable, "Ore$") then

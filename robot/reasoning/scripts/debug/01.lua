@@ -7,7 +7,7 @@ local builder = MSBuilder:new_w_desc(desc)
 local coke_oven = StructureDeclaration:new("coke_quad", 0, 0, 1)
 local constraint = Constraint:newBuildingConstraint(coke_oven, nil)
 
-local simple_goal = Goal:new(nil, constraint, nil, nil, 100)
+local simple_goal = Goal:new(nil, constraint, 60, "CokeTest", true)
 builder:addGoal(simple_goal)
 
 local script = builder:build()

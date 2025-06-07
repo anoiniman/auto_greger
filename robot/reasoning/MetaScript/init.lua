@@ -146,22 +146,16 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
     local recurse = false
     local recipe_to_execute = head_recipe
 
-    local check, dependency = head_recipe:isSatisfied(needed_quantity)
-    if check == "search" then -- REMOVE THIS
-        error(comms.robot_send("fatal", "recurse_recipe_tree: do not use \"search\" it is to be removed"))
-        recurse = true
-        recipe_to_execute = deep_copy.copy(parent_script:findRecipe(missing_thing.lable, missing_thing.name), pairs)
-        if recipe_to_execute == nil then
-            error(comms.robot_send("fatal", "recurse_recipe_tree, couldn't find a recipe for what we're missing at recipe: "
-                                    .. recipe_to_execute.output .. ", dep: " .. missing_thing))
-        end
-
-        break
-    elseif check == "breadth" then -- will return back and tell caller to find a sister if possible
+    -- Type of extra_info and its usage is dependent of check value returned
+    local return_info = nil
+    local check, extra_info = head_recipe:isSatisfied(needed_quantity)
+    if check == "breadth" then -- will return back and tell caller to find a sister if possible
         return 1
     elseif check == "depth" then -- will continue deeper
-        recruse = true
+        recurse = true
+        recipe_to_execute = extra_info
     elseif check == "all_good" then
+        return_info = extra_info
         break
     elseif check == "no_resources" then
         error(comms.robot_send("fatal", "recurse_recipe_tree, not implemented"))
@@ -172,14 +166,14 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
         error(comms.robot_send("fatal", "recurse_recipe_tree, unknown"))
     end
 
-    if not recurse then return recipe_to_execute end
+    if not recurse then return recipe_to_execute, extra_info end
 
     if recurse_watch_dog > 20 then
         error(comms.robot_send("fatal", "Goal:step() -- watch_dog exceeded, does recipe not get solved?"))
     end
     watch_dog = watch_dog + 1
 
-    return recurse_recipe_tree(recipe_to_execute, needed_quantity) -- tail recursion
+    return recurse_recipe_tree(recipe_to_execute, needed_quantity, parent_script) -- tail recursion
 end
 
 -- Some day please fix the idiotic polymorphism of this whole code section
@@ -194,7 +188,9 @@ function Goal:step(index, name, parent_script, force_recipe)
     -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
     -- recursing until you endup in a gathering (or into a satisfied inventory)
     local needed_quantity = self.constraint.const_obj.set_count
-    needed_recipe = recurse_recipe_tree(needed_recipe, needed_quantity)
+
+    local extra_info = nil
+    needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity)
 
     -- TODO implement mechanism to unlock this lock
     if needed_recipe == nil then
@@ -207,7 +203,7 @@ function Goal:step(index, name, parent_script, force_recipe)
     print(comms.robot_send("Found needed_recipe after recursion"))
 
     local up_to_quantity = self.constraint.const_obj.reset_count
-    local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock, up_to_quantity)
+    local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock, up_to_quantity, extra_info)
     return return_table
 end
 
@@ -218,6 +214,13 @@ function MSBuilder:new_w_desc(desc)
     local new = self:new()
     new.base_script.desc = desc
     return new
+end
+
+function MSBuilder:addMultipleRecipes(recipes)
+    for _, element in ipairs(recipes) do
+        table.insert(self.base_script.recipes, element)
+    end
+    return self
 end
 
 function MSBuilder:addRecipe(recipe)

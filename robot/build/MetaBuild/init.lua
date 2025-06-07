@@ -219,13 +219,22 @@ function Module:finalizeBuild(doors)
     print(comms.robot_send("debug", "finalizedBuild"))
 end
 
+
+function Module:runBuildCheck(quantity_goal)
+    -- self:useBuilding(nil, "only_check", nil, quantity_goal, nil, nil)
+    return self.post_build_hooks[1](self.post_build_state[1], self, "only_check", quantity_goal, self.post_build_state)
+end
+
 -- flag determines if we are running a check or a determinate logistic action 
 -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
 function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
-    if index == nil or index == 1 then
-        return self.post_build_hooks[1](self.post_build_state[1], self, flag, quantity_goal) -- first hook must correspond to this pattern 
-    end -- else
-    local index = self.post_build_hooks[index](self.post_build_state[index])
+    if index == 1 then
+        -- first hook must correspond to this pattern 
+        index = self.post_build_hooks[1](self.post_build_state[1], self, flag, quantity_goal, self.post_build_state)
+    else
+        index = self.post_build_hooks[index](self.post_build_state[index])
+    end
+
     if index == nil then
         lock[1] = 2 
         return nil

@@ -109,6 +109,34 @@ function Module:subtract(name, lable, to_remove) -- does not accept special item
     return true
 end
 
+-- returns a list with all valid entries that follow this expansion
+function Module:macroExpand(name, expansion_rule)
+    if expansion_rule == "any_expansion" then
+        error(comms.robot_send("fatal", "MetaLedger todo!"))
+    elseif expansion_rule == "naive_contains" then
+        error(comms.robot_send("fatal", "MetaLedger todo!"))
+    elseif expansion_rule == "expand_bucket" then
+        return self.ledger_proper[bucket]
+    end
+end
+
+-- how many but from incomplete information dependent on macro expansion
+function Module:tryDetermineHowMany(name, lable, check_type)
+    local count = 0
+    if name == "duplicate" then
+        error(comms.robot_send("fatal", "unsupported"))
+    elseif name ~= "nil" then
+        local matches = self:macroExpand(name, check_type)
+        for name, quantity in ipairs(matches) do
+            count = count + quantity
+        end
+    else
+        error(comms.robot_send("fatal", "todo"))
+    end
+
+    return count
+end
+
 function Module:howMany(name, lable) -- not implemented for special items, for now
     local bucket, is_special = bucket_functions.identify(name, lable)
     if is_special then

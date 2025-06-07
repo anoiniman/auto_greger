@@ -24,7 +24,7 @@ local MSBuilder, Goal, Requirement = table.unpack(require("reasoning.MetaScript"
 -- But we can auto_doFile some debug shits, because we're nice I guess
 
 local scripts = {}
-scripts[1] = dofile("/home/robot/reasoning/scripts/debug/04.lua")
+scripts[1] = dofile("/home/robot/reasoning/scripts/debug/01.lua")
 -- local recipes = {}
 
 local cur_script = nil

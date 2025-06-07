@@ -63,7 +63,7 @@ Module.state_init = {
     function()
         return {
             --last_checked = computer.uptime()
-            last_checked = computer.uptime() - 1500 -- temp (s)-
+            last_checked = computer.uptime() - 1000 -- temp (s)-
 
             fsm = 1,
             in_what_asterisk = 1,
@@ -93,14 +93,23 @@ Module.state_init = {
 }
 
 -- TODO (low priority) add auto-clear creosote oil when abcd
--- time calculation assuming that each log takes 3000 ticks (150 seconds) to turn into charcoal
+-- time calculation assuming that each log takes 1800 ticks (90 seconds) to turn into charcoal
 Module.hooks = { -- TODO this
-    function(state, parent, flag)
+    function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            if computer.uptime() - state.last_checked < 1450 then return "wait" end
+            if computer.uptime() - state.last_checked < 920 then return "wait" end
+            -- TODO generisize this harder, in the sense, that'll look specifically for what the caller is trying to
+            -- check, not just hardcoded "Oak Log"
+
+            local storage_table = state_table[3][1]
+            local input_storage = storage_table[1]
+            if input_storage.lable:tryDetermineHowMany("log", nil, "naive_contains") < quantity_goal then
+                return "no_resources" 
+            end -- else
+
             return "all_good"
         elseif flag ~=  "raw_usage" or flag ~= "no_store" then
-            error(comms.robot_send("fatal", "oak_farm -- todo (3)"))
+            error(comms.robot_send("fatal", "coke_quad -- todo (3)"))
         end
         local serial = serialize.serialize(state, true)
         print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
@@ -125,27 +134,21 @@ Module.hooks = { -- TODO this
         local storage_table = state[1]; local index = state[2]
         local cur_storage = storage_table[index]
 
-        nav.change_orientation("east")
-        local check, _ = robot.detect()
-        if check then goto after_turn end
-
-        nav.change_orientation("west")
-        local check, _ = robot.detect()
-        if check then goto after_turn end
-
-        ::after_turn::
-
         for _, item_def in cur_storage:itemDefIter() do
             if item_def.lable ~= nil and item_def.name == nil then
-                inv.dump_all_named(item_def.name, item_def.lable, "lable", cur_storage.ledger)
+                if index == 1 then -- dependedent on how we've defined our storage_table in state_init
+                    inv.dump_all_named(item_def.name, item_def.lable, "lable", cur_storage.ledger)
+                end
             elseif item_def.lable == nil and item_def.name ~= nil then
-                print("skip a")
+                print("skip a") -- what'll happen when we try to store logs but we'll just skip
             elseif item_def.lable ~= nil and item_def.name ~= nil then
                 print("skip b")
             else -- surely they cannot be both nil
                 error(comms.robot_send("fatal", "You are very very very stupuid coke_quad"))
             end
         end
+
+        state[2] = state[2] + 1
         return 1
     end
 }

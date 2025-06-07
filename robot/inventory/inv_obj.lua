@@ -530,8 +530,7 @@ local function id_by_naive_contains(what_in_slot, name, lable)
     return string.find(what_in_slot.name, name) ~= nil
 end
 
-function module.dump_all_named(name, lable, id_type, external_ledger)
-    local eval_func
+local function return_eval_func(id_type)
     if id_type == "lable" then
         eval_func = id_by_lable
     elseif id_type == "naive_contains" then
@@ -541,6 +540,15 @@ function module.dump_all_named(name, lable, id_type, external_ledger)
     else
         error(comms.robot_send("fatal", "inventory, id_type is invalid"))
     end
+end
+
+function module.search_external_ledger()
+    local eval_func = return_eval_func(id_type)
+
+end
+
+function module.dump_all_named(name, lable, id_type, external_ledger)
+    local eval_func = return_eval_func(id_type)
 
     for index = 1, used_up_capacity, 1 do
         local what_in_slot = inventory.getStackInInternalSlot(index)
@@ -609,6 +617,10 @@ function module.try_add_to(external_ledger, internal_slot)
     local item = inventory.getStackInInternalSlot(internal_slot)
     if item == nil then return true end
 
+    -- WARNING, it might happen that: internal (60 coal) exteranl 1 slot with (63 coal) drops only 1 coal into
+    -- the exteral, we're left with 59 in the internal slot, yet the ledger will be updated as if we've dumped
+    -- everything succesefully, let us hope that the behaviour of robot.drop() is smarter than this! Otherwise
+    -- we'll need to change our code (TODO)
     robot.select(internal_slot)
     if not robot.drop() then
         return false
