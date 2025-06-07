@@ -26,7 +26,8 @@ Module.name = "oak_tree_farm"
 Module.dictionary = {
     ["s"] = "Oak Sapling",
     ["c"] = "Chest",
-    ["d"] = {"any:grass", "name"} -- add code for this
+    -- TODO: tehe (and add smart facilities?, we prob don't need everything to be dirt only below the plants)
+    -- ["d"] = {"any:grass", "name"} -- add code for this
 }
 
 -- No torches (so that it can be built in le early game)
@@ -37,7 +38,7 @@ Module.dictionary = {
 
 -- things defined through * = inventories, and through + = action hooks?
 Module.human_readable = {
-    {
+    --[[{
     "ddddddd",
     "ddddddd",
     "ddddddd",
@@ -45,7 +46,7 @@ Module.human_readable = {
     "ddddddd",
     "ddddddd",
     "ddddddd",
-    },
+    },--]]
     {
     "s*s-s*s",
     "s*s-s*s",
@@ -66,7 +67,8 @@ Module.human_readable = {
     "t----*c",
 }--]]
 
-Module.origin_block = {0,0,-1} -- x, z, y
+--Module.origin_block = {0,0,-1} -- x, z, y
+Module.origin_block = {0,0,0} -- x, z, y
 Module.base_table = Module.human_readable
 
 Module.doors = {}
