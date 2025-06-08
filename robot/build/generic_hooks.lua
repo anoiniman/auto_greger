@@ -50,7 +50,7 @@ end
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis
 function module.std_hook1(state, parent, flag, state_init_func, name)
     local cur_chunk = nav.get_chunk()
-    if not state.in_building and (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[1] ~= parent.what_chunk[2]) then
+    if not state.in_building and (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[2] ~= parent.what_chunk[2]) then
         if nav_to_build.do_move(parent.what_chunk, parent.doors) then
             state.in_building = true -- make it so when we leave building this becomes false
         end

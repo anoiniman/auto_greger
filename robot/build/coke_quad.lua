@@ -117,7 +117,7 @@ Module.hooks = { -- TODO this
             end -- else
 
             return "all_good"
-        elseif flag ~=  "raw_usage" or flag ~= "no_store" then
+        elseif flag ~=  "raw_usage" and flag ~= "no_store" then
             error(comms.robot_send("fatal", "coke_quad -- todo (3)"))
         end
         local serial = serialize.serialize(state, true)

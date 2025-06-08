@@ -64,8 +64,8 @@ function MetaQuad:actualizeDoors() -- Transform the door definition into actual 
     end
 end
 
-function MetaQuad:requireBuild(name)
-    local result = self.build:require(name)
+function MetaQuad:requireBuild(name, what_chunk)
+    local result = self.build:require(name, what_chunk)
     if result == false then return false end
 
     self.doors = deep_copy.copy(self.build:getDoors(), pairs)
