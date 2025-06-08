@@ -60,8 +60,8 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     -- after these checks and basic movement, we'll now rel move towards the cache (remember that x-move comes first)
     if state.fsm == 1 then
 
-        if not nav.is_setup_navigte_rel() then
-            local target_coords, _ = count_occurence_of_symbol('?', 1, parent.s_interface:getSpecialBlocks())
+        if not nav.is_setup_navigate_rel() then
+            local target_coords, _ = count_occurence_of_symbol('?', 1, parent.special_blocks)
             if target_coords == nil then
                 state.fsm = 2
                 return 1
@@ -87,7 +87,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
 
     elseif state.fsm == 2 then -- time to look at the *'s
         local what_asterisk = state.in_what_asterisk
-        local success, new_what_asterisk = count_occurence_of_symbol('*', what_asterisk, parent.s_interface:getSpecialBlocks())
+        local success, new_what_asterisk = count_occurence_of_symbol('*', what_asterisk, parent.special_blocks)
 
         if success == nil then -- we have run out of asterisks, time to go to state 4 ('+')
             state.in_what_asterisk = 1
@@ -117,7 +117,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
         end
 
         local what_plus = state.in_what_asterisk -- le reuse of registry
-        local success, new_what_plus = count_occurence_of_symbol('+', what_plus, parent.s_interface:getSpecialBlocks())
+        local success, new_what_plus = count_occurence_of_symbol('+', what_plus, parent.special_blocks)
 
         if success == nil then -- this means we've run out of +'s (go back to '?' and retrieve our items)
             state.in_what_asterisk = 1 -- prob useless
@@ -152,7 +152,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
         return jmp_to_func
     elseif state.fsm == 4 then
         if not nav.is_setup_navigte_rel() then
-            local target_coords, _ = count_occurence_of_symbol('?', 1, parent.s_interface:getSpecialBlocks())
+            local target_coords, _ = count_occurence_of_symbol('?', 1, parent.special_blocks)
             if target_coords == nil then error(comms.robot_send("fatal", "There is no '?' symbol, " .. name)) end
             nav.setup_navigate_rel(target_coords)
         end
