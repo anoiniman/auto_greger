@@ -5,7 +5,7 @@ local comms = require("comms")
 
 local robot = require("robot")
 local nav = require("nav_module.nav_obj")
-local nav_to_build = require("nav_module.nav_to_build")
+local nav_to_build = require("nav_module.nav_to_building")
 
 
 local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm)
@@ -49,7 +49,7 @@ end
 
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis
 function module.std_hook1(state, parent, flag, state_init_func, name)
-    for _, inner_table in ipairs(special_blocks) do
+    for _, inner_table in ipairs(parent.special_blocks) do
         for k, v in ipairs(inner_table) do
             print(comms.robot_send("debug", k .. ", " .. v))
         end

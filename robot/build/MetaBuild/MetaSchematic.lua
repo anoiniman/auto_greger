@@ -47,6 +47,7 @@ local function return_or_init_table_table(tbl, index) -- for maybe nils
     return tbl[index] -- returns ref to inner table
 end
 
+-- IT WASN'T A REF/POINTER. YOU WERE ALLOCATING THE TABLE IN THIS SCOPE!!!!!
 local function record_special(symbol, x, z, y, tbl) -- because a table is ref/pointer it's fine
     local obj_detected = false
     if symbol == '*' or symbol == '+' or symbol == '?' then
@@ -54,7 +55,6 @@ local function record_special(symbol, x, z, y, tbl) -- because a table is ref/po
     end
 
     if obj_detected then
-        if tbl == nil then tbl = {} end
         local full_obj = {symbol, x, z, y}
         table.insert(tbl, full_obj)
     end
@@ -66,7 +66,7 @@ end
 -- 2d slice of height 1, where 1 string is 1 line (x,z)
 function MetaSchematic:parseStringArr(string_array, y_coord)
     local square = return_or_init_table_table(self, y_coord)
-    local special_table = nil
+    local special_table = {}
 
     local z_coord = 0
     for _, str in ipairs(string_array) do
