@@ -14,10 +14,10 @@ local Slacking = {}
 -- hopefully
 local Constraint = { const_type = nil, const_obj = nil, slacking = nil }
 function Constraint:new() return deep_copy.copy(self, pairs) end
-function Constraint:newItemConstraint(item_name, item_lable, total_count, slacking)
+function Constraint:newItemConstraint(item_name, item_lable, set_count, reset_count, filter, slacking)
     local new = self:new()
     new.const_type = "item"
-    new.const_obj = ItemConstraint:new(item_name, item_lable, total_count)
+    new.const_obj = ItemConstraint:new(item_name, item_lable, set_count, reset_count, filter)
     new.slacking = slacking or nil
     return new
 end

@@ -91,7 +91,7 @@ function module.start_auto_build(arguments)
     )
 end
 
-function module.use_building(arguments)
+function module.use_build(arguments)
     local build = arguments[1]
     local flag = arguments[2]
 

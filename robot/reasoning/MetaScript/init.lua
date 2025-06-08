@@ -222,8 +222,8 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     end
     print(comms.robot_send("debug", "Found needed_recipe after recursion"))
 
-    local serial_recipe = serialize.serialize(needed_recipe, 40)
-    print(comms.robot_send("debug", serial_recipe))
+    -- local serial_recipe = serialize.serialize(needed_recipe, 40)
+    -- print(comms.robot_send("debug", serial_recipe))
 
     local up_to_quantity = self.constraint.const_obj.reset_count
     local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock, up_to_quantity, extra_info)
