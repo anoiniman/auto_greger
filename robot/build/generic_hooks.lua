@@ -49,8 +49,14 @@ end
 
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis
 function module.std_hook1(state, parent, flag, state_init_func, name)
+    for _, inner_table in ipairs(special_blocks) do
+        for k, v in ipairs(inner_table) do
+            print(comms.robot_send("debug", k .. ", " .. v))
+        end
+    end
+
     local cur_chunk = nav.get_chunk()
-    if not state.in_building and (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[2] ~= parent.what_chunk[2]) then
+    if not state.in_building or (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[2] ~= parent.what_chunk[2]) then
         if nav_to_build.do_move(parent.what_chunk, parent.doors) then
             state.in_building = true -- make it so when we leave building this becomes false
         end
@@ -151,7 +157,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
         state.fsm = new_fsm
         return jmp_to_func
     elseif state.fsm == 4 then
-        if not nav.is_setup_navigte_rel() then
+        if not nav.is_setup_navigate_rel() then
             local target_coords, _ = count_occurence_of_symbol('?', 1, parent.special_blocks)
             if target_coords == nil then error(comms.robot_send("fatal", "There is no '?' symbol, " .. name)) end
             nav.setup_navigate_rel(target_coords)
@@ -184,6 +190,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     else
         error(comms.robot_send("fatal", "state.fsm went into undefined state " .. name))
     end
+    error("fall-through")
 end
 
 return module

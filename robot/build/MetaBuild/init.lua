@@ -244,7 +244,7 @@ function Module:finalizeBuild(doors)
         self.post_build_state[index] = func(self)
     end
 
-    self.special_blocks = s_interface:getSpecialBlocks()
+    self.special_blocks = self.s_interface:getSpecialBlocks()
     self.s_interface = nil -- :)
     print(comms.robot_send("debug", "finalizedBuild"))
 end
