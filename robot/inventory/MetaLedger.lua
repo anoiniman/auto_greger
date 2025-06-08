@@ -72,6 +72,8 @@ local function generic_bucket_ref(ledger, bucket, lable, name, do_not_create)
     local identifier
 
     if bucket == "duplicate" then
+        if bucket_ref == nil then return nil end
+
         identifier = name
         bucket_ref = access_bucket(bucket_ref, lable, do_not_create)
     else
@@ -122,6 +124,8 @@ function Module:macroExpand(name, expansion_rule)
     end
 end
 
+-- Faking hell, I can tell that this is going to crash the robot one day VVV
+
 -- how many but from incomplete information dependent on macro expansion
 function Module:tryDetermineHowMany(name, lable, check_type)
     local count = 0
@@ -146,12 +150,10 @@ function Module:howMany(name, lable) -- not implemented for special items, for n
         return -1
     end
 
-    if bucket == "duplicate" then
-        local to_return = self.ledger_proper[bucket][lable][name]
-        if to_return == nil then return 0 end
-        return to_return
-    end
-    local to_return = self.ledger_proper[bucket][lable]
+    local bucket, id = generic_bucket_ref(self.ledger_proper, bucket, lable, name, true)
+    if bucket == nil then return 0 end
+    local to_return = bucket[id]
+
     if to_return == nil then return 0 end
     return to_return
 end

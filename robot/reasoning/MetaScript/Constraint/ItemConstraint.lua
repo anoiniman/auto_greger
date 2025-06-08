@@ -45,7 +45,7 @@ function ItemConstraint:check(do_once) -- so this was easy?
 
     -- removed the how_many_internal thing, it is useful to dictate if we have to pick something up, but that
     -- is not the responsability of this code
-    if inv.how_many_total(self.item_name, self.item_lable) < self.set_count then
+    if items_in_inv < self.set_count then
         return 1, {name = self.item_name, lable = self.item_lable}
     end
     return 0, nil

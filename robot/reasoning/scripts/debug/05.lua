@@ -16,7 +16,7 @@ local coke_quad = StructureDeclaration:new("coke_quad", 0, 0, 1)
 constraint = Constraint:newBuildingConstraint(coke_quad, nil)
 local coke_quad_goal = Goal:new(oak_farm_goal, constraint, 40, "coke_quad_const", true)
 
-constraint = Constraint:newItemConstraint(nil, "Charcoal", 156, nil)
+constraint = Constraint:newItemConstraint("minecraft:coal", "Charcoal", 32, 156, nil)
 local charcoal_goal = Goal:new(coke_quad_goal, constraint, 40, "charcoal_const", true)
 
 builder:addGoal(charcoal_goal)  -- because the goal resolution engine does not recurse, but rather simply checks if the deps
