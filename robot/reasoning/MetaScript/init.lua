@@ -1,5 +1,5 @@
 ---- Global Objects ----
-
+local serialize = require("serialization")
 ---- Shared ----
 local comms = require("comms")
 local deep_copy = require("deep_copy")
@@ -220,7 +220,10 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     elseif needed_recipe == 1 then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))
     end
-    print(comms.robot_send("Found needed_recipe after recursion"))
+    print(comms.robot_send("debug", "Found needed_recipe after recursion"))
+
+    local serial_recipe = serialize.serialize(needed_recipe, 40)
+    print(comms.robot_send("debug", serial_recipe))
 
     local up_to_quantity = self.constraint.const_obj.reset_count
     local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock, up_to_quantity, extra_info)

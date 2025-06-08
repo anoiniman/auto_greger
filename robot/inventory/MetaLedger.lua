@@ -133,12 +133,17 @@ function Module:tryDetermineHowMany(name, lable, check_type)
         error(comms.robot_send("fatal", "unsupported"))
     elseif name ~= "nil" then
         local matches = self:macroExpand(name, check_type)
+        if matches == nil then
+            count = 0
+            goto drop_out
+        end
         for _, quantity in ipairs(matches) do
             count = count + quantity
         end
     else
         error(comms.robot_send("fatal", "todo"))
     end
+    ::drop_out::
 
     return count
 end

@@ -3,6 +3,8 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+local serialize = require("serialization")
+
 local build_eval = require("eval.build")
 local map = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
@@ -227,7 +229,10 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
 
         -- callee then determins how many inputs are needed and does all the inventory management
         -- reasoning should not be doing any invenotry management fr fr
-        return {priority, build_eval.use_build, build, usage_flag, hook_exec_index, up_to_quantity, priority, lock_ref}
+        local r_table = {priority, build_eval.use_build, build, usage_flag, hook_exec_index, up_to_quantity, priority, lock_ref}
+        local serial = serialize.serialize(r_table, 40)
+        print(comms.robot_send("debug", serial))
+        return r_table
     elseif self.meta_type == "crafting_table" then
         error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
     else

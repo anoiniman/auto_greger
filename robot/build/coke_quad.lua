@@ -112,7 +112,7 @@ Module.hooks = { -- TODO this
 
             local storage_table = state_table[3][1]
             local input_storage = storage_table[1]
-            if input_storage.lable:tryDetermineHowMany("log", nil, "naive_contains") < quantity_goal then
+            if input_storage.ledger:tryDetermineHowMany("log", nil, "expand_bucket") < quantity_goal then
                 return "no_resources"
             end -- else
 
