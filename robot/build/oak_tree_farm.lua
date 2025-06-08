@@ -24,8 +24,8 @@ local Module = {parent = nil}
 Module.name = "oak_tree_farm"
 
 Module.dictionary = {
-    ["s"] = "Oak Sapling",
-    ["c"] = "Chest",
+    ["s"] = {"Oak Sapling", "minecraft:sapling"},
+    ["c"] = {"Chest", "minecraft:chest"}
     -- TODO: tehe (and add smart facilities?, we prob don't need everything to be dirt only below the plants)
     -- ["d"] = {"any:grass", "name"} -- add code for this
 }

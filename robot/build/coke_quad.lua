@@ -20,7 +20,7 @@ Module.name = "coke_quad"
 
 Module.dictionary = {
     ["c"] = {"Coke Oven Brick", "Railcraft:machine.alpha" }, -- if this doesn't work then ouch
-    ["d"] = "Chest"
+    ["d"] = {"Chest", "minecraft:chest"}
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)

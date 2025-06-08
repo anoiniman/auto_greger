@@ -21,13 +21,13 @@ local Module = {parent = nil}
 Module.name = "spruce_tree_farm"
 
 Module.dictionary = {
-    ["s"] = "Spruce Sapling",
-    ["c"] = "Chest",
-    ["d"] = "Dirt", -- this works because the trees will be isolated from grass
-    ["y"] = {"Stone Bricks Slab", "down"},
-    ["l"] = {"Cobblestone Slab", "down"},
-    ["k"] = "Cobblestone",
-    ["t"] = {"Torch", "down"},
+    ["s"] = {"Spruce Sapling", "minecraft:sapling"},
+    ["c"] = {"Chest", "minecraft:chest"},
+    ["d"] = {"Dirt", "minecraft:dirt"},
+    ["y"] = {"Stone Bricks Slab", "minecraft:", "down"},
+    ["l"] = {"Cobblestone Slab", "minecraft:", "down"},
+    ["k"] = {"Cobblestone", "minecraft:cobblestone"},
+    ["t"] = {"Torch", "minecraft:torch", "down"},
 }
 
 -- No torches (so that it can be built in le early game)
