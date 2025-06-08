@@ -134,3 +134,5 @@ hook-up the conditionals of using the "smart" surface navigation (aka, when we h
 
 Inventory Obj - create a version of, or expand: find_in_slot such that it may work for both internal (current) and external
 (to be added) invnetories
+
+when door moving, instead of going through the road, the robot goes right accross BAD

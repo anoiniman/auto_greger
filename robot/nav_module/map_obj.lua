@@ -400,7 +400,7 @@ function module.do_build(what_chunk, what_quad)
     if result_string == "done" then
         local primitive_name = map_chunk:getName(what_quad)
         if primitive_name == nil then error(comms.robot_send("fatal", "Impossible state, map_obj.do_build")) end
-        known_buildings:insert(primitive_name, map_chunk:getBuildRef(), what_chunk)
+        known_buildings:insert(primitive_name, map_chunk:getBuildRef(what_quad), what_chunk)
 
         map_chunk:finalizeBuild(what_quad)
     end
@@ -415,13 +415,14 @@ function module.pretend_build(area_name, name, what_chunk, what_quad) -- I think
     if area == nil then return 1 end
 
     area:addChunkToSelf(what_chunk)
+    module.chunk_set_parent(what_chunk, area, nil) -- nil = no override
 
     local chunk = module.chunk_exists(what_chunk)
     if chunk == nil then return 2 end
     if not module.add_quad(what_chunk, what_quad, name) then return 3 end
     if not module.setup_build(what_chunk, what_quad) then return 4 end
 
-    known_buildings:insert(name, chunk:getBuildRef(), what_chunk) -- important lol
+    known_buildings:insert(name, chunk:getBuildRef(what_quad), what_chunk) -- important lol
     if not chunk:finalizeBuild(what_quad) then return 5 end
 
     return 0
