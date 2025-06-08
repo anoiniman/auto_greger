@@ -136,7 +136,7 @@ local function interpret_element(element, index, do_error)
         return nil
     end
 
-    if element == "west" or "east" or "north" or "south" or "up" or "down" then
+    if element == "west" or element == "east" or element == "north" or element == "south" or element == "up" or element == "down" then
         if index == 1 then return "place", element
         elseif index == 2 then return "orient", element
         else error(comms.robot_send("fatal", "interpret_element: as of yet unsupported!")) end
