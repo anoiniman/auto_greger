@@ -77,13 +77,13 @@ function BuildingConstraint:decideToBuild(to_build)
 
     local internal_ledger = inv.internal_ledger
 
-    local diff = internal_ledger:compareWithLedger(tmp_ledger)
+    local diff = internal_ledger:compareWithLedger(tmp_ledger.ledger_proper)
     if diff == nil or #diff == 0 then return 1 end -- aka return a no-go-signal by default
 
     -- element.lable, element.name
     for _, element in ipairs(diff) do
         if element.diff < 0 then
-            return 1, element
+            return 1, element, math.abs(element.diff)
         end
     end
 
@@ -110,7 +110,7 @@ function BuildingConstraint:step(index, name, priority) -- returns command to be
         error(comms.robot_send("fatal", "impossible state BuildingConstraint:step()"))
     end
     local to_build = structure_to_build
-    local what_to_do, element = self:decideToBuild(to_build)
+    local what_to_do, element, missing_quanitty = self:decideToBuild(to_build)
 
     if what_to_do == 0 then
         return self:doBuild(name, priority, to_build)
@@ -119,7 +119,7 @@ function BuildingConstraint:step(index, name, priority) -- returns command to be
 
         -- since element already contains fields = "lable" and "name", why not just send it over?
         -- Instead of: \return {lable = element.lable, name = element.name}, "try_recipe"\
-        return element, "try_recipe"
+        return element, {"try_recipe", missing_quanitty}
     end
 end
 

@@ -92,9 +92,10 @@ function MetaScript:step() -- most important function does everything, I think
 
     -- TODO -> check if we only need to do fetch it from an external inventory or if we really need to recurse
     -- this behaves really curiously, since it doesn't lock the goal, it'll keep trying to lock it in, maybe change this?
-    if extra == "try_recipe" then -- happens when a non recipe goal demands a recipe
+    if extra[1] == "try_recipe" then -- happens when a non recipe goal demands a recipe
         -- luacheck: push ignore extra
-        result, extra = best_goal:step(nil, result, self, true)
+        local extra_quantity = extra[2]
+        result, extra = best_goal:step(nil, result, self, true, extra_quantity)
         if result == nil then
             print(comms.robot_send("error", "MetaScript:step() -- Tried to force a recipe, but failed to find one"))
             return "end", nil
@@ -177,7 +178,10 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
 end
 
 -- Some day please fix the idiotic polymorphism of this whole code section
-function Goal:step(index, name, parent_script, force_recipe)
+-- (Some-times we try to find a recipe from something that is not an item contraint goal and we'll need
+-- to override the quantity from outside (for example when a building constraint doesn't have building
+-- materials)
+function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     if self.constraint:returnType() == "building" and not force_recipe then -- aka, is this a building constraint?
         return self.constraint:step(index, name, self.priority)
     end
@@ -186,7 +190,12 @@ function Goal:step(index, name, parent_script, force_recipe)
 
     -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
     -- recursing until you endup in a gathering (or into a satisfied inventory)
-    local needed_quantity = self.constraint.const_obj.set_count
+    local needed_quantity
+    if quantity_override == nil then
+        needed_quantity = self.constraint.const_obj.set_count
+    else
+        needed_quantity = quantity_override
+    end
 
     local extra_info
     needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity)
