@@ -155,14 +155,14 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
         print(comms.robot_send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
         return false
     end
-    print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
+    --print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
     if type(translated_symbol) ~= "table" then
-        print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
+        --print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
     else -- if it IS a table
         translated_symbol = deep_copy.copy(translated_symbol, ipairs) -- Yes I should do this in place, no I don't care for now
 
         local serial = serialize.serialize(translated_symbol, true)
-        print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))
+        --print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))
     end
 
     local coords = deep_copy.copy(rel, ipairs)

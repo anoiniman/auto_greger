@@ -71,13 +71,13 @@ function BuildingConstraint:decideToBuild(to_build)
     tmp_build:setupBuild()
 
     local tmp_ledger = tmp_build:createAndReturnLedger()
-    local serial = serialize.serialize(tmp_ledger, 50)
+    local serial = serialize.serialize(tmp_ledger.ledger_proper, 50)
     print(comms.robot_send("debug", "decideToBuild tmp_ledger = \n" .. serial))
 
     local internal_ledger = inv.internal_ledger
 
     local diff = internal_ledger:compareWithLedger(tmp_ledger)
-    if diff == nil or #diff == 0 then return 0 end -- aka return a go-signal by default
+    if diff == nil or #diff == 0 then return 1 end -- aka return a no-go-signal by default
 
     -- element.lable, element.name
     for _, element in ipairs(diff) do
@@ -112,15 +112,15 @@ function BuildingConstraint:step(index, name, priority) -- returns command to be
     local what_to_do, element = self:decideToBuild(to_build)
 
     if what_to_do == 0 then
-        return self:doBuild(name, priority)
+        return self:doBuild(name, priority, to_build)
     elseif what_to_do == 1 then
         -- since element already contains fields = "lable" and "name", why not just send it over?
-        -- return {lable = element.lable, name = element.name}, "try_recipe"
+        -- Instead of: \return {lable = element.lable, name = element.name}, "try_recipe"\
         return element, "try_recipe"
     end
 end
 
-function BuildingConstraint:doBuild(name, priority)
+function BuildingConstraint:doBuild(name, priority, to_build)
     --luacheck: ignore
     local step = 0 -- 0 is interactive mode
     local what_chunk = {} -- what_chunk isn't dropped because of GC I think

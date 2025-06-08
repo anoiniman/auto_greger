@@ -35,7 +35,6 @@ local buckets = {
 
 local function duplicate_identify(lable)
     if lable == "Coke Oven Brick" then
-        print(comms.robot_send("debug", "No Mangling!"))
         return true
     elseif lable == "CokeOvenBrick" then
         print(comms.robot_send("error", "Mangling happened!"))
