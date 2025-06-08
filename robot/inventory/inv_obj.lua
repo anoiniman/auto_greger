@@ -226,13 +226,16 @@ local function find_in_slot(block_id, lable_type)
             local item = inventory.getStackInInternalSlot(index)
             if item == nil then goto continue end
 
+            -- commented out anti-mangling code in the hope that it'll no longer be necessary
+
             -- This is needed because dictionary translation seems to mangle spaces
             -- this will destroy spaces to allow for comparison
-            local split = text.tokenize(item.label)
-            local reconstruct = table.concat(split)
+            -- local split = text.tokenize(item.label)
+            --local reconstruct = table.concat(split)
 
             -- somehow, now that we have BuildInstruction it doesn't get mangled???
-            if reconstruct == block_id or item.label == block_id then
+            --if reconstruct == block_id or item.label == block_id then
+            if item.label == block_id then
                 return index, item
             end
 
@@ -272,6 +275,17 @@ local function find_in_slot(block_id, lable_type)
 
         print(comms.robot_send("error", "inv_obj: not valid lable_type"))
         return -2
+    elseif lable_type == "optional_name" then -- expects block_identifier to be .lable, and not .label
+        for index = 1, inventory_size, 1 do
+            local item = inventory.getStackInInternalSlot(index)
+            if item == nil then goto continue end
+
+            if item.label == block_id.lable and (block_id.name == nil or item.name == block_id.name) then
+                return index, item
+            end
+
+            ::continue::
+        end
     else
         print(comms.robot_send("error", "inv_obj: not valid lable_type"))
         return -2
@@ -423,6 +437,10 @@ end
 
 --->>-- Block Placing --<<----{{{
 
+-- remember that because we're stupid, our own "lable" is lable, but the lable from
+-- an item representation provided from OC is american "label"
+--
+-- TODO expand block searching in such a way that it beats duplicate lables
 function module.place_block(dir, block_identifier, lable_type, side)
     -- if side is nil it doesn't matter
     if side ~= nil then side = sides_api[side] end
@@ -430,6 +448,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
     if type(block_identifier) == "table" then
         if lable_type == "lable" then block_identifier = block_identifier.lable
         elseif lable_type == "name" then block_identifier = block_identifier.name
+        elseif lable_type == "optional_name" then -- luacheck: ignore (do nothing)
         else block_identifier = "invalid \"lable_type\"" end
     end
     if block_identifier == "air" then
@@ -481,7 +500,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
             return false
         end
 
-        local delete_result = internal_ledger:subtract(item_def.name, item_def.lable, 1)
+        local delete_result = internal_ledger:subtract(item_def.name, item_def.label, 1)
         if not delete_result then
             print(comms.robot_send("error", "inv_obj.place_block -- we weren't able to subtract from ledger!"))
             return false
@@ -684,5 +703,8 @@ function module.force_add_all_to_ledger()
         module.force_add_in_slot(index)
     end
 end
+
+-- temp thing to get us going
+module.force_add_all_to_ledger()
 
 return module
