@@ -607,16 +607,18 @@ function module.start_auto_build(what_chunk, what_quad, primitive_name, what_ste
 end
 
 -- temp
---module.create_named_area("home", "green", 69, "dirt")
+module.create_named_area("home", "green", 69, "dirt")
 local what_chunk = {-2,0}
 module.gen_map_obj({1,1})
 module.get_chunk(what_chunk).roads_cleared = true
 
 -- more temp
+--[[
 module.create_named_area("gather", "green", 69, "dirt")
 local area = areas_table:getArea("gather")
 area:addChunkToSelf(what_chunk)
 module.chunk_set_parent(what_chunk, area, nil)
+--]]
 
 -- x and z are still fine here, even after assigning to area
 

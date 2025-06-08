@@ -123,7 +123,13 @@ function Goal:new(dependencies, constraint, priority, name, do_once)
     local new = deep_copy.copy(self, pairs)
     new.name = name or "None"
     new.do_once = do_once or false
-    new.dependencies = dependencies or nil
+    if dependencies == nil then
+        new.dependencies = nil
+    elseif dependencies.name ~= nil then -- it means this is not a table of dependencies
+        new.dependencies = { dependencies }
+    else
+        new.dependencies = dependencies
+    end
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
     new.priority = priority or 0
     return new
