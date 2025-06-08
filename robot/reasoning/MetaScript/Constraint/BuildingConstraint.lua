@@ -3,6 +3,7 @@ local comms = require("comms")
 
 local serialize = require("serialization")
 
+local eval_build = require("eval.build")
 local map_obj = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local MetaBuild = require("build.MetaBuild")
@@ -81,7 +82,7 @@ function BuildingConstraint:decideToBuild(to_build)
 
     -- element.lable, element.name
     for _, element in ipairs(diff) do
-        if element.quantity < 0 then
+        if element.diff < 0 then
             return 1, element
         end
     end
@@ -114,6 +115,8 @@ function BuildingConstraint:step(index, name, priority) -- returns command to be
     if what_to_do == 0 then
         return self:doBuild(name, priority, to_build)
     elseif what_to_do == 1 then
+        -- element, "try_recipe" -- aka try to find (and follow) the recipe necessary for the thing that we're missing rn
+
         -- since element already contains fields = "lable" and "name", why not just send it over?
         -- Instead of: \return {lable = element.lable, name = element.name}, "try_recipe"\
         return element, "try_recipe"

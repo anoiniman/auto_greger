@@ -91,6 +91,7 @@ function MetaScript:step() -- most important function does everything, I think
     end
 
     -- TODO -> check if we only need to do fetch it from an external inventory or if we really need to recurse
+    -- this behaves really curiously, since it doesn't lock the goal, it'll keep trying to lock it in, maybe change this?
     if extra == "try_recipe" then -- happens when a non recipe goal demands a recipe
         -- luacheck: push ignore extra
         result, extra = best_goal:step(nil, result, self, true)

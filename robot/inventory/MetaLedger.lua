@@ -173,14 +173,15 @@ end
 
 -- Only compares ledger proper, not special ledgers
 function Module:compareWithLedger(other)
-    local function inner_comparison(bucket, lable, name, own_quantity)
-        local remote_ref, remote_id = generic_bucket_ref(other, bucket, lable, name, true)
 
-        local other_quantity
-        if remote_ref == nil then other_quantity = nil
-        else other_quantity = remote_ref[remote_id] end
+    local function inner_comparison(bucket, lable, name, other_quantity, own_ledger)
+        local our_ref, our_id = generic_bucket_ref(own_ledger, bucket, lable, name, true)
+
+        local own_quantity
+        if our_ref == nil then own_quantity = nil
+        else own_quantity = our_ref[our_id] end
         --
-        if other_quantity == nil then other_quantity = 0 end
+        if own_quantity == nil then own_quantity = 0 end
 
         local diff = own_quantity - other_quantity
         local diff = ComparisonDiff:new(name, lable, diff)
@@ -188,20 +189,20 @@ function Module:compareWithLedger(other)
     end
 
     local diff_table = {}
-    for bucket_key, lable_table in pairs(self.ledger_proper) do
+    for bucket_key, lable_table in pairs(other) do
         for lable, quantity in pairs(lable_table) do
             if bucket_key == "duplicate" then   -- quantities aren't quantities they are a inner lable[name] table
                 -- luacheck: push ignore quantity (funny shadowing)
                 local name_table = quantity
                 for name, quantity in pairs(name_table) do
-                    local diff = inner_comparison(bucket_key, lable, name, quantity)
+                    local diff = inner_comparison(bucket_key, lable, name, quantity, self.ledger_proper)
                     table.insert(diff_table, diff)
                 end
                 goto skip_over
             end -- else
             -- luacheck: pop
 
-            local diff = inner_comparison(bucket_key, lable, nil, quantity)
+            local diff = inner_comparison(bucket_key, lable, nil, quantity, self.ledger_proper)
             table.insert(diff_table, diff)
         end
         ::skip_over::
