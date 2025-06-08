@@ -188,7 +188,11 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     end
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
     local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
-    if needed_recipe == nil then return nil end
+    if needed_recipe == nil then
+        -- self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input (TODO)
+        self.constraint.const_obj.lock[1] = 0 -- auto-unlock until we implement the waiting list fully
+        return nil
+    end
 
     -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
     -- recursing until you endup in a gathering (or into a satisfied inventory)

@@ -119,18 +119,18 @@ function module.debug(arguments)
         else
             print(comms.robot_send("error", "invalid arguments"))
         end
-    elseif arguments[2] == "load" then
+    elseif arguments[1] == "load" then
         if arguments[2] == "build" then
             map.load_builds_from_file()
         else
             print(comms.robot_send("error", "invalid arguments"))
         end
-    elseif arguments[2] == "pretend_build" then
-        local area_name = tostring(arguments[3])
-        local name = tostring(arguments[4])
-        local x = tonumber(arguments[5])
-        local z = tonumber(arguments[6])
-        local quad = tonumber(arguments[7])
+    elseif arguments[1] == "pretend_build" then
+        local area_name = tostring(arguments[2])
+        local name = tostring(arguments[3])
+        local x = tonumber(arguments[4])
+        local z = tonumber(arguments[5])
+        local quad = tonumber(arguments[6])
 
         if name == nil or x == nil or z == nil or quad == nil then
             print(comms.robot_send("error", "pretend_build invalid arguments"))
@@ -146,5 +146,9 @@ function module.debug(arguments)
     end
     return nil
 end
+
+-- temp
+local args = {"pretend_build", "home", "coke_quad", "-2", "0", "1"}
+module.debug(args)
 
 return module
