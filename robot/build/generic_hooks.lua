@@ -73,8 +73,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
 
         if not nav.is_setup_navigate_rel() then
             local target_coords, _ = count_occurence_of_symbol('?', 1, parent.special_blocks)
-            print(comms.robot("debug", "target height of ? is: " .. target_coords[3]))
-            io.read()
+            -- print(comms.robot_send("debug", "target height of ? is: " .. target_coords[3]))
 
             if target_coords == nil then
                 state.fsm = 2
@@ -87,6 +86,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
         if result == 1 then
            -- error(comms.robot_send("fatal", "Couldn't rel_move \"" .. name .. "\" are we stupid?"))
            os.sleep(1)
+           return 1
         elseif result == 0 then return 1
         elseif result == -1 then -- we've arrived (face towards the chest and return)
             state.fsm = 2 -- aka, after function no.4 returns, function no.1 will be dealing with the '*' things

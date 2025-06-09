@@ -178,7 +178,7 @@ function Module:translateSpecial(quad_num, logical_chunk_height)
 
 
     for _, special in ipairs(special_table) do
-        special[4] = special[4] + logical_chunk_height -- adds height to le thing
+        special[4] = special[4] + logical_chunk_height - 1 -- adds height to le thing (- 1 because idk you just need to)
         case_function(special)
     end
 
