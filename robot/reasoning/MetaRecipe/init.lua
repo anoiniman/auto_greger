@@ -117,8 +117,12 @@ function MetaRecipe:isSatisfied(needed_quantity)
                 -- TODO: this works in the case we have the missing resources in our inventory, however if these missing resources are
                 -- in fact in long-term storage we'll need to return something different, so that the robot may first retrieve these
                 -- items and only then proceed to the building we want to use
-                if found_dep == nil then return "all_good", build end
+                if found_dep == nil then 
+                    print(comms.robot_send("debug", "all_good in MetaRecipe search building_thing"))
+                    return "all_good", build 
+                end
 
+                print(comms.robot_send("debug", "depth_recurse in MetaRecipe search building_thing"))
                 return "depth", found_dep
             end
         end

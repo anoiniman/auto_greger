@@ -1,5 +1,7 @@
 local module = {}
 
+local os = require("os")
+
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
@@ -17,7 +19,9 @@ local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm
     local set_fsm = origin_fsm
 
     local result = nav.navigate_rel()
-    if result == 1 then error(comms.robot_send("fatal", "Couldn't rel_move, are we stupid? (2)"))
+    if result == 1 then -- just some basic stuff (might keep looping but that is a problem for future me TODO)
+        os.sleep(1)
+        jmp_to_func = 1
     elseif result == 0 then jmp_to_func = 1 -- hopefully this isn't arbitrary
     elseif result == -1 then -- we've arrived
         set_fsm = target_fsm
@@ -164,7 +168,10 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
         end
 
         local result = nav.navigate_rel()
-        if result == 1 then error(comms.robot_send("fatal", "Couldn't rel_move, are we stupid: "  .. name))
+        if result == 1 then 
+            --error(comms.robot_send("fatal", "Couldn't rel_move, are we stupid: "  .. name))
+            os.sleep(1)
+            return 1
         elseif result == 0 then return 1
         elseif result == -1 then -- we've arrived (face towards the chest and return)
             state.fsm = 5 -- aka, after function no.4 returns, function no.1 will be exiting
