@@ -221,7 +221,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     elseif needed_recipe == 1 then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))
     end
-    print(comms.robot_send("debug", "Found needed_recipe for: " .. needed_recipe.output))
+    print(comms.robot_send("debug", "Found needed_recipe for: " .. needed_recipe.output.lable))
 
     -- local serial_recipe = serialize.serialize(needed_recipe, 40)
     -- print(comms.robot_send("debug", serial_recipe))

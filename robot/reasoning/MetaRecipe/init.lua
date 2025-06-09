@@ -41,8 +41,11 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
     end
     new.output = output
 
-    if type(dependencies) ~= "table" then
+    -- this failed to activate because I was only checking for type table and not for if it is a raw MetaDependency
+    if dependencies ~= nil and dependencies.inlying_recipe ~= nil then -- else it must be a table of deps
         dependencies = {dependencies}
+    elseif dependencies ~= nil and dependencies[1].inlying_recipe == nil then
+        error(comms.robot_send("fatal", "You did a big oopsie the dependencies are bad dawg"))
     end
     new.dependencies = dependencies
 
