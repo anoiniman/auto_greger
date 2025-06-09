@@ -162,7 +162,8 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
         return 1
     elseif check == "depth" then -- will continue deeper
         recurse = true
-        recipe_to_execute = extra_info
+        recipe_to_execute = extra_info.inlying_recipe
+        needed_quantity = needed_quantity * extra_info.input_multiplier
     elseif check == "all_good" then
         return_info = extra_info
     elseif check == "no_resources" then

@@ -135,9 +135,12 @@ hook-up the conditionals of using the "smart" surface navigation (aka, when we h
 Inventory Obj - create a version of, or expand: find_in_slot such that it may work for both internal (current) and external
 (to be added) invnetories
 
-when door moving, instead of going through the road, the robot goes right accross BAD
+when door moving, instead of going through the road, the robot goes right accross BAD (or for now just make buildings that
+are open in all 4 directions? (aligned with doorway), yurp that seems fine
 
 Remember that when items are stored in temporary atached stroage they do not count towards total item count, in the next
 design iteration make sure you provide such a fix, many are possible, including just counting the temporary storages
 anyway, which might be intelligent, and provide logistics only when these chests are past a certain limit, food
 for thought
+
+buildings are not flipping in the z axis, fix that plz

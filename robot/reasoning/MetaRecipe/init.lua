@@ -76,7 +76,7 @@ function MetaRecipe:isSatisfied(needed_quantity)
                                                     -- if we still need to use the building and it becomes avaliable use it
                                                     -- otherwise remove it form list (TODO)
 
-            elseif result == "no_resources" then
+            elseif result == "no_resources" then -- TODO -> continue from here, add some debug symbols
                 -- The below intuition is not true, because if it can return "no_resources" then we must have dependencies
                 -- if this is not the case then we've failed in configurating and we should crash
                 -- if self.dependencies == nil then return "all_good", nil end
@@ -91,11 +91,15 @@ function MetaRecipe:isSatisfied(needed_quantity)
                 local found_dep
                 for _, dep in ipairs(self.dependencies) do
                     local inner = dep.inlying_recipe
+                    local dep_needed_quantity = needed_quantity * dep.input_multiplier
 
                     local count = inv.how_many_internal(inner.output.name, inner.output.lable)
                     -- we have the stuff with us (make sure that the hook can handle this fact, aka, that we won't dump the needed
                     -- stuff into an entry-cache chest ('?' symbol)
-                    if count >= needed_quantity then goto continue end -- check next dep
+                    if count >= needed_quantity then break end
+
+                    -- this checks if the inner dep is satisfied which is wrong VVV
+                    --> if count >= dep_needed_quantity then goto continue end -- check next dep
 
                     -- TODO: if there is enough in long term storage return "all_good" + where we can find this, else recurse deeper
                     -- into our dependency tree by ways of searching inside ti for this output

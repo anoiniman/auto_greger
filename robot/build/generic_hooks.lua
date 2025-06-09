@@ -9,7 +9,7 @@ local nav_to_build = require("nav_module.nav_to_building")
 
 
 local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm)
-    if not nav.is_setup_navigte_rel() then
+    if not nav.is_setup_navigate_rel() then
         nav.setup_navigate_rel(target_coords)
     end
 
@@ -17,7 +17,7 @@ local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm
     local set_fsm = origin_fsm
 
     local result = nav.navigate_rel()
-    if result == 1 then error(comms.robot_send("fatal", "Couldn't rel_move oak_tree_farm, are we stupid? (2)"))
+    if result == 1 then error(comms.robot_send("fatal", "Couldn't rel_move, are we stupid? (2)"))
     elseif result == 0 then jmp_to_func = 1 -- hopefully this isn't arbitrary
     elseif result == -1 then -- we've arrived
         set_fsm = target_fsm
@@ -49,11 +49,11 @@ end
 
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis
 function module.std_hook1(state, parent, flag, state_init_func, name)
-    for _, inner_table in ipairs(parent.special_blocks) do
+    --[[for _, inner_table in ipairs(parent.special_blocks) do
         for k, v in ipairs(inner_table) do
             print(comms.robot_send("debug", k .. ", " .. v))
         end
-    end
+    end--]]
 
     local cur_chunk = nav.get_chunk()
     if not state.in_building or (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[2] ~= parent.what_chunk[2]) then
