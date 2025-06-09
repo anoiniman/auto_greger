@@ -24,8 +24,8 @@ end
 
 
 local buckets = {
-    "minecraft",
-    "gt_raw_ore",
+    "minecraft:",
+    "gregtech:raw_ore",
     "ingot",
     "generic",
     "log",
@@ -56,10 +56,10 @@ function module.identify(name, lable)
         return "log"
 
     elseif string.find(name, "^minecraft:") then
-        return "minecraft"
+        return "minecraft:"
     elseif string.find(name, "^gregtech:") then
         if string.find(lable, "^Raw") and string.find(lable, "Ore$") then
-            return "gt_raw_ore"
+            return "gregtech:raw_ore"
         end
     elseif string.find(lable, "Ingot$") then
         return "ingot"

@@ -209,7 +209,13 @@ function Module:compareWithLedger(other)
             end -- else
             -- luacheck: pop
 
+            -- the name is lost in the transformation from item info to ledger entry such that we
+            -- try to re-add the diff to another ledger in becomes generic
+            -- to try and remedy that I put the bucket name back through as a name inside the diff
+            -- however that has its dangers too, we need to make sure that the bucket names themselves
+            -- are recognised by their assignement operator
             local diff = inner_comparison(bucket_key, lable, nil, quantity, self.ledger_proper)
+            diff.name = bucket_key
             table.insert(diff_table, diff)
         end
         ::skip_over::

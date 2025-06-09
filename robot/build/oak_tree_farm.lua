@@ -53,7 +53,7 @@ Module.human_readable = {
     "-------",
     "s*s-s*s",
     "c+---+c",
-    "s*s*s*s",
+    "s*s-s*s",
     "-----?c",
     },
 }
@@ -167,11 +167,13 @@ Module.hooks = {
     end,
     function() -- only call this once the last_check is x minutes after uptime
         -- I think the orientation doesn't change as we mirror, so it's ok to define it in east-west
-        local dir = "east"
-        nav.change_orientation(dir) -- initial orientation
+        local dir = "east" -- initial orientation
         for index = 1, 2, 1 do
+            local old_dir = dir
             local new_dir
             local analysis = geolyzer.simple_return(sides_api.front)
+            nav.change_orientation(dir)
+
             if geolyzer.sub_compare("log", "naive_contains", analysis) then -- aka ignore if it's still sapling
                 inv.equip_tool("axe", 0)
 
@@ -187,15 +189,20 @@ Module.hooks = {
                 nav.change_orientation(dir)
                 inv.place_block("front", "Oak Sapling", "lable", nil)
 
-                nav.change_orientation(new_dir)
                 dir = new_dir -- smily face
             end
+            if old_dir == dir then -- makes sure we spin around even in failure
+                dir = nav.get_opposite_orientation()
+            end
+
         end -- only then try to suck-up saplings
 
         os.sleep(6)
         suck.suck() -- once again I hope it sucks it to the first slot (fuck, apples?)
         -- IMPORTANT (TODO) CHECK IF APPLES ARE SUCKED SIMULTANEOSLY (we'll need to succcc several (2) slots at once)
         inv.maybe_something_added_to_inv()
+        -- move in the z axis to not collide with the old trees
+        nav.debug_move("north", 1)
 
         return 1
     end,

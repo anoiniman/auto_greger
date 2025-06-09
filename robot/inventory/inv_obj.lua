@@ -704,8 +704,6 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
     local diff_table = internal_ledger:compareWithLedger(temp_ledger.ledger_proper)
     for _, diff in ipairs(diff_table) do
         if diff.diff < 0 then 
-            print(diff.diff)
-            io.read()
             internal_ledger:addOrCreate(diff.name, diff.lable, math.abs(diff.diff))
         end
     end
