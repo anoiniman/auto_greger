@@ -223,7 +223,7 @@ Module.hooks = {
             return 1
         end -- if false we should dump instead
 
-        if not inv.drop_all_possible(ledger) then print(comms.robot_send("error", "oak_tree_farm, failed to empty inventory")) end
+        if not inv.dump_all_possible(ledger) then print(comms.robot_send("error", "oak_tree_farm, failed to empty inventory")) end
         return 1
     end
 }

@@ -681,10 +681,33 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
         internal_ledger:addOrCreate(name, lable, quantity)
     end
 
+    local result
     if use_self_craft then
-         return clear_first_slot(non_craft_slot_iter)
+        result = clear_first_slot(non_craft_slot_iter)
+    else
+        result = clear_first_slot(free_slot_iter)
     end
-    return clear_first_slot(free_slot_iter)
+
+    if not result then return false end
+
+    -- Kludge time!
+    local temp_ledger = MetaLedger:new()
+    for index = 1, inventory_size, 1 do
+        if in_tool_slot(index) then goto continue end -- do not check things in tool slots, I guess
+        local item = inv.getStackInInternalSlot(index)
+        temp_ledger:addOrCreate(item.name, item.label, item.size)
+
+        ::continue::
+    end
+    local diff_table = internal_ledger:compareWithLedger(temp_ledger)
+    for _, diff in ipairs(diff_table) do
+        if diff.diff < 0 then
+            internal_ledger:addOrCreate(diff.name, diff.lable, math.abs(diff.diff))
+        end
+    end
+    -- Please work :sadge:
+
+    return true
 end
 
 function module.force_add_in_slot(slot) -- ahr ahr
