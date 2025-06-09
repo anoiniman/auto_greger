@@ -171,8 +171,9 @@ Module.hooks = {
         for index = 1, 2, 1 do
             local old_dir = dir
             local new_dir
-            local analysis = geolyzer.simple_return(sides_api.front)
             nav.change_orientation(dir)
+
+            local analysis = geolyzer.simple_return(sides_api.front)
 
             if geolyzer.sub_compare("log", "naive_contains", analysis) then -- aka ignore if it's still sapling
                 inv.equip_tool("axe", 0)
