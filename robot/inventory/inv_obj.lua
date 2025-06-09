@@ -661,7 +661,7 @@ function module.try_add_to(external_ledger, internal_slot)
     return true
 end
 
-
+local io = require("io")
 -- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
 -- with things that drop more than one item; in that case uhhhhhhh we need better accounting
 -- algorithms that detect if something is in the inventory that was not there previously,
@@ -694,14 +694,18 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
     local temp_ledger = MetaLedger:new()
     for index = 1, inventory_size, 1 do
         if in_tool_slot(index) then goto continue end -- do not check things in tool slots, I guess
-        local item = inv.getStackInInternalSlot(index)
+        local item = inventory.getStackInInternalSlot(index)
+        if item == nil then goto continue end
+
         temp_ledger:addOrCreate(item.name, item.label, item.size)
 
         ::continue::
     end
-    local diff_table = internal_ledger:compareWithLedger(temp_ledger)
+    local diff_table = internal_ledger:compareWithLedger(temp_ledger.ledger_proper)
     for _, diff in ipairs(diff_table) do
-        if diff.diff < 0 then
+        if diff.diff < 0 then 
+            print(diff.diff)
+            io.read()
             internal_ledger:addOrCreate(diff.name, diff.lable, math.abs(diff.diff))
         end
     end

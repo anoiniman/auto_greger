@@ -178,7 +178,7 @@ function ComparisonDiff:new(name, lable, diff)
 end
 
 
--- Only compares ledger proper, not special ledgers
+-- Only compares ledger proper, not special ledgers (and not full ledgers)
 function Module:compareWithLedger(other)
 
     local function inner_comparison(bucket, lable, name, other_quantity, own_ledger)

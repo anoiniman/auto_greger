@@ -182,11 +182,12 @@ Module.hooks = {
                 up_stroke()
                 down_stroke() -- then plant sapling
 
-                new_dir = nav.get_opposite_orientation()
+                new_dir = nav.get_opposite_orientation() -- something goes wrong here, it needs to spin around again
                 nav.debug_move(new_dir, 1)
                 nav.change_orientation(dir)
                 inv.place_block("front", "Oak Sapling", "lable", nil)
 
+                nav.change_orientation(new_dir)
                 dir = new_dir -- smily face
             end
         end -- only then try to suck-up saplings
