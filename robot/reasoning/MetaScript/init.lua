@@ -67,7 +67,7 @@ function MetaScript:findBestGoal()
         local goal = self.goals[index]
         if goal:depSatisfied() then
             local inner_index, name = goal:selfSatisfied()
-            if inner_index ~= 0 then
+            if inner_index ~= nil and inner_index ~= 0 then
                 return goal, inner_index, name
             end
         end
@@ -143,7 +143,7 @@ function Goal:depSatisfied()
     if self.dependencies == nil then return true end
     for _, dep in ipairs(self.dependencies) do
         local index, _ = dep:selfSatisfied()
-        if index ~= 0 then return false end
+        if index == nil or index ~= 0 then return false end
     end
     return true
 end

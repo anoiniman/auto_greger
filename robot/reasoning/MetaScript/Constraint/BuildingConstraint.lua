@@ -40,7 +40,7 @@ function BuildingConstraint:check(do_once)
     end
 
     -- early return
-    if self.lock[1] ~= 0 then return 0, nil end
+    if self.lock[1] ~= 0 then return nil, nil end -- le HOLD IT signal
 
     local heap = {}
     for index, structure in ipairs(self.structures) do
