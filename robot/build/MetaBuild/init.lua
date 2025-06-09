@@ -141,6 +141,50 @@ function Module:rotateAndTranslatePrimitive(quad_num, logical_chunk_height)
     return true
 end
 
+-- no need to rotate since they are already pre-rotated from before
+function Module:translateSpecial(quad_num, logical_chunk_height)
+    local special_table = self.special_blocks
+
+    local function case_one(special)
+        special[2] = special[2] + 8 -- x
+        special[3] = special[3] + 1 -- z
+    end
+    local function case_two(special)
+        special[2] = special[2] + 1 -- x
+        special[3] = special[3] + 1 -- z
+    end
+    local function case_three(special)
+        special[2] = special[2] + 1 -- x
+        special[3] = special[3] + 8 -- z
+    end
+    local function case_four(special)
+        special[2] = special[2] + 8 -- x
+        special[3] = special[3] + 8 -- z
+    end
+
+    local case_function = nil
+    if quad_num == 1 then
+        case_function = case_one
+    elseif quad_num == 2 then
+        case_function = case_two
+    elseif quad_num == 3 then
+        case_function = case_three
+    elseif quad_num == 4 then
+        case_function = case_four
+    else
+        print(comms.robot_send("error", "MetaBuild rotateSpecial impossible quad_num: " .. quad_num))
+        return false
+    end
+
+
+    for _, special in ipairs(special_table) do
+        special[4] = special[4] + logical_chunk_height -- adds height to le thing
+        case_function(special)
+    end
+
+    return true
+end
+
 --[[function Module:translatePrimitive(quad_num)
 
 end--]]
@@ -160,6 +204,7 @@ function Module:setupBuild()
     if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
         self.s_interface.build_stack.logical_y = self.primitive.height
     end
+    self.special_blocks = self.s_interface:getSpecialBlocks()
 
     if self:checkHumanMap(base_table, self.primitive.name) ~= 0 then -- sanity check
         return false
@@ -244,7 +289,6 @@ function Module:finalizeBuild(doors)
         self.post_build_state[index] = func(self)
     end
 
-    self.special_blocks = self.s_interface:getSpecialBlocks()
     self.s_interface = nil -- :)
     print(comms.robot_send("debug", "finalizedBuild"))
 end

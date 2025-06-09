@@ -72,7 +72,7 @@ local function special_message_interpretation(message)
     elseif command == "exit" then
         do_exit = true
     else -- pass along to co-routine
-        watch_dog = 0
+        -- watch_dog = 0
         return message
     end
     return nil

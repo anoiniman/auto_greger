@@ -57,14 +57,22 @@ end
 
 function module.mirror_z(base_table, segments)
     -- Reverse the base
-    for _, base in pairs(base_table) do
+    local ref_to_default = nil
+    for key, base in pairs(base_table) do
+        if base == ref_to_default then goto continue end -- in order not to reverse the def twice
+        -- maybe this can be expanded into an "already seen" table in order to not double reverse arbitrarily
+
         local jindex = 1
         for index = #base, 1, -1 do
             local temp = base[jindex]
             base[jindex] = base[index]
             base[index] = temp
             jindex = jindex + 1
+            if index == 4 then break end -- this was the problem, we were reversing and then unreversing
         end
+        if key == "def" then ref_to_default = base end
+
+        ::continue::
     end
 
     -- Early Return

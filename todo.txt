@@ -143,11 +143,5 @@ design iteration make sure you provide such a fix, many are possible, including 
 anyway, which might be intelligent, and provide logistics only when these chests are past a certain limit, food
 for thought
 
-buildings are not flipping in the z axis, fix that plz
-we prob should to flip the coordinates of special symbols as well :P forgor (this can be easily fixed by assembly the
-special table after during the do_build fase rather than during the setup fase, but that would mess with our
-"pretend" functions
+<ULTRA IMPORTANT> -1 priority commands are not getting prioritized correctly <ULTRA IMPORTANT> (maybe)
 
-<ULTRA IMPORTANT> -1 priority commands are not getting prioritized correctly <ULTRA IMPORTANT>
-
-the only explanation for our recurse fails is that the dep table is not nil, but still an empty table
