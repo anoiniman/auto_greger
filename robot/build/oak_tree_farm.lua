@@ -156,7 +156,7 @@ Module.hooks = {
             -- check for flint axe?
 
             return "all_good"
-        elseif flag ~=  "raw_usage" or flag ~= "no_store" then
+        elseif flag ~=  "raw_usage" and flag ~= "no_store" then
             error(comms.robot_send("fatal", "oak_farm -- todo (3)"))
         end
         -- small debug thing for me :) to do le testing

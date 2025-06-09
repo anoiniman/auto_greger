@@ -127,8 +127,12 @@ function MetaRecipe:isSatisfied(needed_quantity)
 
                 print(comms.robot_send("debug", "depth_recurse in MetaRecipe search building_thing"))
                 return "depth", found_dep
-            end
-        end
+           else
+                error(comms.robot_send("error", "bad result in building_thing search"))
+           end
+
+        end -- forloop end
+
         return "breath" -- At last, least priority, we look into the other branches if possible
                         -- AKA: This is blocked right now, please do down another sister branch
     else

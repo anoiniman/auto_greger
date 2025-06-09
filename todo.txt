@@ -143,5 +143,10 @@ design iteration make sure you provide such a fix, many are possible, including 
 anyway, which might be intelligent, and provide logistics only when these chests are past a certain limit, food
 for thought
 
-<ULTRA IMPORTANT> -1 priority commands are not getting prioritized correctly <ULTRA IMPORTANT> (maybe)
-
+wierd thing -> when we pretend built something and the pretend build failed nontheless the reasoning module
+thought that thing was built, if I remember correctly it failed with err "4"
+The thing that failed to pretend build was the "oak_tree_farm"... I might have gotten it, since the "correct"
+build order as defined by the dep tree is farm -> coke_quad -> use_them, enforced by the goal hierarchy
+that forces the robot to first build the farm before building the coke quad
+--
+Since with this pretend failure we were left with a built coke_quad without a farm we crashed
