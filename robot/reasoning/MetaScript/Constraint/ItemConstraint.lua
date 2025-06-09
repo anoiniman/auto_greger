@@ -41,7 +41,8 @@ function ItemConstraint:check(do_once) -- so this was easy?
 
         self.lock[1] = 0
     end
-    if self.lock[1] ~= 0 then return 0, nil end
+    if self.lock[1] == 1 or self.lock[1] == 3 then return nil, nil end -- Hold it
+    if self.lock[1] == 2 then return 0, nil end -- Go On
 
     -- removed the how_many_internal thing, it is useful to dictate if we have to pick something up, but that
     -- is not the responsability of this code
