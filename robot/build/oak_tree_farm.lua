@@ -203,7 +203,7 @@ Module.hooks = {
         -- IMPORTANT (TODO) CHECK IF APPLES ARE SUCKED SIMULTANEOSLY (we'll need to succcc several (2) slots at once)
         inv.maybe_something_added_to_inv()
         -- move in the z axis to not collide with the old trees
-        nav.debug_move("north", 1)
+        nav.debug_move("north", 2) -- hopefully doesn't make us change chunk, and if it does it handles it gracefully
 
         return 1
     end,

@@ -159,4 +159,6 @@ de prjcuora qu dmeosjra mutiops dtempi (nvm, its the os.sleep(6) you have)
 under the light of the discovery of the stupod inverted return in dabegu move, we can now try the complex
 road_build algorithm again and see if it good
 
+I don't know if its supposed to store on the '?' but it isn't doing it
+
 <IMPORTANT> in the translation of special symbols we need to add the primitive's offset as-well <IMPORTANT>
