@@ -150,15 +150,12 @@ build order as defined by the dep tree is farm -> coke_quad -> use_them, enforce
 that forces the robot to first build the farm before building the coke quad
 --
 Since with this pretend failure we were left with a built coke_quad without a farm we crashed
-não dá reutnr aop yuta do main eval cylce pir iso wait n fuconma«_
-
-quandoi elhe nao encontrea a puta da spanmg fical ala parado deve de serp pirqcusa do muecanuiom
-de prjcuora qu dmeosjra mutiops dtempi (nvm, its the os.sleep(6) you have)
 é preciso fazer a puta do inventário virtaukal (maybe we can avoid it with some stupidity?)
 
 under the light of the discovery of the stupod inverted return in dabegu move, we can now try the complex
 road_build algorithm again and see if it good
 
-I don't know if its supposed to store on the '?' but it isn't doing it
+Allow recipe dependencies to be more lose, for example: any:log, rather than just Oak Wood, but maybe not too important idk
+having OR-type dependencies is also good, this OR that
 
 <IMPORTANT> in the translation of special symbols we need to add the primitive's offset as-well <IMPORTANT>

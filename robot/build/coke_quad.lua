@@ -114,8 +114,8 @@ Module.hooks = { -- TODO this
             local input_storage = storage_table[1]
             local how_many_log = input_storage.ledger:tryDetermineHowMany("log", nil, "expand_bucket")
             if how_many_log < quantity_goal then
-                comms.robot_send("debug", "no_resources coke_quad: how many log is:" .. how_many_log)
-                comms.robot_send("debug", "no_resources coke_quad: needed is:" .. quantity_goal)
+                --comms.robot_send("debug", "no_resources coke_quad: how many log is:" .. how_many_log)
+                --comms.robot_send("debug", "no_resources coke_quad: needed is:" .. quantity_goal)
                 return "no_resources"
             end -- else
 

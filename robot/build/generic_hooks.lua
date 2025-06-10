@@ -169,7 +169,12 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     elseif state.fsm == 4 then
         if not nav.is_setup_navigate_rel() then
             local target_coords, _ = count_occurence_of_symbol('?', 1, parent.special_blocks)
-            if target_coords == nil then error(comms.robot_send("fatal", "There is no '?' symbol, " .. name)) end
+            if target_coords == nil then
+                 -- error(comms.robot_send("fatal", "There is no '?' symbol, " .. name))
+                 -- its actually ok for there not to be a '?', its verymuch optional
+                 state.fsm = 5
+                 return 1
+            end
             nav.setup_navigate_rel(target_coords)
         end
 

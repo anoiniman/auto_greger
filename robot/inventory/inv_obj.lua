@@ -528,9 +528,9 @@ function module.suck_all(external_ledger) -- runs no checks what-so-ever (assume
     end
 end
 
--- Blud you're forgetting the update the ledger :P (TODO) [in all of these functions]
+-- add the capacity of not dumping certain things, I don't, might not make sense
 function module.dump_all_possible(external_ledger) -- respect "special slots" (aka, don't dump them tehe)
-    for index = 1, used_up_capacity, 1 do
+    for index = 1, inventory_size, 1 do
         if in_array(index, tool_belt_slots) then -- dumbest way possible
             goto continue
         end -- else
@@ -578,8 +578,9 @@ end
 function module.dump_all_named(name, lable, id_type, external_ledger)
     local eval_func = return_eval_func(id_type)
 
-    for index = 1, used_up_capacity, 1 do
+    for index = 1, inventory_size, 1 do
         local what_in_slot = inventory.getStackInInternalSlot(index)
+        if what_in_slot == nil then goto continue end
 
         if  in_array(index, tool_belt_slots) -- dumbest way possible
             or not eval_func(what_in_slot, name, lable)

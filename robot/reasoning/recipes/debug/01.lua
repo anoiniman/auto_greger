@@ -10,7 +10,7 @@ local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 -- "raw_usage", "no_store" are possible modes of operation
 
 local output = {lable = "Oak Wood", name = "minecraft:log"}
-local tree_build = MetaRecipe:newBuildingUser("Oak Wood", "oak_tree_farm", "no_store", nil, nil) -- no dep for testing
+local tree_build = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "no_store", nil, nil) -- no dep for testing
 
 local c_tree_build = MetaDependency:new(tree_build, 1) -- aka, it's 1 to 1
 local output = {lable = "Charcoal", name = "minecraft:coal"}
