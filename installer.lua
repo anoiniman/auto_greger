@@ -89,6 +89,8 @@ local function robot_eval()
     download("/robot/eval/navigate.lua", "self")
     download("/robot/eval/interactive.lua", "self")
     download("/robot/eval/tasks.lua", "self")
+
+    download("/robot/eval/AutoBuildMetaInfo.lua", "self")
 end
 
 local function robot_navigation()
@@ -225,7 +227,10 @@ local function robot_complex_algorithms()
 
     download("/robot/complex_algorithms/nav_build.lua", "self")
     download("/robot/complex_algorithms/road_build.lua", "self")
+
     download("/robot/complex_algorithms/quarry.lua", "self")
+    download("/robot/complex_algorithms/fill_rect.lua", "self")
+    download("/robot/complex_algorithms/foundation_fill.lua", "self")
 end
 
 

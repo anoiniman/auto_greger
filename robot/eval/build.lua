@@ -54,6 +54,8 @@ function module.setup_build(arguments)
 end
 
 function module.do_build(arguments)
+    error(comms.robot_send("fatal", "No longer supported to do manual builds"))
+
     local result, what_chunk, what_quad = common_checks(arguments)
     if result == false then return nil end
 
@@ -61,12 +63,9 @@ function module.do_build(arguments)
     local result, status, coords, block_name = map_obj.do_build(what_chunk, what_quad)
     if result then
         if status == "continue" then
-            error("todo - this is still not supported")
-            --error("todo - basic inventory management, aka, check if we have such a block")
-            --return {80, eval., "and_build", coords, block_name}
+            --
         elseif status == "done" then
-            -- TODO: de-allocate down the unneeded build-files
-            return nil
+            --return nil
         end
     else
         print(comms.robot_send("error", "do_build -- failed somewhere"))
@@ -74,21 +73,14 @@ function module.do_build(arguments)
     end
 end
 
+
+
 function module.start_auto_build(arguments)
-    -- local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, prio}
-    -- prio is not passed into function :) (on purpose)
-    --local serial = serialize.serialize(arguments, true)
-    --print(comms.robot_send("debug", "start auto build arguments: " .. serial))
-    return map_obj.start_auto_build(
-        arguments[1],
-        arguments[2],
-        arguments[3],
-        arguments[4],
-        arguments[5],
-        arguments[6],
-        arguments[7],
-        arguments
-    )
+    if arguments.door_move_done == nil then
+        error(comms.robot_send("fatal", "start_auto_build: this is not the right struct!"))
+    end
+
+    return map_obj.start_auto_build(arguments)
 end
 
 function module.use_build(arguments)

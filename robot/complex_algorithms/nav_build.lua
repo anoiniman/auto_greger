@@ -32,15 +32,12 @@ local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     return false
 end
 
--- THESE VARIABLES ARE DANGEROUS AND STUPID AND I DON'T CARE
-local DOOR_MOVE_DONE = false
-local BRIDGE_MODE = false
-
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
 function module.nav_and_build(instructions, post_run)
     local rel_coords, what_chunk, door_info, block_info = instructions:nav_and_build_unpack()
+    local ab_meta_info = instructions.ab_meta_info_ref
 
     -- I know this shit should be done in place, I don't have the time to code good for now
     -- post_run is a command to be run after this one is finished
@@ -63,7 +60,7 @@ function module.nav_and_build(instructions, post_run)
         error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?"))
     end
     -------- DO MOVE DOOR ----------
-    if not DOOR_MOVE_DONE and door_info ~= nil and #door_info ~= 0 then
+    if not ab_meta_info.door_move_done and door_info ~= nil and #door_info ~= 0 then
         if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
         local result, err = nav.door_move()
 
@@ -72,7 +69,7 @@ function module.nav_and_build(instructions, post_run)
             if err ~= "swong" then error(comms.robot_send("fatal", "nav_build: this is unexpected!")) end
             return self_return
         elseif result == -1 then
-            DOOR_MOVE_DONE = true
+            ab_meta_info.door_move_done = true
             --instructions:delete("door_info") -- necessary for code to advance to rel_move section
         elseif result == 0 then return self_return
         else error(comms.robot_send("fatal", "nav_build: unexpected2!")) end
@@ -91,7 +88,7 @@ function module.nav_and_build(instructions, post_run)
         nav.setup_navigate_rel(rel_coords)
     end
     local extra_sauce = nil
-    if BRIDGE_MODE then
+    if ab_meta_info.bridge_mode then
         extra_sauce = {"auto_bridge"}
     end
 
@@ -133,7 +130,7 @@ function module.nav_and_build(instructions, post_run)
         else
             if err == "impossible" then
                 local result = inv.place_block("down", "any:building_block", "name")
-                BRIDGE_MODE = true
+                ab_meta_info.bridge_mode = true
                 if not result then
                     error(comms.robot_send("fatal", "Wasn't able to place down bridge block in nav_build"))
                 end

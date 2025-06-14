@@ -159,3 +159,5 @@ Allow recipe dependencies to be more lose, for example: any:log, rather than jus
 having OR-type dependencies is also good, this OR that
 
 <IMPORTANT> in the translation of special symbols we need to add the primitive's offset as-well <IMPORTANT>
+
+For the gathering01 scripts, maybe it is more energy efficient to mine everyblock and place them back if they are not wanted rather than scanning every block, just some food for thought

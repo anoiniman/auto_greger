@@ -169,7 +169,6 @@ local function surface(parent, direction, nav_obj, extra_sauce)
     return result, err
 end
 
-local empty_table = {}
 local entity_watch_dog = 0
 local climb_watch_dog = 0
 
@@ -196,19 +195,19 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
             inv.equip_tool("axe", 0) -- maybe unneeded?
             robot.swing() -- will succeed
             inv.maybe_something_added_to_inv()
-            module.free(parent, direction, nav_obj, empty_table) -- must succeed
+            module.free(parent, direction, nav_obj, EMPTY_TABLE) -- must succeed
 
             -- 1
             robot.swingDown()
             inv.maybe_something_added_to_inv()
-            local result, err = module.free(parent, "down", nav_obj, empty_table)
+            local result, err = module.free(parent, "down", nav_obj, EMPTY_TABLE)
             if not result then goto get_out end
 
 
             -- 2
             robot.swingDown()
             inv.maybe_something_added_to_inv()
-            local result, err = module.free(parent, "down", nav_obj, empty_table)
+            local result, err = module.free(parent, "down", nav_obj, EMPTY_TABLE)
             if not result then goto get_out end
 
         else -- maybe one day check if mountain=

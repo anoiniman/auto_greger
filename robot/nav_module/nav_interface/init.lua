@@ -178,11 +178,11 @@ function inward_facing.base_move(direction, nav_obj) -- return result and error 
     return result, err
 end
 
-local empty_table = {}
+-- EMPTY_TABLE = {}
 -- TODO -> better cave/hole detection so we don't lose ourselves underground
 -- Returning true means move sucesseful
 function inward_facing.real_move(strat_name, direction, nav_obj, extra_sauce)
-    if extra_sauce == nil then extra_sauce = empty_table end -- nice hack!
+    if extra_sauce == nil then extra_sauce = EMPTY_TABLE end -- nice hack!
 
     if nav_obj == nil then
         print(comms.robot_send("error", "No nav obj provided!"))

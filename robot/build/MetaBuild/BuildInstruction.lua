@@ -9,7 +9,9 @@ local Module = {
     what_chunk = nil, -- we are reliant on consumers pinky promissing not to mutate this ref :)
     door_info = nil,
     block_info = {lable = nil, name = nil},
-    extra_sauce = nil
+    extra_sauce = nil,
+
+    ab_meta_info_ref = nil,
 }
 
 -- local function nav_and_build(rel_coords, what_chunk, door_info, block_name, post_run)

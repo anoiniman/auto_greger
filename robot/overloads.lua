@@ -1,4 +1,6 @@
--- luacheck: globals OLD_PRINT DO_DEBUG_PRINT
+-- luacheck: globals OLD_PRINT DO_DEBUG_PRINT EMPTY_TABLE
+EMPTY_TABLE = {}
+
 DO_DEBUG_PRINT = false
 OLD_PRINT = print
 function print (...) -- luacheck: ignore
