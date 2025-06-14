@@ -8,6 +8,8 @@ local map_obj = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local MetaBuild = require("build.MetaBuild")
 
+local ABMetaInfo = require("build.AutoBuildMetaInfo")
+
 
 -- chunk_x_offset and chunk_z_offset btw
 local StructureDeclaration = {name = nil, x_offset = 0, z_offset = 0, quadrant = -1}
@@ -145,9 +147,10 @@ function BuildingConstraint:doBuild(name, priority, to_build)
     -- lock will not be released unless building fails in a specific manner, but it's still worth
     -- for it to be around, because, hey, that might happen, and we might want to unluck the
     -- build and "start over", aka, tell the system it is ok to re-try
-    local arguments = {what_chunk, to_build.quadrant, name, step, self.lock, id, priority}
+    local ab_meta_info = ABMetaInfo:new(what_chunk, to_build.quadrant, name, step, self.lock, id, priority)
+
     -- TODO define prio dynamically somehow
-    return {priority, command, table.unpack(arguments)} -- the common format, you know it welll
+    return {priority, command, ab_meta_info} -- the common format, you know it welll
 end
 
 return {StructureDeclaration, BuildingConstraint}
