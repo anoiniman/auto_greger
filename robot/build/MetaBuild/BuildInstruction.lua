@@ -5,11 +5,14 @@ local comms = require("comms")
 
 local Module = {
     what_base_type = nil,
+
     rel_coords = nil,
     what_chunk = nil, -- we are reliant on consumers pinky promissing not to mutate this ref :)
     door_info = nil,
     block_info = {lable = nil, name = nil},
+
     extra_sauce = nil,
+    foundation_filled = false, -- works because the filling of the foundation is in a per-block basis
 
     ab_meta_info_ref = nil,
 }

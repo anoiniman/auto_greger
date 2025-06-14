@@ -111,6 +111,16 @@ function module.nav_and_build(instructions, post_run)
             swing_func = inv.blind_swing_down
         end
 
+        -------- Fill Foundations ----------
+        if not instructions.foundation_filled and instructions:includes("do_fill_foundation") then
+            if not foundation_fill.is_setup then foundation_fill.setup(rel_coords[3]) end
+            local result = foundation_fill.fill()
+            instructions.foundation_filled = result -- works because result true == done
+
+            return self_return
+        end
+        ---------------------------------------
+
         local place_side = instructions:getArg("place")
         if not inv.place_block(place_dir, block_info, "optional_name", place_side) then
             -- Real error handling will come some other time
