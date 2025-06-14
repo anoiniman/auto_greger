@@ -8,6 +8,8 @@ local inv = require("inventory.inv_obj")
 local nav = require("nav_module.nav_obj")
 local rel = require("nav_module.rel_move")
 
+local foundation_fill = require("complex_algorithms.foundation_fill")
+
 -- For now I'll be doing nothing with this, but maybe one day who knows
 -- the algorithm doesn't take into account the way we always place blocks from the top
 local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
