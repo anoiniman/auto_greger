@@ -256,8 +256,29 @@ function Module:getSmallestSlot(lable, name) -- returns a slot num
     end
 end
 
+-- 1 stack at the time obvs
 function Module:removeFromSlot(what_slot, how_much)
     local offset = (what_slot * 3) - 2
+
+    if type(self.inv_table[offset]) == "table" then
+        local element = self.inv_table[offset]
+        element[3] = element[3] - how_much
+
+        if element[3] <= 0 then
+            for inner_index, real_element ipairs(self.collision_table) do
+                if real_element == element then
+                    table.remove(self.collision_table, inner_index)
+                    break
+                end
+            end
+
+            self.inv_table[offset] = 0
+            self.inv_table[offset + 1] = 0
+            self.inv_table[offset + 2] = 0
+        end
+    end
+
+
     self.inv_table[offset + 2] = self.inv_table[offset + 2] - how_much
 
     if self.inv_table[offset + 2] <= 0 then
