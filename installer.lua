@@ -59,6 +59,8 @@ local function shared()
     download("/shared/comms.lua", "/usr/lib/comms.lua")
     download("/shared/deep_copy.lua", "/usr/lib/deep_copy.lua")
     download("/shared/prio_insert.lua", "/usr/lib/prio_insert.lua")
+    download("/shared/search_i_table.lua", "/usr/lib/search_i_table.lua")
+    download("/shared/simple_hash.lua", "/usr/lib/simple_hash.lua")
 end
 
 local function robot_top_level()
@@ -215,6 +217,7 @@ local function robot_inventory()
     download("/robot/inventory/item_buckets.lua", "self")
     download("/robot/inventory/special_cases.lua", "self")
 
+    download("/robot/inventory/VirtualInventory.lua", "self")
     download("/robot/inventory/MetaExternalInventory.lua", "self")
     download("/robot/inventory/MetaLedger.lua", "self")
     download("/robot/inventory/SpecialDefinition.lua", "self")
