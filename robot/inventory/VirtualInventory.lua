@@ -11,7 +11,7 @@ local inventory = component.getPrimary("inventory_controller")
 
 local Module = {}
 
-Module.inv_size = 32
+Module.inv_size = -1
 Module.table_size = -1
 
 -- hopefully this doesn't consume to much RAM, this should be used only for the internal inventory imo
@@ -56,7 +56,7 @@ function Module:checkEntry(lable, name, l_hash, n_hash, at_index)
     if type(int_lhash) == "number" then
         return int_lhash == l_hash and (n_hash == nil or n_hash == int_nhash), false
     end -- else look in the collision table
-    
+
     return collision_check(lable, name)
 end
 
@@ -179,8 +179,8 @@ function Module:addToEmpty(lable, l_hash, name, n_hash, to_be_added, forbidden_s
     return to_be_added
 end
 
+-- DRY is for bozos
 function Module:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
-    -- DRY is for bozos
     for index = 1, self.table_size, 3 do
         if search_table.one(forbidden_slots, slot) then goto continue end
         local inner_table = self.inv_table[index]
@@ -193,7 +193,7 @@ function Module:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
 
         local cur_add = calc_add_to_stack(current, to_be_added)
         inner_table[4] = current + cur_add
-        if self.inv_table > 64 then error(comms.robot_send("fatal", "assert failed")) end
+        if self.inv_table[index + 2] > 64 then error(comms.robot_send("fatal", "assert failed")) end
 
         to_be_added = to_be_added - cur_add
 
@@ -204,21 +204,18 @@ function Module:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
 
     local remainder = self:cAddToEmpty(l_hash, n_hash, to_be_added, forbidden_slots)
     if remainder > 0 then
-        print(comms.robot_send("error", "remainder > 0, error in updating virtual inventory"))
+        print(comms.robot_send("error", "remainder > 0, error in updating virtual inventory, inventory is prob full"))
     end
+    return remainder
 end
 
--- expected quantity is the "full_value" returned from the ledger database, if the computed value does not
--- match (i.e -> is bigger) than the expected one then a collision is occuring
---
--- WARNING expected_quantity is the one before adition (obviously, but still)
+
 -- if name is nil then not to worry, it simply won't be checked, so we only have to pass name to duplicates
 function Module:addMaybeNew(lable, name, to_be_added, forbidden_slots)
     if lable == nil then error(comms.robot_send("fatal", "lable cannot be nil!")) end
     local l_hash, n_hash = self:coalesce(lable, name)
     if l_hash == nil then
-        self:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
-        return
+        return self:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
     end
 
     -- do valid stack growth according to the rules of opencomputers (reduce left-first)
@@ -233,7 +230,7 @@ function Module:addMaybeNew(lable, name, to_be_added, forbidden_slots)
 
         local cur_add = calc_add_to_stack(current, to_be_added)
         self.inv_table[index + 2] = current + cur_add
-        if self.inv_table > 64 then error(comms.robot_send("fatal", "assert failed")) end
+        if self.inv_table[index + 2] > 64 then error(comms.robot_send("fatal", "assert failed")) end
 
         to_be_added = to_be_added - cur_add
 
@@ -245,19 +242,67 @@ function Module:addMaybeNew(lable, name, to_be_added, forbidden_slots)
     -- something might have remained, simply add to empty slot
     local remainder = self:addToEmpty(l_hash, n_hash, to_be_added, forbidden_slots)
     if remainder > 0 then
-        print(comms.robot_send("error", "remainder > 0, error in updating virtual inventory"))
+        print(comms.robot_send("error", "remainder > 0, error in updating virtual inventory, inventory is prob full"))
     end
+    return remainder
 end
 
--- TODO
-function Module:getSmallestSlot(lable, name) -- returns a slot num
-    for index = 1, self.table_size, 3 do
+function Module:getAllSlots(lable, name)
+    -- No need to coalesce since this won't modify the data, just retrieve
+    local l_hash = simple_hash(lable)
+    local n_hash = simple_hash(name)
 
+    local slot_table = {}
+    for index = 1, self.table_size, 3 do
+        if type(self.inv_table[index]) == "table" then
+            local inner_table = self.inv_table[index]
+            if lable ~= inner_table[1] or (name ~= nil and name ~= inner_table[2]) then goto continue end
+
+            local new_entry = {inner_table[3], inner_table[4]} -- slot, quantity
+            table.insert(slot_table, new_entry)
+            goto continue
+        end
+
+        if l_hash ~= self.inv_table[index] or (n_hash ~= nil and n_hash ~= self.inv_table[index + 1]) then
+            goto continue
+        end
+
+        local slot = (index + 2) / 3
+        local new_entry = {slot, self.inv_table[index + 2]} -- slot, quantity
+        table.insert(slot_table, new_entry)
+
+        ::continue::
     end
+    if #slot_table == 0 then return nil end
+    return slot_table
+end
+
+function Module:getSmallestSlot(lable, name) -- returns a slot num
+    local slot_table = self:getAllSlots(lable, name)
+    if slot_table == nil then return nil end
+
+    local smallest_slot = -1
+    local smallest_stack = 65
+    for _, inner_table in ipairs(slot_table) do
+        local slot = inner_table[1]
+        local stack_size = inner_table[2]
+        if slot <= 0 then error(comms.robot_send("fatal", "slot assert failed")) end
+        if type(stack_size) ~= "number" or stack_size <= 0 or stack_size > 64 then
+            error(comms.robot_send("fatal", "stack_size assert failed"))
+        end
+
+        if smallest_stack > stack_size then
+            smallest_slot = slot
+            smallest_stack = stack_size
+        end
+    end
+
+    if smallest_slot == -1 then return nil end
+    return smallest_slot
 end
 
 -- 1 stack at the time obvs
-function Module:removeFromSlot(what_slot, how_much)
+function Module:removeFromSlot(what_slot, how_much) -- returns how much was actually removed
     local offset = (what_slot * 3) - 2
 
     if type(self.inv_table[offset]) == "table" then
@@ -278,13 +323,18 @@ function Module:removeFromSlot(what_slot, how_much)
         end
     end
 
-
     self.inv_table[offset + 2] = self.inv_table[offset + 2] - how_much
+    local excess = -self.inv_table[2]
+    local real_removed = how_much - excess
 
     if self.inv_table[offset + 2] <= 0 then
         self.inv_table[offset] = 0
         self.inv_table[offset + 1] = 0
+        self.inv_table[offset + 2] = 0
     end
+
+    if excess < 0 then return real_removed end
+    return how_much
 end
 
 return Module
