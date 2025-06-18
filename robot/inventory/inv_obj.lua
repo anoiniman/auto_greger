@@ -12,7 +12,8 @@ local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 
 local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
-local MetaLedger = require("inventory.MetaLedger")
+--local MetaLedger = require("inventory.MetaLedger")
+local VirtualInventory = require("inventory.VirtualInventory")
 local SpecialDefinition = require("inventory.SpecialDefinition")
 --local external_iobj = require("inventory.external_inv_obj")
 
@@ -33,7 +34,7 @@ local use_self_craft = true
 
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
-local internal_ledger = MetaLedger:new()
+local internal_ledger = VirtualInventory:new(inventory_size)
 module.internal_ledger = internal_ledger -- ref?
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)

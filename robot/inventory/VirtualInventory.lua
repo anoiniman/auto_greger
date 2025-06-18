@@ -1,13 +1,18 @@
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
 local component = require("component")
+local sides_api = require("sides")
 
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local search_table = require("search_i_table")
 
 local simple_hash = require("simple_hash")
+local bucket_funcs, _ = table.unpack(require("inventory.item_buckets"))
 
 local inventory = component.getPrimary("inventory_controller")
+
+-- luacheck: globals HASH_FOR_GENERIC
+HASH_FOR_GENERIC = simple_hash("generic")
 
 local Module = {}
 
@@ -25,8 +30,9 @@ Module.inv_table = {}
 
 -- the collision table stores full information for things that have collided {lable, name, slot, quantity}
 Module.collision_table = {}
+Module.is_internal = false
 
-function Module:init_table() -- eager initialization
+function Module:initTable() -- eager initialization
     for index = 1, self.table_size, 3 do
         self.inv_table[index] = 0
         self.inv_table[index + 1] = 0
@@ -34,18 +40,21 @@ function Module:init_table() -- eager initialization
     end
 end
 
-function Module:new(inv_size)
+-- internal, aka is this the robots own inventory?
+function Module:new(inv_size, internal)
     local new = deep_copy(self, pairs)
     new.inv_size = inv_size
     new.table_size = inv_size * 3
+    new.is_internal = internal or false
 
-    new:init_table()
+    new:initTable()
     return new
 end
 
-function Module:CollisionCheck(lable, name)
-    for _, entry in ipairs(self:collision_table) do
-        return entry.lable == lable and (name == nil or name = entry.name), true
+function Module:collisionCheck(lable, name)
+    for _, entry in ipairs(self.collision_table) do
+        local bool = entry.lable == lable and (name == "generic" or name == entry.name)
+        if bool then return true, true end
     end
     return false, true
 end
@@ -54,10 +63,10 @@ function Module:checkEntry(lable, name, l_hash, n_hash, at_index)
     local int_lhash = self.inv_table[at_index]
     local int_nhash = self.inv_table[at_index + 1]
     if type(int_lhash) == "number" then
-        return int_lhash == l_hash and (n_hash == nil or n_hash == int_nhash), false
+        return int_lhash == l_hash and (n_hash == HASH_FOR_GENERIC or n_hash == int_nhash), false
     end -- else look in the collision table
 
-    return collision_check(lable, name)
+    return self:collisionCheck(lable, name)
 end
 
 -- colisions will be rare, so if there is a colision, we'll simply create a table entry with the
@@ -70,7 +79,6 @@ end
 function Module:coalesce(lable, name)
     local l_hash = simple_hash(lable)
     local n_hash = simple_hash(name)
-    if n_hash == nil then n_hash = 0 end
 
     local collision_info = {}
     local collision_index = {}
@@ -78,10 +86,15 @@ function Module:coalesce(lable, name)
         local result, _ = self:checkEntry(lable, name, l_hash, n_hash, index)
         if result then
             local slot = (index * 3) - 2
-            local item_info = inventory.getStackInInternalSlot(slot)
+            local item_info
+            if self.is_internal then
+                item_info = inventory.getStackInInternalSlot(slot)
+            else
+                item_info = inventory.getStackInSlot(sides_api.front, slot)
+            end
 
             -- this is a (full) collision [we found something different from us in a slot with the same hashes than us]
-            if (name == nil or (name ~= nil and item_info.name ~= name)) and item_info.label ~= lable then
+            if (name == "generic" or (name ~= nil and item_info.name ~= name)) and item_info.label ~= lable then
                 table.insert(collision_info, item_info)
                 table.insert(collision_index, index)
             end
@@ -121,8 +134,8 @@ end
 function Module:cAddToEmpty(lable, name, to_be_added, forbidden_slots)
     local found_entries = {}
     for _, element in ipairs(self.collision_table) do
-        if element[1] == lable and (name == nil or element[2] == name) then
-            table.insert(found_entry, element)
+        if element[1] == lable and (name == "generic" or element[2] == name) then
+            table.insert(found_entries, element)
             break
         end
     end
@@ -152,27 +165,27 @@ function Module:cAddToEmpty(lable, name, to_be_added, forbidden_slots)
         new_table[3] = cur_add
         to_be_added = to_be_added - cur_add
 
-        if true then return end
+        if true then break end
         ::continue::
     end
 
     return to_be_added
 end
 
-function Module:addToEmpty(lable, l_hash, name, n_hash, to_be_added, forbidden_slots)
+function Module:addToEmpty(l_hash, n_hash, to_be_added, forbidden_slots)
     for index = 1, self.table_size, 3 do
         local slot = (index + 2) / 3
         if search_table.one(forbidden_slots, slot) then goto continue end
         if self.inv_table[index + 2] ~= 0 then goto continue end
 
         self.inv_table[index] = l_hash
-        if n_hash ~= nil then self.inv_table[index + 1] = n_hash end
+        if n_hash ~= HASH_FOR_GENERIC then self.inv_table[index + 1] = n_hash end
 
         local cur_add = calc_add_to_stack(self.inv_table[index + 2], to_be_added)
         self.inv_table[index + 2] = cur_add
         to_be_added = to_be_added - cur_add
 
-        if true then return end
+        if true then break end
         ::continue::
     end
 
@@ -180,8 +193,10 @@ function Module:addToEmpty(lable, l_hash, name, n_hash, to_be_added, forbidden_s
 end
 
 -- DRY is for bozos
-function Module:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
+function Module:cAddOrCreate(lable, name, to_be_added, forbidden_slots)
     for index = 1, self.table_size, 3 do
+        local slot = (index + 2) / 3
+
         if search_table.one(forbidden_slots, slot) then goto continue end
         local inner_table = self.inv_table[index]
         if type(inner_table) ~= "table" then goto continue end -- since we are collision we go into a table
@@ -202,7 +217,7 @@ function Module:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
         ::continue::
     end
 
-    local remainder = self:cAddToEmpty(l_hash, n_hash, to_be_added, forbidden_slots)
+    local remainder = self:cAddToEmpty(lable, name, to_be_added, forbidden_slots)
     if remainder > 0 then
         print(comms.robot_send("error", "remainder > 0, error in updating virtual inventory, inventory is prob full"))
     end
@@ -211,11 +226,13 @@ end
 
 
 -- if name is nil then not to worry, it simply won't be checked, so we only have to pass name to duplicates
-function Module:addMaybeNew(lable, name, to_be_added, forbidden_slots)
+function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
+    name = bucket_funcs.identify(name, lable)
+
     if lable == nil then error(comms.robot_send("fatal", "lable cannot be nil!")) end
     local l_hash, n_hash = self:coalesce(lable, name)
     if l_hash == nil then
-        return self:cAddMaybeNew(lable, name, to_be_added, forbidden_slots)
+        return self:cAddOrCreate(lable, name, to_be_added, forbidden_slots)
     end
 
     -- do valid stack growth according to the rules of opencomputers (reduce left-first)
@@ -223,7 +240,7 @@ function Module:addMaybeNew(lable, name, to_be_added, forbidden_slots)
         local slot = (index + 2) / 3
         if search_table.one(forbidden_slots, slot) then goto continue end
         if self.inv_table[index] ~= l_hash then goto continue end
-        if n_hash ~= nil and self.inv_table[index + 1] ~= n_hash then goto continue end
+        if n_hash ~= HASH_FOR_GENERIC and self.inv_table[index + 1] ~= n_hash then goto continue end
 
         local current = self.inv_table[index + 2]
         if current == 64 then goto continue end -- stack is already full
@@ -248,6 +265,8 @@ function Module:addMaybeNew(lable, name, to_be_added, forbidden_slots)
 end
 
 function Module:getAllSlots(lable, name)
+    name = bucket_funcs.identify(name, lable)
+
     -- No need to coalesce since this won't modify the data, just retrieve
     local l_hash = simple_hash(lable)
     local n_hash = simple_hash(name)
@@ -263,7 +282,7 @@ function Module:getAllSlots(lable, name)
             goto continue
         end
 
-        if l_hash ~= self.inv_table[index] or (n_hash ~= nil and n_hash ~= self.inv_table[index + 1]) then
+        if l_hash ~= self.inv_table[index] or (n_hash ~= HASH_FOR_GENERIC and n_hash ~= self.inv_table[index + 1]) then
             goto continue
         end
 
@@ -278,6 +297,8 @@ function Module:getAllSlots(lable, name)
 end
 
 function Module:getSmallestSlot(lable, name) -- returns a slot num
+    name = bucket_funcs.identify(name, lable)
+
     local slot_table = self:getAllSlots(lable, name)
     if slot_table == nil then return nil end
 
@@ -310,7 +331,7 @@ function Module:removeFromSlot(what_slot, how_much) -- returns how much was actu
         element[3] = element[3] - how_much
 
         if element[3] <= 0 then
-            for inner_index, real_element ipairs(self.collision_table) do
+            for inner_index, real_element in ipairs(self.collision_table) do
                 if real_element == element then
                     table.remove(self.collision_table, inner_index)
                     break
