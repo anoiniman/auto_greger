@@ -2,8 +2,8 @@
 local function fnv1a_hash(str)
     if str == nil then return nil end
 
-    local hash_value = 2166136261  -- FNV offset basis
-    local fnv_prime = 16777619     -- FNV prime
+    local hash_value = -3750763034362895579  -- FNV offset basis
+    local fnv_prime = 1099511628211     -- FNV prime
     for i = 1, #str do
         local char = str:sub(i, i)
         hash_value = hash_value ~ string.byte(char) -- XOR with the byte (silly LLM was using bit.xor)
