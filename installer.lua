@@ -1,16 +1,32 @@
 local os = require("os")
 local filesystem = require("filesystem")
---local io = require("io")
+local io = require("io")
 
 local args = {...}
 local counter = 0
 local branch = "master"
 
+
+local function simple_hash(path)
+    local file = io.open(path, "r")
+    local str = file:read("*a")
+    file:close()
+
+    local hash_value = -3750763034362895579  -- FNV offset basis
+    local fnv_prime = 1099511628211     -- FNV prime
+    for i = 1, #str do
+        local char = str:sub(i, i)
+        hash_value = hash_value ~ string.byte(char) -- XOR with the byte (silly LLM was using bit.xor)
+        hash_value = hash_value * fnv_prime         -- Multiply by the prime
+    end
+    return hash_value
+end
+
 local function download(origin, where)
     local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/" .. branch .. origin
 
     local tmp_path = "/tmp/" .. counter .. ".lua"
-    os.execute("wget -f " .. link .. " " .. tmp_path)
+    os.execute("wget -f " .. link .. " " .. tmp_path .. " > /dump.txt")
 
     if where == "self" then
         where = "/home" .. origin
@@ -26,9 +42,15 @@ local function download(origin, where)
         return
     end
 
-    if filesystem.size(where) == filesystem.size(tmp_path) and (args[1] ~= "-f" and args[2] ~= "-f") then
+    local are_equal = false
+    if (args[1] ~= "-f" and args[2] ~= "-f") then
+        local original_checksum = simple_hash(where)
+        local new_checksum = simple_hash(tmp_path)
+        are_equal = (original_checksum == new_checksum and filesystem.size(where) == filesystem.size(tmp_path))
+    end
+
+    if are_equal then
         print("File: \"" .. where .. "\" doesn't need update")
-        --cur_file.close()
         return
     end
     print("e")
