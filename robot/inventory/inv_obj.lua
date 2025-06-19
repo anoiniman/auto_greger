@@ -51,15 +51,15 @@ function module.register_ledger(fat_ledger)
 end
 
 function module.how_many_internal(name, lable)
-    local quantity = internal_ledger:howMany(name, lable)
+    local quantity = internal_ledger:howMany(lable, name)
     return quantity
 end
 
 function module.how_many_total(name, lable)
-    local quantity = internal_ledger:howMany(name, lable)
+    local quantity = internal_ledger:howMany(lable, name)
     for _, fat_ledger in ipairs(external_ledgers) do
         local ledger = fat_ledger.ledger
-        quantity = quantity + ledger:howMany(name, lable)
+        quantity = quantity + ledger:howMany(lable, name)
     end
     return quantity
 end
@@ -542,23 +542,25 @@ end
 
 -- after all this update inventories
 function module.suck_all_ledger(external_ledger)
-    for index = 1, external_ledger.max_size 1 do
-
-    end
-end
-
--- robot.suck() will always try to get the first (from the left (?)) item from the foreign inventory
-function module.suck_all(external_ledger) -- runs no checks what-so-ever (assumes that we're facing the inventory)
     local result = true
     while result do
-        result = module.try_remove_any_from(external_ledger)
+        result = robot.suck()
     end
 
-    if external_inventory.inv_type == "ledger" then -- if it is a ledger we'll need to "regen" our inventory later
-        module.update_inventory()
-    elseif external_inventory.inv_type ~= "virtual_inventory" then
-        error(comms.robot_send("fatal", "This type should not exist"))
-    end
+    external_ledger:forceUpdateAsForeign()
+    module.force_update_vinv()
+end
+
+-- the documentation says "However this will only take the first item available in that inventory"
+-- I assume that first item available != first item SLOT available, otherwise big problem, well we'll see
+-- robot.suck() will always try to get the first (from the left (?)) item from the foreign inventory
+function module.suck_all(external_inventory) -- runs no checks what-so-ever (assumes that we're facing the inventory)
+    local inv_type = external_inventory.inv_type 
+    if inv_type == nil then inv_type = "nil" end
+
+    if inv_type == "ledger" then module.suck_all_ledger(external_inventory)
+    elseif inv_type ~= "virtual_inventory" then module.suck_all_vinventory(external_inventory)
+    else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
 end
 
 -- add the ability not to dump certain things, or don't, might not make sense
@@ -624,12 +626,7 @@ end
 ---}}}
 
 
--- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
--- with things that drop more than one item; in that case uhhhhhhh we need better accounting
--- algorithms that detect if something is in the inventory that was not there previously,
--- I think we can just check back with the ledger but hey || TODO - what is said before
-
--- Hopefully robot.count == 0 works in detecting empty slots, otherwise.... woppps sorry
+-- TODO: slay this dragon!
 function module.maybe_something_added_to_inv() -- important to keep crafting table clear
     if used_up_capacity >= inventory_size - 1 then -- stop 1 early, to not over-fill
         return false
@@ -685,13 +682,11 @@ function module.force_add_in_slot(slot) -- ahr ahr
     -- Separate out into a function that clears the crafting table for us?
 end
 
-function module.force_add_all_to_ledger()
-    for index = 1, inventory_size, 1 do
-        module.force_add_in_slot(index)
-    end
+function module.force_update_vinv()
+    virtual_inventory:forceUpdateInternal(get_forbidden_table())
 end
 
 -- temp thing to get us going
-module.force_add_all_to_ledger()
+module.force_update_vinv()
 
 return module

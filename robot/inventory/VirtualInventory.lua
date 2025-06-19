@@ -1,12 +1,13 @@
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
--- local component = require("component")
+local component = require("component")
+local sides_api = require("sides")
 
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local search_table = require("search_i_table")
 
 local bucket_funcs, _ = table.unpack(require("inventory.item_buckets"))
--- local inventory = component.getPrimary("inventory_controller")
+local inventory = component.getPrimary("inventory_controller")
 
 -- luacheck: globals EMPTY_STRING
 EMPTY_STRING = ""
@@ -169,6 +170,46 @@ function Module:removeFromSlot(what_slot, how_much) -- returns how much was actu
 
     if excess < 0 then return real_removed end
     return how_much
+end
+
+function Module:forceUpdateAsForeign()
+    self:forceUpdateGeneral(false)
+end
+
+function Module:forceUpdateInternal(forbidden_slots)
+    self:forceUpdateGeneral(true, forbidden_slots)
+end
+
+function Module:forceUpdateGeneral(is_internal, forbidden_slots)
+    local temp = Module:new(self.max_size)
+    for slot = 1, self.max_size, 1 do
+        local stack_info
+        if is_internal then stack_info = inventory.getStackInInternalSlot(slot)
+        else stack_info = inventory.getStackInSlot(sides_api.front, slot) end
+
+        if stack_info == nil then goto continue end
+
+        temp:addOrCreate(stack_info.label, stack_info.name, stack_info.size, forbidden_slots)
+        ::continue::
+    end
+
+    -- self.inv_table = nil
+    self.inv_table = temp
+end
+
+local ComparisonDiff = {
+    lable = nil,
+    name = nil,
+    diff = 0
+}
+
+function ComparisonDiff:new(lable, name, diff)
+    local new = deep_copy.copy(self, pairs)
+    new.lable = lable
+    new.name = name
+    new.diff = diff
+
+    return nil
 end
 
 -- it is generally better for the smaller table to be "other" rather than "self"

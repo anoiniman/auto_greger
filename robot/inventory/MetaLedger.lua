@@ -93,7 +93,7 @@ function Module:subtract(lable, name, to_remove)
     elseif self.inv_table[index + 2] < 0 then error(comms.robot_send("fatal", "assert failed")) end
 end
 
-function Module:howMany(name, lable)
+function Module:howMany(lable, name)
     name = bucket_funcs.identify(name, lable)
     local index = self:findIndex(lable, name)
     if index == -1 then return 0 end
@@ -102,7 +102,7 @@ function Module:howMany(name, lable)
 end
 
 -- returns table of lable-quantity pairs (ok for lable to be nil)
-function Module:howManyPermissive(name, lable)
+function Module:howManyPermissive(lable, name)
     name = bucket_funcs.identify(name, lable)
     local indices = self:findIndicesPermissive(lable, name)
     if indices == nil then return 0 end
@@ -114,42 +114,9 @@ function Module:howManyPermissive(name, lable)
     return count
 end
 
-local ComparisonDiff = {
-    lable = nil,
-    name = nil,
-    diff = 0
-}
-
-function ComparisonDiff:new(lable, name, diff)
-    local new = deep_copy.copy(self, pairs)
-    new.lable = lable
-    new.name = name
-    new.diff = diff
-
-    return nil
-end
-
--- it is generally better for the smaller table to be "other" rather than "self"
--- strict matches only
-function Module:compareWithLedger(other)
-    if other == nil then error(comms.robot_send("assert_failed")) end
-
-    local diff_table = {}
-    for index = 1, #other.inv_table, 3 do
-        local o_table = other.inv_table
-
-        local o_lable = o_table[index]
-        local o_name = o_table[index + 1]
-        local other_quantity = o_table[index + 2]
-
-        local own_quantity = self:howMany(o_lable, o_name)
-
-        local diff = own_quantity - other_quantity
-        local diff_obj = ComparisonDiff:new(o_lable, o_name, diff)
-        table.insert(diff_table, diff_obj)
-    end
-
-    return diff_table
+-- luacheck: no unused args
+function Module:forceUpdateInternal()
+    error(comms.robot_send("fatal", "this is not supposed to be called for a ledger, only vinv!"))
 end
 
 return Module

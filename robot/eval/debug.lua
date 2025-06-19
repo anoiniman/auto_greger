@@ -100,7 +100,7 @@ function module.debug(arguments)
             local serial = serialize.serialize(inv.internal_ledger.ledger_proper, 100)
             print(comms.robot_send("info", "Internal Inventory: \n" .. serial))
         elseif arguments[2] == "force" and arguments[3] == "add_all" then
-            inv.force_add_all_to_ledger()
+            inv.force_update_vinv()
         else
             print(comms.robot_send("error", "invalid arguments"))
         end
