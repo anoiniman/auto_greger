@@ -81,7 +81,7 @@ local function shared()
     download("/shared/comms.lua", "/usr/lib/comms.lua")
     download("/shared/deep_copy.lua", "/usr/lib/deep_copy.lua")
     download("/shared/prio_insert.lua", "/usr/lib/prio_insert.lua")
-    download("/shared/search_i_table.lua", "/usr/lib/search_i_table.lua")
+    download("/shared/search_table.lua", "/usr/lib/search_table.lua")
     download("/shared/simple_hash.lua", "/usr/lib/simple_hash.lua")
 end
 

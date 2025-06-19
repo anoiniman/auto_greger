@@ -10,6 +10,7 @@ local text = require("text")
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
+local search_table = require("search_table")
 
 local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
 --local MetaLedger = require("inventory.MetaLedger")
@@ -34,8 +35,9 @@ local use_self_craft = true
 
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
-local internal_ledger = VirtualInventory:new(inventory_size)
-module.internal_ledger = internal_ledger -- ref?
+-- local internal_ledger = VirtualInventory:new(inventory_size)
+local virtual_inventory = VirtualInventory:new(inventory_size)
+module.virtual_inventory = internal_ledger -- ref?
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_ledgers = {}
@@ -177,14 +179,12 @@ end
 ---}}}
 
 --->>-- Local Functions --<<-----{{{
---local tool_belt_slots = {}
-local function in_tool_slot(slot_num)
-    for _, forbidden in ipairs(tool_belt_slots) do
-        if forbidden == slot_num then
-            return true
-        end
-    end
-    return false
+
+local big_table = {tool_belt_slots, crafting_table_slots}
+
+local function get_forbidden_table()
+    if use_self_craft then return big_table end
+    return tool_belt_slots
 end
 
 local function non_craft_slot_iter()
@@ -196,7 +196,7 @@ local function non_craft_slot_iter()
         end
 
         local cur_f = crafting_table_slots[iteration]
-        if (cur_f ~= nil and cur_f ~= -1) or in_tool_slot(iteration) then
+        if (cur_f ~= nil and cur_f ~= -1) or search_table.ione(get_forbidden_table(), iteration) then
             return -1
         end
 
@@ -212,7 +212,7 @@ local function free_slot_iter()
         if iteration > inventory_size then
             return nil
         end
-        if in_tool_slot(iteration) then
+        if search_table.ione(get_forbidden_table(), iteration) then
             return -1
         end
 
@@ -501,7 +501,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
             return false
         end
 
-        local delete_result = internal_ledger:subtract(item_def.name, item_def.label, 1)
+        local delete_result = internal_ledger:subtract(item_def.label, item_def.name, 1)
         if not delete_result then
             print(comms.robot_send("error", "inv_obj.place_block -- we weren't able to subtract from ledger!"))
             return false
@@ -514,88 +514,83 @@ end
 --->>-- External Inventories --<<-------{{{
 --TODO interaction with external inventories and storage inventories
 
-local function in_array(index, array)
-    for _, slot_num in ipairs(array) do
-        if slot_num == index then return false end
+function module.suck_all_vinventory(external_inventory)
+    local inv_table = external_inventory.inv_table
+    for index = 1, #inv_table, 3 do
+        local lable = inv_table[index]
+        local name = inv_table[index + 1]
+        local quantity = inv_table[index + 2]
+
+        local slot = (index + 2) / 3
+        if robot.select(slot) ~= slot then 
+            print(comms.robot_send("error", "An error occuring sucking all vinventory: slot unable to be selected"))
+            goto continue
+        end
+        if not robot.drop() then
+            print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to drop"))
+            goto continue
+        end
+
+        self.virtual_inventory:addOrCreate(lable, name, quantity, get_forbidden_table())
+        external_inventory:removeFromSlot(slot, quantity)
+
+        ::continue::
     end
-    return false
+
+    robot.select(1)
 end
 
+-- after all this update inventories
+function module.suck_all_ledger(external_ledger)
+    for index = 1, external_ledger.max_size 1 do
+
+    end
+end
+
+-- robot.suck() will always try to get the first (from the left (?)) item from the foreign inventory
 function module.suck_all(external_ledger) -- runs no checks what-so-ever (assumes that we're facing the inventory)
     local result = true
     while result do
         result = module.try_remove_any_from(external_ledger)
-        module.maybe_something_added_to_inv()
+    end
+
+    if external_inventory.inv_type == "ledger" then -- if it is a ledger we'll need to "regen" our inventory later
+        module.update_inventory()
+    elseif external_inventory.inv_type ~= "virtual_inventory" then
+        error(comms.robot_send("fatal", "This type should not exist"))
     end
 end
 
--- add the capacity of not dumping certain things, I don't, might not make sense
+-- add the ability not to dump certain things, or don't, might not make sense
 function module.dump_all_possible(external_ledger) -- respect "special slots" (aka, don't dump them tehe)
-    for index = 1, inventory_size, 1 do
-        if in_array(index, tool_belt_slots) then -- dumbest way possible
+    for slot = 1, inventory_size, 1 do
+        if search_table.ione(tool_belt_slots, slot) then -- dumbest way possible
             goto continue
         end -- else
 
-        module.try_add_to(external_ledger, index)
+        robot.select(slot)
+        if not robot.drop() then goto continue end
+        virtual_inventory:removeFromSlot(slot, 64) -- 64 for try to remove entire stack
         ::continue::
     end
     robot.select(1)
     return true
 end
 
--- luacheck: push ignore name
-local function id_by_lable(what_in_slot, name, lable)
-    return what_in_slot.label == lable
-end
--- luacheck: pop
+function module.dump_all_named(lable, name, external_ledger)
+    local matching_slots = virtual_inventory:getAllSlots(lable, name)
+    if matching_slots == nil then return nil end
 
--- luacheck: push ignore lable
-local function id_by_naive_contains(what_in_slot, name, lable)
-    return string.find(what_in_slot.name, name) ~= nil
-end
--- luacheck: pop
+    for _, entry in ipairs(matching_slots) do
+        local slot = entry[1]
+        local quantity = entry[2]
 
-local function return_eval_func(id_type)
-    local eval_func
+        robot.select(slot)
+        if not robot.drop() then goto continue end
+        internal_ledger:subtract(lable, name, quantity)
 
-    if id_type == "lable" then
-        eval_func = id_by_lable
-    elseif id_type == "naive_contains" then
-        eval_func = id_by_naive_contains
-    elseif id_type == "name" then
-        error(comms.robot_send("fatal", "inventory, id_type: \"name\" not implemented"))
-    else
-        error(comms.robot_send("fatal", "inventory, id_type is invalid"))
-    end
-
-    return eval_func
-end
-
-function module.search_external_ledger()
-    local eval_func = return_eval_func(id_type)
-
-end
-
-function module.dump_all_named(name, lable, id_type, external_ledger)
-    local eval_func = return_eval_func(id_type)
-
-    for index = 1, inventory_size, 1 do
-        local what_in_slot = inventory.getStackInInternalSlot(index)
-        if what_in_slot == nil then goto continue end
-
-        if  in_array(index, tool_belt_slots) -- dumbest way possible
-            or not eval_func(what_in_slot, name, lable)
-        then
-            goto continue
-        end -- else
-
-        if type(external_ledger) ~= "number" then -- hard crash if we haven't an external ledger and we don't acknoledge that fact
-            module.try_add_to(external_ledger, index)
-        else
-            robot.select(index)
-            if not robot.drop() then goto continue end
-            internal_ledger:subtract(what_in_slot.name, what_in_slot.label, what_in_slot.size)
-        end
+        if external_ledger == nil or type(external_ledger) ~= "table" then goto continue end
+        external_ledger:addOrCreate(lable, name, quantity, nil)
 
         ::continue::
     end
@@ -628,42 +623,7 @@ end
 
 ---}}}
 
--- assuming it gets sucked into slot 1 yadda yadda
-function module.try_remove_any_from(external_ledger)
-    robot.select(1)
-    if not robot.suck() then return false end
 
-    local item = inventory.getStackInInternalSlot(1)
-    if item == nil then
-        print(comms.robot_send("error", "we sucked yet item stack was nil"))
-        return false
-    end
-
-    external_ledger:subtract(item.name, item.label, item.size)
-    return true
-end
-
-function module.try_add_to(external_ledger, internal_slot)
-    local item = inventory.getStackInInternalSlot(internal_slot)
-    if item == nil then return true end
-
-    -- WARNING, it might happen that: internal (60 coal) exteranl 1 slot with (63 coal) drops only 1 coal into
-    -- the exteral, we're left with 59 in the internal slot, yet the ledger will be updated as if we've dumped
-    -- everything succesefully, let us hope that the behaviour of robot.drop() is smarter than this! Otherwise
-    -- we'll need to change our code (TODO)
-    robot.select(internal_slot)
-    if not robot.drop() then
-        return false
-    end
-
-    robot.select(1)
-    external_ledger:addOrCreate(item.name, item.label, item.size)
-    internal_ledger:subtract(item.name, item.label, item.size)
-
-    return true
-end
-
-local io = require("io")
 -- IMPORTANT: this assumes that new items will always go into the first slot, this might not be the case
 -- with things that drop more than one item; in that case uhhhhhhh we need better accounting
 -- algorithms that detect if something is in the inventory that was not there previously,
@@ -695,7 +655,7 @@ function module.maybe_something_added_to_inv() -- important to keep crafting tab
     -- Kludge time!
     local temp_ledger = MetaLedger:new()
     for index = 1, inventory_size, 1 do
-        if in_tool_slot(index) then goto continue end -- do not check things in tool slots, I guess
+        if search_table.ione(get_forbidden_table(), index) then goto continue end -- do not check things in tool slots, I guess
         local item = inventory.getStackInInternalSlot(index)
         if item == nil then goto continue end
 

@@ -1,9 +1,12 @@
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
+-- local component = require("component")
+
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local search_table = require("search_i_table")
 
 local bucket_funcs, _ = table.unpack(require("inventory.item_buckets"))
+-- local inventory = component.getPrimary("inventory_controller")
 
 -- luacheck: globals EMPTY_STRING
 EMPTY_STRING = ""
@@ -13,11 +16,6 @@ local Module = {}
 Module.inv_size = -1
 Module.table_size = -1
 
--- hopefully this doesn't consume to much RAM, this should be used only for the internal inventory imo
-
--- let's go for a flat table in order to save RAM (we're also going to be saving hashes of name/lable
--- instead of and lable it self
---
 -- We are going to be using a module 3 to determine trios of item_lable/item_name/quantity, and the floor div 3
 -- of the array will be the select
 Module.inv_table = {}
@@ -35,6 +33,7 @@ function Module:new(inv_size)
     local new = deep_copy(self, pairs)
     new.inv_size = inv_size
     new.table_size = inv_size * 3
+    new.inv_type = "virtual_inventory"
 
     new:initTable()
     return new
@@ -61,7 +60,7 @@ end
 function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
     for index = 1, self.table_size, 3 do
         local slot = (index + 2) / 3
-        if search_table.one(forbidden_slots, slot) then goto continue end
+        if search_table.ione(forbidden_slots, slot) then goto continue end
         if self.inv_table[index + 2] ~= 0 then goto continue end
 
         self.inv_table[index] = lable
@@ -85,7 +84,7 @@ function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
     -- do valid stack growth according to the rules of opencomputers (reduce left-first)
     for index = 1, self.table_size, 3 do
         local slot = (index + 2) / 3
-        if search_table.one(forbidden_slots, slot) then goto continue end
+        if search_table.ione(forbidden_slots, slot) then goto continue end
         if not self:checkEntry(lable, name, index) then goto continue end
 
         local current = self.inv_table[index + 2]

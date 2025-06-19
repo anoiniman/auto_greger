@@ -14,10 +14,11 @@ local VirtualInventory = require("inventory.VirtualInventory")
 local Module = VirtualInventory:new(-1)
 
 -- (new) function is unchanged from VirtualInventory (except for the fact that the table is not pre-inited)
-function Module:new(inv_size)
+function Module:new(max_size)
     local new = deep_copy(self, pairs)
-    new.inv_size = inv_size
+    new.max_size = max_size
     new.table_size = 0 * 3 -- :)
+    new.inv_type = "ledger"
 
     return new
 end
