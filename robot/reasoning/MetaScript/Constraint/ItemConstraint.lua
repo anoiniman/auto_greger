@@ -31,7 +31,7 @@ function ItemConstraint:new(item_name, item_lable, set_count, reset_count, filte
 end
 function ItemConstraint:check(do_once) -- so this was easy?
     -- le reset switch :)
-    local items_in_inv = inv.how_many_total(self.item_name, self.item_lable)
+    local items_in_inv = inv.how_many_total(self.item_lable, self.item_name)
     if not do_once and self.lock[1] == 2 then
         -- this is to say if we are doing something, and we still haven't broken through the reset (upper) limit
         -- then keep going, else only then reset back to 0 (back to simply seeking the set_count)

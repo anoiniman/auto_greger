@@ -97,7 +97,7 @@ function MetaRecipe:isSatisfied(needed_quantity)
                     local dep_needed_quantity = needed_quantity * dep.input_multiplier
 
                     -- there in lies the problem!
-                    local count = inv.how_many_internal(inner.output.name, inner.output.lable)
+                    local count = inv.how_many_internal(inner.output.lable, inner.output.name)
                     -- we have the stuff with us (make sure that the hook can handle this fact, aka, that we won't dump the needed
                     -- stuff into an entry-cache chest ('?' symbol)
                     if count >= dep_needed_quantity then break end

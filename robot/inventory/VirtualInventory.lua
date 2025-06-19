@@ -46,6 +46,11 @@ function Module:checkEntry(lable, name, at_index)
     return lable == i_lable and (name == "generic" or name == i_name)
 end
 
+function Module:checkEntryPermissive(_, name, at_index)
+    local i_name = self.inv_table[at_index + 1]
+    return name == "generic" or name == i_name
+end
+
 local function calc_add_to_stack(current, to_add)
     local naive_add = current + to_add
     local div = naive_add / 64
@@ -110,11 +115,19 @@ function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
 end
 
 function Module:getAllSlots(lable, name)
+    return self:getAllSlotsInternal(lable, name, self.checkEntry)
+end
+
+function Module:getAllSlotsPermissive(name)
+    return self:getAllSlotsInternal(nil, name, self.checkEntryPermissive)
+end
+
+function Module:getAllSlotsInternal(lable, name, check_func)
     name = bucket_funcs.identify(name, lable)
 
     local slot_table = {}
     for index = 1, self.table_size, 3 do
-        if not self:checkEntry(lable, name, index) then
+        if not check_func(self, lable, name, index) then
             goto continue
         end
 
@@ -126,6 +139,18 @@ function Module:getAllSlots(lable, name)
     end
     if #slot_table == 0 then return nil end
     return slot_table
+end
+
+function Module:howMany(lable, name)
+    local slot_table = self:getAllSlots(lable, name)
+
+    local total = 0
+    for _, element in ipairs(slot_table) do
+        -- local slot = element[1]
+        local quantity = element[2]
+        total = total + quantity
+    end
+    return total
 end
 
 function Module:getSmallestSlot(lable, name) -- returns a slot num

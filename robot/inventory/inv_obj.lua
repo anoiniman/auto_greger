@@ -35,9 +35,8 @@ local use_self_craft = true
 
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
--- local internal_ledger = VirtualInventory:new(inventory_size)
 local virtual_inventory = VirtualInventory:new(inventory_size)
-module.virtual_inventory = internal_ledger -- ref?
+module.virtual_inventory = virtual_inventory -- ref
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_ledgers = {}
@@ -50,13 +49,13 @@ function module.register_ledger(fat_ledger)
     table.insert(external_ledgers, fat_ledger)
 end
 
-function module.how_many_internal(name, lable)
-    local quantity = internal_ledger:howMany(lable, name)
+function module.how_many_internal(lable, name)
+    local quantity = virtual_inventory:howMany(lable, name)
     return quantity
 end
 
-function module.how_many_total(name, lable)
-    local quantity = internal_ledger:howMany(lable, name)
+function module.how_many_total(lable, name)
+    local quantity = virtual_inventory:howMany(lable, name)
     for _, fat_ledger in ipairs(external_ledgers) do
         local ledger = fat_ledger.ledger
         quantity = quantity + ledger:howMany(lable, name)
@@ -501,7 +500,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
             return false
         end
 
-        local delete_result = internal_ledger:subtract(item_def.label, item_def.name, 1)
+        local delete_result = virtual_inventory:subtract(item_def.label, item_def.name, 1)
         if not delete_result then
             print(comms.robot_send("error", "inv_obj.place_block -- we weren't able to subtract from ledger!"))
             return false
@@ -522,7 +521,7 @@ function module.suck_all_vinventory(external_inventory)
         local quantity = inv_table[index + 2]
 
         local slot = (index + 2) / 3
-        if robot.select(slot) ~= slot then 
+        if robot.select(slot) ~= slot then
             print(comms.robot_send("error", "An error occuring sucking all vinventory: slot unable to be selected"))
             goto continue
         end
@@ -555,7 +554,7 @@ end
 -- I assume that first item available != first item SLOT available, otherwise big problem, well we'll see
 -- robot.suck() will always try to get the first (from the left (?)) item from the foreign inventory
 function module.suck_all(external_inventory) -- runs no checks what-so-ever (assumes that we're facing the inventory)
-    local inv_type = external_inventory.inv_type 
+    local inv_type = external_inventory.inv_type
     if inv_type == nil then inv_type = "nil" end
 
     if inv_type == "ledger" then module.suck_all_ledger(external_inventory)
@@ -589,7 +588,7 @@ function module.dump_all_named(lable, name, external_ledger)
 
         robot.select(slot)
         if not robot.drop() then goto continue end
-        internal_ledger:subtract(lable, name, quantity)
+        virtual_inventory:subtract(lable, name, quantity)
 
         if external_ledger == nil or type(external_ledger) ~= "table" then goto continue end
         external_ledger:addOrCreate(lable, name, quantity, nil)
@@ -617,7 +616,7 @@ function module.debug_force_add()
 
         local item = inventory.getStackInInternalSlot(i)
         local name = item.name; local lable = item.label
-        internal_ledger:addOrCreate(name, lable, quantity)
+        virtual_inventory:addOrCreate(name, lable, quantity)
 
         ::continue::
     end
@@ -625,50 +624,56 @@ end
 
 ---}}}
 
-
--- TODO: slay this dragon!
-function module.maybe_something_added_to_inv() -- important to keep crafting table clear
+function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important to keep crafting table clear
     if used_up_capacity >= inventory_size - 1 then -- stop 1 early, to not over-fill
         return false
     end
 
+    local result = true
     local quantity = robot.count(1)
-    if quantity > 0 then
+    if quantity > 0 then    -- This is a rare occurence when something fell into the inventory that was not
+                            -- there before, or if a stack was already full -> aka rare
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(1)
         local name = item.name; local lable = item.label
-        internal_ledger:addOrCreate(name, lable, quantity)
-    end
+        virtual_inventory:addOrCreate(name, lable, quantity)
 
-    local result
-    if use_self_craft then
-        result = clear_first_slot(non_craft_slot_iter)
+        if use_self_craft then result = clear_first_slot(non_craft_slot_iter)
+        else result = clear_first_slot(free_slot_iter) end
+
+        -- fallthrough because imagine we input 44 items in, there is 1 stack that already has 32 items, there
+        -- will be 12 items that'll got to slot 1 (I think), but now the already present stack has 64 items,
+        -- if we return immediatly the update will only account for the 12 items, not the whole 44
+
+        -- return result
+    end -- else it means it either didn't fall into the first slot or it didn't fall in the first place
+
+    local slot_table = nil
+    -- [3] - We'll have to do it the dumb way
+    -- [1] - Strict Matching, find this lable, [2] - Name Matching, find all that matches this "bucket"
+    if lable_hint ~= nil then slot_table = virtual_inventory:getAllSlots(lable, name)
+    elseif name_hint ~= nil then slot_table = virtual_inventory:getAllSlotsPermissive(name)
     else
-        result = clear_first_slot(free_slot_iter)
+        module.force_update_vinv()
+        return true
     end
 
-    if not result then return false end
+    if slot_table == nil then return true end -- ideomatic?
 
-    -- Kludge time!
-    local temp_ledger = MetaLedger:new()
-    for index = 1, inventory_size, 1 do
-        if search_table.ione(get_forbidden_table(), index) then goto continue end -- do not check things in tool slots, I guess
-        local item = inventory.getStackInInternalSlot(index)
-        if item == nil then goto continue end
-
-        temp_ledger:addOrCreate(item.name, item.label, item.size)
-
-        ::continue::
+    for _, element in ipairs(slot_table) do
+        local slot = element[1]
+        local expected_quantity = element[2]
+        local stack_info = inventory.getStackInInternalSlot(slot)
+        -- haha, something did get added (assume only 1 stack at the time so return)
+        local diff = expected_quantity - stack_info.size
+        if diff > 0 then
+            virtual_inventory:subtract(diff)
+        elseif diff < 0 then
+            virtual_inventory:addOrCreate(math.abs(diff))
+        end -- else all good, keep checking
     end
-    local diff_table = internal_ledger:compareWithLedger(temp_ledger.ledger_proper)
-    for _, diff in ipairs(diff_table) do
-        if diff.diff < 0 then 
-            internal_ledger:addOrCreate(diff.name, diff.lable, math.abs(diff.diff))
-        end
-    end
-    -- Please work :sadge:
 
-    return true
+    return result
 end
 
 function module.force_add_in_slot(slot) -- ahr ahr
@@ -677,7 +682,7 @@ function module.force_add_in_slot(slot) -- ahr ahr
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(slot)
         local name = item.name; local lable = item.label
-        internal_ledger:addOrCreate(name, lable, quantity)
+        virtual_inventory:addOrCreate(lable, name, quantity)
     end
     -- Separate out into a function that clears the crafting table for us?
 end
