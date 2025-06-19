@@ -53,7 +53,7 @@ end
 function Module:itemDefIter()
     local iteration = 0
 
-    -- checks if it is not a plain def
+    -- checks if it is not a plain def (aka, if item_defs is a table, not a just a raw item_def)
     if self.item_defs["permissive"] == nil then
         return function()
             iteration = iteration + 1

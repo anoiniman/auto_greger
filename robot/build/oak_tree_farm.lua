@@ -110,6 +110,9 @@ Module.state_init = {
     end,
 }
 
+local lable_hint = "Oak Wood"
+local name_hint = "any:log"
+
 local function down_stroke()
     local err
     local result = true
@@ -119,7 +122,7 @@ local function down_stroke()
             local analysis = geolyzer.simple_return()
             if analysis.harvestTool ~= "shovel" then -- aka, not dirt/grass
                 result = robot.swingDown()
-                inv.maybe_something_added_to_inv()
+                inv.maybe_something_added_to_inv(lable_hint, name_hint)
             end
         end
     end
@@ -132,7 +135,7 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
         result = robot.swingUp()
         if not result then break end -- if no break it means tree came to an end
 
-        inv.maybe_something_added_to_inv()
+        inv.maybe_something_added_to_inv(lable_hint, name_hint)
         result, err = nav.debug_move("up", 1)
         if not result and err == "impossible" then -- atempt to place block below us, hopefully it'll stick to leaves
             local could_place = inv.place_block("down", "Oak Wood", "lable", nil)
@@ -179,7 +182,7 @@ Module.hooks = {
                 inv.equip_tool("axe", 0)
 
                 robot.swing()
-                inv.maybe_something_added_to_inv()
+                inv.maybe_something_added_to_inv(lable_hint, name_hint)
                 nav.force_forward()
 
                 up_stroke()
@@ -201,7 +204,7 @@ Module.hooks = {
         os.sleep(6)
         suck.suck() -- once again I hope it sucks it to the first slot (fuck, apples?)
         -- IMPORTANT (TODO) CHECK IF APPLES ARE SUCKED SIMULTANEOSLY (we'll need to succcc several (2) slots at once)
-        inv.maybe_something_added_to_inv()
+        inv.maybe_something_added_to_inv(lable_hint, name_hint)
         -- move in the z axis to not collide with the old trees
         nav.debug_move("north", 2) -- hopefully doesn't make us change chunk, and if it does it handles it gracefully
 
@@ -214,7 +217,7 @@ Module.hooks = {
 
         for _, item_def in cur_storage:itemDefIter() do
             if item_def.lable ~= nil and item_def.name == nil then
-                inv.dump_all_named(item_def.name, item_def.lable, "lable", cur_storage.ledger)
+                inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
             elseif item_def.lable == nil and item_def.name ~= nil then
                 error(comms.robot_send("fatal", "oak, todo (1)!"))
             elseif item_def.lable ~= nil and item_def.name ~= nil then

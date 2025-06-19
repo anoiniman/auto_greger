@@ -220,79 +220,6 @@ local function free_slot_iter()
 end
 
 --
-local function find_in_slot(block_id, lable_type)
-    if lable_type == "lable" then
-        for index = 1, inventory_size, 1 do
-            local item = inventory.getStackInInternalSlot(index)
-            if item == nil then goto continue end
-
-            -- commented out anti-mangling code in the hope that it'll no longer be necessary
-
-            -- This is needed because dictionary translation seems to mangle spaces
-            -- this will destroy spaces to allow for comparison
-            -- local split = text.tokenize(item.label)
-            --local reconstruct = table.concat(split)
-
-            -- somehow, now that we have BuildInstruction it doesn't get mangled???
-            --if reconstruct == block_id or item.label == block_id then
-            if item.label == block_id then
-                return index, item
-            end
-
-            ::continue::
-        end
-    elseif lable_type == "name" then
-        if block_id == "any:building_block" then
-            local last_cbbl_match, last_dirt_match, cbbl_item, dirt_item
-
-            for index = 1, inventory_size, 1 do
-                local item = inventory.getStackInInternalSlot(index)
-                if item == nil then goto continue end
-
-                if item.lable == "Cobblestone" then
-                    dirt_item = item
-                    last_cbbl_match = index
-                elseif item.lable == "Dirt" then
-                    cbbl_item = item
-                    last_dirt_match = index
-                end
-
-                ::continue::
-            end
-
-            local to_return, to_return2
-            if last_cbbl_match ~= nil then
-                to_return, to_return2 = last_cbbl_match, cbbl_item
-            elseif last_dirt_match ~= nil then
-                to_return, to_return2 = last_dirt_match, dirt_item
-            else
-                print(comms.robot_send("error", "inv_obj: no building block found in any slot"))
-                return -2
-            end
-
-            return to_return, to_return2
-        end
-
-        print(comms.robot_send("error", "inv_obj: not valid lable_type"))
-        return -2
-    elseif lable_type == "optional_name" then -- expects block_identifier to be .lable, and not .label
-        for index = 1, inventory_size, 1 do
-            local item = inventory.getStackInInternalSlot(index)
-            if item == nil then goto continue end
-
-            if item.label == block_id.lable and (block_id.name == nil or item.name == block_id.name) then
-                return index, item
-            end
-
-            ::continue::
-        end
-    else
-        print(comms.robot_send("error", "inv_obj: not valid lable_type"))
-        return -2
-    end
-
-    return -1 -- in case nothing was found
-end
 ---}}}
 
 -->>-- Clear Any Slot --<<-- {{{
@@ -445,12 +372,23 @@ function module.place_block(dir, block_identifier, lable_type, side)
     -- if side is nil it doesn't matter
     if side ~= nil then side = sides_api[side] end
 
+    local b_lable
+    local b_name
     if type(block_identifier) == "table" then
-        if lable_type == "lable" then block_identifier = block_identifier.lable
-        elseif lable_type == "name" then block_identifier = block_identifier.name
-        elseif lable_type == "optional_name" then -- luacheck: ignore (do nothing)
-        else block_identifier = "invalid \"lable_type\"" end
+        b_lable = block_identifier.lable
+        b_name = block_identifier.name
+    else
+        if lable_type == "name" then
+            b_name = block_identifier
+        elseif lable_type == "lable" then
+            b_lable = block_identifier
+        elseif lable_type == "table" then
+            error(comms.robot_send("fatal", "It was supposed to be a table"))
+        else
+            error(comms.robot_send("fatal", "lable_type is not valid"))
+        end
     end
+
     if block_identifier == "air" then
         local swing_result
         if dir == "up" then
@@ -461,8 +399,8 @@ function module.place_block(dir, block_identifier, lable_type, side)
         return swing_result
     end
 
-    local slot, item_def = find_in_slot(block_identifier, lable_type)
-    if slot == -1 then
+    local slot = virtual_inventory:getSmallestSlot(lable, name)
+    if slot == nil then
         print(comms.robot_send("warning", "couldn't find id: \"" .. block_identifier .. "\" lable -- " .. lable_type))
         return false
     elseif slot < -1 then
@@ -492,19 +430,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
     robot.select(1)
 
     if place_result then
-        if item_def == nil then
-            print(comms.robot_send("error", "inv_obj.place_block -- item_def returned nil! But place was succeseful?"))
-            return false
-        elseif item_def.name == nil then
-            print(comms.robot_send("error", "inv_obj.place_block -- item_def has no name?"))
-            return false
-        end
-
-        local delete_result = virtual_inventory:subtract(item_def.label, item_def.name, 1)
-        if not delete_result then
-            print(comms.robot_send("error", "inv_obj.place_block -- we weren't able to subtract from ledger!"))
-            return false
-        end
+        virtual_inventory:removeFromSlot(slot, 1)
     end
     return place_result
 end

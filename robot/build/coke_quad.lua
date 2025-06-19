@@ -139,7 +139,7 @@ Module.hooks = { -- TODO this
 
         ::after_turn::
         -- let us hope this is good enough:
-        inv.dump_all_named("log", nil, "naive_contains", 0) -- should we do it for every item definition? Idk (TODO) for now ok
+        inv.dump_all_named(nil, "any:log", 0) -- should we do it for every item definition? Idk (TODO) for now ok
         return 1
     end,
     function(state)
@@ -149,7 +149,7 @@ Module.hooks = { -- TODO this
         for _, item_def in cur_storage:itemDefIter() do
             if item_def.lable ~= nil and item_def.name == nil then
                 if index == 1 then -- dependedent on how we've defined our storage_table in state_init
-                    inv.dump_all_named(item_def.name, item_def.lable, "lable", cur_storage.ledger)
+                    inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
                 end
             elseif item_def.lable == nil and item_def.name ~= nil then
                 print("skip a") -- what'll happen when we try to store logs but we'll just skip
