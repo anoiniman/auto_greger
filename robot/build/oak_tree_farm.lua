@@ -202,9 +202,13 @@ Module.hooks = {
         end -- only then try to suck-up saplings
 
         os.sleep(6)
-        suck.suck() -- once again I hope it sucks it to the first slot (fuck, apples?)
-        -- IMPORTANT (TODO) CHECK IF APPLES ARE SUCKED SIMULTANEOSLY (we'll need to succcc several (2) slots at once)
-        inv.maybe_something_added_to_inv(lable_hint, name_hint)
+        local result = true
+        while result do
+            result = suck.suck()
+        end
+
+        inv.maybe_something_added_to_inv("Apple", nil)
+        inv.maybe_something_added_to_inv(nil, "any:sapling")
         -- move in the z axis to not collide with the old trees
         nav.debug_move("north", 2) -- hopefully doesn't make us change chunk, and if it does it handles it gracefully
 

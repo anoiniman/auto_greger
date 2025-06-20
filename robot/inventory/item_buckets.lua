@@ -28,7 +28,8 @@ local buckets = {
     "gregtech:raw_ore",
     "ingot",
     "generic",
-    "log",
+    "any:log",
+    "any:sapling"
     -- sword?
 }
 
@@ -41,6 +42,8 @@ function module.identify(name, lable)
                                         -- check NEI and improve the regex if needed
         return "any:log"
 
+    elseif string.find(name, "sapling") then
+        return "any:sapling"
     elseif string.find(name, "^minecraft:") then
         return "minecraft:generic"
     elseif string.find(name, "^gregtech:") then
