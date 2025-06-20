@@ -38,15 +38,15 @@ Module.dictionary = {
 
 -- things defined through * = inventories, and through + = action hooks?
 Module.human_readable = {
-    --[[{
-    "ddddddd",
-    "ddddddd",
-    "ddddddd",
-    "ddddddd",
-    "ddddddd",
-    "ddddddd",
-    "ddddddd",
-    },--]]
+    {
+    "d-d-d-d",
+    "d-d-d-d",
+    "-------",
+    "d-d-d-d",
+    "d-----d",
+    "d-d-d-d",
+    "------d",
+    },
     {
     "s*s-s*s",
     "s*s-s*s",
@@ -68,7 +68,7 @@ Module.human_readable = {
 }--]]
 
 --Module.origin_block = {0,0,-1} -- x, z, y
-Module.origin_block = {0,0,0} -- x, z, y
+Module.origin_block = {0,0,-1} -- x, z, y
 Module.base_table = Module.human_readable
 
 Module.doors = {}

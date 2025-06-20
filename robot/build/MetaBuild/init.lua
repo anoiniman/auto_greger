@@ -36,34 +36,6 @@ function Module:new()
     return deep_copy.copy(self, pairs)
 end
 
--- take unserialized data and restores it into an actual "MetaBuild"
-function Module:instantiate(self_table)
-    error(comms.robot_send("fatal", "to be removed!"))
-    --[[local new = deep_copy.copy(self, pairs)
-    --[[for k, v in pairs(new) do -- this won't work with all the nil initalised crap I have
-        if self_table[k] ~= nil then
-            new[k] = self_table[k]
-        end
-    end --\]\]
-    -- The regex went crazy
-    new.name = self_table.name
-    new.extra_sauce = self_table.extra_sauce
-    new.what_chunk = self_table.what_chunk
-
-    new.post_build_s_init = self_table.post_build_s_init
-    new.post_build_hooks = self_table.post_build_hooks
-    new.post_build_state = self_table.post_build_state
-
-    new.is_nil = self_table.is_nil
-    new.built = self_table.built
-    new.doors = self_table.doors
-
-    new.primitive = self_table.primitive
-    new.s_interface = self_table.s_interface
-
-    return new--]]
-end
-
 function Module:doBuild()
     if self.s_interface == nil then
         print(comms.robot_send("error", "MetaBuild, doBuild, attempted to build with nil s_interface, init plz"))
@@ -142,7 +114,7 @@ function Module:rotateAndTranslatePrimitive(quad_num, logical_chunk_height)
 end
 
 -- no need to rotate since they are already pre-rotated from before
-function Module:translateSpecial(quad_num, logical_chunk_height)
+function Module:translateSpecial(quad_num, logical_chunk_height, primitive_offset)
     local special_table = self.special_blocks
 
     local function case_one(special)
@@ -180,6 +152,10 @@ function Module:translateSpecial(quad_num, logical_chunk_height)
     for _, special in ipairs(special_table) do
         special[4] = special[4] + logical_chunk_height - 1 -- adds height to le thing (- 1 because idk you just need to)
         case_function(special)
+
+        special[2] = special[2] + primitive_offset[1]
+        special[3] = special[3] + primitive_offset[2]
+        special[4] = special[4] + primitive_offset[3]
     end
 
     return true
@@ -193,7 +169,11 @@ function Module:dumpPrimitive()
     self.primitive = nil
 end
 
-function Module:setupBuild()
+function Module:setupBuild(what_quad, chunk_height)
+    local old_origin_block = deep_copy.copy(self.primitive.origin_block, ipairs)
+    local result = self:rotateAndTranslatePrimitive(what_quad, chunk_height)
+    if not result then return false end
+
     local base_table = self.primitive.base_table
 
     if self.s_interface == nil then
@@ -230,6 +210,10 @@ function Module:setupBuild()
     print(comms.robot_send("debug", "we facking did it m8!"))
 
     self.is_nil = false
+
+    local result = self:translateSpecial(what_quad, chunk_height, self.primitive.origin_block)
+    if not result then return false end
+
     return true
 end
 

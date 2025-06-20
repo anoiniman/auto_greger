@@ -88,10 +88,7 @@ function MetaQuad:setupBuild(chunk_height)
         return false
     end
     -- Now we must rotate and translate the build in rel chunk space according to quad number, before creating the build structure
-    if  not self.build:rotateAndTranslatePrimitive(self.quad, chunk_height)
-        or not self.build:setupBuild() -- Build the data-structures from the rotated primitive
-        or not self.build:translateSpecial(self.quad, chunk_height)
-    then
+    if not self.build:setupBuild(self.quad, chunk_height) then
         self.build = MetaBuild:new() -- better reset just for in case
         return false
     end

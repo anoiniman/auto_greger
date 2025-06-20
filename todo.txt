@@ -149,12 +149,6 @@ The thing that failed to pretend build was the "oak_tree_farm"... I might have g
 build order as defined by the dep tree is farm -> coke_quad -> use_them, enforced by the goal hierarchy
 that forces the robot to first build the farm before building the coke quad
 --
-Since with this pretend failure we were left with a built coke_quad without a farm we crashed
-é preciso fazer a puta do inventário virtaukal (maybe we can avoid it with some stupidity?)
-
-under the light of the discovery of the stupod inverted return in dabegu move, we can now try the complex
-road_build algorithm again and see if it good
-
 Allow recipe dependencies to be more lose, for example: any:log, rather than just Oak Wood, but maybe not too important idk
 having OR-type dependencies is also good, this OR that
 
@@ -165,6 +159,3 @@ if they are not wanted rather than scanning every block, just some food for thou
 
 Remember that you can just dig into the ground to make sure you don't have overhangs rather than filling in, but both strategies
 will be necessary
-
-Remember to do "multiple sucking" when using the tractor beam since it only sucks one at the time
-Do the trimming of the MetaChunk thing into something more procedural later lmao
