@@ -74,7 +74,7 @@ end
 -- Speaking of reading: https://web.engr.oregonstate.edu/~erwig/papers/DeclScripting_SLE09.pdf is this peak chat?
 -- and smart accessing of disc and remote stored data eventually, so I'll not use string indeces.
 -- is_home basically means: is a part of the base
-local MetaChunk = {
+local UnderlyingChunk = {
     x = 0,
     z = 0,
     marks = nil,
@@ -86,27 +86,37 @@ local MetaChunk = {
                             -- multi-level areas become a thing, unless we simply "layer" MetaChunks
                             -- like cake, that might be the obvious thing
 }
-function MetaChunk:new(x, z) -- lazy initialization :I (one day :) )
+
+function UnderlyingChunk:new(x, z) -- lazy initialization :I (one day :) )
     local new = deep_copy.copy_table(self, pairs)
-    -- x and z print fine in here
     new.x = x
     new.z = z
     return new
 end
 
-function MetaChunk:addMark(str)
-    if self.marks == nil then self.marks = {} end
-    if self:checkMarks(str) then return end
+local MetaChunk = {
+    chunk = nil
+}
 
-    table.insert(self.marks, str)
+function MetaChunk:new(real_chunk)
+    local new = deep_copy.copy_table(self, pairs)
+    self.chunk = real_chunk
+    return new
+end
+
+function MetaChunk:addMark(str)
+    if self.chunk.marks == nil then self.chunk.marks = {} end
+    if self.chunk:checkMarks(str) then return end
+
+    table.insert(self.chunk.marks, str)
 end
 
 function MetaChunk:tryRemoveMark(str, ok_to_fail)
     if ok_to_fail == nil then ok_to_fail = false end
     local was_able_to_remove = false
-    for index, mark in ipairs(self.marks) do
+    for index, mark in ipairs(self.chunk.marks) do
         if mark == str then
-            self.marks[index] = nil
+            self.chunk.marks[index] = nil
             was_able_to_remove = true
             break
         end
@@ -122,9 +132,9 @@ function MetaChunk:tryRemoveMark(str, ok_to_fail)
 end
 
 function MetaChunk:checkMarks(str)
-    if self.marks == nil then return false end
+    if self.chunk.marks == nil then return false end
 
-    for _, mark in ipairs(self.marks) do
+    for _, mark in ipairs(self.chunk.marks) do
         if mark == str then
             return true
         end
@@ -133,22 +143,22 @@ function MetaChunk:checkMarks(str)
 end
 
 function MetaChunk:getName(what_quad)
-    if self.meta_quads == nil then return nil end
-    local quad_in_question = self.meta_quads[what_quad]
+    if self.chunk.meta_quads == nil then return nil end
+    local quad_in_question = self.chunk.meta_quads[what_quad]
     if quad_in_question == nil or not quad_in_question:isInit() then return nil end
     return quad_in_question:getName()
 end
 
 function MetaChunk:getHeight()
-    if self.height_override ~= nil then return self.height_override end
-    if self.parent_area ~= nil then return self.parent_area.height end
+    if self.chunk.height_override ~= nil then return self.chunk.height_override end
+    if self.chunk.parent_area ~= nil then return self.chunk.parent_area.height end
     print(comms.robot_send("error", "MetaChunk:getHeight -- could not getHeight"))
     return nil
 end
 
 function MetaChunk:getBuildRef(what_quad)
-    if self.meta_quads == nil then return nil end
-    local quad_in_question = self.meta_quads[what_quad]
+    if self.chunk.meta_quads == nil then return nil end
+    local quad_in_question = self.chunk.meta_quads[what_quad]
     if quad_in_question == nil or not quad_in_question:isInit() then return nil end
     return quad_in_question:getBuild()
 end
@@ -159,10 +169,10 @@ function MetaChunk:setParent(what_parent, height_override)
             print(comms.robot_send("error", "MetaChunk:addToParent -- invalid height_override"))
             return false
         end
-        self.height_override = height_override
+        self.chunk.height_override = height_override
     end
 
-    self.parent_area = what_parent
+    self.chunk.parent_area = what_parent
     return true
 end
 
@@ -172,8 +182,8 @@ local function empty_quad_table()
 end
 
 function MetaChunk:getDoors(what_quad_num)
-    if not self:quadChecks(what_quad_num, "getDoors") then return nil end
-    local this_quad = self.meta_quads[what_quad_num]
+    if not self.chunk:quadChecks(what_quad_num, "getDoors") then return nil end
+    local this_quad = self.chunk.meta_quads[what_quad_num]
     local doors = this_quad:getDoors()
     --if doors == nil then print(comms.robot_send("error", "MetaChunk:getDoors, got nil doors xO")) end
     return doors
@@ -184,12 +194,12 @@ function MetaChunk:quadChecks(what_quad_num, from_where)
         print(comms.robot_send("error", "-- " .. from_where .. " --" .. "specified invalid quad_num: \"" .. tostring(what_quad_num) .. "\""))
         return false
     end
-    if self.meta_quads == nil then self.meta_quads = empty_quad_table() end
+    if self.chunk.meta_quads == nil then self.chunk.meta_quads = empty_quad_table() end
     return true
 end
 
 function MetaChunk:addQuadCommon(what_quad_num, what_build, what_chunk)
-    local this_quad = self.meta_quads[what_quad_num]
+    local this_quad = self.chunk.meta_quads[what_quad_num]
     local result = this_quad:setQuad(what_quad_num, what_build, what_chunk)
 
     if result == true then
@@ -201,37 +211,37 @@ function MetaChunk:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
 function MetaChunk:addQuad(what_quad_num, what_build, what_chunk)
-    if not self:quadChecks(what_quad_num, "addQuad") then return false end
-    if self.meta_quads[what_quad_num]:getNum() ~= 0 then
+    if not self.chunk:quadChecks(what_quad_num, "addQuad") then return false end
+    if self.chunk.meta_quads[what_quad_num]:getNum() ~= 0 then
         print(comms.robot_send("error", "trying to overwrite already defined quad, without specifing desire to overwrite!"))
     end
-    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
+    return self.chunk:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
 function MetaChunk:replaceQuad(what_quad_num, what_build, what_chunk)
-    if not self:quadChecks(what_quad_num, "replaceQuad") then return false end
-    local this_quad = self.meta_quads[what_quad_num]
+    if not self.chunk:quadChecks(what_quad_num, "replaceQuad") then return false end
+    local this_quad = self.chunk.meta_quads[what_quad_num]
     if this_quad:getNum() ~= 0 and this_quad:isBuilt() then
         print(comms.robot_send("error", "trying to overwrite already BUILT quad, UNIMPLEMENTED!"))
     end
-    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
+    return self.chunk:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
 function MetaChunk:setupBuild(what_quad_num)
-    if not self:quadChecks(what_quad_num, "setupBuild") then return false end
+    if not self.chunk:quadChecks(what_quad_num, "setupBuild") then return false end
 
-    local this_quad = self.meta_quads[what_quad_num]
+    local this_quad = self.chunk.meta_quads[what_quad_num]
     if this_quad:isBuilt() then
         print(comms.robot_send("error", "cannot prepare to build what is already built!"))
         return false
     end
-    return this_quad:setupBuild(self:getHeight())
+    return this_quad:setupBuild(self.chunk:getHeight())
 end
 
 function MetaChunk:doBuild(what_quad_num)
-    if not self:quadChecks(what_quad_num, "doBuild") then return false end
+    if not self.chunk:quadChecks(what_quad_num, "doBuild") then return false end
 
-    local this_quad = self.meta_quads[what_quad_num]
+    local this_quad = self.chunk.meta_quads[what_quad_num]
     if this_quad:isBuilt() then
         print(comms.robot_send("error", "cannot build what is already built!"))
         return false
@@ -240,8 +250,8 @@ function MetaChunk:doBuild(what_quad_num)
 end
 
 function MetaChunk:finalizeBuild(what_quad_num)
-    if not self:quadChecks(what_quad_num, "finalizeBuild") then return false end
-    local this_quad = self.meta_quads[what_quad_num]
+    if not self.chunk:quadChecks(what_quad_num, "finalizeBuild") then return false end
+    local this_quad = self.chunk.meta_quads[what_quad_num]
     this_quad:finalizeBuild()
     return true
 end
@@ -312,7 +322,7 @@ function module.gen_map_obj(offset)
         for z = 1, size, 1 do
             local real_x = x - map_obj_offsets[1];
             local real_z = z - map_obj_offsets[2];
-            map_obj[x][z] = MetaChunk:new(real_x, real_z)
+            map_obj[x][z] = UnderlyingChunk:new(real_x, real_z)
         end
     end
     return true
@@ -354,7 +364,7 @@ function module.chunk_exists(what_chunk)
         print(comms.robot_send("error", "ungenerated chunk"))
         return nil
     end
-    return map_obj[x][z]
+    return MetaChunk:new(map_obj[x][z])
 end
 
 function module.chunk_set_parent(what_chunk, what_area, height_override)

@@ -167,3 +167,4 @@ Remember that you can just dig into the ground to make sure you don't have overh
 will be necessary
 
 Remember to do "multiple sucking" when using the tractor beam since it only sucks one at the time
+Do the trimming of the MetaChunk thing into something more procedural later lmao
