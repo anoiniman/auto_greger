@@ -32,7 +32,7 @@ local Module = {
     long_term_storage = false, -- compared to being an inventory associated with this 1 specific building
 
     ledger = nil,
-    rel_location = nil -- access location [Is this variable necessary?]
+    symbol_index = nil,
 }
 
 function Module:new(item_defs, parent, is_cache)

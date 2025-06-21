@@ -26,8 +26,7 @@ Module.name = "oak_tree_farm"
 Module.dictionary = {
     ["s"] = {"Oak Sapling", "minecraft:sapling"},
     ["c"] = {"Chest", "minecraft:chest"}
-    -- TODO: tehe (and add smart facilities?, we prob don't need everything to be dirt only below the plants)
-    -- ["d"] = {"any:grass", "name"} -- add code for this
+    ["d"] = {"any:grass", "name"} -- TODO add code for this
 }
 
 -- No torches (so that it can be built in le early game)
@@ -220,15 +219,7 @@ Module.hooks = {
         local cur_storage = storage_table[cur_index]
 
         for _, item_def in cur_storage:itemDefIter() do
-            if item_def.lable ~= nil and item_def.name == nil then
-                inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
-            elseif item_def.lable == nil and item_def.name ~= nil then
-                error(comms.robot_send("fatal", "oak, todo (1)!"))
-            elseif item_def.lable ~= nil and item_def.name ~= nil then
-                error(comms.robot_send("fatal", "oak, todo (2)!"))
-            else -- surely they cannot be both nil
-                error(comms.robot_send("fatal", "You are very very very stupuid oak_tree whatever"))
-            end
+            inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
         end
         return 1
     end,

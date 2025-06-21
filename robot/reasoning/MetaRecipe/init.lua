@@ -102,9 +102,6 @@ function MetaRecipe:isSatisfied(needed_quantity)
                     -- stuff into an entry-cache chest ('?' symbol)
                     if count >= dep_needed_quantity then break end
 
-                    -- this checks if the inner dep is satisfied which is wrong VVV
-                    --> if count >= dep_needed_quantity then goto continue end -- check next dep
-
                     -- TODO: if there is enough in long term storage return "all_good" + where we can find this, else recurse deeper
                     -- into our dependency tree by ways of searching inside ti for this output
 

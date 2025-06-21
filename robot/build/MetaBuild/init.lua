@@ -250,15 +250,6 @@ function Module:require(name, what_chunk)
     return true
 end
 
-local PublicState = {
-    name = "default",
-    inner = nil
-}
-function PublicState:new(inner)
-    local new = deep_copy.copy(self, pairs)
-    new.inner = inner
-    return new
-end
 
 -- build state == 1 chunk wide state
 function Module:finalizeBuild(doors)
@@ -266,8 +257,6 @@ function Module:finalizeBuild(doors)
     self.doors = doors -- lame cludge for now, fix later
 
     if self.post_build_state[1] == nil then self.post_build_state[1] = {} end
-    local new_state_ref = self.post_build_s_init[1]()
-    table.insert(self.post_build_state[1], PublicState:new(new_state_ref))
 
     for index, func in ipairs(self.post_build_s_init) do
         self.post_build_state[index] = func(self)

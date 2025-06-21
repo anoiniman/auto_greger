@@ -81,8 +81,8 @@ Module.state_init = {
             in_building = false
         }
     end,
-    function(parent) -- anonymous function, hopefully
-        local new_machine = MetaInventory:newMachine(input_items, parent)
+    function(parent)
+        local new_machine = MetaInventory:newMachine(input_items, parent, symbol_index)
         -- new_machine["state_type"] = "inventory"
         return new_machine
     end,
@@ -94,8 +94,9 @@ Module.state_init = {
         }
 
         local storage_table = {
-            MetaInventory:newStorage(input_items, parent),
-            MetaInventory:newStorage(output_items, parent)
+            -- MetaInventory:newStorage(item_defs=, parent, symbol_index),
+            MetaInventory:newStorage(input_items, parent, 1),
+            MetaInventory:newStorage(output_items, parent, 2)
         }
         return {storage_table, 1}
     end
@@ -147,17 +148,7 @@ Module.hooks = { -- TODO this
         local cur_storage = storage_table[index]
 
         for _, item_def in cur_storage:itemDefIter() do
-            if item_def.lable ~= nil and item_def.name == nil then
-                if index == 1 then -- dependedent on how we've defined our storage_table in state_init
-                    inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
-                end
-            elseif item_def.lable == nil and item_def.name ~= nil then
-                print("skip a") -- what'll happen when we try to store logs but we'll just skip
-            elseif item_def.lable ~= nil and item_def.name ~= nil then
-                print("skip b")
-            else -- surely they cannot be both nil
-                error(comms.robot_send("fatal", "You are very very very stupuid coke_quad"))
-            end
+            inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
         end
 
         state[2] = state[2] + 1
