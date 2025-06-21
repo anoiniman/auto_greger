@@ -34,14 +34,11 @@ local function prio_insert(task_list, message)
         return
     end
 
-    -- prob fine to break since -1 is always added towards the end and we linear search
-    for i=1, #task_list, 1 do
-        local element = task_list[i]
+    -- prob fine to return since -1 is always added towards the end and we linear search
+    for index, element in ipairs(task_list) do
         local value = element[1]
-
-        if (value == -1) or (prio <= value) then
-            local one_or_bigger = math.max(i-1, 1) -- protect against underflows
-            table.insert(task_list, one_or_bigger, message)
+        if (value == -1) or (prio < value) then
+            table.insert(task_list, i, message)
             return
         end
     end

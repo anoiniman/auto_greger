@@ -14,11 +14,10 @@ function module.named_insert(tbl, to_add)
     end
 
     -- prob fine to break since -1 is always added towards the end and we linear search
-    for i=1, #tbl, 1 do
+    for index = 1, #tbl, 1 do
         local value = tbl[i]["priority"]
         if (value == -1) or (prio <= value) then
-            local one_or_bigger = math.max(i-1, 1) -- protect against underflows
-            table.insert(tbl, one_or_bigger, to_add)
+            table.insert(tbl, index, to_add)
             return
         end
     end
