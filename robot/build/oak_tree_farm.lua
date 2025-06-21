@@ -98,8 +98,8 @@ Module.state_init = {
     end,
     function(parent)
         local storage_table = {
-            MetaInventory:newStorage(MetaItem:new(nil, "Oak Wood", true, nil), parent),
-            MetaInventory:newStorage(MetaItem:new(nil, "Oak Sapling", true, nil), parent)
+            MetaInventory:newStorage(MetaItem:new(nil, "Oak Wood", true, nil), parent, '+', 1),
+            MetaInventory:newStorage(MetaItem:new(nil, "Oak Sapling", true, nil), parent, '+', 2)
         }
         return {storage_table, 1}
     end,

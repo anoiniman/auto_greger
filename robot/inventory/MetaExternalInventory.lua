@@ -32,10 +32,11 @@ local Module = {
     long_term_storage = false, -- compared to being an inventory associated with this 1 specific building
 
     ledger = nil,
-    symbol_index = nil,
+    symbol = nil,
+    special_block_index = nil,
 }
 
-function Module:new(item_defs, parent, is_cache)
+function Module:new(item_defs, parent, is_cache, symbol, index)
     if not is_cache and parent == nil then
         print(comms.robot_send("error", "MetaExtInventory, parent is nil"))
         print(comms.robot_send("stack", debug.traceback()))
@@ -45,9 +46,15 @@ function Module:new(item_defs, parent, is_cache)
     new.item_defs = item_defs
     new.ledger = MetaLedger:new()
     new.parent = parent
+    new.symbol = symbol,
+    new.special_block_index = index,
 
     inv.register_ledger(new) -- important
     return new
+end
+
+function Module:getDistance()
+    return self.parent:getDistToSpecial(self.symbol, self.special_block_index)
 end
 
 function Module:itemDefIter()
@@ -87,14 +94,14 @@ function Module:newSelfCache()
     return new
 end
 
-function Module:newStorage(item_defs, parent)
-    local new = self:new(item_defs, parent)
+function Module:newStorage(item_defs, parent, symbol, index)
+    local new = self:new(item_defs, parent, symbol, index)
     new.storage = true
     return new
 end
 
-function Module:newMachine(item_defs, parent)
-    local new = self:new(item_defs, parent)
+function Module:newMachine(item_defs, parent, symbol, index)
+    local new = self:new(item_defs, parent, symbol, index)
     new.storage = false
     return new
 end

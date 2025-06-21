@@ -35,6 +35,10 @@ function module.get_chunk()
     return deep_copy.copy(nav_obj.chunk, ipairs) -- :)
 end
 
+function module.get_abs()
+    return deep_copy.copy(nav_obj.abs, ipairs) -- :)
+end
+
 function module.get_rel()
     return deep_copy.copy(nav_obj.rel, ipairs)
 end

@@ -63,44 +63,25 @@ function module.how_many_total(lable, name)
     return quantity
 end
 
--- lower is better! (0 is lowest)
-local function git_score(distance, real_q, req_q)
-    -- more calculations! we need to factor min_quantity in
-    local qd_weight = 1
-    local d_weight = 0.4
-    local log_weight = 0.1
-    if distance <= 0 then distance = 1 end
-
-    local q_diff = req_q - real_q
-    q_relu = math.max(q_diff, 0) * qd_weight
-    local d_score = math.max(distance * d_weight, 1)
-    local d_log = math.max(d_score * log_weight, 1)
-
-    local score = (q_diff * math.log(d_log)) + d_score + q_diff
-    return score
-end
-
-function module.get_nearest_external(lable, name, min_quantity, recomended_quantity)
+function module.get_nearest_external_inv(lable, name, min_quantity)
     -- ordered with biggest in the pop position (#size - 1)
     local ref_quant_table = nil
     for _, fat_inv in ipairs(external_inventories) do
         local pinv = fat_inv.ledger
 
         local quantity = pinv:howMany(lable, name)
-        if quantity == nil then goto continue end
+        if quantity == nil or quantity < min_quantity then goto continue end
         local new_ref_quant = {quantity, fat_inv}
 
         if ref_quant_table == nil then table.insert(ref_quant_table, new_ref_quant); goto continue end
-        local distance = fat_inv:getDistance() -- TODO, IMPLEMENT THIS
-        local score = git_score(distance, quantity, recomended_quantity)
+        local distance = fat_inv:getDistance()
 
         for index, entry in ipairs(ref_quant_table) do
             local i_quantity = entry[1]
             local i_inv = entry[2]
 
             local i_distance = i_inv:getDistance()
-            local i_score = git_score(i_distance, i_quantity, recomended_quantity)
-            if score < i_score then
+            if distance > i_distance then -- smaller is better
                 table.insert(ref_quant_table, index, new_ref_quant)
                 goto continue
             end
@@ -111,10 +92,7 @@ function module.get_nearest_external(lable, name, min_quantity, recomended_quant
     end
     if ref_quant_table == nil then return nil end
 
-    -- TODO finish up the function
-    for index, fat_inv in ipairs(ref_quant_table) do
-
-    end
+    return ref_quant_table[#ref_quant_table]
 end
 
 ---}}}

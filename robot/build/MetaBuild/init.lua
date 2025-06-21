@@ -5,6 +5,8 @@ local filesystem = require("filesystem")
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
+local nav = require("nav_module.nav_obj")
+
 local general_functions = require("build.general_functions")
 local SchematicInterface = require("build.MetaBuild.SchematicInterface")
 local MetaLedger = require("inventory.MetaLedger")
@@ -75,6 +77,23 @@ function Module:is_extra(str)
     end
     return result
 end
+
+function Module:getDistToSpecial(what_symbol, index)
+    local symbol, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
+    local x, z, y = symbol[2], symbol[3], symbol[4]
+    local cabs_x = what_chunk[1] * 16
+    local cabs_z = what_chunk[2] * 16
+
+    x = x + cabs_x
+    z = z + cabs_z
+    local cur_abs = nav.get_abs()
+    local dist_x = math.abs(x - cur_abs[1])
+    local dist_z = math.abs(z - cur_abs[2])
+
+    local man_dist = dist_x + dist_z
+    return man_dist
+end
+
 
 function Module:initPrimitive()
     self.primitive.parent = self

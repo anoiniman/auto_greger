@@ -10,6 +10,8 @@ local robot = require("robot")
 local nav = require("nav_module.nav_obj")
 local nav_to_build = require("nav_module.nav_to_building")
 
+local general_functions = require("build.general_functions")
+
 
 local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm)
     if not nav.is_setup_navigate_rel() then
@@ -32,24 +34,7 @@ local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm
     return jmp_to_func, set_fsm
 end
 
-local function count_occurence_of_symbol(what_symbol, how_much, where)
-    local to_return = nil
-    local num_to_return = nil
-
-    local hits = 0
-    for _, symbol in ipairs(where) do
-        if symbol[1] == what_symbol then hits = hits + 1 end
-        if hits == how_much then
-            num_to_return = how_much + 1
-            local copy = deep_copy.copy(symbol, ipairs)
-            table.remove(copy, 1)
-            to_return = copy
-            break
-        end
-    end
-
-    return to_return, num_to_return
-end
+local count_occurence_of_symbol = general_functions.count_occurence_of_symbol
 
 
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis

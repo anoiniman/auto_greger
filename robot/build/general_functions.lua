@@ -90,4 +90,23 @@ function module.mirror_z(base_table, segments)
     end
 end
 
+function module.count_occurence_of_symbol(what_symbol, how_much, where)
+    local to_return = nil
+    local num_to_return = nil
+
+    local hits = 0
+    for _, symbol in ipairs(where) do
+        if symbol[1] == what_symbol then hits = hits + 1 end
+        if hits == how_much then
+            num_to_return = how_much + 1
+            local copy = deep_copy.copy(symbol, ipairs)
+            table.remove(copy, 1)
+            to_return = copy
+            break
+        end
+    end
+
+    return to_return, num_to_return
+end
+
 return module

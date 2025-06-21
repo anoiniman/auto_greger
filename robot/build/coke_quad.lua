@@ -82,7 +82,8 @@ Module.state_init = {
         }
     end,
     function(parent)
-        local new_machine = MetaInventory:newMachine(input_items, parent, symbol_index)
+        local new_machine = MetaInventory:newMachine(input_items, parent, '*', 1)
+        local new_machine = MetaInventory:newMachine(input_items, parent, '*', 2)
         -- new_machine["state_type"] = "inventory"
         return new_machine
     end,
@@ -95,8 +96,8 @@ Module.state_init = {
 
         local storage_table = {
             -- MetaInventory:newStorage(item_defs=, parent, symbol_index),
-            MetaInventory:newStorage(input_items, parent, 1),
-            MetaInventory:newStorage(output_items, parent, 2)
+            MetaInventory:newStorage(input_items, parent, '+', 1),
+            MetaInventory:newStorage(output_items, parent, '+', 2)
         }
         return {storage_table, 1}
     end
@@ -140,7 +141,7 @@ Module.hooks = { -- TODO this
 
         ::after_turn::
         -- let us hope this is good enough:
-        inv.dump_all_named(nil, "any:log", 0) -- should we do it for every item definition? Idk (TODO) for now ok
+        inv.dump_all_named(nil, "any:log", 0) -- TODO -> things like: dump_half named, or prepare half_and_half and so on idk
         return 1
     end,
     function(state)
