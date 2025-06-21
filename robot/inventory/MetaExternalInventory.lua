@@ -2,7 +2,8 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
-local MetaLedger = require("inventory.MetaLedger")
+-- local MetaLedger = require("inventory.MetaLedger")
+local VirtualInventory = require("inventory.VirtualInventory")
 local inv = require("inventory.inv_obj")
 
 -- as obvious, if it is an item inside a static storage it has no output
@@ -23,6 +24,17 @@ function MetaItem:new(name, lable, permissive, output)
     return new
 end
 
+local function get_storage_size(storage_type)
+    if storage_type == nil or storage_type == "chest" or storage_type == "normal_chest" then
+        return 27
+    elseif storage_type == "double_chest" then
+        return 54
+    elseif storage_type == "iron_chest" then
+        error(comms.robot_send("fatal", "unimplemented"))
+    else
+        error(comms.robot_send("fatal", "unimplemented"))
+    end
+end
 
 local Module = {
     parent_build = nil,
@@ -36,7 +48,7 @@ local Module = {
     special_block_index = nil,
 }
 
-function Module:new(item_defs, parent, is_cache, symbol, index)
+function Module:new(item_defs, parent, is_cache, symbol, index, storage_type)
     if not is_cache and parent == nil then
         print(comms.robot_send("error", "MetaExtInventory, parent is nil"))
         print(comms.robot_send("stack", debug.traceback()))
@@ -44,10 +56,13 @@ function Module:new(item_defs, parent, is_cache, symbol, index)
 
     local new = deep_copy.copy(self, pairs)
     new.item_defs = item_defs
-    new.ledger = MetaLedger:new()
+
+    local storage_size = get_storage_size(storage_type)
+    new.ledger = VirtualInventory:new(storage_size)     -- for now we'll do everything as a vinv to make things
+                                                        -- easier for us. If we start running out of ram then woops
     new.parent = parent
-    new.symbol = symbol,
-    new.special_block_index = index,
+    new.symbol = symbol
+    new.special_block_index = index
 
     inv.register_ledger(new) -- important
     return new
@@ -56,6 +71,15 @@ end
 function Module:getDistance()
     return self.parent:getDistToSpecial(self.symbol, self.special_block_index)
 end
+
+function Module:getCoords()
+    return self.parent:getSpecialCoords(self.symbol, self.special_block_index)
+end
+
+function Module:getChunk()
+    return deep_copy.copy(self.parent.what_chunk)
+end
+
 
 function Module:itemDefIter()
     local iteration = 0
@@ -66,7 +90,7 @@ function Module:itemDefIter()
             iteration = iteration + 1
             if iteration > 1 then return nil end
 
-            return self.item_defs
+            return 1, self.item_defs
         end
     end
 
@@ -80,8 +104,8 @@ function Module:itemDefIter()
 end
 
 
-function Module:newLongTermStorage(item_defs, parent)
-    local new = self:new(item_defs, parent)
+function Module:newLongTermStorage(item_defs, parent, symbol, index, storage_type)
+    local new = self:new(item_defs, parent, symbol, index, storage_type)
     new.storage = true
     new.long_term_storage = true
     return new
@@ -94,14 +118,14 @@ function Module:newSelfCache()
     return new
 end
 
-function Module:newStorage(item_defs, parent, symbol, index)
-    local new = self:new(item_defs, parent, symbol, index)
+function Module:newStorage(item_defs, parent, symbol, index, storage_type)
+    local new = self:new(item_defs, parent, symbol, index, storage_type)
     new.storage = true
     return new
 end
 
-function Module:newMachine(item_defs, parent, symbol, index)
-    local new = self:new(item_defs, parent, symbol, index)
+function Module:newMachine(item_defs, parent, symbol, index, storage_type)
+    local new = self:new(item_defs, parent, symbol, index, storage_type)
     new.storage = false
     return new
 end

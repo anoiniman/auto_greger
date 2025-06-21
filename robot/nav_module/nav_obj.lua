@@ -92,8 +92,7 @@ function module.is_setup_navigate_chunk()
 end
 
 function module.setup_navigate_chunk(what_chunk)
-    -- luacheck: ignore
-    local a, b = chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
+    chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
 end
 
 function module.navigate_chunk(what_kind)

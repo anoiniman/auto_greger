@@ -78,6 +78,11 @@ function Module:is_extra(str)
     return result
 end
 
+function Module:getSpecialCoords(what_symbol, index)
+    local symbol, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
+    return {symbol[2], symbol[3], symbol[4]}
+end
+
 function Module:getDistToSpecial(what_symbol, index)
     local symbol, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
     local x, z, y = symbol[2], symbol[3], symbol[4]

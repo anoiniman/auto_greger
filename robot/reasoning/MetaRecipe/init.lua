@@ -5,6 +5,7 @@ local comms = require("comms")
 
 local serialize = require("serialization")
 
+local LogisticTransfer = require("complex_algorithms.LogisticTransfer")
 local build_eval = require("eval.build")
 local map = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
@@ -54,7 +55,7 @@ end
 
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
-function MetaRecipe:isSatisfied(needed_quantity)
+function MetaRecipe:isSatisfied(needed_quantity, priority)
     if self.meta_type == "gathering" then
         -- Check if we got the tools
         error(comms.robot_send("fatal", "MetaRecipe todo01"))
@@ -96,18 +97,20 @@ function MetaRecipe:isSatisfied(needed_quantity)
                     local inner = dep.inlying_recipe
                     local dep_needed_quantity = needed_quantity * dep.input_multiplier
 
-                    -- there in lies the problem!
                     local count = inv.how_many_internal(inner.output.lable, inner.output.name)
-                    -- we have the stuff with us (make sure that the hook can handle this fact, aka, that we won't dump the needed
-                    -- stuff into an entry-cache chest ('?' symbol)
                     if count >= dep_needed_quantity then break end
 
                     -- TODO: if there is enough in long term storage return "all_good" + where we can find this, else recurse deeper
                     -- into our dependency tree by ways of searching inside ti for this output
-
-                    -- if ledger_exists(inner.output.name, inner.output.lable, required_quantity) then
-                    --      return "needs_logitics", extra_information
-                    -- else if this fails to then it must mean that this dependency is unsatisfied:
+                    local min_quant = math.min(dep_needed_quantity / 2, 24) -- might need to be optimised in the future
+                    local pinv = inv.get_nearest_external_inv(
+                        inner.output.lable, inner.output.name, min_quant, dep_needed_quantity
+                    )
+                    if pinv ~= nil then
+                        local inner = LogisticTransfer:new(pinv, "self")
+                        local logistic_nav = {priority, inner.doTheThing, inner}
+                        return "execute"
+                    end
 
                     found_dep = dep
                     break

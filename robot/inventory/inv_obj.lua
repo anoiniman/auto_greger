@@ -63,7 +63,9 @@ function module.how_many_total(lable, name)
     return quantity
 end
 
-function module.get_nearest_external_inv(lable, name, min_quantity)
+-- No, I'm not going to solve the travelling salesman problem
+local max_combined_travel = 512 + 128
+function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
     -- ordered with biggest in the pop position (#size - 1)
     local ref_quant_table = nil
     for _, fat_inv in ipairs(external_inventories) do
@@ -92,7 +94,21 @@ function module.get_nearest_external_inv(lable, name, min_quantity)
     end
     if ref_quant_table == nil then return nil end
 
-    return ref_quant_table[#ref_quant_table]
+    local dist_sum = 0
+    local quant_sum = 0
+    -- check if we aren't going to do too much travelling
+    for index, entry in ipairs(ref_quant_table) do
+        local i_quantity = entry[1]
+        local i_inv = entry[2]
+        local i_distance = i_inv:getDistance()
+
+        quant_sum = quant_sum + i_quantity
+        dist_sum = dist_sum + i_distance
+        if quant_sum >= total_needed_quantity then break end
+    end
+    if dist_sum > max_combined_travel or quant_sum < total_needed_quantity then return nil end
+
+    return ref_quant_table[#ref_quant_table][2] -- we'll be recomputing the table for everystep but who cares?
 end
 
 ---}}}
@@ -471,25 +487,43 @@ end
 --->>-- External Inventories --<<-------{{{
 --TODO interaction with external inventories and storage inventories
 
-function module.suck_all_vinventory(external_inventory)
+-- if a quantity is not provided then it is in "search" mode (only sucks what matches)
+function module.suck_vinventory(external_inventory, left_to_suck)
     local inv_table = external_inventory.inv_table
     for index = 1, #inv_table, 3 do
         local lable = inv_table[index]
         local name = inv_table[index + 1]
         local quantity = inv_table[index + 2]
 
-        local slot = (index + 2) / 3
-        if robot.select(slot) ~= slot then
-            print(comms.robot_send("error", "An error occuring sucking all vinventory: slot unable to be selected"))
-            goto continue
+        local cur_suck_quantity = 64
+        if left_to_suck ~= nil then
+            local div = math.floor(suck_quantity / 64)
+            if div == 0 then
+                cur_suck_quantity = left_to_suck
+            elseif div < 0 then error(comms.robot_send("fatal", "impossible state")) end
+            -- else retain 64
+
+            local match_found = false
+            for _, meta_item in external_inventory:itemDefIter() do
+                if lable == meta_item.lable and (name == "generic" or name == meta_item.name) then
+                    match_found = true
+                    break
+                end
+            end
+            if not match_found then goto continue end
         end
-        if not robot.drop() then
-            print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to drop"))
+
+        -- TODO (start from here) robot.select() and item stack merging chenanigans!
+        local slot = (index + 2) / 3
+        if not inventory.suckFromSlot(sides_api.front, slot, cur_suck_quantity) then
+            print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to suck"))
             goto continue
         end
 
-        self.virtual_inventory:addOrCreate(lable, name, quantity, get_forbidden_table())
-        external_inventory:removeFromSlot(slot, quantity)
+        local how_much_sucked = math.min(cur_suck_quantity, quantity)
+        self.virtual_inventory:addOrCreate(lable, name, how_much_sucked, get_forbidden_table())
+        external_inventory:removeFromSlot(slot, how_much_sucked)
+        left_to_suck = left_to_suck - how_much_sucked
 
         ::continue::
     end
@@ -498,7 +532,9 @@ function module.suck_all_vinventory(external_inventory)
 end
 
 -- after all this update inventories
-function module.suck_all_ledger(external_ledger)
+function module.suck_ledger(external_ledger)
+    error(comms.robot_send("fatal", "todo, the search things and maybe more?"))
+
     local result = true
     while result do
         result = robot.suck()
@@ -515,8 +551,17 @@ function module.suck_all(external_inventory) -- runs no checks what-so-ever (ass
     local inv_type = external_inventory.inv_type
     if inv_type == nil then inv_type = "nil" end
 
-    if inv_type == "ledger" then module.suck_all_ledger(external_inventory)
-    elseif inv_type ~= "virtual_inventory" then module.suck_all_vinventory(external_inventory)
+    if inv_type == "ledger" then module.suck_ledger(external_inventory, false)
+    elseif inv_type ~= "virtual_inventory" then module.suck_vinventory(external_inventory, false)
+    else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
+end
+
+function module.suck_only_named(external_inventory, quantity)
+    local inv_type = external_inventory.inv_type
+    if inv_type == nil then inv_type = "nil" end
+
+    if inv_type == "ledger" then module.suck_ledger(external_inventory, true, quantity)
+    elseif inv_type ~= "virtual_inventory" then module.suck_vinventory(external_inventory, true, quantity)
     else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
 end
 
