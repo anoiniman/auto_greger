@@ -497,6 +497,8 @@ function module.suck_vinventory(external_inventory, left_to_suck)
 
         local cur_suck_quantity = 64
         if left_to_suck ~= nil then
+            if left_to_suck <= 0 then break end
+
             local div = math.floor(suck_quantity / 64)
             if div == 0 then
                 cur_suck_quantity = left_to_suck
@@ -513,7 +515,11 @@ function module.suck_vinventory(external_inventory, left_to_suck)
             if not match_found then goto continue end
         end
 
-        -- TODO (start from here) robot.select() and item stack merging chenanigans!
+        -- I'm going to trust it is this simple, because the way the api's "suck into slot" and our
+        -- addOrCreate seem to map 1-to-1, if de-syncs start to happen use a smarter solution I guess
+        local internal_slot = self.virtual_inventory:getSmallestSlot(lable, name)
+        robot.select(internal_slot)
+
         local slot = (index + 2) / 3
         if not inventory.suckFromSlot(sides_api.front, slot, cur_suck_quantity) then
             print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to suck"))
@@ -523,7 +529,9 @@ function module.suck_vinventory(external_inventory, left_to_suck)
         local how_much_sucked = math.min(cur_suck_quantity, quantity)
         self.virtual_inventory:addOrCreate(lable, name, how_much_sucked, get_forbidden_table())
         external_inventory:removeFromSlot(slot, how_much_sucked)
-        left_to_suck = left_to_suck - how_much_sucked
+        if left_to_suck ~= nil then
+            left_to_suck = left_to_suck - how_much_sucked
+        end
 
         ::continue::
     end
@@ -581,20 +589,31 @@ function module.dump_all_possible(external_ledger) -- respect "special slots" (a
     return true
 end
 
-function module.dump_all_named(lable, name, external_ledger)
+-- if no "left_to_dump" provided dump everything
+function module.dump_only_named(lable, name, external_ledger, left_to_dump)
     local matching_slots = virtual_inventory:getAllSlots(lable, name)
     if matching_slots == nil then return nil end
 
     for _, entry in ipairs(matching_slots) do
+        local how_much_to_drop = 64
+        if left_to_dump ~= nil then
+            if left_to_dump <= 0 then break end
+            local div = math.floor(left_to_dump / 64)
+            if div == 0 then how_much_to_drop = left_to_dump end
+        end
+
         local slot = entry[1]
         local quantity = entry[2]
 
+        how_much_to_drop = math.min(quantity, how_much_to_drop)
         robot.select(slot)
-        if not robot.drop() then goto continue end
+        if not robot.drop(how_much_to_drop) then goto continue end
         virtual_inventory:subtract(lable, name, quantity)
 
         if external_ledger == nil or type(external_ledger) ~= "table" then goto continue end
         external_ledger:addOrCreate(lable, name, quantity, nil)
+
+        if left_to_dump ~= nil then left_to_dump = left_to_dump - how_much_to_drop end
 
         ::continue::
     end

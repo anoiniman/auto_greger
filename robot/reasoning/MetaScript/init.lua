@@ -151,15 +151,15 @@ end
 local recurse_watch_dog = 0
 -- recurse through the recipe tree to find out in what place in the tree can we start to fulfil a certain request
 -- needed_quantity will need to be mutated because, for example: 1 pickaxe -> 3 flint -> 9 gravel (TODO)
-local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script, priority)
+local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
     local recurse = false
     local recipe_to_execute = head_recipe
 
     -- Type of extra_info and its usage is dependent of check value returned
     local return_info
-    local check, extra_info = head_recipe:isSatisfied(needed_quantity, priority)
+    local check, extra_info = head_recipe:isSatisfied(needed_quantity)
     if check == "breadth" then -- will return back and tell caller to find a sister if possible
-        return 1
+        return "breadth"
     elseif check == "depth" then -- will continue deeper
         recurse = true
         recipe_to_execute = extra_info.inlying_recipe
@@ -171,6 +171,9 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script, 
     elseif check == "non_fatal_error" then
         print(comms.robot_send("warning", "recurse_recipe_tree non_fatal_error, check your ils for more information"))
         return nil
+    elseif check == "execute" then
+        recipe_to_execute = "execute"
+        return_info = extra_info
     else
         error(comms.robot_send("fatal", "recurse_recipe_tree, unknown"))
     end
@@ -182,7 +185,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script, 
     end
     recurse_watch_dog = recurse_watch_dog + 1
 
-    return recurse_recipe_tree(recipe_to_execute, needed_quantity, parent_script, priority) -- tail recursion
+    return recurse_recipe_tree(recipe_to_execute, needed_quantity, parent_script) -- tail recursion
 end
 
 -- Some day please fix the idiotic polymorphism of this whole code section
@@ -201,8 +204,6 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         return nil
     end
 
-    -- TODO -> check if the "recipe" is already fulfuliled by internal/external inventory, and if not keep
-    -- recursing until you endup in a gathering (or into a satisfied inventory)
     local needed_quantity
     if quantity_override == nil then
         needed_quantity = self.constraint.const_obj.set_count
@@ -211,15 +212,22 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     end
 
     local extra_info
-    needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity, self.priority)
+    needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity)
 
     -- TODO implement mechanism to unlock this lock
     if needed_recipe == nil then
         -- TODO -- add different lock number for: "we check again after this many seconds"
         self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
         return nil
-    elseif needed_recipe == 1 then -- TODO
+    elseif needed_recipe == "breadth" then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))
+    elseif needed_recipe == "execute" then
+        -- nice and abstract
+        if extra_info == nil or type(extra_info) ~= "table" then error(comms.robot_send("fatal", "bad arguments!")) end
+        table.insert(extra_info, 1, self.priority)
+        table.insert(extra_info, self.constraint.const_obj.lock)
+        local return_table = extra_info
+        return return_table
     end
     print(comms.robot_send("debug", "Found needed_recipe for: " .. needed_recipe.output.lable))
 

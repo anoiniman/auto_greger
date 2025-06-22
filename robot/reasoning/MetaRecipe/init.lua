@@ -55,7 +55,7 @@ end
 
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
-function MetaRecipe:isSatisfied(needed_quantity, priority)
+function MetaRecipe:isSatisfied(needed_quantity)
     if self.meta_type == "gathering" then
         -- Check if we got the tools
         error(comms.robot_send("fatal", "MetaRecipe todo01"))
@@ -100,16 +100,16 @@ function MetaRecipe:isSatisfied(needed_quantity, priority)
                     local count = inv.how_many_internal(inner.output.lable, inner.output.name)
                     if count >= dep_needed_quantity then break end
 
-                    -- TODO: if there is enough in long term storage return "all_good" + where we can find this, else recurse deeper
-                    -- into our dependency tree by ways of searching inside ti for this output
+                    -- if there is enough in external storage return "execute" + with a command to do logistics
+                    -- else recurse into our dependency tree by ways of searching inside ti for this output
                     local min_quant = math.min(dep_needed_quantity / 2, 24) -- might need to be optimised in the future
                     local pinv = inv.get_nearest_external_inv(
                         inner.output.lable, inner.output.name, min_quant, dep_needed_quantity
                     )
                     if pinv ~= nil then
                         local inner = LogisticTransfer:new(pinv, "self")
-                        local logistic_nav = {priority, inner.doTheThing, inner}
-                        return "execute"
+                        local logistic_nav = {inner.doTheThing, inner} -- command gets "completed" by caller
+                        return "execute", logistic_nav
                     end
 
                     found_dep = dep

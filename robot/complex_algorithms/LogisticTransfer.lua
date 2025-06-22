@@ -26,6 +26,7 @@ function Module:new(from_inventory, to_inventory)
     return new
 end
 
+-- TODO, have a look here and see if it is finished
 function Module:doLogistics()
     local inv_action
     local target_inv

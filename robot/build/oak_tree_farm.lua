@@ -219,7 +219,7 @@ Module.hooks = {
         local cur_storage = storage_table[cur_index]
 
         for _, item_def in cur_storage:itemDefIter() do
-            inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
+            inv.dump_only_named(item_def.lable, item_def.name, cur_storage.ledger)
         end
         return 1
     end,

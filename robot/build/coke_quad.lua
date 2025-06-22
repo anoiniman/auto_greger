@@ -141,7 +141,7 @@ Module.hooks = { -- TODO this
 
         ::after_turn::
         -- let us hope this is good enough:
-        inv.dump_all_named(nil, "any:log", 0) -- TODO -> things like: dump_half named, or prepare half_and_half and so on idk
+        inv.dump_only_named(nil, "any:log", 0) -- TODO -> things like: dump_half named, or prepare half_and_half and so on idk
         return 1
     end,
     function(state)
@@ -149,7 +149,7 @@ Module.hooks = { -- TODO this
         local cur_storage = storage_table[index]
 
         for _, item_def in cur_storage:itemDefIter() do
-            inv.dump_all_named(item_def.lable, item_def.name, cur_storage.ledger)
+            inv.dump_only_named(item_def.lable, item_def.name, cur_storage.ledger)
         end
 
         state[2] = state[2] + 1

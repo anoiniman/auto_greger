@@ -153,6 +153,11 @@ function Module:howMany(lable, name)
     return total
 end
 
+function Module:howManySlot(slot)
+    local index = (slot * 3) - 2
+    return self.inv_table[index + 2]
+end
+
 function Module:getSmallestSlot(lable, name) -- returns a slot num
     name = bucket_funcs.identify(name, lable)
 
