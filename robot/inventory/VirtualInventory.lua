@@ -114,15 +114,28 @@ function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
     return remainder
 end
 
-function Module:getAllSlots(lable, name)
-    return self:getAllSlotsInternal(lable, name, self.checkEntry)
+-- of lable is left nil, the behaviour will be identical to getAllSlotsPermissive,
+-- if you want Strict mode only (return nil on nil lable), use "getAllSlotsStrict"
+function Module:getAllSlots(lable, name, up_to)
+    local check_func
+    if lable ~= nil then check_func = self.checkEntry
+    else check_func = self.checkEntryPermissive end
+
+    return self:getAllSlotsInternal(lable, name, check_func, up_to)
 end
 
-function Module:getAllSlotsPermissive(name)
-    return self:getAllSlotsInternal(nil, name, self.checkEntryPermissive)
+function Module:getAllSlotsStrict(lable, name, up_to)
+    if lable == nil then return nil end
+    return self:getAllSlotsInternal(lable, name, self.checkEntry, up_to)
 end
 
-function Module:getAllSlotsInternal(lable, name, check_func)
+function Module:getAllSlotsPermissive(name, up_to)
+    return self:getAllSlotsInternal(nil, name, self.checkEntryPermissive, up_to)
+end
+
+function Module:getAllSlotsInternal(lable, name, check_func, up_to)
+    if up_to == nil then up_to = 100000 end
+
     name = bucket_funcs.identify(name, lable)
 
     local slot_table = {}
@@ -132,7 +145,14 @@ function Module:getAllSlotsInternal(lable, name, check_func)
         end
 
         local slot = (index + 2) / 3
-        local new_entry = {slot, self.inv_table[index + 2]} -- slot, quantity
+        local quantity = self.inv_table[index + 2]
+
+        -- this code segment works to return only as many slots as you need to get the x quantity
+        up_to = up_to - quantity
+        if up_to < 0 then quantity = quantity + up_to end
+        if quantity <= 0 then break end
+
+        local new_entry = {slot, quantity}
         table.insert(slot_table, new_entry)
 
         ::continue::

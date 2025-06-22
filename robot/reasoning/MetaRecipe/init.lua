@@ -3,7 +3,9 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+-- luacheck: push ignore
 local serialize = require("serialization")
+-- luacheck: pop
 
 local LogisticTransfer = require("complex_algorithms.LogisticTransfer")
 local build_eval = require("eval.build")
@@ -98,7 +100,7 @@ function MetaRecipe:isSatisfied(needed_quantity)
                     local dep_needed_quantity = needed_quantity * dep.input_multiplier
 
                     local count = inv.how_many_internal(inner.output.lable, inner.output.name)
-                    if count >= dep_needed_quantity then break end
+                    if count >= dep_needed_quantity then goto continue end
 
                     -- if there is enough in external storage return "execute" + with a command to do logistics
                     -- else recurse into our dependency tree by ways of searching inside ti for this output
@@ -106,8 +108,13 @@ function MetaRecipe:isSatisfied(needed_quantity)
                     local pinv = inv.get_nearest_external_inv(
                         inner.output.lable, inner.output.name, min_quant, dep_needed_quantity
                     )
+
+                    -- It is complicated to chain these things together without assembling complicated algorithms,
+                    -- so we'll go with the simpler and least efficient route of going to the first thing we're missing
                     if pinv ~= nil then
-                        local inner = LogisticTransfer:new(pinv, "self")
+                        local item_table = {inner.output.lable, inner.output.name, dep_needed_quantity}
+                        local to_transfer = {item_table}
+                        local inner = LogisticTransfer:new(pinv, "self", to_transfer)
                         local logistic_nav = {inner.doTheThing, inner} -- command gets "completed" by caller
                         return "execute", logistic_nav
                     end
@@ -121,9 +128,9 @@ function MetaRecipe:isSatisfied(needed_quantity)
                 -- TODO: this works in the case we have the missing resources in our inventory, however if these missing resources are
                 -- in fact in long-term storage we'll need to return something different, so that the robot may first retrieve these
                 -- items and only then proceed to the building we want to use
-                if found_dep == nil then 
+                if found_dep == nil then
                     print(comms.robot_send("debug", "all_good in MetaRecipe search building_thing"))
-                    return "all_good", build 
+                    return "all_good", build
                 end
 
                 print(comms.robot_send("debug", "depth_recurse in MetaRecipe search building_thing"))
