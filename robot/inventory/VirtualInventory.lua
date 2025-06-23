@@ -64,6 +64,8 @@ local function calc_add_to_stack(current, to_add)
 end
 
 function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
+    name = bucket_funcs.identify(name, lable)
+
     for index = 1, self.table_size, 3 do
         local slot = (index + 2) / 3
         if search_table.ione(forbidden_slots, slot) then goto continue end
@@ -135,7 +137,6 @@ end
 
 function Module:getAllSlotsInternal(lable, name, check_func, up_to)
     if up_to == nil then up_to = 100000 end
-
     name = bucket_funcs.identify(name, lable)
 
     local slot_table = {}
@@ -178,6 +179,10 @@ function Module:howManySlot(slot)
     return self.inv_table[index + 2]
 end
 
+-- One Day VVVVV
+--[[function Module:customGetSlot(lable, name, condition)
+end--]]
+
 function Module:getSmallestSlot(lable, name) -- returns a slot num
     name = bucket_funcs.identify(name, lable)
 
@@ -204,6 +209,33 @@ function Module:getSmallestSlot(lable, name) -- returns a slot num
     return smallest_slot
 end
 
+function Module:getLargestSlot(lable, name)
+    name = bucket_funcs.identify(name, lable)
+
+    local slot_table = self:getAllSlots(lable, name)
+    if slot_table == nil then return nil end
+
+    local largest_slot = -1
+    local largest_stack = 0
+    for _, inner_table in ipairs(slot_table) do
+        local slot = inner_table[1]
+        local stack_size = inner_table[2]
+        if slot <= 0 then error(comms.robot_send("fatal", "slot assert failed")) end
+        if type(stack_size) ~= "number" or stack_size <= 0 or stack_size > 64 then
+            error(comms.robot_send("fatal", "stack_size assert failed"))
+        end
+
+        if stack_size > largest_stack then
+            largest_slot = slot
+            largest_stack = stack_size
+        end
+    end
+
+    if largest_slot == -1 then return nil end
+    return largest_slot
+end
+
+
 -- 1 stack at the time obvs
 function Module:removeFromSlot(what_slot, how_much) -- returns how much was actually removed
     local offset = (what_slot * 3) - 2
@@ -220,6 +252,20 @@ function Module:removeFromSlot(what_slot, how_much) -- returns how much was actu
 
     if excess < 0 then return real_removed end
     return how_much
+end
+
+function Module:exchangeSlots(a, b)
+    local offset_a = (a * 3) - 2
+    local offset_b = (b * 3) - 2
+
+    for index = 0, 2, 1 do
+        local a_index = offset_a + index
+        local b_index = offset_b + index
+
+        local temp = self.inv_table[b_index]
+        self.inv_table[b_index] = self.inv_table[a_index]
+        self.inv_table[a_index] = temp
+    end
 end
 
 function Module:forceUpdateAsForeign()

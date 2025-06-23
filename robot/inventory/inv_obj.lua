@@ -626,17 +626,43 @@ function module.isCraftActive()
     return use_self_craft
 end
 
-function module.debug_force_add()
-    for i in free_slot_iter() do
-        local quantity = robot.count(i)
-        if quantity == 0 then goto continue end
-
-        local item = inventory.getStackInInternalSlot(i)
-        local name = item.name; local lable = item.label
-        virtual_inventory:addOrCreate(name, lable, quantity)
-
-        ::continue::
+-- TODO, left it off here
+local function self_craft(dictionary, recipe, number)
+    if not crafting_table_clear then
+        print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
+        return false
     end
+
+    for c_table_slot, char in ipairs(recipe) do
+        -- this correction needs to be done because crafting table is 3 slots wide, but robot inventory is 4 slots wide
+        if c_table_slot > 6 then c_table_slot = c_table_slot + 2
+        elseif c_table_slot > 3 then c_table_slot = c_table_slot + 1 end
+
+        local lable, name
+        local ingredient = dictionary[char]
+        if type(ingredient) == "table" then -- select strict search (or permissive is ingredient[1] is nil)
+            lable = ingredient[1]
+            name = ingredient[2]
+        else -- select lable-only search
+            lable = ingredient
+            name = nil --> "generic" (remember than "generic" will match any other name)
+        end
+
+        local ingredient_slot = virtual_inventory:getLargestSlot(lable, name)
+        local result = robot.select(ingredient_slot)
+        if result ~= a or not robot.transferTo(c_table_slot) then
+            print(comms.robot_send("error", "something went wrong in self_crafting"))
+            return false
+        end
+
+        virtual_inventory:exchangeSlots(a, b) -- equivalent to exchangeSlots(b, a)
+    end
+end
+
+-- recipe as defined in reasoning
+function module.craft(dictionary, recipe, number)
+    if use_self_craft then return self_craft(dictionary, recipe, number)
+    else error(comms.robot_send("fatal", "TODO!")) end
 end
 
 ---}}}

@@ -8,7 +8,7 @@ local sweep = require("complex_algorithms.sweep")
 -- but, for compatibility, we'll use oak_logs as our only vanilla logs
 -- maybe spruce wood for charcoaling_wood, but in general prioritise oak logs
 -- unless ya'know anything else is needed but hey.
-local module.dictionary = { ol = "oak_log", g = "gravel", f = "flint", s = "stick" }
+local module.dictionary = { ol = "Oak Wood", g = "Gravel", f = "Flint", s = "Stick" }
 
 local temp = nil
 local algo_pass = nil
