@@ -267,10 +267,22 @@ local function free_slot_iter()
     end
 end
 
---
----}}}
 
--->>-- Clear Any Slot --<<-- {{{
+local function sort_slot_table(tbl)
+    for head = 2, #all_slots do
+        local key = all_slots[head]
+
+        local t_index = head - 1
+        while t_index >= 1 and all_slots[t_index][2] > key[2] do
+            all_slots[t_index + 1] = all_slots[t_index]
+            t_index = t_index - 1
+        end
+
+        all_slots[t_index + 1] = key
+    end
+end
+
+------>>-- LE CLEAR SLOTS FUNCTIONS --<<-----------
 
 local function clear_any_slot(iter, target_count)
     if robot.count(target_count) == 0 then return true end -- nothing needs to be done
@@ -298,6 +310,85 @@ end
 local function clear_first_slot(iter)
     return clear_any_slot(iter, 1)
 end
+
+-- local function force_clear_crafting_table()
+-- end
+
+-----------------------------------------
+
+
+local function compress_into_slot(lable, name, slot)
+    local all_slots = virtual_inventory:getAllSlots(lable, name)
+
+    -- Order things up in place (smallest to biggest)
+    sort_slot_table(all_slots)
+
+    -- Now we exclude the "slot" slot from the table, and "recover it" (transmute from number to table)
+    for index, element in ipairs(all_slots) do
+        if element[1] == slot then
+            slot = table.remove(all_slots, index)
+            break
+        end
+    end
+    if type(slot) ~= "table" then error(comms.robot_send("fatal", "assertion failed")) end
+
+    for _, element in ipairs(all_slots) do
+        local inner_slot = element[1]
+        local inner_size = element[2]
+        if inner_size == 64 then break end
+
+        local target_slot = slot[2]
+        local cur_target_size = slot[2]
+
+        local sum = cur_target_size + inner_size
+        local diff = 64 - sum
+
+        local to_transfer = math.min(64, 64 + diff) -- if diff is negative then the min will be smaller than 64
+        if to_transfer <= 0 then break end
+
+        local detect = robot.detectUp()
+        if detect then
+            print(comms.robot_send("error", "could not perform exchange, no space above"))
+            return false
+        end
+
+        local empty_slot = virtual_inventory:getEmptySlot()
+        if empty_slot == nil then error(comms.robot_send("error", "assertion failed")) end
+
+        robot.select(inner_slot)
+        if not robot.transferTo(empty_slot, to_transfer) then
+            print(comms.robot_send("error", "could not perform exchange, couldn't transfer to empty"))
+            robot.select(1)
+            return false
+        end
+        robot.select(empty_slot)
+
+        if not robot.dropUp() then -- drops entire item stack!
+            print(comms.robot_send("error", "could not perform exchange, couldn't dropUp \n\z
+                As a consequence the inventory representation is now effed, force updating inventory.... \n\z
+                Crafting table is now probabily poluted, you'll have to fix that on your own!
+            "))
+            module.force_update_vinv()
+
+            robot.select(1)
+            return false
+        end
+
+        robot.select(target_slot)
+        local result = true
+        while result do
+            result = robot.suckUp()
+        end
+
+        -- Important: this below updates the internal represetation of the inventory to match the new state:
+       virtual_inventory:removeFromSlot(inner_slot, to_transfer)
+       virtual_inventory:forceUpdateSlot(lable, name, cur_target_size + to_transfer, target_slot)
+    end
+    robot.select(1)
+    return true
+end
+
+--
 ---}}}
 
 --->>-- Tool Use --<<-----{{{
@@ -601,11 +692,11 @@ function module.dump_only_matching(external_inventory, matching_slots)
 
         robot.select(slot)
         if not robot.drop(quantity) then goto continue end
+        virtual_inventory:subtract(slot, quantity)
+
         local index = (slot * 3) - 2
         local lable = virtual_inventory.inv_table[index]
         local name = virtual_inventory.inv_table[index + 1]
-
-        virtual_inventory:subtract(lable, name, quantity)
 
         if external_inventory == nil or type(external_inventory) ~= "table" then goto continue end
         external_inventory:addOrCreate(lable, name, quantity, nil)
@@ -626,18 +717,26 @@ function module.isCraftActive()
     return use_self_craft
 end
 
--- TODO, left it off here
-local function self_craft(dictionary, recipe, number)
+-- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
+local function self_craft(dictionary, recipe, how_much_to_craft, expected_output)
+    expected_output = math.min(64, expected_output)
+
     if not crafting_table_clear then
         print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
         return false
     end
 
-    for c_table_slot, char in ipairs(recipe) do
-        -- this correction needs to be done because crafting table is 3 slots wide, but robot inventory is 4 slots wide
-        if c_table_slot > 6 then c_table_slot = c_table_slot + 2
-        elseif c_table_slot > 3 then c_table_slot = c_table_slot + 1 end
+    local occurence_table = {} -- = {slot_a, slob_b, .... slot_c}
+    for slot, char in ipairs(recipe) do
+        if occurence_table[char] == nil then
+            occurence_table[char] = {slot}
+        else
+            table.insert(occurence_table[char], slot)
+        end
+    end
 
+    local clean_up = false
+    for _, sub_table in ipairs(occurence_table) do
         local lable, name
         local ingredient = dictionary[char]
         if type(ingredient) == "table" then -- select strict search (or permissive is ingredient[1] is nil)
@@ -648,20 +747,72 @@ local function self_craft(dictionary, recipe, number)
             name = nil --> "generic" (remember than "generic" will match any other name)
         end
 
-        local ingredient_slot = virtual_inventory:getLargestSlot(lable, name)
-        local result = robot.select(ingredient_slot)
-        if result ~= a or not robot.transferTo(c_table_slot) then
-            print(comms.robot_send("error", "something went wrong in self_crafting"))
-            return false
+        local how_many_needed = #sub_table
+        local how_many_in_inv = virtual_inventory:howMany(lable, name)
+        local how_many_can_craft = math.floor(how_many_in_inv / how_many_needed)
+        if how_many_can_craft < how_much_to_craft then -- no bueno
+            clean_up = true
+            break
         end
 
-        virtual_inventory:exchangeSlots(a, b) -- equivalent to exchangeSlots(b, a)
+        for _, slot in ipairs(sub_table) do
+            -- this correction needs to be done because crafting table is 3 slots wide, but robot inventory is 4 slots wide
+            if c_table_slot > 6 then c_table_slot = c_table_slot + 2
+            elseif c_table_slot > 3 then c_table_slot = c_table_slot + 1 end
+
+            local ingredient_slot = virtual_inventory:getLargestSlot(lable, name)
+            local slot_size = virtual_inventory:howManySlot(ingredient_slot)
+            if slot_size < how_much_to_craft then
+                local result = compress_into_slot(lable, name, ingredient_slot)
+                if not result then clean_up = true; break end
+            end
+
+            local result = robot.select(ingredient_slot)
+            if result ~= a or not robot.transferTo(c_table_slot, how_much_to_craft) then
+                print(comms.robot_send("error", "something went wrong in self_crafting"))
+                clean_up = true
+                break
+            end
+        end
+    end -- Then check for errors
+    if clean_up then
+        print(comms.robot_send("error", "TODO -> actually clean-up crafting-grid in case of error"))
+        return false
     end
+
+    -- Now the virtual crafting-table should be assembled, lets do the thing!
+    local output_slot = virtual_inventory:getSmallestSlot(expected_output.lable, expected_output.name)
+    if  output_slot == nil
+        or virtual_inventory:howManySlot(output_slot) + how_much_to_craft > 64
+    then
+        output_slot = virtual_inventory:getEmptySlot(get_forbidden_table())
+    end
+
+    if output_slot == nil then error(comms.robot_send("fatal", "assert failed!")) end
+    robot.select(output_slot)
+    local result = crafting_component.craft(64)     -- craft as many as possible, in case of gross oversight
+                                                    -- this should at least keep the crafting area clear
+
+    if not result then
+        error(comms.robot_send("fatal", "failed to craft :("))
+    end
+
+
+    -- Optimistically Update the thingy-majig
+    if expected_output ~= nil then
+        virtual_inventory:forceUpdateSlot(expected_output.lable, expected_output.name, how_much_to_craft, output_slot)
+    else
+        local item_info = inventory.getStackInInternalSlot(output_slot)
+        virtual_inventory:forceUpdateSlot(item_info.label, item_info.name, how_much_to_craft, output_slot)
+    end
+
+    robot.select(1)
+    return true
 end
 
 -- recipe as defined in reasoning
-function module.craft(dictionary, recipe, number)
-    if use_self_craft then return self_craft(dictionary, recipe, number)
+function module.craft(dictionary, recipe, how_much)
+    if use_self_craft then return self_craft(dictionary, recipe, how_much)
     else error(comms.robot_send("fatal", "TODO!")) end
 end
 
@@ -678,9 +829,10 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
                             -- there before, or if a stack was already full -> aka rare
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(1)
-        local name = item.name; local lable = item.label
-        virtual_inventory:addOrCreate(name, lable, quantity)
+        local lable = item.label; local name = item.name
+        virtual_inventory:addOrCreate(lable, name, quantity, get_forbidden_table())
 
+        -- Make sure that these clear_functions act in the sameway that addOrCreate does (I think it does but who knows)
         if use_self_craft then result = clear_first_slot(non_craft_slot_iter)
         else result = clear_first_slot(free_slot_iter) end
 
@@ -692,8 +844,8 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
     end -- else it means it either didn't fall into the first slot or it didn't fall in the first place
 
     local slot_table = nil
-    -- [3] - We'll have to do it the dumb way
     -- [1] - Strict Matching, find this lable, [2] - Name Matching, find all that matches this "bucket"
+    -- [3] - We'll have to do it the dumb way
     if lable_hint ~= nil then slot_table = virtual_inventory:getAllSlots(lable_hint, name_hint)
     elseif name_hint ~= nil then slot_table = virtual_inventory:getAllSlotsPermissive(name_hint)
     else
@@ -710,9 +862,9 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         -- haha, something did get added (assume only 1 stack at the time so return)
         local diff = expected_quantity - stack_info.size
         if diff > 0 then
-            virtual_inventory:subtract(diff)
+            virtual_inventory:subtract(slot, diff)
         elseif diff < 0 then
-            virtual_inventory:addOrCreate(math.abs(diff))
+            virtual_inventory:addOrCreate(lable, name, math.abs(diff), get_forbidden_table())
         end -- else all good, keep checking
     end
 
@@ -725,13 +877,13 @@ function module.force_add_in_slot(slot) -- ahr ahr
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(slot)
         local name = item.name; local lable = item.label
-        virtual_inventory:addOrCreate(lable, name, quantity)
+        virtual_inventory:forceUpdateSlot(lable, name, quantity, slot)
     end
     -- Separate out into a function that clears the crafting table for us?
 end
 
 function module.force_update_vinv()
-    virtual_inventory:forceUpdateInternal(get_forbidden_table())
+    virtual_inventory:forceUpdateInternal()
 end
 
 -- temp thing to get us going

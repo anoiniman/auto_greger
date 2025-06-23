@@ -4,7 +4,7 @@ local sides_api = require("sides")
 
 local deep_copy = require("deep_copy")
 local comms = require("comms")
-local search_table = require("search_i_table")
+local search_table = require("search_table")
 
 local bucket_funcs, _ = table.unpack(require("inventory.item_buckets"))
 local inventory = component.getPrimary("inventory_controller")
@@ -85,6 +85,7 @@ function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
     return to_be_added
 end
 
+-- WARNING: If addOrCreate doesn't mimic/isn't used 100% accuratly to model the real behaviour we're ffed
 -- if name is not provided, name is probably generic, if name is generic, it is accepted by any lable
 function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
     name = bucket_funcs.identify(name, lable)
@@ -162,6 +163,20 @@ function Module:getAllSlotsInternal(lable, name, check_func, up_to)
     return slot_table
 end
 
+function Module:getEmptySlot(forbidden_slots) -- including forbidden ones!
+    for index = 1, #self.inv_table, 3 do
+        local empty = self.inv_table[index] == EMPTY_STRING
+        if not empty then goto continue end
+
+        slot = (index + 2) / 3
+        if search_table.ione(forbidden_slots, slot) then goto continue end
+
+        if true then return slot end
+        ::continue::
+    end
+    return nil
+end
+
 function Module:howMany(lable, name)
     local slot_table = self:getAllSlots(lable, name)
 
@@ -235,7 +250,6 @@ function Module:getLargestSlot(lable, name)
     return largest_slot
 end
 
-
 -- 1 stack at the time obvs
 function Module:removeFromSlot(what_slot, how_much) -- returns how much was actually removed
     local offset = (what_slot * 3) - 2
@@ -268,15 +282,29 @@ function Module:exchangeSlots(a, b)
     end
 end
 
+function Module:forceUpdateSlot(lable, name, quantity, slot)
+    if lable == nil then
+        print(comms.robot_send("error", "foceUpdateSlot - lable not provided!"))
+        print(comms.robot_send("error", debug.traceback()))
+        return
+    end
+    name = bucket_funcs.identify(name, lable)
+
+    local index = (slot * 3) - 2
+    self.inv_table[index] = lable
+    self.inv_table[index + 1] = name
+    self.inv_table[index + 2] = quantity
+end
+
 function Module:forceUpdateAsForeign()
     self:forceUpdateGeneral(false)
 end
 
-function Module:forceUpdateInternal(forbidden_slots)
-    self:forceUpdateGeneral(true, forbidden_slots)
+function Module:forceUpdateInternal()
+    self:forceUpdateGeneral(true)
 end
 
-function Module:forceUpdateGeneral(is_internal, forbidden_slots)
+function Module:forceUpdateGeneral(is_internal)
     local temp = Module:new(self.max_size)
     for slot = 1, self.max_size, 1 do
         local stack_info
@@ -285,7 +313,7 @@ function Module:forceUpdateGeneral(is_internal, forbidden_slots)
 
         if stack_info == nil then goto continue end
 
-        temp:addOrCreate(stack_info.label, stack_info.name, stack_info.size, forbidden_slots)
+        temp:addOrCreate(stack_info.label, stack_info.name, stack_info.size, slot)
         ::continue::
     end
 
