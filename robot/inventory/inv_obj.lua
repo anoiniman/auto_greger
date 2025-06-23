@@ -6,6 +6,8 @@ local component = require("component")
 local sides_api = require("sides")
 local robot = require("robot")
 local text = require("text")
+local serialize = require("serialization")
+local filesystem = require("filesystem")
 
 local deep_copy = require("deep_copy")
 local comms = require("comms")
@@ -18,7 +20,7 @@ local VirtualInventory = require("inventory.VirtualInventory")
 local SpecialDefinition = require("inventory.SpecialDefinition")
 --local external_iobj = require("inventory.external_inv_obj")
 
-local crafting = component.getPrimary("crafting")
+local crafting_component = component.getPrimary("crafting")
 local inventory = component.getPrimary("inventory_controller")
 --}}}
 
@@ -29,6 +31,7 @@ local used_up_capacity = 0
 
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 local tool_belt_slots = {}
+local slot_managed = {}
 
 local crafting_table_clear = true
 local use_self_craft = true
@@ -42,6 +45,52 @@ module.virtual_inventory = virtual_inventory -- ref
 local external_inventories = {}
 
 local equiped_tool = nil
+
+function module.serialize()
+    local virtual_inventory = virtual_inventory:serialize()
+    local external_table = {}
+    for _, vinv_external in ipairs(external_inventories) do
+        local serial = vinv_external:serialize()
+        table.insert(external_table, serial)
+    end
+    
+    -- local inv_size = serialize.serialize(inventory_size, false)
+    local big_table = {
+        virtual_inventory,
+        external_table,
+
+        used_up_capacity,
+        tool_belt_slots,
+        slot_managed,
+
+        crafting_table_clear,
+        use_self_craft,
+    }
+    local big_serial = serialize.serialize(big_table, false)
+    return big_serial
+end
+
+function module.re_instantiate(serial_str)
+    local big_table = serialize.unserialize(serial_str)
+    virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
+
+    local external_table = {}
+    for _, entry in ipairs(big_table[2]) do
+        local external = VirtualInventory:reInstantiate(entry)
+        table.insert(external_table, external)
+    end
+    external_inventories = external_table
+
+    used_up_capacity = big_table[3]
+    tool_belt_slots = big_table[4]
+    slot_managed = big_table[5]
+
+    crafting_table_clear = big_table[6]
+    use_self_craft = big_table[7]
+
+    -- TODO reinstantiate equiped tool if possible
+end
+
 
 --->>-- Check on the ledgers --<<-----{{{
 
@@ -131,8 +180,6 @@ function SlotDefinition:new(slot_number, item_name)
     return new
 end
 
-
-local slot_managed = {}
 local slot_manager = {}
 function slot_manager.add(obj)
     if obj.special_definition ~= nil then
@@ -269,16 +316,16 @@ end
 
 
 local function sort_slot_table(tbl)
-    for head = 2, #all_slots do
-        local key = all_slots[head]
+    for head = 2, #tbl do
+        local key = tbl[head]
 
         local t_index = head - 1
-        while t_index >= 1 and all_slots[t_index][2] > key[2] do
-            all_slots[t_index + 1] = all_slots[t_index]
+        while t_index >= 1 and tbl[t_index][2] > key[2] do
+            tbl[t_index + 1] = tbl[t_index]
             t_index = t_index - 1
         end
 
-        all_slots[t_index + 1] = key
+        tbl[t_index + 1] = key
     end
 end
 
@@ -366,8 +413,8 @@ local function compress_into_slot(lable, name, slot)
         if not robot.dropUp() then -- drops entire item stack!
             print(comms.robot_send("error", "could not perform exchange, couldn't dropUp \n\z
                 As a consequence the inventory representation is now effed, force updating inventory.... \n\z
-                Crafting table is now probabily poluted, you'll have to fix that on your own!
-            "))
+                Crafting table is now probabily poluted, you'll have to fix that on your own!"
+            ))
             module.force_update_vinv()
 
             robot.select(1)
@@ -660,7 +707,7 @@ function module.suck_only_matching(external_inventory, quantity, matching)
 end
 
 -- add the ability not to dump certain things, or don't, might not make sense
-function module.dump_all_possible(external_ledger) -- respect "special slots" (aka, don't dump them tehe)
+function module.dump_all_possible(external_inventory) -- respect "special slots" (aka, don't dump them tehe)
     for slot = 1, inventory_size, 1 do
         if search_table.ione(get_forbidden_table(), slot) then
             goto continue
@@ -668,6 +715,9 @@ function module.dump_all_possible(external_ledger) -- respect "special slots" (a
 
         robot.select(slot)
         if not robot.drop() then goto continue end
+        local lable, name, quantity = virtual_inventory:getSlotInfo(slot)
+
+        external_inventory:addOrCreate(lable, name, quantity, nil)
         virtual_inventory:removeFromSlot(slot, 64) -- 64 for try to remove entire stack
         ::continue::
     end
@@ -726,19 +776,21 @@ local function self_craft(dictionary, recipe, how_much_to_craft, expected_output
         return false
     end
 
+    local ingredient_table = {}
     local occurence_table = {} -- = {slot_a, slob_b, .... slot_c}
     for slot, char in ipairs(recipe) do
         if occurence_table[char] == nil then
             occurence_table[char] = {slot}
+            local ingredient = dictionary[char]
         else
             table.insert(occurence_table[char], slot)
         end
     end
 
     local clean_up = false
-    for _, sub_table in ipairs(occurence_table) do
+    for stbl_index, sub_table in ipairs(occurence_table) do
         local lable, name
-        local ingredient = dictionary[char]
+        local ingredient = ingredient_table[stbl_index]
         if type(ingredient) == "table" then -- select strict search (or permissive is ingredient[1] is nil)
             lable = ingredient[1]
             name = ingredient[2]
@@ -755,7 +807,7 @@ local function self_craft(dictionary, recipe, how_much_to_craft, expected_output
             break
         end
 
-        for _, slot in ipairs(sub_table) do
+        for _, c_table_slot in ipairs(sub_table) do
             -- this correction needs to be done because crafting table is 3 slots wide, but robot inventory is 4 slots wide
             if c_table_slot > 6 then c_table_slot = c_table_slot + 2
             elseif c_table_slot > 3 then c_table_slot = c_table_slot + 1 end
@@ -768,7 +820,7 @@ local function self_craft(dictionary, recipe, how_much_to_craft, expected_output
             end
 
             local result = robot.select(ingredient_slot)
-            if result ~= a or not robot.transferTo(c_table_slot, how_much_to_craft) then
+            if result ~= ingredient_slot or not robot.transferTo(c_table_slot, how_much_to_craft) then
                 print(comms.robot_send("error", "something went wrong in self_crafting"))
                 clean_up = true
                 break
@@ -843,7 +895,7 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         -- return result
     end -- else it means it either didn't fall into the first slot or it didn't fall in the first place
 
-    local slot_table = nil
+    local slot_table
     -- [1] - Strict Matching, find this lable, [2] - Name Matching, find all that matches this "bucket"
     -- [3] - We'll have to do it the dumb way
     if lable_hint ~= nil then slot_table = virtual_inventory:getAllSlots(lable_hint, name_hint)
@@ -864,7 +916,7 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         if diff > 0 then
             virtual_inventory:subtract(slot, diff)
         elseif diff < 0 then
-            virtual_inventory:addOrCreate(lable, name, math.abs(diff), get_forbidden_table())
+            virtual_inventory:addOrCreate(stack_info.label, stack_info.name, math.abs(diff), get_forbidden_table())
         end -- else all good, keep checking
     end
 
@@ -885,6 +937,7 @@ end
 function module.force_update_vinv()
     virtual_inventory:forceUpdateInternal()
 end
+
 
 -- temp thing to get us going
 module.force_update_vinv()

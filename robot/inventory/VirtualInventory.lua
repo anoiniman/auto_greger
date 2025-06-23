@@ -1,4 +1,5 @@
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
+local serialize = require("serialization")
 local component = require("component")
 local sides_api = require("sides")
 
@@ -20,6 +21,22 @@ Module.table_size = -1
 -- We are going to be using a module 3 to determine trios of item_lable/item_name/quantity, and the floor div 3
 -- of the array will be the select
 Module.inv_table = {}
+
+function Module:serialize()
+    local serial = serialize.serialize(self.inv_table, false)
+    return serial
+end
+
+function Module:reInstantiate(serial_str)
+    local unserial = serialize.unserialize(serial_str)
+    local new = deep_copy(self, pairs)
+    new.inv_size = (#unserial / 3)
+    new.table_size = #unserial
+    new.inv_type = "virtual_inventory"
+
+    new.inv_table = unserial
+    return new
+end
 
 function Module:initTable() -- eager initialization
     for index = 1, self.table_size, 3 do
@@ -168,7 +185,7 @@ function Module:getEmptySlot(forbidden_slots) -- including forbidden ones!
         local empty = self.inv_table[index] == EMPTY_STRING
         if not empty then goto continue end
 
-        slot = (index + 2) / 3
+        local slot = (index + 2) / 3
         if search_table.ione(forbidden_slots, slot) then goto continue end
 
         if true then return slot end
@@ -192,6 +209,11 @@ end
 function Module:howManySlot(slot)
     local index = (slot * 3) - 2
     return self.inv_table[index + 2]
+end
+
+function Module:getSlotInfo(slot)
+    local index = (slot * 3) - 2
+    return self.inv_table[index], self.inv_table[index + 1], self.inv_table[index + 2]
 end
 
 -- One Day VVVVV
@@ -358,6 +380,5 @@ function Module:compareWithLedger(other)
 
     return diff_table
 end
-
 
 return Module

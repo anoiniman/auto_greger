@@ -14,7 +14,7 @@ local StructureDeclaration, _ = table.unpack(require("reasoning.MetaScript.Const
 -- Add to unlocking behaviour automatic unloading behaviour for scripts that deprecate
 -- with the unlocking og the condition I guess
 -- Maybe add "current_goal" param, so we don't have to search for best goal everytime idk
-local MetaScript = {desc = nil, goals = {}, posterior = nil, p_unlock_condition = nil, recipes = {}}
+local MetaScript = {desc = nil, goals = {}, posterior = nil, p_unlock_condition = nil, recipes = {}, dictionary = nil}
 function MetaScript:new() return deep_copy.copy(self, pairs) end
 function MetaScript:addGoal(goal)
     if goal == nil or goal.constraint == nil then
@@ -108,10 +108,10 @@ function MetaScript:step() -- most important function does everything, I think
 end
 
 
--- goals depend on other goals (goals will have names, but not inside their struct definition)
+-- goals depend on other goals
 -- in this way goals follow a sort of dependency acyclic (hopefully graph)
 -- if a cyclic graph is created it probably is undefined behaviour so yeah
--- Dependencies tell us /when/ to do, constraints tell us /what/ to do
+-- Goals tell us /when/ to do, constraints tell us /what/ to do
 -- and recipes tell us /how/ to do, and priority in /what order/ when there are
 -- multiple things to do
 -- Of course in the case of buildings, the "how to do" is just a matter of reading
@@ -267,6 +267,11 @@ end
 
 function MSBuilder:build()
     return self.base_script
+end
+
+function MSBuilder:setDictionary(dict)
+    self.dictionary = dict
+    return self
 end
 
 return {MSBuilder, Goal, Constraint, StructureDeclaration}

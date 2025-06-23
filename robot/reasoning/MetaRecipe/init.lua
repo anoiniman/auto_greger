@@ -55,15 +55,66 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
     return new
 end
 
+-- It retrieves things logistacally in an eager manner, I hope we will not run out of inventory space or start
+-- dumping things we need into long-term storage and then spin cycling
+function MetaRecipe:selectDependency(needed_quantity, debug_name)
+    local mode, found_dep
+    for _, dep in ipairs(self.dependencies) do
+        local inner = dep.inlying_recipe
+        local dep_needed_quantity = needed_quantity * dep.input_multiplier
+
+        local count = inv.how_many_internal(inner.output.lable, inner.output.name)
+        if count >= dep_needed_quantity then goto continue end
+
+        -- if there is enough in external storage return "execute" + with a command to do logistics
+        -- else recurse into our dependency tree by ways of searching inside ti for this output
+        local min_quant = math.min(dep_needed_quantity / 2, 24) -- might need to be optimised in the future
+        local pinv = inv.get_nearest_external_inv(
+            inner.output.lable, inner.output.name, min_quant, dep_needed_quantity
+        )
+
+        -- It is complicated to chain these things together without assembling complicated algorithms,
+        -- so we'll go with the simpler and least efficient route of going to the first thing we're missing
+        if pinv ~= nil then
+            local item_table = {inner.output.lable, inner.output.name, dep_needed_quantity}
+            local to_transfer = {item_table}
+            local inner = LogisticTransfer:new(pinv, "self", to_transfer)
+            local logistic_nav = {inner.doTheThing, inner} -- command gets "completed" by caller
+            mode = "execute"
+            found_dep = logistic_nav
+            break
+        end
+
+        if true then 
+            print(comms.robot_send("debug", "depth_recurse in MetaRecipe:search -- " .. debug_name))
+            mode = "depth"
+            dep_found = dep
+            break
+        end
+
+        ::continue::
+    end
+    if mode == nil then
+        print(comms.robot_send("debug", "all_good in MetaRecipe:search -- " .. debug_name))
+        mode = "all_good"
+        dep_found = nil
+    end
+
+    return mode, dep_found
+end
+
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
-function MetaRecipe:isSatisfied(needed_quantity)
+function MetaRecipe:isSatisfied(needed_quantity, dictionary)
     if self.meta_type == "gathering" then
         -- Check if we got the tools
         error(comms.robot_send("fatal", "MetaRecipe todo01"))
     elseif self.meta_type == "crafting_table" then
         -- Check if we have enough materials to craft the given quantity
-        error(comms.robot_send("fatal", "MetaRecipe todo02"))
+        for _, dep in ipairs(self.dependencies) do
+            local mode, found_dep = self:selectDependency(needed_quantity, "buidling_thing")
+            return mode, found_dep
+        end
     elseif self.meta_type == "building_user" then
         -- Check if the building was built
         local name = self.mechanism.bd_name
@@ -83,9 +134,6 @@ function MetaRecipe:isSatisfied(needed_quantity)
                                                     -- otherwise remove it form list (TODO)
 
             elseif result == "no_resources" then -- TODO -> continue from here, add some debug symbols
-                -- The below intuition is not true, because if it can return "no_resources" then we must have dependencies
-                -- if this is not the case then we've failed in configurating and we should crash
-                -- if self.dependencies == nil then return "all_good", nil end
                 if self.dependencies == nil then error(comms.robot_send("fatal", "MetaScript no dependencies when we should have some")) end
 
                 -- For example if we fail: No resources -> Oak Log, or No resources -> any:log etc. we should have a gathering or
@@ -94,47 +142,9 @@ function MetaRecipe:isSatisfied(needed_quantity)
                 -- resolution we come to understand first that there is lack of sticks, it's ok if the stick branch is chosen to
                 -- performe a "depth" operation, because eventually, no matter de order, the deps will be solved
 
-                local found_dep
-                for _, dep in ipairs(self.dependencies) do
-                    local inner = dep.inlying_recipe
-                    local dep_needed_quantity = needed_quantity * dep.input_multiplier
+                local mode, found_dep = self:selectDependency(needed_quantity, "buidling_thing")
+                return mode, found_dep
 
-                    local count = inv.how_many_internal(inner.output.lable, inner.output.name)
-                    if count >= dep_needed_quantity then goto continue end
-
-                    -- if there is enough in external storage return "execute" + with a command to do logistics
-                    -- else recurse into our dependency tree by ways of searching inside ti for this output
-                    local min_quant = math.min(dep_needed_quantity / 2, 24) -- might need to be optimised in the future
-                    local pinv = inv.get_nearest_external_inv(
-                        inner.output.lable, inner.output.name, min_quant, dep_needed_quantity
-                    )
-
-                    -- It is complicated to chain these things together without assembling complicated algorithms,
-                    -- so we'll go with the simpler and least efficient route of going to the first thing we're missing
-                    if pinv ~= nil then
-                        local item_table = {inner.output.lable, inner.output.name, dep_needed_quantity}
-                        local to_transfer = {item_table}
-                        local inner = LogisticTransfer:new(pinv, "self", to_transfer)
-                        local logistic_nav = {inner.doTheThing, inner} -- command gets "completed" by caller
-                        return "execute", logistic_nav
-                    end
-
-                    found_dep = dep
-                    break
-
-                    ::continue::
-                end
-
-                -- TODO: this works in the case we have the missing resources in our inventory, however if these missing resources are
-                -- in fact in long-term storage we'll need to return something different, so that the robot may first retrieve these
-                -- items and only then proceed to the building we want to use
-                if found_dep == nil then
-                    print(comms.robot_send("debug", "all_good in MetaRecipe search building_thing"))
-                    return "all_good", build
-                end
-
-                print(comms.robot_send("debug", "depth_recurse in MetaRecipe search building_thing"))
-                return "depth", found_dep
            else
                 error(comms.robot_send("error", "bad result in building_thing search"))
            end
@@ -142,7 +152,7 @@ function MetaRecipe:isSatisfied(needed_quantity)
         end -- forloop end
 
         return "breath" -- At last, least priority, we look into the other branches if possible
-                        -- AKA: This is blocked right now, please do down another sister branch
+                        -- AKA: This is blocked right now, please go down another sister branch
     else
         error(comms.robot_send("fatal", "meta_type was badly set somewhere!"))
     end
@@ -236,6 +246,7 @@ function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, strict, depende
     new.mechanism = BuildingUser:new(bd_name, usage_flag)
     return new
 end
+
 
 -- TODO programme this for crafting recipes
 function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info)

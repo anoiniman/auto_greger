@@ -1,4 +1,3 @@
-local module = {}
 local MetaRecipe = require("reasoning.MetaRecipe")
 local nav_obj = require("nav_module.nav_obj")
 local sweep = require("complex_algorithms.sweep")
@@ -8,7 +7,7 @@ local sweep = require("complex_algorithms.sweep")
 -- but, for compatibility, we'll use oak_logs as our only vanilla logs
 -- maybe spruce wood for charcoaling_wood, but in general prioritise oak logs
 -- unless ya'know anything else is needed but hey.
-local module.dictionary = { ol = "Oak Wood", g = "Gravel", f = "Flint", s = "Stick" }
+local dictionary = { ol = "Oak Wood", g = "Gravel", f = "Flint", s = "Stick" }
 
 local temp = nil
 local algo_pass = nil
@@ -36,8 +35,4 @@ temp = {
 local flint_pickaxe = MetaRecipe:newCraftingTable("flint_pickaxe", temp)
 -- module[1] = flint; module[2] = flint_pickaxe
 
-
--- is setting the dependency really needed
-local charcoal = MetaRecipe:newBuildingUser("Charcoal", "coke_quad")
-
-return module
+return {{flint, flint_pickaxe}, dictionary}
