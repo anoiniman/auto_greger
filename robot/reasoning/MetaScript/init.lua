@@ -157,7 +157,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
 
     -- Type of extra_info and its usage is dependent of check value returned
     local return_info
-    local check, extra_info = head_recipe:isSatisfied(needed_quantity)
+    local check, extra_info = head_recipe:isSatisfied(needed_quantity, parent_script.dictionary)
     if check == "breadth" then -- will return back and tell caller to find a sister if possible
         return "breadth"
     elseif check == "depth" then -- will continue deeper
