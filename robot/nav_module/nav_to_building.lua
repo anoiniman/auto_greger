@@ -2,13 +2,36 @@ local module = {}
 
 local comms = require("comms")
 local nav = require("nav_module.nav_obj")
+local map = require("nav_module.map_obj")
+
+local function find_build(what_chunk, door_info)
+    local quads = map.get_chunk(what_chunk).chunk.meta_quads
+    local cur_quad = nil
+    for _, quad in ipairs(quads) do
+        local doors = quad:getDoors()
+        for _, door in ipairs(doors) do
+            if door == door_info then -- checks if references match
+                cur_quad = quad
+                break
+            end
+        end
+    end
+
+    return cur_quad:getBuild()
+end
+
+function module.need_move(what_chunk, door_info)
+    local target_build = find_build(what_chunk, door_info) -- should be fine?
+    local cur_build = nav.nav_obj.cur_building
+    if target_build == cur_build then return false end
+    return true
+end
+
 
 -- false == continue, true == over
 function module.do_move(what_chunk, door_info)
     --------- CHUNK MOVE -----------
-    local cur_chunk = nav.get_chunk()
-    --print(comms.robot_send("debug", "cur_coords: " .. cur_chunk[1] .. ", " .. cur_chunk[2]))
-    if cur_chunk[1] ~= what_chunk[1] or cur_chunk[2] ~= what_chunk[2] then
+    if not nav.is_in_chunk() then
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)
         end
@@ -37,7 +60,8 @@ function module.do_move(what_chunk, door_info)
         else error(comms.robot_send("fatal", "nav_to_build: unexpected2!")) end
     end
 
-    return false
+    nav.nav_obj.cur_building = find_build(what_chunk, door_info) -- should be fine?
+    return true
 end
 
 return module

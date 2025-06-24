@@ -15,7 +15,7 @@ end
 
 local function attempt_surface_move(nav_obj, dir, extra_sauce)
     if dir ~= nil then
-        local result, data = nav.r_move("surface", dir, nav_obj)
+        local result, data = nav.r_move("surface", dir, nav_obj, extra_sauce)
         return result, data
     end
     return false, nil

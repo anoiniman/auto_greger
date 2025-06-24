@@ -28,6 +28,7 @@ local nav_obj = {
     rel = {0,0} , -- (x,z)
     chunk = {0,0} , -- (x,z)
 
+    cur_building = nil,
     orientation = "north"
 }
 
@@ -85,6 +86,10 @@ end
 
 function module.set_orientation(orient)
     nav_obj.orientation = orient
+end
+
+function module.is_in_chunk(target_chunk)
+    return chunk_move.quick_check(nav_obj, target_chunk)
 end
 
 function module.is_setup_navigate_chunk()

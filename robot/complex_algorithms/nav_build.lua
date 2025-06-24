@@ -7,6 +7,7 @@ local geolyzer = require("geolyzer_wrapper")
 local inv = require("inventory.inv_obj")
 local nav = require("nav_module.nav_obj")
 local rel = require("nav_module.rel_move")
+local move_to_build = require("nav_module.nav_to_building")
 
 local foundation_fill = require("complex_algorithms.foundation_fill")
 
@@ -44,37 +45,9 @@ function module.nav_and_build(instructions, post_run)
     -- I know this shit should be done in place, I don't have the time to code good for now
     -- post_run is a command to be run after this one is finished
     local self_return = {80, "navigate_rel", "and_build", instructions, post_run}
-
-    --------- CHUNK MOVE -----------
-    local cur_chunk = nav.get_chunk()
-    --print(comms.robot_send("debug", "cur_coords: " .. cur_chunk[1] .. ", " .. cur_chunk[2]))
-    if cur_chunk[1] ~= what_chunk[1] or cur_chunk[2] ~= what_chunk[2] then
-        if not nav.is_setup_navigate_chunk() then
-            nav.setup_navigate_chunk(what_chunk)
-        end
-        nav.navigate_chunk("surface") -- for now surface move only
-
+    if move_to_build.need_move(what_chunk, door_info) then
+        move_to_build.do_move(what_chunk, door_info)
         return self_return
-    end
-
-    -------- SANITY CHECK ---------
-    if nav.is_setup_navigate_chunk() then
-        error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?"))
-    end
-    -------- DO MOVE DOOR ----------
-    if not ab_meta_info.door_move_done and door_info ~= nil and #door_info ~= 0 then
-        if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
-        local result, err = nav.door_move()
-
-        if result == 1 then
-            if err == nil then err = "nil" end
-            if err ~= "swong" then error(comms.robot_send("fatal", "nav_build: this is unexpected!")) end
-            return self_return
-        elseif result == -1 then
-            ab_meta_info.door_move_done = true
-            --instructions:delete("door_info") -- necessary for code to advance to rel_move section
-        elseif result == 0 then return self_return
-        else error(comms.robot_send("fatal", "nav_build: unexpected2!")) end
     end
 
     -------- DO MOVE REL -----------

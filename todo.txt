@@ -163,3 +163,5 @@ will be necessary
 For now recipes only have 1 output, it is a way to write simpler code for now, and I think that conceptually it makes sense
 a recipe might have many "real" outputs, but it usually only has 1 "useful" output, and processing lines with side-products
 should be managed by the ingame machine "logic" rather than by the robot agent, like we the player usually manage
+
+<Current> Finish implemented recipes on the MetaRecipe side

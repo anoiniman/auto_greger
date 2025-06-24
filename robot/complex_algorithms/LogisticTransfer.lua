@@ -3,7 +3,9 @@ local component = require("component")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")
+
 local nav = require("nav_module.nav_obj")
+local door_move = require("nav_module.door_move")
 local inv = require("inventory.inv_obj")
 
 local inv_controller = component.getPrimary("inventory_controller")
@@ -18,6 +20,7 @@ local Module = {
     item_tbl_index = 1,
 
     where = 1, -- if we are in from or in to
+    has_door_moved = false,
     mode_func = nil
 }
 
@@ -43,6 +46,7 @@ function Module:doLogistics()
 
         self.where = self.where + 1
         self.mode_func = self.goTo
+        self.has_door_moved = false
         return "go_on"
     end
 
@@ -88,19 +92,32 @@ function Module:goTo()
     elseif self.where == 3 then return "done"
     else error(comms.robot_send("fatal", "invalid state")) end
 
-    local cur_chunk = nav.get_chunk()
-    local from_chunk = target:getChunk()
-
-    if cur_chunk[1] ~= from_chunk[1] or cur_chunk[2] ~= from_chunk[2] then
+    local target_chunk = target:getChunk()
+    -- Chunk Move
+    if not nav.is_in_chunk(target_chunk) then
         if not nav.is_setup_navigate_chunk() then
-            nav.setup_navigate_chunk(from_chunk)
+            nav.setup_navigate_chunk(target_chunk)
         end
         nav.navigate_chunk("surface") -- I think we don't need to check return?
         return
     end
 
-    local target_coords = target:getCoords()
     local cur_coords = nav.get_rel()
+
+    -- Door Move
+    if not self.has_door_moved then
+        local door_info = self.where.parent:getDoors()
+        if not door_move.is_setup() then door_move.setup_move(door_info, cur_coords) end
+        local result, _ = door_move.do_move(nav)
+        if result == 0 then return
+        elseif result == -1 then
+            self.has_door_moved = true
+        else os.sleep(1) --[[ :) --]] end
+    end
+
+
+    -- Rel Move to Special Block
+    local target_coords = target:getCoords()
     if cur_coords[1] ~= target_coords[1] or cur_coords[2] ~= target_coords[2] or cur_coords[3] ~= target_coords[3] then
         if not nav.is_setup_navigate_rel() then
             nav.setup_navigate_rel(target_coords)

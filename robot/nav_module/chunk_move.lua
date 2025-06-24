@@ -1,12 +1,11 @@
 local module = {}
 
 local math = require("math")
---local serialize = require("serialization")
-
 local comms = require("comms")
---local geolyzer = require("geolyzer_wrapper")
 
+local rel_move = require("nav_module.rel_move")
 local interface = require("nav_module.nav_interface")
+
 
 local goal_chunk = {0,0}
 local chunk_nearest_side = {0,0}
@@ -15,6 +14,7 @@ local rel_nearest_side = {0,0}
 local cur_in_road = false
 local is_setup = false
 
+local half_chunk_square = 8
 local function update_chunk_nav(nav_obj)
     local rel = nav_obj["rel"]
     local chunk = nav_obj["chunk"]
@@ -36,7 +36,6 @@ local function update_chunk_nav(nav_obj)
     chunk_nearest_side[1] = chunk[1] - goal_chunk[1]
     chunk_nearest_side[2] = chunk[2] - goal_chunk[2]
 
-    local half_chunk_square = 8
     rel_nearest_side[1] = rel[1] - half_chunk_square
     rel_nearest_side[2] = rel[2] - half_chunk_square
 end
@@ -53,20 +52,23 @@ function module.setup_navigate_chunk(to_what_chunk, nav_obj)
     return chunk_nearest_side, rel_nearest_side
 end
 
--- returns true if it is finished
-function module.navigate_chunk(what_kind, nav_obj)
-    if is_setup == false then
-        print(comms.robot_send("error", "tried to navigate without setting up first"))
-        return false
-    end
+-- checks if we're in road and in the target_chunk()
+function module.quick_check(nav_obj, target_chunk)
+    local cur_chunk = nav_obj.cur_chunk
+    if cur_chunk[1] ~= target_chunk[1] or cur_chunk[2] ~= target_chunk[2] then return false end
 
-    -- I feel as if this 2 bools are logically overlapping too much so i'll comment out 1 of em
-    --local bool1 = (math.abs(rel_nearest_side[1]) < 8) or (math.abs(rel_nearest_side[2]) < 8)
-    local bool1 = true
-    cur_in_road = (math.abs(rel_nearest_side[1]) == 8) or (math.abs(rel_nearest_side[2]) == 8)
+    local rel = nav_obj.rel
+    local _nearest_side = {-1, -1}
 
-    -- "move to the road"
-    if bool1 == true and cur_in_road == false then
+    _nearest_side[1] = rel[1] - half_chunk_square
+    _nearest_side[2] = rel[2] - half_chunk_square
+    local _cur_in_road = (math.abs(_nearest_side[1]) == 8) or (math.abs(_nearest_side[2]) == 8)
+    return _cur_in_road
+end
+
+
+local function move_to_road(what_kind, nav_obj, cur_building)
+    local function nearest_side()
         if rel_nearest_side[1] > 0 then interface.r_move(what_kind, "east", nav_obj)
         elseif rel_nearest_side[1] < 0 then interface.r_move(what_kind, "west", nav_obj)
         elseif rel_nearest_side[2] > 0 then interface.r_move(what_kind, "south", nav_obj)
@@ -74,6 +76,51 @@ function module.navigate_chunk(what_kind, nav_obj)
         else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
 
         update_chunk_nav(nav_obj)
+    end
+    if cur_building == nil then
+        nearest_side(what_kind, nav_obj)
+        return
+    end
+
+    local doors = cur_building:getDoors()
+    local cur_rel = nav_obj.rel
+
+    local what_door = nil
+    local dist = 100
+    for _, door in ipairs(doors) do
+        local inner_dist = math.abs(cur_rel[1] - door.x) + math.abs(cur_rel[2] - door.z)
+        if inner_dist < dist then
+            what_door = door
+            dist = inner_dist
+        end
+    end
+    if what_door == nil then nearest_side(what_kind, nav_obj) end
+
+    local cur_height = nav_obj.height
+    local goal_rel = {what_door.x, what_door.z, cur_height}
+    local result, _ = rel_move.access_opaque(nav_obj, goal_rel, nil)
+    update_chunk_nav(nav_obj)
+
+    if result == 0 then return end
+    if result == nil then
+        nav_obj.cur_building = nil
+        return
+    end -- else movement failed
+    print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))
+end
+
+
+-- returns true if it is finished
+function module.navigate_chunk(what_kind, nav_obj, cur_building)
+    if is_setup == false then
+        print(comms.robot_send("error", "tried to navigate without setting up first"))
+        return false
+    end
+
+    cur_in_road = (math.abs(rel_nearest_side[1]) == 8) or (math.abs(rel_nearest_side[2]) == 8)
+    -- "move to the road"
+    if not cur_in_road then
+        move_to_road(what_kind, nav_obj, cur_building)
         return false
     end
 
