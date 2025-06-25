@@ -29,6 +29,7 @@ local MetaRecipe = {
     state = nil
 }
 
+-- ngl "strict" prob is on the way out
 -- variable "strict" is related to the interpretation of the output
 -- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
 function MetaRecipe:new(output, state_primitive, strict, dependencies)
@@ -105,16 +106,21 @@ end
 
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
-function MetaRecipe:isSatisfied(needed_quantity, dictionary)
-    if self.meta_type == "gathering" then
+function MetaRecipe:isSatisfied(needed_quantity)
+    if self.meta_type == "gathering" then -- TODO
         -- Check if we got the tools
         error(comms.robot_send("fatal", "MetaRecipe todo01"))
     elseif self.meta_type == "crafting_table" then
+        if self.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table recipe")) end
+
         -- Check if we have enough materials to craft the given quantity
         for _, dep in ipairs(self.dependencies) do
-            local mode, found_dep = self:selectDependency(needed_quantity, "buidling_thing")
-            return mode, found_dep
+            local mode, found_dep = self:selectDependency(needed_quantity, "crafting_table")
+            if mode ~= "all_good" then
+                return mode, found_dep
+            end
         end
+        return "all_good", nil
     elseif self.meta_type == "building_user" then
         -- Check if the building was built
         local name = self.mechanism.bd_name
@@ -142,7 +148,7 @@ function MetaRecipe:isSatisfied(needed_quantity, dictionary)
                 -- resolution we come to understand first that there is lack of sticks, it's ok if the stick branch is chosen to
                 -- performe a "depth" operation, because eventually, no matter de order, the deps will be solved
 
-                local mode, found_dep = self:selectDependency(needed_quantity, "buidling_thing")
+                local mode, found_dep = self:selectDependency(needed_quantity, "building_thing")
                 return mode, found_dep
 
            else
@@ -206,7 +212,7 @@ end
                                             -- is the one that will have to do the crafting itself
 --end
 
-function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_primitive, strict)
+function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, strict)
     if output == nil then
         error(comms.robot_send("error", "MetaRecipe:newCraftingTable, output param is nil"))
         return nil
@@ -220,7 +226,7 @@ function MetaRecipe:newCraftingTable(output, recipe_table, dependencies, state_p
         return nil
     end
 
-    local new = self:new(output, state_primitive, strict, dependencies)
+    local new = self:new(output, nil, strict, dependencies)
 
     new.meta_type = "crafting_table"
     new.mechanism = CraftingTable:new(recipe_table)
@@ -249,7 +255,7 @@ end
 
 
 -- TODO programme this for crafting recipes
-function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info)
+function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info, dictionary)
     if self.meta_type == "gathering" then
         self.state.priority = priority
         return {priority, self.mechanism.algorithm, self.mechanism, self.state, up_to_quantity, lock_ref }
@@ -264,15 +270,17 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
         -- callee then determins how many inputs are needed and does all the inventory management
         -- reasoning should not be doing any invenotry management fr fr
         local r_table = {priority, build_eval.use_build, build, usage_flag, hook_exec_index, up_to_quantity, priority, lock_ref}
-        for k, v in pairs(r_table) do
+        --[[for k, v in pairs(r_table) do
             if v == nil then v = "nil"
             elseif type(v) == "table" then v = "table"
             elseif type(v) == "function" then v = "function" end
             print(comms.robot_send("debug", k .. ", " .. v))
-        end
+        end--]]
         return r_table
     elseif self.meta_type == "crafting_table" then
-        error(comms.robot_send("fatal", "MetaType \"crafting_table\" for now is unimplemented returnCommand"))
+        -- seems good? All that is missing is a mechanism that limites the batch size for a craft
+        -- (so that we don't try and craft 234 things at once for example) -- add this to the mechanism?!
+        return {priority, inv.craft, dictionary, self.mechanism.crafting_recipe, up_to_quantity, lock_ref}
     else
         error(comms.robot_send("fatal", "Unimplemented meta_type selected for returnCommand in MetaRecipe: \""
             .. self.meta_type .. "\""))

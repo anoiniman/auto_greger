@@ -1,38 +1,62 @@
+local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 local MetaRecipe = require("reasoning.MetaRecipe")
 local nav_obj = require("nav_module.nav_obj")
 local sweep = require("complex_algorithms.sweep")
 
--- As you know very well, there are certain, specific, recipes that require oak logs rather than
--- any log, and others (more plentiful than the former) that function only with vanilla logs
--- but, for compatibility, we'll use oak_logs as our only vanilla logs
--- maybe spruce wood for charcoaling_wood, but in general prioritise oak logs
--- unless ya'know anything else is needed but hey.
-local dictionary = { ol = "Oak Wood", g = "Gravel", f = "Flint", s = "Stick" }
+local any_plank = {
+    [1] = nil,
+    [2] = "any:plank",
+}
+local any_log = {
+    [1] = nil,
+    [2] = "any:log",
+}
 
-local temp = nil
-local algo_pass = nil
+local dictionary = {
+    w = any_plank,
+    g = "Gravel",
+    f = "Flint",
+    s = "Stick",
+}
 
--- fing a way to include the 2 flint recipes, and only to the "better one" when a certain
--- milestone is passed
--- TODO: Add milestones to distinguish which recipe with the same output to use
+local temp
+local deps
+
+-- gather recipes (gravel, all_gather)
+local _, all_gather = dofile("/home/robot/reasoning/recipes/stone_age/gathering01.lua")
+
 temp = {
 'g', 'g',  0 ,
  0 , 'g',  0 ,
  0 ,  0 ,  0
 }
-local flint = MetaRecipe:newCraftingTable("flint", temp)
+local gravel_dep = MetaDependency:new(all_gather, 3)
+local flint = MetaRecipe:newCraftingTable("Flint", temp)
+
+-- We'll have multiple wood dependencies, because of: "wood farming/wood gathering/oak farming/spruce farming"
+-- So we'll have to eventually implement the OR dependency thing (TODO)
+
+-- local wood1 = MetaRecipe:newGathering("Wood etc.
+local output = {lable = nil, name = "any:log"}
+local wood = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "no_store", nil, nil)
+
+temp = {
+ 0,  'w',  0 ,
+ 0 ,  0 ,  0 ,
+ 0 ,  0 ,  0
+}
+local wood_dep = MetaDependency:new(wood, 1)
+local stick = MetaRecipe:newCraftingTable("Stick", temp, wood_dep, nil)
 
 temp = {
 'f', 'f', 'f',
  0 , 's',  0 ,
  0 , 's',  0
 }
--- Have it so both "full-names" and "dictionary-names" can be used in the "output" space/variable/slot
--- or maybe "output" name it is not necessary since, it is alredy identified by variable name inside
--- recipe collection, food for thought maaaaaan, swwwwweeeeeeettt riiiiideeeeee maaaaaann!
--- but since many "outputs" have different recipes that make them the namespace is already à priori
--- polluted????? FFFAAAAAAAAKKKKKK
-local flint_pickaxe = MetaRecipe:newCraftingTable("flint_pickaxe", temp)
--- module[1] = flint; module[2] = flint_pickaxe
+local stick_dep = MetaDependency:new(flint, 3)
+local flint_dep = MetaDependency:new(stick, 2)
+deps = {stick_dep, flint_dep}
+
+local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", temp, deps, nil)
 
 return {{flint, flint_pickaxe}, dictionary}

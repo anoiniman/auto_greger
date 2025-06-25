@@ -157,7 +157,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
 
     -- Type of extra_info and its usage is dependent of check value returned
     local return_info
-    local check, extra_info = head_recipe:isSatisfied(needed_quantity, parent_script.dictionary)
+    local check, extra_info = head_recipe:isSatisfied(needed_quantity)
     if check == "breadth" then -- will return back and tell caller to find a sister if possible
         return "breadth"
     elseif check == "depth" then -- will continue deeper
@@ -216,7 +216,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
 
     -- TODO implement mechanism to unlock this lock
     if needed_recipe == nil then
-        -- TODO -- add different lock number for: "we check again after this many seconds"
+        -- TODO -- add different lock number for: "we check again after this many seconds" (3 is == "add to ils-system")
         self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
         return nil
     elseif needed_recipe == "breadth" then -- TODO
@@ -235,7 +235,13 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     -- print(comms.robot_send("debug", serial_recipe))
 
     local up_to_quantity = self.constraint.const_obj.reset_count
-    local return_table = needed_recipe:returnCommand(self.priority, self.constraint.const_obj.lock, up_to_quantity, extra_info)
+    local return_table = needed_recipe:returnCommand(
+        self.priority,
+        self.constraint.const_obj.lock,
+        up_to_quantity,
+        extra_info,
+        parent_script.dictionary
+    )
     return return_table
 end
 

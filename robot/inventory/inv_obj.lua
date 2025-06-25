@@ -779,12 +779,15 @@ local function self_craft(dictionary, recipe, how_much_to_craft, expected_output
     local ingredient_table = {}
     local occurence_table = {} -- = {slot_a, slob_b, .... slot_c}
     for slot, char in ipairs(recipe) do
+        if char == 0 then goto continue end
         if occurence_table[char] == nil then
             occurence_table[char] = {slot}
             local ingredient = dictionary[char]
         else
             table.insert(occurence_table[char], slot)
         end
+
+        ::continue::
     end
 
     local clean_up = false
@@ -862,9 +865,16 @@ local function self_craft(dictionary, recipe, how_much_to_craft, expected_output
     return true
 end
 
--- recipe as defined in reasoning
-function module.craft(dictionary, recipe, how_much)
-    if use_self_craft then return self_craft(dictionary, recipe, how_much)
+-- It seems that we we self_craft this is done in one execution cycle!
+function module.craft(arguments)
+    local dictionary = arguments[1]
+    local recipe = arguments[2] -- recipe as defined in reasoning
+    local how_much = arguments[3]
+    local loc_ref = arguments[4]
+
+    if use_self_craft then 
+        self_craft(dictionary, recipe, how_much) -- this returns a result, but we don't care?
+        return nil
     else error(comms.robot_send("fatal", "TODO!")) end
 end
 
