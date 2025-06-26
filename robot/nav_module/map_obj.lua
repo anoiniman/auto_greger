@@ -267,27 +267,6 @@ end
 
 module.all_builds = known_buildings
 
--- turns out this is more difficult than I thought originally because of the not saving functions things
--- we'll prob need to serialize more data than just the build :)
---
--- OR, we might just do what "debug pretend_build name, x,z,q" does but automated
-function module.load_builds_from_file()
-
-    local file = io.open("/home/robot/save_state/build.save", "r")
-    local serial_data = file:read("*a")
-    local real_data = serialize.unserialize(serial_data)
-
-    for name, inner_table in pairs(real_data) do
-        local new = MetaBuild:instantiate(inner_table)
-        local chunk = module.chunk_exists(new.what_chunk)
-
-        -- TODO (this is not finished, chunk:forceAdd is not added)
-        if not chunk:forceAdd(new) then -- if build was a repeat
-            known_buildings:insert(new.name, new)
-        end
-    end
-end
-
 -->>-----------------------------------<<--
 
 local default_map_size = 31 -- generate 31x31 square of chunks
@@ -327,6 +306,24 @@ function module.gen_map_obj(offset)
     end
     return true
 end
+
+-- TODO all this section
+local function translate_chunk(chunk, areas_table)
+    chunk.parent_area
+end
+
+-- we need data to recreate builds, to recreate areas, and to recreate marks,
+function module.get_data()
+    local areas_table = {}
+
+    local build
+    for x, line in ipairs(map_obj) do
+        for z, chunk in ipairs(line) do
+            if chunk.
+        end
+    end
+end
+
 
 local function get_door_info(what_chunk, what_quad)
     local map_chunk = module.chunk_exists(what_chunk)

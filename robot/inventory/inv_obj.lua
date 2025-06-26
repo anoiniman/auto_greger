@@ -46,28 +46,27 @@ local external_inventories = {}
 
 local equiped_tool = nil
 
-function module.serialize()
-    local virtual_inventory = virtual_inventory:serialize()
+function module.get_data()
+    local virtual_inventory = virtual_inventory:getData()
     local external_table = {}
     for _, vinv_external in ipairs(external_inventories) do
-        local serial = vinv_external:serialize()
-        table.insert(external_table, serial)
+        local vinv = vinv_external:getData()
+        table.insert(external_table, vinv)
     end
     
     -- local inv_size = serialize.serialize(inventory_size, false)
     local big_table = {
-        virtual_inventory,
+        virtual_inventory, -- 1
         external_table,
 
         used_up_capacity,
-        tool_belt_slots,
+        tool_belt_slots, -- 4
         slot_managed,
 
         crafting_table_clear,
-        use_self_craft,
+        use_self_craft, -- 7
     }
-    local big_serial = serialize.serialize(big_table, false)
-    return big_serial
+    return big_table
 end
 
 function module.re_instantiate(serial_str)

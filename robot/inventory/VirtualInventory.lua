@@ -1,5 +1,4 @@
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
-local serialize = require("serialization")
 local component = require("component")
 local sides_api = require("sides")
 
@@ -22,13 +21,11 @@ Module.table_size = -1
 -- of the array will be the select
 Module.inv_table = {}
 
-function Module:serialize()
-    local serial = serialize.serialize(self.inv_table, false)
-    return serial
+function Module:getData()
+    return self.inv_table
 end
 
-function Module:reInstantiate(serial_str)
-    local unserial = serialize.unserialize(serial_str)
+function Module:reInstantiate(unserial)
     local new = deep_copy(self, pairs)
     new.inv_size = (#unserial / 3)
     new.table_size = #unserial
