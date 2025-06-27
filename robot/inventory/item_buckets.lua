@@ -29,7 +29,8 @@ local buckets = {
     "ingot",
     "generic",
     "any:log",
-    "any:sapling"
+    "any:sapling",
+    "any:grass",
     -- sword?
 }
 
@@ -37,6 +38,10 @@ local buckets = {
 -- make sure that you write conversions that are self-stable [aka the identify of "any:log" is "any:log"
 function module.identify(name, lable)
     if name == nil then name = "nil" end
+
+    if lable == "Dirt" or lable == "Grass" or name == "any:grass" then
+        return "any:grass"
+    end
 
     if string.find(name, "log") then    -- this could have awful results if something that isn't a log is caught,
                                         -- check NEI and improve the regex if needed

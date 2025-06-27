@@ -176,6 +176,7 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
     local peek = interpret_element(translated_symbol[1], 1, false)
     if peek == nil then
         local second = table.remove(translated_symbol, 1)
+        if first == "nil" then first = nil end
         instruction = BuildInstruction:newBasic(coords, first, second)
     else
         instruction = BuildInstruction:newBasic(coords, first, nil)

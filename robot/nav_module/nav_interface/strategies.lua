@@ -131,6 +131,9 @@ end
 local function break_log_down(direction, nav_obj)
 end
 
+local entity_watch_dog = 0
+local climb_watch_dog = 0
+
 local break_block = {"break_block"}
 local function surface(parent, direction, nav_obj, extra_sauce)
     -- luacheck: push ignore result
@@ -168,9 +171,6 @@ local function surface(parent, direction, nav_obj, extra_sauce)
 
     return result, err
 end
-
-local entity_watch_dog = 0
-local climb_watch_dog = 0
 
 -- Added this "entry-function" so that I can capture the results, and track some state (evil)
 function module.surface(parent, direction, nav_obj, extra_sauce)

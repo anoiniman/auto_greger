@@ -2,6 +2,8 @@
 local keep_alive = require("keep_alive")
 local comms = require("comms")
 local map = require("nav_module.map_obj")
+local nav = require("nav_module.nav_obj")
+
 local inv = require("inventory.inv_obj")
 
 local serialize = require("serialization")
@@ -45,17 +47,48 @@ local function save_thing(path, obj)
     file:close()
 end
 
+local save_home = "/home/robot/save_state"
+local inv_path = save_home .. "/inv.save"
+local map_path = save_home .. "/map.save"
+local nav_path = save_home .. "/nav.save"
+
+
 -- be careful to maintain abi, otherwise waste_full disk-writes will occur (wasting power) [not that it matters much]
 function module.save_state()
-    local save_home = "/home/robot/save_state"
     if not filesystem.isDirectory(save_home) then
         filesystem.makeDirectory(save_home)
     end
-    local inv_path = save_home .. "/inv.save"
     save_thing(inv_path, inv)
-
-    local map_path = save_home .. "/map.save"
     save_thing(map_path, map)
+    save_thing(nav_path, nav)
 end
+
+local function load_thing(path, obj)
+    if not filesystem.exists(path) then return end
+    local file = io.open(path, "r")
+    local serial = file:read("*a")
+    if serial == nil then
+        print(comms.robot_send("error", "failed to read save file: " .. path))
+        return
+    end
+
+    local big_table = serialize.unserialize(serial)
+    if big_table == nil then
+        print(comms.robot_send("error", "failed to de-serialize save file: " .. path))
+        return
+    end
+
+    obj.re_instantiate(big_table)
+end
+
+function module.load_state()
+    if not filesystem.isDirectory(save_home) then
+        return
+    end
+    load_thing(inv_path, inv)
+    load_thing(map_path, map)
+    load_thing(nav_path, nav)
+end
+
 
 return module

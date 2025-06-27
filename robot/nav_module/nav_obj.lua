@@ -6,6 +6,8 @@ local module = {}
 local comms = require("comms") -- luacheck: ignore
 local deep_copy = require("deep_copy")
 
+local map = require("nav_module.map_obj")
+
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
 local rel_move = require("nav_module.rel_move")
@@ -34,6 +36,63 @@ local nav_obj = {
 
 -- TODO save and load functions for this module here (and remember for reasoning as well!
 -- (the locks are what comes to mind, I don't think there is any other long-term state in there)
+function module.get_data()
+    local bd_info = nil
+    local bd_chunk = nil
+    local bd_quad = nil
+    if nav_obj.cur_building ~= nil then
+        bd_chunk = nav_obj.cur_building.what_chunk
+        local door_info = nav_obj.cur_building.doors
+
+        for _, quad in (map.get_chunk(bd_chunk).meta_quads) do
+            if door_info == quad:getDoors() then -- checks for refs matching, witch should be the case
+                quad = bd_quad
+                break
+            end
+        end
+        if bd_quad == nil then
+            print(comms.robot_send("error",
+                "This should no happen, if the building is valid then we should be \z
+                                    able to find the quad this way"
+            ))
+            bd_info = "nil"
+        else
+            bd_info = {bd_chunk, bd_quad}
+        end
+    end
+
+    local big_table = {
+        nav_obj.c_zero,
+        nav_obj.abs,
+        nav_obj.height,
+        nav_obj.rel,
+        nav_obj.chunk,
+
+        nav_obj.orientation,
+        bd_info
+    }
+end
+
+function module.re_instantiate(big_table)
+    local bd_info = big_table[7]
+    local bd_ref = nil
+    if bd_info ~= nil then
+        local chunk_ref = map.get_chunk(bd_info[1])
+        bd_ref = chunk_ref.meta_quads[bd_info[2]]
+    end
+
+    nav_obj = {
+        c_zero = big_table[1],
+
+        abs = big_table[2], -- (x,z)
+        height = big_table[3],
+        rel = big_table[4], -- (x,z)
+        chunk = big_table[5], -- (x,z)
+
+        cur_building = bd_ref,
+        orientation = big_table[6]
+    }
+end
 
 
 function module.get_chunk()
