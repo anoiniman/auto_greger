@@ -114,17 +114,9 @@ function module.debug(arguments)
             print(comms.robot_send("error", "invalid arguments"))
         end
     elseif arguments[1] == "save" then
-        if arguments[2] == "build" then
-            post_exit.save_builds()
-        else
-            print(comms.robot_send("error", "invalid arguments"))
-        end
+        post_exit.save_state()
     elseif arguments[1] == "load" then
-        if arguments[2] == "build" then
-            map.load_builds_from_file()
-        else
-            print(comms.robot_send("error", "invalid arguments"))
-        end
+        post_exit.load_state()
     elseif arguments[1] == "pretend_build" then
         local area_name = tostring(arguments[2])
         local name = tostring(arguments[3])

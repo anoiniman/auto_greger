@@ -21,6 +21,22 @@ Module.table_size = -1
 -- of the array will be the select
 Module.inv_table = {}
 
+
+function Module:printObj()
+    local print_table = {}
+    for index, #self.inv_table, 3 do
+        table.insert(print_table, "(Slot: ")
+        table.insert(print_table, self.inv_table[1])
+        table.insert(print_table, ")")
+        table.insert(print_table, "\n")
+        table.insert(print_table, self.inv_table[2])
+        table.insert(print_table, ", ")
+        table.insert(print_table, self.inv_table[3])
+        table.insert(print_table, "----\n")
+    end
+    print(comms.robot_send("info", table.concat(print_table)))
+end
+
 function Module:getData()
     return self.inv_table
 end
