@@ -46,13 +46,16 @@ local function save_thing(path, obj)
 end
 
 -- be careful to maintain abi, otherwise waste_full disk-writes will occur (wasting power) [not that it matters much]
-function module.save_builds()
+function module.save_state()
     local save_home = "/home/robot/save_state"
     if not filesystem.isDirectory(save_home) then
         filesystem.makeDirectory(save_home)
     end
     local inv_path = save_home .. "/inv.save"
     save_thing(inv_path, inv)
+
+    local map_path = save_home .. "/map.save"
+    save_thing(map_path, map)
 end
 
 return module

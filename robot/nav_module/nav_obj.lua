@@ -32,6 +32,10 @@ local nav_obj = {
     orientation = "north"
 }
 
+-- TODO save and load functions for this module here (and remember for reasoning as well!
+-- (the locks are what comes to mind, I don't think there is any other long-term state in there)
+
+
 function module.get_chunk()
     return deep_copy.copy(nav_obj.chunk, ipairs) -- :)
 end

@@ -38,6 +38,8 @@ function areas_table:getArea(name) -- luacheck: ignore
     return nil
 end
 
+-- Names MUST be unique, they are ID's, IDENTIFIERS!
+-- We do NOT store REFERENCES to child chunks, we only store their INDICES!
 local NamedArea = {
     name = nil,
     colour = nil,
@@ -307,20 +309,118 @@ function module.gen_map_obj(offset)
     return true
 end
 
--- TODO all this section
-local function translate_chunk(chunk, areas_table)
-    chunk.parent_area
+local function chunk_is_unique(chunk)
+    return chunk.marks ~= nil or chunk.parent_area ~= nil or chunk.meta_quads ~= nil
+end
+
+local function translate_chunk(chunk, a_table, build_table, chunks_proper)
+    --------- AREAS ----------
+    if chunk.parent_area ~= nil then
+        local search_result = false
+        for _, area in ipairs(a_table) do
+            if area.name == chunk.parent_area.name then -- they're the same area
+                search_result = true
+                break
+            end
+        end
+
+        -- because areas store chunk indecis and not references we can serialize them directly
+        if search_result then
+            table.insert(a_table, chunk.parent_area)
+        end
+    end
+
+    ------- META QUADS --------
+    if chunk.meta_quads ~= nil then
+        for _, quad in ipairs(chunk.meta_quads) do
+            if not quad:isBuilt() then goto continue end
+            local sub_table = {
+                chunk.parent_area.name,
+                quad:getName(),
+                chunk.x,
+                chunk.z,
+                quad:getNum()
+            }
+
+            table.insert(build_table, sub_table)
+            ::continue::
+        end
+    end
+
+    ----- CHUNKS PROPER ------
+    local sub_table = {
+        chunk.x,
+        chunk.z,
+        chunk.marks,
+        chunk.height_override,
+        chunk.roads_cleared
+    }
+    table.insert(chunks_proper, sub_table)
 end
 
 -- we need data to recreate builds, to recreate areas, and to recreate marks,
 function module.get_data()
-    local areas_table = {}
+    local a_table = {}
 
-    local build
-    for x, line in ipairs(map_obj) do
-        for z, chunk in ipairs(line) do
-            if chunk.
+    -- MetaQuads are never stored directly, instead they are stored as an order to pretend_build
+    -- something at the given MetaQuad, and by something let us say: the building that IS THERE!
+    -- bd_sub_table = {area_name, build_name, x, z, what_quad}
+    local build_table = {}
+
+    -- chunk_proper_sub_table = {x, z, {[marks]}, height_override, roads_cleared}
+    local chunks_proper = {}
+
+    for _, line in ipairs(map_obj) do
+        for _, chunk in ipairs(line) do
+            if not chunk_is_unique(chunk) then goto continue end
+            -- tbls are being passed by ref
+            translate_chunk(chunk, a_table, build_table, chunks_proper)
+            ::continue::
         end
+    end
+
+    local big_table = {
+        a_table,
+        chunks_proper,
+        build_table,
+    }
+    return big_table
+end
+
+-- TODO, change the way chunks are generated so that they are generated only after attempted
+-- reinstantiation so that we might provide a different chunk offset, do soon!
+function module.re_instantiate(big_table)
+    -- First we "recreate" the areas (we simple change the table ref)
+    -- [Yes, I know this can create problems if someone retains the old ref, but uhhhhh
+    -- we'll just manage our memory very inteligently!!"!]
+    areas_table = big_table[1]
+
+    local chunks_proper = big_table[2]
+
+    -- Then we reinstate the basic chunk_info
+    -- chunk_proper_sub_table = {x, z, {[marks]}, height_override, roads_cleared}
+    for _, chunk_info in chunks_proper do
+        local x = chunk_info[1]
+        local z = chunk_info[2]
+        local chunk_ref = module.chunk_exists({x, z})
+        if chunk_ref == nil then
+            print(comms.robot_send("error", "failed to re-instantiate chunk: " .. x .. ", " .. z))
+            goto continue
+        end
+
+        -- this is ok, because de-serialized data is dumped, so ownership is transfered
+        chunk_ref.marks = chunk_info[3]
+        chunk_ref.height_override = chunk_info[4]
+        chunk_ref.roads_cleared = chunk_info[5]
+
+        ::continue::
+    end
+
+    -- Finally we pretend to build everything that is built
+    for _, tbl in ipairs(big_table[3]) do
+        -- bd_sub_table = {area_name, build_name, x, z, what_quad}
+        local result = module.pretend_build(tbl[1], tbl[2], {tbl[3], tbl[4]}, tbl[5])
+        if result ~= 0 then print(comms.robot_send("error", "there was a failure in reinstating a building")) end
     end
 end
 
@@ -339,6 +439,18 @@ end
 -- chunk at the specified height
 -- NamedArea:new(name, colour, height, floor_block)
 function module.create_named_area(name, colour, height, floor_block)
+    local already_exists = false
+    for _, area in ipairs(areas_table) do
+        if area.name == name then
+            already_exists = true
+            break
+        end
+    end
+    if already_exists then
+        print(comms.robot_send("error", "Attempted to create area that already exits, name: " .. name))
+        return false
+    end
+
     local new_area = NamedArea:new(name, colour, height, floor_block)
     if new_area == nil then
         print(comms.robot_send("error", "failed creating named area in map_obj.create_named_area"))
@@ -378,6 +490,10 @@ function module.get_height(what_chunk)
     return map_chunk:getHeight()
 end
 
+-- Make sure that any reference that you get to any chunk is not long-lived, I know that is a big
+-- ask, but please please please please, always have that in attention, otherwise serialization
+-- is fucked, and you create a massive footgun for youself in many ways!
+--
 function module.get_chunk(what_chunk) -- Evil function!
     local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return -1 end
@@ -415,9 +531,9 @@ function module.do_build(what_chunk, what_quad)
     return result_bool, result_string, coords, symbol
 end
 
--- This might be a bitch to update if we change the way we do builds posteriorly, I hope not, at least not
--- so soon
-function module.pretend_build(area_name, name, what_chunk, what_quad) -- I think this is all
+-- This might be a bitch to update if we change the way we do builds posteriorly,
+-- I hope not, at least not so soon
+function module.pretend_build(area_name, build_name, what_chunk, what_quad) -- I think this is all
     local area = areas_table:getArea(area_name)
     if area == nil then return 1 end
 
@@ -426,10 +542,10 @@ function module.pretend_build(area_name, name, what_chunk, what_quad) -- I think
 
     local chunk = module.chunk_exists(what_chunk)
     if chunk == nil then return 2 end
-    if not module.add_quad(what_chunk, what_quad, name) then return 3 end
+    if not module.add_quad(what_chunk, what_quad, build_name) then return 3 end
     if not module.setup_build(what_chunk, what_quad) then return 4 end
 
-    known_buildings:insert(name, chunk:getBuildRef(what_quad), what_chunk) -- important lol
+    known_buildings:insert(build_name, chunk:getBuildRef(what_quad), what_chunk) -- important lol
     if not chunk:finalizeBuild(what_quad) then return 5 end
 
     return 0
