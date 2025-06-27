@@ -38,7 +38,7 @@ local function prio_insert(task_list, message)
     for index, element in ipairs(task_list) do
         local value = element[1]
         if (value == -1) or (prio < value) then
-            table.insert(task_list, i, message)
+            table.insert(task_list, index, message)
             return
         end
     end

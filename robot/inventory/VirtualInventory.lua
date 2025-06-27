@@ -24,15 +24,21 @@ Module.inv_table = {}
 
 function Module:printObj()
     local print_table = {}
-    for index, #self.inv_table, 3 do
+    for index = 1, #self.inv_table, 3 do
+        if self.inv_table[index + 1] == EMPTY_STRING and self.inv_table[index + 2] == EMPTY_STRING then
+            goto continue
+        end
+
         table.insert(print_table, "(Slot: ")
-        table.insert(print_table, self.inv_table[1])
+        table.insert(print_table, self.inv_table[index + 1])
         table.insert(print_table, ")")
         table.insert(print_table, "\n")
-        table.insert(print_table, self.inv_table[2])
+        table.insert(print_table, self.inv_table[index + 2])
         table.insert(print_table, ", ")
-        table.insert(print_table, self.inv_table[3])
+        table.insert(print_table, self.inv_table[index + 3])
         table.insert(print_table, "----\n")
+
+        ::continue::
     end
     print(comms.robot_send("info", table.concat(print_table)))
 end
