@@ -38,7 +38,8 @@ end
 -- false == continue, true == over
 function module.do_move(what_chunk, door_info)
     --------- CHUNK MOVE -----------
-    if not nav.is_in_chunk() then
+    if not nav.is_in_chunk(what_chunk) then
+        print("debug", "move_chunk")
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)
         end
@@ -53,6 +54,7 @@ function module.do_move(what_chunk, door_info)
     end
     -------- DO MOVE DOOR ----------
     if door_info ~= nil and #door_info ~= 0 then
+        print("debug", "move_door")
         if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
         local result, err = nav.door_move()
 
@@ -67,6 +69,7 @@ function module.do_move(what_chunk, door_info)
         else error(comms.robot_send("fatal", "nav_to_build: unexpected2!")) end
     end
 
+    print("debug", "done_move")
     nav.set_cur_building(find_build(what_chunk, door_info)) -- should be fine?
     return true
 end

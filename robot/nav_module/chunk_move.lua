@@ -54,7 +54,7 @@ end
 
 -- checks if we're in road and in the target_chunk()
 function module.quick_check(nav_obj, target_chunk)
-    local cur_chunk = nav_obj.cur_chunk
+    local cur_chunk = nav_obj.chunk
     if cur_chunk[1] ~= target_chunk[1] or cur_chunk[2] ~= target_chunk[2] then return false end
 
     local rel = nav_obj.rel
@@ -77,12 +77,12 @@ local function move_to_road(what_kind, nav_obj, cur_building)
 
         update_chunk_nav(nav_obj)
     end
-    if cur_building == nil then
+    --if cur_building == nil then
         nearest_side(what_kind, nav_obj)
         return
-    end
+    --end
 
-    local doors = cur_building:getDoors()
+    --[[local doors = cur_building:getDoors()
     local cur_rel = nav_obj.rel
 
     local what_door = nil
@@ -106,7 +106,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         nav_obj.cur_building = nil
         return
     end -- else movement failed
-    print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))
+    print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))--]]
 end
 
 
