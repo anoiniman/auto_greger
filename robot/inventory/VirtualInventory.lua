@@ -29,13 +29,19 @@ function Module:printObj()
             goto continue
         end
 
+        local slot = (index + 2) / 3
         table.insert(print_table, "(Slot: ")
-        table.insert(print_table, self.inv_table[index + 0])
+        table.insert(print_table, slot)
         table.insert(print_table, ")")
         table.insert(print_table, "\n")
-        table.insert(print_table, self.inv_table[index + 1])
+        table.insert(print_table, self.inv_table[index + 0])
         table.insert(print_table, ", ")
+        table.insert(print_table, self.inv_table[index + 1])
+        table.insert(print_table, " (")
         table.insert(print_table, self.inv_table[index + 2])
+        table.insert(print_table, ")")
+
+        table.insert(print_table, "\n")
         table.insert(print_table, "----\n")
 
         ::continue::

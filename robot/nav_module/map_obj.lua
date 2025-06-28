@@ -512,7 +512,8 @@ function module.setup_build(what_chunk, what_quad)
     local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
-    return map_chunk:setupBuild(what_quad) -- pay attention to what are we returning
+    local chunk_height = chunk:getHeight()
+    return map_chunk:setupBuild(what_quad, chunk_height) -- pay attention to what are we returning
 end
 
 function module.do_build(what_chunk, what_quad)
