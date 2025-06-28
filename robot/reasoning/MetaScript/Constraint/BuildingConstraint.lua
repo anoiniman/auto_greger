@@ -82,6 +82,9 @@ function BuildingConstraint:decideToBuild(to_build)
     local internal = inv.virtual_inventory
 
     local diff = internal:compareWithLedger(tmp_inv)
+    -- local serial = serialize.serialize(diff, true)
+    -- print(comms.robot_send("debug", serial)
+
     if diff == nil or #diff == 0 then return 1 end -- aka return a no-go-signal by default
 
     -- element.lable, element.name

@@ -107,7 +107,7 @@ end
 
 function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
     name = bucket_funcs.identify(name, lable)
-    if to_be_added < 0 then return 0 end
+    if to_be_added <= 0 then return 0 end
 
     for index = 1, self.table_size, 3 do
         local slot = (index + 2) / 3
@@ -121,7 +121,7 @@ function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
         self.inv_table[index + 2] = cur_add
         to_be_added = to_be_added - cur_add
 
-        if to_be_added < 0 then return 0 end
+        if to_be_added == 0 then return 0 end
         ::continue::
     end
 
@@ -132,7 +132,7 @@ end
 -- if name is not provided, name is probably generic, if name is generic, it is accepted by any lable
 function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
     name = bucket_funcs.identify(name, lable)
-    if to_be_added < 0 then return 0 end
+    if to_be_added <= 0 then return 0 end
 
     -- do valid stack growth according to the rules of opencomputers (reduce left-first)
     for index = 1, self.table_size, 3 do
@@ -383,7 +383,7 @@ function ComparisonDiff:new(lable, name, diff)
     new.name = name
     new.diff = diff
 
-    return nil
+    return new
 end
 
 -- it is generally better for the smaller table to be "other" rather than "self"
