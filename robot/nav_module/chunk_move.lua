@@ -69,11 +69,21 @@ end
 
 local function move_to_road(what_kind, nav_obj, cur_building)
     local function nearest_side()
-        if rel_nearest_side[1] > 0 then interface.r_move(what_kind, "east", nav_obj)
-        elseif rel_nearest_side[1] < 0 then interface.r_move(what_kind, "west", nav_obj)
-        elseif rel_nearest_side[2] > 0 then interface.r_move(what_kind, "south", nav_obj)
-        elseif rel_nearest_side[2] < 0 then interface.r_move(what_kind, "north", nav_obj)
-        else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
+        local axis_nearest
+        if math.abs(rel_nearest_side[1]) < math.abs(rel_nearest_side[2]) then
+            axis_nearest = 0
+        else
+            axis_nearest = 1
+        end
+
+        if axis_nearest == 0 then
+            if rel_nearest_side[1] > 0 then interface.r_move(what_kind, "east", nav_obj)
+            elseif rel_nearest_side[1] < 0 then interface.r_move(what_kind, "west", nav_obj)
+        else
+            elseif rel_nearest_side[2] > 0 then interface.r_move(what_kind, "south", nav_obj)
+            elseif rel_nearest_side[2] < 0 then interface.r_move(what_kind, "north", nav_obj)
+        end
+        --else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
 
         update_chunk_nav(nav_obj)
     end
@@ -82,7 +92,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         return
     --end
 
-    --[[local doors = cur_building:getDoors()
+    local doors = cur_building:getDoors()
     local cur_rel = nav_obj.rel
 
     local what_door = nil
@@ -106,7 +116,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         nav_obj.cur_building = nil
         return
     end -- else movement failed
-    print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))--]]
+    print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))
 end
 
 
