@@ -95,7 +95,7 @@ end
 
 local function calc_add_to_stack(current, to_add)
     local naive_add = current + to_add
-    local div = naive_add / 64
+    local div = math.floor(naive_add / 64)
     if div == 0 then return to_add end -- we can add everything in, because the result is smaller than 1 stack
 
     local modulo = naive_add % 64
@@ -107,6 +107,7 @@ end
 
 function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
     name = bucket_funcs.identify(name, lable)
+    if to_be_added < 0 then return 0 end
 
     for index = 1, self.table_size, 3 do
         local slot = (index + 2) / 3
@@ -120,17 +121,18 @@ function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
         self.inv_table[index + 2] = cur_add
         to_be_added = to_be_added - cur_add
 
-        if true then break end
+        if to_be_added < 0 then return 0 end
         ::continue::
     end
 
-    return to_be_added
+    return to_be_added -- remainder
 end
 
 -- WARNING: If addOrCreate doesn't mimic/isn't used 100% accuratly to model the real behaviour we're ffed
 -- if name is not provided, name is probably generic, if name is generic, it is accepted by any lable
 function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
     name = bucket_funcs.identify(name, lable)
+    if to_be_added < 0 then return 0 end
 
     -- do valid stack growth according to the rules of opencomputers (reduce left-first)
     for index = 1, self.table_size, 3 do
@@ -393,12 +395,17 @@ function Module:compareWithLedger(other)
     for index = 1, #other.inv_table, 3 do
         local o_table = other.inv_table
 
-        local other_quantity = o_table[index + 2]
-        if other_quantity == 0 then goto continue end
+        local slot_quantity = o_table[index + 2]
+        if slot_quantity == 0 then goto continue end
 
         local o_lable = o_table[index]
         local o_name = o_table[index + 1]
 
+        for _, c_diff in ipairs(diff_table) do -- skip things already added
+            if c_diff.lable == o_lable and c_diff.name == o_name then goto continue end
+        end
+
+        local other_quantity = other:howMany(o_lable, o_name)
         local own_quantity = self:howMany(o_lable, o_name)
 
         local diff = own_quantity - other_quantity
