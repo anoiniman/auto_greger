@@ -66,6 +66,10 @@ function NamedArea:new(name, colour, height, floor_block)
     return new
 end
 function NamedArea:addChunkToSelf(what_chunk)
+    for _, o_chunk in ipairs(self.chunks) do
+        if what_chunk[1] == o_chunk[1] and what_chunk[2] == o_chunk[2] then return end
+    end
+
     table.insert(self.chunks, what_chunk)
 end
 
@@ -737,7 +741,7 @@ end
 module.create_named_area("home", "green", 69, "dirt")
 local what_chunk = {-2,0}
 module.gen_map_obj({1,1})
-module.get_chunk(what_chunk).roads_cleared = true
+module.get_chunk(what_chunk).chunk.roads_cleared = true
 
 -- more temp
 --[[
