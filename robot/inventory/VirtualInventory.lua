@@ -354,12 +354,12 @@ function Module:forceUpdateGeneral(is_internal)
 
         if stack_info == nil then goto continue end
 
-        temp:addOrCreate(stack_info.label, stack_info.name, stack_info.size, slot)
+        temp:forceUpdateSlot(stack_info.label, stack_info.name, stack_info.size, slot)
         ::continue::
     end
 
     -- self.inv_table = nil
-    self.inv_table = temp
+    self.inv_table = temp.inv_table
 end
 
 local ComparisonDiff = {

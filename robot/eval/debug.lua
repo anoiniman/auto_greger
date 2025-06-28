@@ -97,8 +97,7 @@ function module.debug(arguments)
     elseif arguments[1] == "inv" or arguments[1] == "inventory" then
 
         if arguments[2] == "print" and arguments[3] == "internal" then
-            local serial = serialize.serialize(inv.internal_ledger.ledger_proper, 100)
-            print(comms.robot_send("info", "Internal Inventory: \n" .. serial))
+            inv.virtual_inventory:printObj()
         elseif arguments[2] == "force" and arguments[3] == "add_all" then
             inv.force_update_vinv()
         else
