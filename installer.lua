@@ -251,6 +251,7 @@ local function robot_complex_algorithms()
        filesystem.makeDirectory("/home/robot/complex_algorithms")
     end
 
+    download("/robot/complex_algorithms/LogisticTransfer.lua", "self")
     download("/robot/complex_algorithms/nav_build.lua", "self")
     download("/robot/complex_algorithms/road_build.lua", "self")
 

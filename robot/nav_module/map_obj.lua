@@ -108,7 +108,7 @@ end
 
 function MetaChunk:addMark(str)
     if self.chunk.marks == nil then self.chunk.marks = {} end
-    if self.chunk:checkMarks(str) then return end
+    if self:checkMarks(str) then return end
 
     table.insert(self.chunk.marks, str)
 end
@@ -184,7 +184,7 @@ local function empty_quad_table()
 end
 
 function MetaChunk:getDoors(what_quad_num)
-    if not self.chunk:quadChecks(what_quad_num, "getDoors") then return nil end
+    if not self:quadChecks(what_quad_num, "getDoors") then return nil end
     local this_quad = self.chunk.meta_quads[what_quad_num]
     local doors = this_quad:getDoors()
     --if doors == nil then print(comms.robot_send("error", "MetaChunk:getDoors, got nil doors xO")) end
@@ -213,35 +213,35 @@ function MetaChunk:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
 function MetaChunk:addQuad(what_quad_num, what_build, what_chunk)
-    if not self.chunk:quadChecks(what_quad_num, "addQuad") then return false end
+    if not self:quadChecks(what_quad_num, "addQuad") then return false end
     if self.chunk.meta_quads[what_quad_num]:getNum() ~= 0 then
         print(comms.robot_send("error", "trying to overwrite already defined quad, without specifing desire to overwrite!"))
     end
-    return self.chunk:addQuadCommon(what_quad_num, what_build, what_chunk)
+    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
 function MetaChunk:replaceQuad(what_quad_num, what_build, what_chunk)
-    if not self.chunk:quadChecks(what_quad_num, "replaceQuad") then return false end
+    if not self:quadChecks(what_quad_num, "replaceQuad") then return false end
     local this_quad = self.chunk.meta_quads[what_quad_num]
     if this_quad:getNum() ~= 0 and this_quad:isBuilt() then
         print(comms.robot_send("error", "trying to overwrite already BUILT quad, UNIMPLEMENTED!"))
     end
-    return self.chunk:addQuadCommon(what_quad_num, what_build, what_chunk)
+    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
 end
 
 function MetaChunk:setupBuild(what_quad_num)
-    if not self.chunk:quadChecks(what_quad_num, "setupBuild") then return false end
+    if not self:quadChecks(what_quad_num, "setupBuild") then return false end
 
     local this_quad = self.chunk.meta_quads[what_quad_num]
     if this_quad:isBuilt() then
         print(comms.robot_send("error", "cannot prepare to build what is already built!"))
         return false
     end
-    return this_quad:setupBuild(self.chunk:getHeight())
+    return this_quad:setupBuild(self:getHeight())
 end
 
 function MetaChunk:doBuild(what_quad_num)
-    if not self.chunk:quadChecks(what_quad_num, "doBuild") then return false end
+    if not self:quadChecks(what_quad_num, "doBuild") then return false end
 
     local this_quad = self.chunk.meta_quads[what_quad_num]
     if this_quad:isBuilt() then
@@ -252,7 +252,7 @@ function MetaChunk:doBuild(what_quad_num)
 end
 
 function MetaChunk:finalizeBuild(what_quad_num)
-    if not self.chunk:quadChecks(what_quad_num, "finalizeBuild") then return false end
+    if not self:quadChecks(what_quad_num, "finalizeBuild") then return false end
     local this_quad = self.chunk.meta_quads[what_quad_num]
     this_quad:finalizeBuild()
     return true

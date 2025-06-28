@@ -8,7 +8,7 @@ local map_obj = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local MetaBuild = require("build.MetaBuild")
 
-local ABMetaInfo = require("build.AutoBuildMetaInfo")
+local ABMetaInfo = require("eval.AutoBuildMetaInfo")
 
 
 -- chunk_x_offset and chunk_z_offset btw

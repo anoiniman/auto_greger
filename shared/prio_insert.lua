@@ -15,7 +15,7 @@ function module.named_insert(tbl, to_add)
 
     -- prob fine to break since -1 is always added towards the end and we linear search
     for index = 1, #tbl, 1 do
-        local value = tbl[i]["priority"]
+        local value = tbl[index]["priority"]
         if (value == -1) or (prio <= value) then
             table.insert(tbl, index, to_add)
             return
