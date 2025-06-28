@@ -237,7 +237,9 @@ function MetaChunk:setupBuild(what_quad_num)
         print(comms.robot_send("error", "cannot prepare to build what is already built!"))
         return false
     end
-    return this_quad:setupBuild(self:getHeight())
+
+    local chunk_height = self:getHeight()
+    return this_quad:setupBuild(chunk_height)
 end
 
 function MetaChunk:doBuild(what_quad_num)
@@ -512,8 +514,7 @@ function module.setup_build(what_chunk, what_quad)
     local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
-    local chunk_height = chunk:getHeight()
-    return map_chunk:setupBuild(what_quad, chunk_height) -- pay attention to what are we returning
+    return map_chunk:setupBuild(what_quad) -- pay attention to what are we returning
 end
 
 function module.do_build(what_chunk, what_quad)

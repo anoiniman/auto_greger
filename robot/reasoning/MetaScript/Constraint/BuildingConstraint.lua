@@ -72,7 +72,7 @@ function BuildingConstraint:decideToBuild(to_build)
     local tmp_build = MetaBuild:new()
     -- I don't think it'll be a big deal to recalculate this everytime, but let's see
     tmp_build:require(to_build.name)
-    tmp_build:setupBuild()
+    tmp_build:setupBuild(1, 1)
 
     local tmp_ledger = tmp_build:createAndReturnLedger()
     local serial = serialize.serialize(tmp_ledger.ledger_proper, 50)
