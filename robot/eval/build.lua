@@ -76,11 +76,11 @@ end
 
 
 function module.start_auto_build(arguments)
-    if arguments.door_move_done == nil then
+    if arguments[1].door_move_done == nil then
         error(comms.robot_send("fatal", "start_auto_build: this is not the right struct!"))
     end
 
-    return map_obj.start_auto_build(arguments)
+    return map_obj.start_auto_build(arguments[1])
 end
 
 function module.use_build(arguments)

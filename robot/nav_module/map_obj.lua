@@ -677,7 +677,7 @@ function module.start_auto_build(ab_metainfo)
     elseif what_step == 4 then
         local chunk_ref = module.chunk_exists(what_chunk)
         if chunk_ref.roads_cleared == false then
-            local self_table = {prio, "start_auto_build", table.unpack(return_table)}
+            local self_table = {prio, "start_auto_build", return_table}
             local build_height = module.get_height(what_chunk)
             local local_instructions = BuildInstruction:roadBuild(what_chunk, build_height)
 
@@ -721,7 +721,7 @@ function module.start_auto_build(ab_metainfo)
         instruction:addChunkCoords(what_chunk)
         instruction.ab_meta_info_ref = ab_metainfo -- wowzers
 
-        local self_table = {prio, "start_auto_build", table.unpack(return_table)}
+        local self_table = {prio, "start_auto_build", return_table}
 
         if status == "continue" then
             return {80, "navigate_rel", "and_build", instruction, self_table}
@@ -731,7 +731,7 @@ function module.start_auto_build(ab_metainfo)
     ::fall::
 
     -- let this fall through if this is what we want to return, most of the time this is what we want to return
-    return {prio, "start_auto_build", table.unpack(return_table)}
+    return {prio, "start_auto_build", return_table}
 end
 
 -- temp
