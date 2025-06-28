@@ -74,13 +74,14 @@ function BuildingConstraint:decideToBuild(to_build)
     tmp_build:require(to_build.name)
     tmp_build:setupBuild(1, 1)
 
-    local virtual_inventory = tmp_build:createAndReturnLedger()
-    local serial = serialize.serialize(virtual_inventory.virtual_inventory, 50)
-    print(comms.robot_send("debug", "decideToBuild virtual_inventory = \n" .. serial))
+    local tmp_inv = tmp_build:createAndReturnLedger()
 
-    local virtual_inventory = inv.virtual_inventory
+    print(comms.robot_send("debug", "decideToBuild temp:"))
+    if DO_DEBUG_PRINT then tmp_inv:printObj() end
 
-    local diff = virtual_inventory:compareWithLedger(virtual_inventory)
+    local internal = inv.virtual_inventory
+
+    local diff = internal:compareWithLedger(tmp_inv)
     if diff == nil or #diff == 0 then return 1 end -- aka return a no-go-signal by default
 
     -- element.lable, element.name

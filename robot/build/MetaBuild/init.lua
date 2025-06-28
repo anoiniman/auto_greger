@@ -332,7 +332,7 @@ function Module:createAndReturnLedger()
         local block_name = instruction.block_info.name
         local block_lable = instruction.block_info.lable
 
-        tmp_ledger:addOrCreate(block_name, block_lable, 1)
+        tmp_ledger:addOrCreate(block_lable, block_name, 1)
     end
 
     return tmp_ledger
