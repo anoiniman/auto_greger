@@ -320,7 +320,7 @@ function Module:createAndReturnLedger()
     -- We could try to pre-add-up every block by looping through the s_interface multiple times, and only
     -- then increment the ledger entries, or we could just loop once and increment the ledger entries
     -- 1-by-1, I don't know what solution is best, so I'll just use the easier one
-    local tmp_ledger = MetaLedger:new()
+    local tmp_ledger = VirtualInventory:new(64)
 
 
     local result, status, instruction

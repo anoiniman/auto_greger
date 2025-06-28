@@ -75,12 +75,12 @@ function BuildingConstraint:decideToBuild(to_build)
     tmp_build:setupBuild(1, 1)
 
     local tmp_ledger = tmp_build:createAndReturnLedger()
-    local serial = serialize.serialize(tmp_ledger.ledger_proper, 50)
+    local serial = serialize.serialize(tmp_ledger.virtual_inventory, 50)
     print(comms.robot_send("debug", "decideToBuild tmp_ledger = \n" .. serial))
 
-    local internal_ledger = inv.internal_ledger
+    local virtual_inventory = inv.virtual_inventory
 
-    local diff = internal_ledger:compareWithLedger(tmp_ledger.ledger_proper)
+    local diff = virtual_inventory:compareWithLedger(tmp_ledger.ledger_proper)
     if diff == nil or #diff == 0 then return 1 end -- aka return a no-go-signal by default
 
     -- element.lable, element.name
