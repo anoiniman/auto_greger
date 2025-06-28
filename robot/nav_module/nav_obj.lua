@@ -92,6 +92,13 @@ function module.re_instantiate(big_table, map)
     }
 end
 
+function module.get_cur_building()
+    return nav_obj.cur_building
+end
+
+function module.set_cur_building(new)
+    nav_obj.cur_building = new
+end
 
 function module.get_chunk()
     return deep_copy.copy(nav_obj.chunk, ipairs) -- :)

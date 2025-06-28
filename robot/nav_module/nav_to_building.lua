@@ -21,13 +21,16 @@ local function find_build(what_chunk, door_info)
         ::continue::
     end
 
-    return cur_quad:getBuild()
+    if cur_quad ~= nil then
+        return cur_quad:getBuild()
+    end
+    return nil
 end
 
 function module.need_move(what_chunk, door_info)
     local target_build = find_build(what_chunk, door_info) -- should be fine?
-    local cur_build = nav.nav_obj.cur_building
-    if target_build == cur_build then return false end
+    local cur_build = nav.get_cur_building()
+    if cur_build ~= nil and target_build == cur_build then return false end
     return true
 end
 
@@ -64,7 +67,7 @@ function module.do_move(what_chunk, door_info)
         else error(comms.robot_send("fatal", "nav_to_build: unexpected2!")) end
     end
 
-    nav.nav_obj.cur_building = find_build(what_chunk, door_info) -- should be fine?
+    nav.set_cur_building(find_build(what_chunk, door_info)) -- should be fine?
     return true
 end
 
