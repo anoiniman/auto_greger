@@ -82,7 +82,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
             else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
         else
             if rel_nearest_side[2] > 0 then interface.r_move(what_kind, "south", nav_obj)
-            elseif rel_nearest_side[2] < 0 then interface.r_move(what_kind, "north", nav_obj) end
+            elseif rel_nearest_side[2] < 0 then interface.r_move(what_kind, "north", nav_obj)
             else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
         end
 
