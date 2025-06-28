@@ -381,7 +381,7 @@ function Module:checkHumanMap(base_table, name)
     return 0
 end
 
-function Module:getDoors()
+function Module:getPrimitiveDoors()
     return self.primitive.doors
 end
 

@@ -8,6 +8,8 @@ local function find_build(what_chunk, door_info)
     local quads = map.get_chunk(what_chunk).chunk.meta_quads
     local cur_quad = nil
     for _, quad in ipairs(quads) do
+        if not quad:isBuilt() then goto continue end
+
         local doors = quad:getDoors()
         for _, door in ipairs(doors) do
             if door == door_info then -- checks if references match
@@ -15,6 +17,8 @@ local function find_build(what_chunk, door_info)
                 break
             end
         end
+
+        ::continue::
     end
 
     return cur_quad:getBuild()

@@ -68,7 +68,7 @@ function MetaQuad:requireBuild(name, what_chunk)
     local result = self.build:require(name, what_chunk)
     if result == false then return false end
 
-    self.doors = deep_copy.copy(self.build:getDoors(), pairs)
+    self.doors = deep_copy.copy(self.build:getPrimitiveDoors(), pairs)
     self:actualizeDoors()
     return true
 end

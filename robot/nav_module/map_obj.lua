@@ -106,7 +106,7 @@ local MetaChunk = {
 
 function MetaChunk:new(real_chunk)
     local new = deep_copy.copy_table(self, pairs)
-    self.chunk = real_chunk
+    new.chunk = real_chunk
     return new
 end
 
