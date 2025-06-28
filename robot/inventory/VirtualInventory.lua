@@ -221,6 +221,7 @@ end
 
 function Module:howMany(lable, name)
     local slot_table = self:getAllSlots(lable, name)
+    if slot_table == nil then return 0 end
 
     local total = 0
     for _, element in ipairs(slot_table) do
@@ -392,15 +393,19 @@ function Module:compareWithLedger(other)
     for index = 1, #other.inv_table, 3 do
         local o_table = other.inv_table
 
+        local other_quantity = o_table[index + 2]
+        if other_quantity == 0 then goto continue end
+
         local o_lable = o_table[index]
         local o_name = o_table[index + 1]
-        local other_quantity = o_table[index + 2]
 
         local own_quantity = self:howMany(o_lable, o_name)
 
         local diff = own_quantity - other_quantity
         local diff_obj = ComparisonDiff:new(o_lable, o_name, diff)
         table.insert(diff_table, diff_obj)
+
+        ::continue::
     end
 
     return diff_table
