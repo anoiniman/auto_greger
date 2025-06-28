@@ -54,16 +54,16 @@ local nav_path = save_home .. "/nav.save"
 
 
 -- be careful to maintain abi, otherwise waste_full disk-writes will occur (wasting power) [not that it matters much]
-function module.save_state()
+function module.save_state(extra)
     if not filesystem.isDirectory(save_home) then
         filesystem.makeDirectory(save_home)
     end
     save_thing(inv_path, inv)
     save_thing(map_path, map)
-    save_thing(nav_path, nav)
+    save_thing(nav_path, nav, map, extra)
 end
 
-local function load_thing(path, obj)
+local function load_thing(path, obj, extra)
     if not filesystem.exists(path) then return end
     local file = io.open(path, "r")
     local serial = file:read("*a")
@@ -78,7 +78,7 @@ local function load_thing(path, obj)
         return
     end
 
-    obj.re_instantiate(big_table)
+    obj.re_instantiate(big_table, extra)
 end
 
 function module.load_state()
@@ -87,7 +87,7 @@ function module.load_state()
     end
     load_thing(inv_path, inv)
     load_thing(map_path, map)
-    load_thing(nav_path, nav)
+    load_thing(nav_path, nav, map)
 end
 
 

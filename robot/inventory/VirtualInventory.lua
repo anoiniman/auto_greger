@@ -67,7 +67,7 @@ end
 
 -- internal, aka is this the robots own inventory?
 function Module:new(inv_size)
-    local new = deep_copy(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     new.inv_size = inv_size
     new.table_size = inv_size * 3
     new.inv_type = "virtual_inventory"
@@ -346,8 +346,8 @@ function Module:forceUpdateInternal()
 end
 
 function Module:forceUpdateGeneral(is_internal)
-    local temp = Module:new(self.max_size)
-    for slot = 1, self.max_size, 1 do
+    local temp = Module:new(self.inv_size)
+    for slot = 1, self.inv_size, 1 do
         local stack_info
         if is_internal then stack_info = inventory.getStackInInternalSlot(slot)
         else stack_info = inventory.getStackInSlot(sides_api.front, slot) end

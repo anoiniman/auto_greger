@@ -6,8 +6,6 @@ local module = {}
 local comms = require("comms") -- luacheck: ignore
 local deep_copy = require("deep_copy")
 
-local map = require("nav_module.map_obj")
-
 local interface = require("nav_module.nav_interface")
 local chunk_move = require("nav_module.chunk_move")
 local rel_move = require("nav_module.rel_move")
@@ -36,7 +34,7 @@ local nav_obj = {
 
 -- TODO save and load functions for this module here (and remember for reasoning as well!
 -- (the locks are what comes to mind, I don't think there is any other long-term state in there)
-function module.get_data()
+function module.get_data(map)
     local bd_info = nil
     local bd_chunk = nil
     local bd_quad = nil
@@ -73,7 +71,7 @@ function module.get_data()
     }
 end
 
-function module.re_instantiate(big_table)
+function module.re_instantiate(big_table, map)
     local bd_info = big_table[7]
     local bd_ref = nil
     if bd_info ~= nil then
