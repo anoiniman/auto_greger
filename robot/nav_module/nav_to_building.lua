@@ -35,10 +35,13 @@ function module.need_move(what_chunk, door_info)
 end
 
 
+-- state is introduced here
+local chunk_moved = false
+
 -- false == continue, true == over
 function module.do_move(what_chunk, door_info)
     --------- CHUNK MOVE -----------
-    if not nav.is_in_chunk(what_chunk) then
+    if not chunk_moved and not nav.is_in_chunk(what_chunk) then
         -- print("debug", "move_chunk")
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)
@@ -47,6 +50,7 @@ function module.do_move(what_chunk, door_info)
 
         return false
     end
+    chunk_moved = true
 
     -------- SANITY CHECK ---------
     if nav.is_setup_navigate_chunk() then
@@ -69,6 +73,7 @@ function module.do_move(what_chunk, door_info)
     end
 
     -- print("debug", "done_move")
+    chunk_moved = false
     nav.set_cur_building(find_build(what_chunk, door_info)) -- should be fine?
     return true
 end
