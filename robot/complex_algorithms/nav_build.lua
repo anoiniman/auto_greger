@@ -45,8 +45,8 @@ function module.nav_and_build(instructions, post_run)
     -- I know this shit should be done in place, I don't have the time to code good for now
     -- post_run is a command to be run after this one is finished
     local self_return = {80, "navigate_rel", "and_build", instructions, post_run}
-    if move_to_build.need_move(what_chunk, door_info) then
-        move_to_build.do_move(what_chunk, door_info)
+    if not ab_meta_info.door_move_done and move_to_build.need_move(what_chunk, door_info) then
+        ab_meta_info.door_move_done = move_to_build.do_move(what_chunk, door_info)
         return self_return
     end
 
