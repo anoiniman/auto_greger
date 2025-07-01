@@ -3,6 +3,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 -- local MetaLedger = require("inventory.MetaLedger")
+local map = require("nav_module.map")
 local VirtualInventory = require("inventory.VirtualInventory")
 local inv = require("inventory.inv_obj")
 
@@ -65,6 +66,63 @@ function Module:new(item_defs, parent, is_cache, symbol, index, storage_type)
     new.special_block_index = index
 
     inv.register_ledger(new) -- important
+    return new
+end
+
+function Module:getData()
+    local save_ledger = self.ledger:getData()
+    local parent_chunk = "nil"
+    local door_info = "nil"
+
+    if self.parent ~= nil then
+        parent_chunk = self.parent_build.what_chunk
+        door_info = self.parent_build.doors
+    end
+
+    local what_quad = map.find_build(parent_chunk, door_info)
+
+    local big_table = {
+        parent_chunk,               -- 1
+        what_quad,
+        self.item_defs,             -- 3
+        self.storage,               -- 4
+        self.long_term_storage,     -- 5
+
+        save_ledger,
+        self.symbol,
+        self.special_block_index,    -- 8
+    }
+    return big_table
+end
+
+function Module:reInstantiate(big_table)
+    local serial_ledger = big_table[6]
+    local real_ledger = VirtualInventory:reInstantiate(serial_ledger)
+
+    local parent_chunk = big_table[1]
+    local what_quad = big_table[2]
+    local real_build = nil
+
+    if big_table[1] ~= "nil" then
+        real_build = map.get_chunk(parent_chunk):getBuildRef(what_quad)
+    end
+
+    local item_defs = big_table[3]
+    local storage = big_table[4]
+    local long_term_storage = big_table[5]
+
+    local symbol = big_table[7]
+    local sp_index = big_table[8]
+
+    local new = deep_copy.copy(self, ipairs)
+    new.parent = real_build
+    new.ledger = real_ledger
+    new.item_defs = item_defs
+    new.storage = storage
+    new. long_term_storage = long_term_storage
+    new.symbol = symbol
+    new.special_block_index = sp_index
+
     return new
 end
 

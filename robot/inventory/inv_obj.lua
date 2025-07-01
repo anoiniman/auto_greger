@@ -50,7 +50,7 @@ function module.get_data()
     local virtual_inventory = virtual_inventory:getData()
     local external_table = {}
     for _, vinv_external in ipairs(external_inventories) do
-        local vinv = vinv_external:getData()
+        local vinv = vinv_external:getData() -- FAT LEDGER; THIS CAN'T BE DONE
         table.insert(external_table, vinv)
     end
     

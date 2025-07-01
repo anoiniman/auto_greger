@@ -4,29 +4,6 @@ local comms = require("comms")
 local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
 
-local function find_build(what_chunk, door_info)
-    local quads = map.get_chunk(what_chunk).chunk.meta_quads
-    local cur_quad = nil
-    for _, quad in ipairs(quads) do
-        if not quad:isBuilt() then goto continue end
-
-        local doors = quad:getDoors()
-        for _, door in ipairs(doors) do
-            if door == door_info then -- checks if references match
-                cur_quad = quad
-                break
-            end
-        end
-
-        ::continue::
-    end
-
-    if cur_quad ~= nil then
-        return cur_quad:getBuild()
-    end
-    return nil
-end
-
 function module.need_move(what_chunk, door_info)
     local target_build = find_build(what_chunk, door_info) -- should be fine?
     local cur_build = nav.get_cur_building()
@@ -74,7 +51,7 @@ function module.do_move(what_chunk, door_info)
 
     -- print("debug", "done_move")
     chunk_moved = false
-    nav.set_cur_building(find_build(what_chunk, door_info)) -- should be fine?
+    nav.set_cur_building(map.find_build(what_chunk, door_info)) -- should be fine?
     return true
 end
 

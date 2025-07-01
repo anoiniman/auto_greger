@@ -305,7 +305,7 @@ function Module:removeFromSlot(what_slot, how_much) -- returns how much was actu
     local offset = (what_slot * 3) - 2
 
     self.inv_table[offset + 2] = self.inv_table[offset + 2] - how_much
-    local excess = -self.inv_table[2]
+    local excess = -self.inv_table[offset + 2]
     local real_removed = how_much - excess
 
     if self.inv_table[offset + 2] <= 0 then
