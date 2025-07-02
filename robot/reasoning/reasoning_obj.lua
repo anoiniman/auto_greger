@@ -30,11 +30,12 @@ local cur_script = nil
 -- references to things like Goals and Recipes, but we'll see
 function reason_obj.get_data()
     local cur_script_index
+    local no_func_scripts = {}
     for index, script in ipairs(scripts) do
         if script == cur_script then
             cur_script_index = index
-            break
         end
+        table.insert(no_func_scripts, deep_copy.copy_no_functions(script))
     end
     if cur_script_index == nil then
         print(comms.robot_send("error", "Saving reas_obj, couldn't find index to cur_script??? defaulting to 1"))
@@ -42,7 +43,7 @@ function reason_obj.get_data()
     end
 
     local big_table = {
-        scripts,
+        no_func_scripts,
         cur_script_index
     }
     return big_table
