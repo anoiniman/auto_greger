@@ -1,10 +1,12 @@
 -- Things to do after exit is called
-local keep_alive = require("keep_alive")
 local comms = require("comms")
+
+local keep_alive = require("keep_alive")
+
 local map = require("nav_module.map_obj")
 local nav = require("nav_module.nav_obj")
-
 local inv = require("inventory.inv_obj")
+local reas = require("reasoning.reasoning_obj")
 
 local serialize = require("serialization")
 local io = require("io")
@@ -51,6 +53,7 @@ local save_home = "/home/robot/save_state"
 local inv_path = save_home .. "/inv.save"
 local map_path = save_home .. "/map.save"
 local nav_path = save_home .. "/nav.save"
+local reas_path = save_home .. "/reas.save"
 
 
 -- be careful to maintain abi, otherwise waste_full disk-writes will occur (wasting power) [not that it matters much]
@@ -61,6 +64,7 @@ function module.save_state(extra)
     save_thing(inv_path, inv)
     save_thing(map_path, map)
     save_thing(nav_path, nav, map, extra)
+    save_thing(reas_path, reas)
 end
 
 local function load_thing(path, obj, extra)
@@ -88,6 +92,7 @@ function module.load_state()
     load_thing(inv_path, inv)
     load_thing(map_path, map)
     load_thing(nav_path, nav, map)
+    load_thing(reas_path, reas)
 end
 
 

@@ -166,3 +166,6 @@ should be managed by the ingame machine "logic" rather than by the robot agent, 
 
 I think all we need to do now, is write some nice test scripts, and maybe even implement more powerful state-saving
 and state-fudging tecnhiques hehe
+
+Weird thing happen with chunk_move, move too far, me no get
+The robot won't start building and will remain in a building loop for some reason

@@ -15,10 +15,6 @@ function REASON_WAIT_LIST:checkAndAdd(build)
     table.insert(self, build)
 end
 
---[[
-local MetaRecipe = require("reasoning.MetaRecipe")
-local MSBuilder, Goal, Requirement = table.unpack(require("reasoning.MetaScript"))
---]]
 
 -- Have the recipes be dynamically loaded-unloaded with doFile, rather than required
 -- because, you, know there are a lot of recipes, do the same for scripts
@@ -29,9 +25,34 @@ scripts[1] = dofile("/home/robot/reasoning/scripts/debug/01.lua")
 -- local recipes = {}
 
 local cur_script = nil
-function reason_obj.reason()
-    error(comms.robot_send("fatal", "TODO! reason_obj.reason"))
+
+-- TODO there might be a big problem with the naive method of saving things and the waiting list which contains
+-- references to things like Goals and Recipes, but we'll see
+function reason_obj.get_data()
+    local cur_script_index
+    for index, script in ipairs(scripts) do
+        if script == cur_script then
+            cur_script_index = index
+            break
+        end
+    end
+    if cur_script_index == nil then
+        print(comms.robot_send("error", "Saving reas_obj, couldn't find index to cur_script??? defaulting to 1"))
+        cur_script_index = 1
+    end
+
+    local big_table = {
+        scripts,
+        cur_script_index
+    }
+    return big_table
 end
+
+function reason_obj.re_insantiate(big_table)
+    scripts = big_table[1]
+    cur_script = scripts[big_table[2]]
+end
+
 
 function reason_obj.list_scripts()
     for index, script in ipairs(scripts) do
