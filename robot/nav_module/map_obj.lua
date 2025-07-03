@@ -1,7 +1,6 @@
 local module = {}
 
 ------- Sys Requires -------
-local io = require("io")
 local serialize = require("serialization")
 
 ------- Own Requires -------
@@ -541,12 +540,15 @@ end
 -- I hope not, at least not so soon
 function module.pretend_build(area_name, build_name, what_chunk, what_quad) -- I think this is all
     -- Checks if build is already built and returns early
-    for _, quad in ipairs(module.get_chunk(what_chunk).chunk.quads) do
-        local build = quad:getBuild()
+    local chunk_quads = module.get_chunk(what_chunk).chunk.meta_quads
+    if chunk_quads ~= nil then
+        for _, quad in ipairs(chunk_quads) do
+            local build = quad:getBuild()
 
-        if build == nil then goto continue end
-        if build.name == build_name and quad:getNum() == what_quad then return 0 end
-        ::continue::
+            if build == nil then goto continue end
+            if build.name == build_name and quad:getNum() == what_quad then return 0 end
+            ::continue::
+        end
     end
 
     local area = areas_table:getArea(area_name)
