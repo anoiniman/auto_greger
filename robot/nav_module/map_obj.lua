@@ -540,6 +540,15 @@ end
 -- This might be a bitch to update if we change the way we do builds posteriorly,
 -- I hope not, at least not so soon
 function module.pretend_build(area_name, build_name, what_chunk, what_quad) -- I think this is all
+    -- Checks if build is already built and returns early
+    for _, quad in ipairs(module.get_chunk(what_chunk).chunk.quads) do
+        local build = quad:getBuild()
+
+        if build == nil then goto continue end
+        if build.name == build_name and quad:getNum() == what_quad then return 0 end
+        ::continue::
+    end
+
     local area = areas_table:getArea(area_name)
     if area == nil then return 1 end
 
