@@ -3,7 +3,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 -- local MetaLedger = require("inventory.MetaLedger")
-local map = require("nav_module.map")
+local map = require("nav_module.map_obj")
 local VirtualInventory = require("inventory.VirtualInventory")
 local inv = require("inventory.inv_obj")
 

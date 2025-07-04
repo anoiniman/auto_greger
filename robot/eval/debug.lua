@@ -147,7 +147,7 @@ end
 
 -- temp
 local chunk = {-2, 0}
-fixed_pretend_build("pretend_build", "home", "coke_quad", chunk, 1)
-fixed_pretend_build("pretend_build", "home", "oak_tree_farm", chunk, 3)
+fixed_pretend_build("home", "coke_quad", chunk, 1)
+fixed_pretend_build("home", "oak_tree_farm", chunk, 3)
 
 return module

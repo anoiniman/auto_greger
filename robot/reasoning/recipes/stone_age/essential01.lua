@@ -1,7 +1,7 @@
 local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 local MetaRecipe = require("reasoning.MetaRecipe")
 local nav_obj = require("nav_module.nav_obj")
-local sweep = require("complex_algorithms.sweep")
+-- local gathering = require("reasoning.recipes.stone_age.gathering01")
 
 local any_plank = {
     [1] = nil,
@@ -31,7 +31,7 @@ temp = {
  0 ,  0 ,  0
 }
 local gravel_dep = MetaDependency:new(all_gather, 3)
-local flint = MetaRecipe:newCraftingTable("Flint", temp)
+local flint = MetaRecipe:newCraftingTable("Flint", temp, gravel_dep, nil)
 
 -- We'll have multiple wood dependencies, because of: "wood farming/wood gathering/oak farming/spruce farming"
 -- So we'll have to eventually implement the OR dependency thing (TODO)

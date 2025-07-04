@@ -17,6 +17,7 @@ local f_pickaxe = Goal:new(flint, constraint, 66, "Flint Pickaxe", false)
 
 builder:setDictionary(dictionary)
 builder:addMultipleRecipes(debug_recipes)
+builder:addGoal(f_pickaxe)
 
 local script = builder:build()
 

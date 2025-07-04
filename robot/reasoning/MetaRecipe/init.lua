@@ -107,11 +107,14 @@ end
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
 function MetaRecipe:isSatisfied(needed_quantity)
-    if self.meta_type == "gathering" then -- TODO
-        -- Check if we got the tools
-        error(comms.robot_send("fatal", "MetaRecipe todo01"))
-    elseif self.meta_type == "crafting_table" then
-        if self.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table recipe")) end
+    --if self.meta_type == "gathering" then -- TODO
+        -- Check if we got the tools, otherwise, fetch their recipe, this in my eyes seems equal to any other item dep.
+        -- So I've commented it out for now
+        -- error(comms.robot_send("fatal", "MetaRecipe todo01"))
+    if self.meta_type == "crafting_table" or self.meta_type == "gathering" then
+        if self.dependencies == nil then 
+            error(comms.robot_send("fatal", "This cannot be for a " .. self.meta_type))
+        end
 
         -- Check if we have enough materials to craft the given quantity
         for _, dep in ipairs(self.dependencies) do
