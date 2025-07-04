@@ -108,12 +108,12 @@ end
 -- If we need to go into the dependencies which return what we're missing
 function MetaRecipe:isSatisfied(needed_quantity)
     --if self.meta_type == "gathering" then -- TODO
-        -- Check if we got the tools, otherwise, fetch their recipe, this in my eyes seems equal to any other item dep.
+        -- Check if we got the tools, otherwise, fetch their recipe, this in my eyes seems equal to any other item dep. (THIS IS FALSE)
         -- So I've commented it out for now
         -- error(comms.robot_send("fatal", "MetaRecipe todo01"))
-    if self.meta_type == "crafting_table" or self.meta_type == "gathering" then
-        if self.dependencies == nil then 
-            error(comms.robot_send("fatal", "This cannot be for a " .. self.meta_type))
+    if self.meta_type == "crafting_table" or self.meta_type == "gathering" then -- TODO TODO TODO they are not compatible!!!!
+        if self.dependencies == nil and self.meta_type == "crafting_table" then 
+            error(comms.robot_send("fatal", "This cannot be for a crafting_table"))
         end
 
         -- Check if we have enough materials to craft the given quantity

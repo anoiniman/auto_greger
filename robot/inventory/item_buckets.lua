@@ -38,6 +38,7 @@ local buckets = {
 -- make sure that you write conversions that are self-stable [aka the identify of "any:log" is "any:log"
 function module.identify(name, lable)
     if name == nil then name = "nil" end
+    if lable == nil then lable = "nil" end
 
     if lable == "Dirt" or lable == "Grass" or name == "any:grass" then
         return "any:grass"
