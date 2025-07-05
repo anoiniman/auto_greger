@@ -104,26 +104,32 @@ function MetaRecipe:selectDependency(needed_quantity, debug_name)
     return mode, dep_found
 end
 
+function MetaRecipe:iterateDeps(needed_quantity, ctx)
+    for _, dep in ipairs(self.dependencies) do
+        local mode, found_dep = self:selectDependency(needed_quantity, self.meta_type)
+        if mode ~= "all_good" then
+            if not ctx:inOptionalBranch() then
+                return mode, found_dep
+            else
+                error("TODO!")
+            end
+        end
+    end
+    return "all_good", nil
+end
+
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
-function MetaRecipe:isSatisfied(needed_quantity)
+function MetaRecipe:isSatisfied(needed_quantity, ctx)
     --if self.meta_type == "gathering" then -- TODO
         -- Check if we got the tools, otherwise, fetch their recipe, this in my eyes seems equal to any other item dep. (THIS IS FALSE)
         -- So I've commented it out for now
         -- error(comms.robot_send("fatal", "MetaRecipe todo01"))
-    if self.meta_type == "crafting_table" or self.meta_type == "gathering" then -- TODO TODO TODO they are not compatible!!!!
-        if self.dependencies == nil and self.meta_type == "crafting_table" then 
-            error(comms.robot_send("fatal", "This cannot be for a crafting_table"))
-        end
-
-        -- Check if we have enough materials to craft the given quantity
-        for _, dep in ipairs(self.dependencies) do
-            local mode, found_dep = self:selectDependency(needed_quantity, "crafting_table")
-            if mode ~= "all_good" then
-                return mode, found_dep
-            end
-        end
-        return "all_good", nil
+    if self.meta_type == "crafting_table" then
+        if self.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table")) end
+        return self:iterateDeps(needed_quantity, ctx)
+    elseif self.meta_type == "gathering" then
+        if self.dependencies ~= nil then return self:iterateDeps(needed_quantity, ctx) end
     elseif self.meta_type == "building_user" then
         -- Check if the building was built
         local name = self.mechanism.bd_name

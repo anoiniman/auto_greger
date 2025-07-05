@@ -148,22 +148,45 @@ function Goal:depSatisfied()
     return true
 end
 
+-- TODO all this
+local CtxTree = {
+    dep_stack = {}
+    depth_index = 1,
+    breadth_index = 1,
+    optional_index = -1 -- -1 == stack still hasn't gotten an optional flag triggred, otherwise says where it was triggred
+}
+
+local MetaContext = {
+    ctx_head = nil,
+    tree_selector = 1
+}
+function MetaContext:new()
+    return deep_copy.copy(MetaContext)
+end
+
+function MetaContext:expandStack(more)
+    table.insert(self.ctx_tree[tree_selector], more)
+    self.ctx_tree[tree_selector].depth_index = self.ctx_tree[tree_selector].depth_index + 1
+end
+
+
 local recurse_watch_dog = 0
 -- recurse through the recipe tree to find out in what place in the tree can we start to fulfil a certain request
 -- needed_quantity will need to be mutated because, for example: 1 pickaxe -> 3 flint -> 9 gravel (TODO)
-local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
+local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script, ctx)
     local recurse = false
     local recipe_to_execute = head_recipe
 
     -- Type of extra_info and its usage is dependent of check value returned
     local return_info
-    local check, extra_info = head_recipe:isSatisfied(needed_quantity)
+    local check, extra_info = head_recipe:isSatisfied(needed_quantity, ctx)
     if check == "breadth" then -- will return back and tell caller to find a sister if possible
         return "breadth"
     elseif check == "depth" then -- will continue deeper
         recurse = true
         recipe_to_execute = extra_info.inlying_recipe
         needed_quantity = needed_quantity * extra_info.input_multiplier
+        table.insert(dep_stack, extra_info)
     elseif check == "all_good" then
         return_info = extra_info
     elseif check == "no_resources" then
@@ -185,7 +208,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script)
     end
     recurse_watch_dog = recurse_watch_dog + 1
 
-    return recurse_recipe_tree(recipe_to_execute, needed_quantity, parent_script) -- tail recursion
+    return recurse_recipe_tree(recipe_to_execute, needed_quantity, parent_script, ctx) -- tail recursion
 end
 
 -- Some day please fix the idiotic polymorphism of this whole code section
@@ -212,7 +235,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     end
 
     local extra_info
-    needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity)
+    needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity, MetaContext:new())
 
     -- TODO implement mechanism to unlock this lock
     if needed_recipe == nil then
