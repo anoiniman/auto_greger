@@ -188,11 +188,13 @@ local function robot_reasoning()
 
     download("/robot/reasoning/MetaRecipe/init.lua", "self")
     download("/robot/reasoning/MetaRecipe/MetaDependency.lua", "self")
+    download("/robot/reasoning/MetaRecipe/resolve_dep_tree.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/MetaScript") then
        filesystem.makeDirectory("/home/robot/reasoning/MetaScript")
     end
     download("/robot/reasoning/MetaScript/init.lua", "self")
+    download("/robot/reasoning/MetaScript/RecipeTreeContext.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/MetaScript/Constraint") then
        filesystem.makeDirectory("/home/robot/reasoning/MetaScript/Constraint")
