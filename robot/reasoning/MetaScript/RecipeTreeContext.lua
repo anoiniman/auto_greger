@@ -20,7 +20,7 @@ end
 
 local TreePath = {
     path = {},
-    index = 1
+    index = 0
 }
 function TreePath:new()
     return deep_copy.copy(self, pairs)
@@ -60,6 +60,7 @@ function MetaContext:new(raw_recipe)
     local head = Node:new(raw_recipe)
     local new = deep_copy.copy(self, pairs)
     new.ctx_head = head
+    new.paths[1]:add(head)
     return new
 end
 
@@ -85,7 +86,7 @@ end
 -- Most Importantly, this adds children, but does not add to path, we only add to path after processing children
 function MetaContext:addAllDeps(dep_tbl)
     local latest_node = self:getLatestNode()
-    for _, dep in dep_tbl do
+    for _, dep in ipairs(dep_tbl) do
         local new_node = Node:new(dep)
         latest_node:addChild(new_node)
     end

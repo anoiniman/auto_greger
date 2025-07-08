@@ -67,8 +67,11 @@ function Gathering:new(tool, level, algorithm)
     return new
 end
 
-local default_tools = require("reasoning.recipes.default_tools")
+--local default_tools = require("reasoning.recipes.default_tools")
+local default_tools = nil
 function Gathering:generateToolDependency(tool_type, tool_level)
+    if default_tools == nil then default_tools = require("reasoning.recipes.default_tools") end
+
     if self.tool == nil then return nil end
     local tool_recipes = default_tools[1]
 

@@ -10,9 +10,12 @@ local prio_insert = require("prio_insert")
 
 ---- Other ----
 --local MetaRecipe = require("reasoning.MetaRecipe")
+local solve_tree = require("reasoning.MetaRecipe.resolve_dep_tree")
+
 local MetaContext = require("reasoning.MetaScript.RecipeTreeContext")
 local Constraint = require("reasoning.MetaScript.Constraint")
 local StructureDeclaration, _ = table.unpack(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
+
 
 -- Have name param as well?
 -- Add to unlocking behaviour automatic unloading behaviour for scripts that deprecate
@@ -154,7 +157,7 @@ end
 
 
 local recurse_watch_dog = 0
-local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script, ctx)
+local function recurse_recipe_tree(head_recipe, needed_quantity, ctx)
     local recurse = false
     local recipe_to_execute = head_recipe
 
@@ -162,7 +165,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script, 
     local return_info
 
     ctx:addAllDeps(head_recipe.dependencies)
-    local check, extra_info = head_recipe:isSatisfied(needed_quantity, ctx)
+    local check, extra_info = solve_tree.isSatisfied(needed_quantity, ctx)
     if check == "breadth" then -- will return back and tell caller to find a sister if possible
 
         return "breadth"
@@ -200,7 +203,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, parent_script, 
     end
     recurse_watch_dog = recurse_watch_dog + 1
 
-    return recurse_recipe_tree(recipe_to_execute, needed_quantity, parent_script, ctx) -- tail recursion
+    return recurse_recipe_tree(recipe_to_execute, needed_quantity, ctx) -- tail recursion
 end
 
 -- Some day please fix the idiotic polymorphism of this whole code section
