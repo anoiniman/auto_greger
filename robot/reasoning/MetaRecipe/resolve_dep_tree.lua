@@ -14,12 +14,12 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
     local latest_node = ctx:getLatestNode()
 
     local mode, dep_found
-    for _, dep in ipairs(latest_node.children) do
+    for _, node in ipairs(latest_node.children) do
+        local dep = node.le_self
         -- Check if we're looping over or something similar, detect cycle and try to break it, error out if it can't be done
         if ctx:checkForLoop(dep.inlying_recipe) then
             return "loop_detected", ctx:getCurNodeIndex() + 1
         end
-
 
         local inner = dep.inlying_recipe
         local dep_needed_quantity = needed_quantity * dep.input_multiplier
@@ -82,14 +82,15 @@ end
 -- If we need to go into the dependencies which return what we're missing
 function solve_tree.isSatisfied(needed_quantity, ctx)
     -- extra logic necessary becasue HEAD is always a raw recipe and doesn't need to be unwrapped
-    local parent_dependency = ctx:getLatestNode()
+    local latest_node = ctx:getLatestNode()
+
+    local parent_dependency = latest_node.le_self
     local parent_recipe
     if parent_dependency.inlying_recipe ~= nil then
         parent_recipe = parent_dependency.inlying_recipe
     else
         parent_recipe = parent_dependency
     end
-
 
     if parent_recipe.meta_type == "crafting_table" then
         if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table")) end
