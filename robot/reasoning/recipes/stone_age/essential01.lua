@@ -59,4 +59,4 @@ deps = {stick_dep, flint_dep}
 
 local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", temp, deps, nil)
 
-return {{flint, flint_pickaxe}, dictionary}
+return {{flint, flint_pickaxe, stick}, dictionary} -- this means that the only "public dependencies" are: flint and flint_pickaxe

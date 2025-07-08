@@ -77,21 +77,24 @@ function solve_tree.interpretSelection(needed_quantity, ctx, meta_type)
     return "all_good", nil
 end
 
+
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
 function solve_tree.isSatisfied(needed_quantity, ctx)
     local parent_recipe = ctx:getParentNode()
 
     if parent_recipe.meta_type == "crafting_table" then
-
         if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table")) end
-        return parent_recipe:interpretSelection(needed_quantity, ctx, parent_recipe.meta_type)
+        return solve_tree.interpretSelection(needed_quantity, ctx, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "gathering" then
-        if parent_recipe.dependencies ~= nil then
-            return parent_recipe:interpretSelection(needed_quantity, ctx, parent_recipe.meta_type)
-        end
-        return "all_good", nil -- I THINK THIS IS FINE?
+        local gathering = parent_recipe.method
+        local tool_dependency = parent_recipe.method:generateToolDependency(gathering.tool, gathering.level)
+        if tool_dependency == nil then return "all_good", nil end
+
+        -- we fake it!
+        ctx:addDep(tool_dependency)
+        return solve_tree.interpretSelection(needed_quantity, ctx, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "building_user" then
         -- Check if the building was built

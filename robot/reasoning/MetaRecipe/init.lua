@@ -67,6 +67,24 @@ function Gathering:new(tool, level, algorithm)
     return new
 end
 
+local default_tools = require("reasoning.recipes.default_tools")
+function Gathering:generateToolDependency(tool_type, tool_level)
+    if self.tool == nil then return nil end
+    local tool_recipes = default_tools[1]
+
+    local match = nil
+    for _, tool_def in ipairs(tool_recipes) do
+        -- TODO add conditional checks that'll pick bronze over iron etc. when certain conditions are met
+        if tool_def.tool_type == tool_type and tool_def.tool_level >= tool_level then
+            match = tool_def.inner_dep
+            break
+        end
+    end
+    if match == nil then error(comms.robot_send("fatal", "No recipe defined for: " .. tool_type .. ", " .. tool_level)) end
+
+    return match.inner_def
+end
+
 -- gathering depends on tools, add tool_recipe when possible?
 function MetaRecipe:newGathering(output, tool, level, algorithm, state_primitive, dependencies, strict)
     if output == nil then

@@ -75,7 +75,7 @@ function MetaContext:getParentNode()
     return parent_node
 end
 
-function MetaContext:addDepth(more)
+function MetaContext:addDepth(more) -- moves forward index and adds to path
     local new_node = Node:new(more)
     local cur_path = self.paths[self.cur_path]
 
@@ -90,6 +90,13 @@ function MetaContext:addAllDeps(dep_tbl)
         latest_node:addChild(new_node)
     end
 end
+
+function MetaContext:addDep(dep)
+    local latest_node = self:getLatestNode()
+    local new_node = Node:new(dep)
+    latest_node:addChild(new_node)
+end
+
 
 function MetaContext:checkForLoop(recipe_to_check)
     local output_to_check = recipe_to_check.output
