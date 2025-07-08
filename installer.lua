@@ -208,6 +208,7 @@ local function robot_reasoning()
        filesystem.makeDirectory("/home/robot/reasoning/recipes")
     end
     download("/robot/reasoning/recipes/sweep_gathering_general.lua", "self")
+    download("/robot/reasoning/recipes/default_tools.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/recipes/stone_age") then
        filesystem.makeDirectory("/home/robot/reasoning/recipes/stone_age")
