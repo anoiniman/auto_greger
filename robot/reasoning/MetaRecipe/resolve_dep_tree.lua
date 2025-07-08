@@ -64,8 +64,8 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
     return mode, dep_found
 end
 
-function solve_tree.interpretSelection(needed_quantity, ctx, meta_type)
-    local mode, dep_found = solve_tree.selectDependency(needed_quantity, meta_type)
+function solve_tree.interpretSelection(ctx, needed_quantity, meta_type)
+    local mode, dep_found = solve_tree.selectDependency(ctx, needed_quantity, meta_type)
     if mode == "depth" or mode == "execute" then
         return mode, dep_found
     elseif mode == "loop_detected" then
@@ -94,7 +94,7 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
 
     if parent_recipe.meta_type == "crafting_table" then
         if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table")) end
-        return solve_tree.interpretSelection(needed_quantity, ctx, parent_recipe.meta_type)
+        return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "gathering" then
         local gathering = parent_recipe.method
@@ -103,7 +103,7 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
 
         -- we fake it!
         ctx:addDep(tool_dependency)
-        return solve_tree.interpretSelection(needed_quantity, ctx, parent_recipe.meta_type)
+        return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "building_user" then
         -- Check if the building was built
