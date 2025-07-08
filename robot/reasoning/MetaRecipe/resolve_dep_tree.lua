@@ -81,7 +81,15 @@ end
 -- Are the conditions met so that we can be executed, or do we need to go into the dependencies?
 -- If we need to go into the dependencies which return what we're missing
 function solve_tree.isSatisfied(needed_quantity, ctx)
-    local parent_recipe = ctx:getParentNode()
+    -- extra logic necessary becasue HEAD is always a raw recipe and doesn't need to be unwrapped
+    local parent_dependency = ctx:getLatestNode()
+    local parent_recipe
+    if parent_dependency.inlying_recipe ~= nil then
+        parent_recipe = parent_dependency.inlying_recipe
+    else
+        parent_recipe = parent_dependency
+    end
+
 
     if parent_recipe.meta_type == "crafting_table" then
         if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table")) end
