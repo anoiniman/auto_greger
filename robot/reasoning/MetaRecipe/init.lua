@@ -218,8 +218,8 @@ function MetaRecipe:includesOutput(other)
 end
 
 function MetaRecipe:includesOutputLiteral(lable, name)
-    if lable = nil then lable = "nil_lable" end
-    if name = nil then name = "nil_name" end
+    if lable == nil then lable = "nil_lable" end
+    if name == nil then name = "nil_name" end
 
     local other = {output = {lable = lable, name = name}}
     return self:includesOutput(other)
