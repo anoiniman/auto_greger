@@ -41,16 +41,25 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
         local fmt_output = {lable = output, name = "nil_name"}
         new.output = fmt_output
     else -- complicated set of operations in order to create a valid table arrangement
-        if #output == 0 then error(comms.robot_send("fatal", "assertion failed")) end
+        if #output == 0 and output.lable == nil and output.name == nil then
+            local serial = serialize.serialize(output)
+            error(comms.robot_send("fatal", "assertion failed\n" .. serial))
+        end
 
         if output.lable ~= nil then -- it is already well formated
+            if output.name == nil then output name = "nil_name" end
             new.output = output
-        else -- It's just a table of lables
+        elseif output.name ~= nil and type(output.name) == "string" then
+            local fmt_output = {lable = "nil_lable", name = output.name}
+            new.output = fmt_output
+        elseif output.name == nil then -- It's just a table of lables (or
             local fmt_output = {lable = output, name = {}}
             for i = 1, #fmt_output.lable, 1 do
-                fmt_output.name[i] = "nil-name"
+                fmt_output.name[i] = "nil_name"
             end
             new.output = fmt_output
+        else
+            error(comms.robot_send("fatal", "unexpected"))
         end
     end
     if new.output == nil then error(comms.robot_send("fatal", "assertion failed")) end
@@ -202,6 +211,9 @@ function MetaRecipe:includesOutput(other)
 end
 
 function MetaRecipe:includesOutputLiteral(lable, name)
+    if lable = nil then lable = "nil_lable" end
+    if name = nil then name = "nil_name" end
+
     local other = {output = {lable = lable, name = name}}
     return self:includesOutput(other)
 end
