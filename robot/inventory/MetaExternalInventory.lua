@@ -49,9 +49,9 @@ local Module = {
     special_block_index = nil,
 }
 
-function Module:new(item_defs, parent, is_cache, symbol, index, storage_type)
-    if not is_cache and parent == nil then
-        print(comms.robot_send("error", "MetaExtInventory, parent is nil"))
+function Module:new(item_defs, parent_build, is_cache, symbol, index, storage_type)
+    if not is_cache and parent_build == nil then
+        print(comms.robot_send("error", "MetaExtInventory, parent_build is nil"))
         print(comms.robot_send("stack", debug.traceback()))
     end
 
@@ -61,7 +61,7 @@ function Module:new(item_defs, parent, is_cache, symbol, index, storage_type)
     local storage_size = get_storage_size(storage_type)
     new.ledger = VirtualInventory:new(storage_size)     -- for now we'll do everything as a vinv to make things
                                                         -- easier for us. If we start running out of ram then woops
-    new.parent = parent
+    new.parent_build = parent
     new.symbol = symbol
     new.special_block_index = index
 
@@ -74,7 +74,7 @@ function Module:getData()
     local parent_chunk = "nil"
     local door_info = "nil"
 
-    if self.parent ~= nil then
+    if self.parent_build ~= nil then
         parent_chunk = self.parent_build.what_chunk
         door_info = self.parent_build.doors
     end
@@ -115,7 +115,7 @@ function Module:reInstantiate(big_table)
     local sp_index = big_table[8]
 
     local new = deep_copy.copy(self, ipairs)
-    new.parent = real_build
+    new.parent_build = real_build
     new.ledger = real_ledger
     new.item_defs = item_defs
     new.storage = storage
@@ -135,7 +135,7 @@ function Module:getCoords()
 end
 
 function Module:getChunk()
-    return deep_copy.copy(self.parent.what_chunk)
+    return deep_copy.copy(self.parent_build.what_chunk)
 end
 
 
@@ -162,8 +162,8 @@ function Module:itemDefIter()
 end
 
 
-function Module:newLongTermStorage(item_defs, parent, symbol, index, storage_type)
-    local new = self:new(item_defs, parent, symbol, index, storage_type)
+function Module:newLongTermStorage(item_defs, parent_build, symbol, index, storage_type)
+    local new = self:new(item_defs, parent_build, symbol, index, storage_type)
     new.storage = true
     new.long_term_storage = true
     return new
@@ -176,14 +176,14 @@ function Module:newSelfCache()
     return new
 end
 
-function Module:newStorage(item_defs, parent, symbol, index, storage_type)
-    local new = self:new(item_defs, parent, symbol, index, storage_type)
+function Module:newStorage(item_defs, parent_build, symbol, index, storage_type)
+    local new = self:new(item_defs, parent_build, symbol, index, storage_type)
     new.storage = true
     return new
 end
 
-function Module:newMachine(item_defs, parent, symbol, index, storage_type)
-    local new = self:new(item_defs, parent, symbol, index, storage_type)
+function Module:newMachine(item_defs, parent_build, symbol, index, storage_type)
+    local new = self:new(item_defs, parent_build, symbol, index, storage_type)
     new.storage = false
     return new
 end
