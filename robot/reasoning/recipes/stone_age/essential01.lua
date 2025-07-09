@@ -30,7 +30,7 @@ temp = {
  0 , 'g',  0 ,
  0 ,  0 ,  0
 }
-local gravel_dep = MetaDependency:new(all_gather, 3)
+local gravel_dep = MetaDependency:selectFromMultiple(all_gather, 3, nil, 1) -- index is hardcoded be mindful with changes
 local flint = MetaRecipe:newCraftingTable("Flint", temp, gravel_dep, nil)
 
 -- We'll have multiple wood dependencies, because of: "wood farming/wood gathering/oak farming/spruce farming"

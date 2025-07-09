@@ -97,8 +97,8 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
         return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "gathering" then
-        local gathering = parent_recipe.method
-        local tool_dependency = parent_recipe.method:generateToolDependency(gathering.tool, gathering.level)
+        local gathering = parent_recipe.mechanism
+        local tool_dependency = gathering:generateToolDependency(gathering.tool, gathering.level)
         if tool_dependency == nil then return "all_good", nil end
 
         -- we fake it!

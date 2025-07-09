@@ -21,7 +21,7 @@ function ToolInfo:new(dep, t_type, level)
 end
 
 
-local essential_recipes, _ = dofile("/home/robot/reasoning/recipes/stone_age/essential01.lua")
+local essential_recipes, _ = table.unpack(dofile("/home/robot/reasoning/recipes/stone_age/essential01.lua"))
 local dictionary = {
     s = "Stick",
     f = "Flint",

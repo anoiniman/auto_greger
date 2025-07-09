@@ -85,6 +85,7 @@ end
 
 -- Most Importantly, this adds children, but does not add to path, we only add to path after processing children
 function MetaContext:addAllDeps(dep_tbl)
+    if dep_tbl == nil then return end
     local latest_node = self:getLatestNode()
     for _, dep in ipairs(dep_tbl) do
         local new_node = Node:new(dep)
@@ -100,17 +101,11 @@ end
 
 
 function MetaContext:checkForLoop(recipe_to_check)
-    local output_to_check = recipe_to_check.output
-
     local cur_path = self.paths[self.cur_path]
     for index = 2, #cur_path.path, 1 do
         local node = cur_path.path[index]
         local le_recipe = node.le_self.inlying_recipe
-        local le_output = le_recipe.output
-
-        if le_output.name == output_to_check.name and le_output.lable == output_to_check.lable then
-            return true
-        end
+        if le_recipe:includesOutput(recipe_to_check) then return true end
     end
 
     return false
@@ -125,7 +120,6 @@ function MetaContext:unwind(node_index)
     local cur_path = self.paths[self.cur_path]
     local err_node = cur_path[node_index]
     local err_recipe = err_node.le_self.inlying_recipe
-    local err_output = err_recipe.output
 
 
     local match_node = nil
@@ -133,9 +127,8 @@ function MetaContext:unwind(node_index)
     for temp_index = node_index - 1, 2, -1 do
         local temp_node = cur_path[temp_index]
         local temp_recipe = temp_node.le_self.inlying_recipe
-        local temp_output = temp_recipe.output
 
-        if err_output.name == temp_output.name and err_output.lable == temp_output.lable then
+        if err_recipe:includesOutput(temp_recipe) then
             match_node = temp_node
             break
         end

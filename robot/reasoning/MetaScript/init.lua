@@ -47,23 +47,11 @@ function MetaScript:findRecipe(lable, name)
         error(comms.robot_send("fatal", "MetaScript -- can't find a recipe when no lable provided dummy dumb dumb"))
     end
 
-    local table_found = nil
     for _, recipe in ipairs(self.recipes) do
-        local output = recipe.output
-        if output.lable == nil then -- aka, an equal mult-output recipe (not merely by-products)
-            for _, element in ipairs(output) do
-                if element.lable == lable and name == nil then table_found = recipe
-                elseif element.lable == lable and output.name == name then return recipe end
-            end
-            goto continue
+        if recipe:includesOutputLiteral(lable, name) then
+            return recipe
         end
-
-        if output.lable == lable and name == nil then return recipe
-        elseif output.lable == lable and output.name == name then return recipe end
-        ::continue::
-    end
-
-    if table_found ~= nil then return table_found end
+    end -- fallthrough
 
     print(comms.robot_send("error", "No recipe for: \"" .. lable .. "\" found!"))
     return nil

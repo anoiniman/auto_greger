@@ -767,9 +767,7 @@ function module.isCraftActive()
 end
 
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
-local function self_craft(dictionary, recipe, how_much_to_craft, expected_output)
-    expected_output = math.min(64, expected_output)
-
+local function self_craft(dictionary, recipe, how_much_to_craft)
     if not crafting_table_clear then
         print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
         return false
@@ -835,7 +833,7 @@ local function self_craft(dictionary, recipe, how_much_to_craft, expected_output
     end
 
     -- Now the virtual crafting-table should be assembled, lets do the thing!
-    local output_slot = virtual_inventory:getSmallestSlot(expected_output.lable, expected_output.name)
+    local output_slot = virtual_inventory:getSmallestSlot(recipe.output.lable, recipe.output.name)
     if  output_slot == nil
         or virtual_inventory:howManySlot(output_slot) + how_much_to_craft > 64
     then
@@ -853,12 +851,7 @@ local function self_craft(dictionary, recipe, how_much_to_craft, expected_output
 
 
     -- Optimistically Update the thingy-majig
-    if expected_output ~= nil then
-        virtual_inventory:forceUpdateSlot(expected_output.lable, expected_output.name, how_much_to_craft, output_slot)
-    else
-        local item_info = inventory.getStackInInternalSlot(output_slot)
-        virtual_inventory:forceUpdateSlot(item_info.label, item_info.name, how_much_to_craft, output_slot)
-    end
+    virtual_inventory:forceUpdateSlot(recipe.output.lable, recipe.output.name, how_much_to_craft, output_slot)
 
     robot.select(1)
     return true
@@ -873,6 +866,7 @@ function module.craft(arguments)
 
     if use_self_craft then 
         self_craft(dictionary, recipe, how_much) -- this returns a result, but we don't care?
+        loc_ref[1] = 2
         return nil
     else error(comms.robot_send("fatal", "TODO!")) end
 end

@@ -38,9 +38,22 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
     end
 
     if type(output) ~= "table" then
-        output = {lable = output, name = nil}
+        local fmt_output = {lable = output, name = "nil_name"}
+        new.output = fmt_output
+    else -- complicated set of operations in order to create a valid table arrangement
+        if #output == 0 then error(comms.robot_send("fatal", "assertion failed")) end
+
+        if output.lable ~= nil then -- it is already well formated
+            new.output = output
+        else -- It's just a table of lables
+            local fmt_output = {lable = output, name = {}}
+            for i = 1, #fmt_output.lable, 1 do
+                fmt_output.name[i] = "nil-name"
+            end
+            new.output = fmt_output
+        end
     end
-    new.output = output
+    if new.output == nil then error(comms.robot_send("fatal", "assertion failed")) end
 
     -- this failed to activate because I was only checking for type table and not for if it is a raw MetaDependency
     if dependencies ~= nil and dependencies.inlying_recipe ~= nil then -- else it must be a table of deps
@@ -163,8 +176,36 @@ function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, strict, depende
     return new
 end
 
+-- checks if there is ANY intersection betwen the sets
+function MetaRecipe:includesOutput(other)
+    if type(self.output.lable) == "table" then
+        for self_index = 1, #self.output.lable, 1 do
+            local s_lable = self.output.lable[self_index]
+            local s_name = self.output.name[self_index]
 
--- TODO programme this for crafting recipes
+            if type(other.output.lable) == "table" then
+                for other_index = 1, #other.output.lable, 1 do
+                    local o_lable = other.output.lable[other_index]
+                    local o_name = other.output.name[other_index]
+                    if o_lable == s_lable and o_name == s_name then return true end
+                end -- for other
+                return false
+            end -- if otther is table
+
+            if other.output.lable == s_lable and other.output.name == s_name then return true end
+        end -- for self
+
+        return false
+    end
+
+    return self.output.lable == other.output.lable and self.output.name == other.output.name
+end
+
+function MetaRecipe:includesOutputLiteral(lable, name)
+    local other = {output = {lable = lable, name = name}}
+    return self:includesOutput(other)
+end
+
 function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info, dictionary)
     if self.meta_type == "gathering" then
         self.state.priority = priority
