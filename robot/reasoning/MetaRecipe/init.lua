@@ -47,7 +47,14 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
         end
 
         if output.lable ~= nil then -- it is already well formated
-            if output.name == nil then output name = "nil_name" end
+            local fmt_output = deep_copy.copy(output, pairs)
+            if type(fmt_output.name) == "table" then
+                for index, l_name in ipairs(fmt_output.name) do
+                    if l_name == nil then fmt_output.name[index] = "nil_name" end
+                end
+            else
+                if fmt_output.name == nil then fmt_output.name = "nil_name" end
+            end
             new.output = output
         elseif output.name ~= nil and type(output.name) == "string" then
             local fmt_output = {lable = "nil_lable", name = output.name}
