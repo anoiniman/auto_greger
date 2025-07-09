@@ -572,7 +572,7 @@ function module.pretend_build(area_name, build_name, what_chunk, what_quad) -- I
     return 0
 end
 
-function module.find_build(what_chunk, door_info)
+function module.find_quad(what_chunk, door_info)
     local quads = module.get_chunk(what_chunk).chunk.meta_quads
     local cur_quad = nil
     for _, quad in ipairs(quads) do
@@ -588,7 +588,11 @@ function module.find_build(what_chunk, door_info)
 
         ::continue::
     end
+    return cur_quad
+end
 
+function module.find_build(what_chunk, door_info)
+    local cur_quad = module.get_find_quad(what_chunk, door_info)
     if cur_quad ~= nil then
         return cur_quad:getBuild()
     end

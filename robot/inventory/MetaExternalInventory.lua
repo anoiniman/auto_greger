@@ -73,13 +73,13 @@ function Module:getData()
     local save_ledger = self.ledger:getData()
     local parent_chunk = "nil"
     local door_info = "nil"
+    local what_quad = "nil"
 
     if self.parent_build ~= nil then
         parent_chunk = self.parent_build.what_chunk
         door_info = self.parent_build.doors
+        what_quad = map.find_quad(parent_chunk, door_info)
     end
-
-    local what_quad = map.find_build(parent_chunk, door_info)
 
     local big_table = {
         parent_chunk,               -- 1
