@@ -17,6 +17,10 @@ local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 
 local areas_table = {}
 function areas_table:addArea(new_area)
+    for _, area in ipairs(areas_table) do -- checks if the area is already added
+        if area.name == new_area.name then return end
+    end
+
     table.insert(self, new_area)
 end
 
@@ -65,7 +69,7 @@ function NamedArea:new(name, colour, height, floor_block)
     return new
 end
 function NamedArea:addChunkToSelf(what_chunk)
-    for _, o_chunk in ipairs(self.chunks) do
+    for _, o_chunk in ipairs(self.chunks) do -- checks if chunk is already added
         if what_chunk[1] == o_chunk[1] and what_chunk[2] == o_chunk[2] then return end
     end
 
