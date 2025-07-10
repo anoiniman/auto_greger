@@ -84,7 +84,7 @@ function Module:getData()
     local big_table = {
         parent_chunk,               -- 1
         what_quad,
-        self.item_defs,             -- 3
+        deep_copy.copy_no_functions(self.item_defs),  -- 3
         self.storage,               -- 4
         self.long_term_storage,     -- 5
 
@@ -107,7 +107,7 @@ function Module:reInstantiate(big_table)
         real_build = map.get_chunk(parent_chunk):getBuildRef(what_quad)
     end
 
-    local item_defs = big_table[3]
+    local no_func_item_defs = big_table[3]
     local storage = big_table[4]
     local long_term_storage = big_table[5]
 
@@ -117,7 +117,14 @@ function Module:reInstantiate(big_table)
     local new = deep_copy.copy(self, ipairs)
     new.parent_build = real_build
     new.ledger = real_ledger
-    new.item_defs = item_defs
+
+
+    new.item_defs = {}
+    for _, raw in ipairs(no_func_item_defs) do
+        local new_def = MetaItem:new(raw.name, raw.lable, raw.permissive, raw.output)
+        table.insert(new.item_defs, new_def)
+    end
+
     new.storage = storage
     new. long_term_storage = long_term_storage
     new.symbol = symbol
