@@ -319,25 +319,13 @@ function module.gen_map_obj(offset)
 end
 
 local function chunk_is_unique(chunk)
-    return chunk.marks ~= nil or chunk.parent_area ~= nil or chunk.meta_quads ~= nil
+    return  chunk.marks ~= nil or chunk.parent_area ~= nil
+            or chunk.meta_quads ~= nil or chunk.height_override ~= nil or chunk.roads_cleared ~= false
 end
 
 local function translate_chunk(chunk, a_table, build_table, chunks_proper)
     --------- AREAS ----------
-    if chunk.parent_area ~= nil then
-        local search_result = false
-        for _, area in ipairs(a_table) do
-            if area.name == chunk.parent_area.name then -- they're the same area
-                search_result = true
-                break
-            end
-        end
-
-        -- because areas store chunk indecis and not references we can serialize them directly
-        if search_result then
-            table.insert(a_table, chunk.parent_area)
-        end
-    end
+    a_table = deep_copy.copy_no_functions(areas_table)
 
     ------- META QUADS --------
     if chunk.meta_quads ~= nil then
@@ -369,7 +357,7 @@ end
 
 -- we need data to recreate builds, to recreate areas, and to recreate marks,
 function module.get_data()
-    local a_table = deep_copy.copy_no_functions(areas_table)
+    local a_table = nil
 
     -- MetaQuads are never stored directly, instead they are stored as an order to pretend_build
     -- something at the given MetaQuad, and by something let us say: the building that IS THERE!
