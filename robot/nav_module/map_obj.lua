@@ -324,9 +324,6 @@ local function chunk_is_unique(chunk)
 end
 
 local function translate_chunk(chunk, a_table, build_table, chunks_proper)
-    --------- AREAS ----------
-    a_table = deep_copy.copy_no_functions(areas_table)
-
     ------- META QUADS --------
     if chunk.meta_quads ~= nil then
         for _, quad in ipairs(chunk.meta_quads) do
@@ -357,7 +354,7 @@ end
 
 -- we need data to recreate builds, to recreate areas, and to recreate marks,
 function module.get_data()
-    local a_table = nil
+    local a_table = deep_copy.copy_no_functions(areas_table)
 
     -- MetaQuads are never stored directly, instead they are stored as an order to pretend_build
     -- something at the given MetaQuad, and by something let us say: the building that IS THERE!
