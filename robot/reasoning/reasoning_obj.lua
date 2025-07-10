@@ -3,7 +3,8 @@ local reason_obj = {}
 local comms = require("comms")
 local deep_copy = require("deep_copy") -- luacheck: ignore
 
-local MetaScript = require("reasoning.MetaScript")
+local MetaScriptTable = require("reasoning.MetaScript")
+local MetaScript = MetaScriptTable[#MetaScriptTable]
 
 -- TODO combing through the wait list
 -- if element.useBuilding ~= nil and element:useBuilding("check")

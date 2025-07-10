@@ -295,4 +295,4 @@ function MSBuilder:setDictionary(dict)
     return self
 end
 
-return {MSBuilder, Goal, Constraint, StructureDeclaration}
+return {MSBuilder, Goal, Constraint, StructureDeclaration, MetaScript}
