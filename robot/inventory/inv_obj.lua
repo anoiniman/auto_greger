@@ -69,11 +69,15 @@ function module.get_data()
     return big_table
 end
 
+local MetaExternalInventory = nil
 function module.re_instantiate(big_table)
     virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
 
     local external_table = {}
     for _, entry in ipairs(big_table[2]) do -- entry is fat ledger, remember
+        -- another wholesome hack TODO (fix this shit)
+        if MetaExternalInventory == nil then MetaExternalInventory = require("inventory.MetaExternalInventory") end
+
         local external = MetaExternalInventory:reInstantiate(entry)
         table.insert(external_table, external)
     end
