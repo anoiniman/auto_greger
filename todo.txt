@@ -168,4 +168,5 @@ I think all we need to do now, is write some nice test scripts, and maybe even i
 and state-fudging tecnhiques hehe
 
 Weird thing happen with chunk_move, move too far, me no get
-The robot won't start building and will remain in a building loop for some reason
+
+we're having some troube with the deserialization as per latest screenshot

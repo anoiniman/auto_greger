@@ -369,7 +369,7 @@ end
 
 -- we need data to recreate builds, to recreate areas, and to recreate marks,
 function module.get_data()
-    local a_table = {}
+    local a_table = deep_copy.copy_no_functions(areas_table)
 
     -- MetaQuads are never stored directly, instead they are stored as an order to pretend_build
     -- something at the given MetaQuad, and by something let us say: the building that IS THERE!
@@ -399,10 +399,15 @@ end
 -- TODO, change the way chunks are generated so that they are generated only after attempted
 -- reinstantiation so that we might provide a different chunk offset, do soon!
 function module.re_instantiate(big_table)
-    -- First we "recreate" the areas (we simple change the table ref)
-    -- [Yes, I know this can create problems if someone retains the old ref, but uhhhhh
-    -- we'll just manage our memory very inteligently!!"!]
-    areas_table = big_table[1]
+    -- First we "recreate" the areas
+    areas_table = {}
+    for _, raw_area in ipairs(big_table[1]) do
+        local new_area = deep_copy.copy(NamedArea, pairs) -- makes sure we copy the functions over
+        for name, value in pairs(raw_area) do
+            new_area[name] = value
+        end
+        table.insert(areas_table, new_area)
+    end
 
     local chunks_proper = big_table[2]
 
