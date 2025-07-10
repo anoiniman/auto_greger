@@ -50,7 +50,7 @@ function module.get_data()
     local virtual_inventory = virtual_inventory:getData()
     local external_table = {}
     for _, vinv_external in ipairs(external_inventories) do
-        local vinv = vinv_external:getData() -- FAT LEDGER; THIS CAN'T BE DONE
+        local vinv = vinv_external:getData()
         table.insert(external_table, vinv)
     end
     
@@ -73,8 +73,8 @@ function module.re_instantiate(big_table)
     virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
 
     local external_table = {}
-    for _, entry in ipairs(big_table[2]) do
-        local external = VirtualInventory:reInstantiate(entry)
+    for _, entry in ipairs(big_table[2]) do -- entry is fat ledger, remember
+        local external = MetaExternalInventory:reInstantiate(entry)
         table.insert(external_table, external)
     end
     external_inventories = external_table
