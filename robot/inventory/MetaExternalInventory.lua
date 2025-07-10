@@ -120,10 +120,12 @@ function Module:reInstantiate(big_table)
 
 
     new.item_defs = {}
-    for _, raw in ipairs(no_func_item_defs) do
-        local new_def = MetaItem:new(raw.name, raw.lable, raw.permissive, raw.output)
-        table.insert(new.item_defs, new_def)
-    end
+    if no_func_item_defs ~= nil then
+        for _, raw in ipairs(no_func_item_defs) do
+            local new_def = MetaItem:new(raw.name, raw.lable, raw.permissive, raw.output)
+            table.insert(new.item_defs, new_def)
+        end
+    else new.item_defs = nil end
 
     new.storage = storage
     new. long_term_storage = long_term_storage
@@ -195,4 +197,4 @@ function Module:newMachine(item_defs, parent_build, symbol, index, storage_type)
     return new
 end
 
-return table.pack(Module, MetaItem)
+return {Module, MetaItem}
