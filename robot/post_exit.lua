@@ -1,5 +1,6 @@
 -- Things to do after exit is called
 local comms = require("comms")
+local deep_copy = require("deep_copy")
 
 local keep_alive = require("keep_alive")
 
@@ -41,9 +42,11 @@ end
 
 local function save_thing(path, obj)
     if filesystem.exists(path) then filesystem.remove(path) end
-
     local file = io.open(path, "w")
-    local new = obj.get_data() 
+    local new = obj.get_data()
+    -- hacking because this shit's stupid, hope this doesn't cuse RAM issues in the future
+    new = deep_copy.copy_no_functions(new)
+
     local serial = serialize.serialize(new, false)
     file:write(serial)
     file:close()
