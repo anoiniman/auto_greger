@@ -69,6 +69,7 @@ function module.get_data(map)
         nav_obj.orientation,
         bd_info
     }
+    return big_table
 end
 
 function module.re_instantiate(big_table, map)

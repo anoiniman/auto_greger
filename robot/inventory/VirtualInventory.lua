@@ -54,7 +54,7 @@ function Module:getData()
 end
 
 function Module:reInstantiate(unserial)
-    local new = deep_copy(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     new.inv_size = (#unserial / 3)
     new.table_size = #unserial
     new.inv_type = "virtual_inventory"

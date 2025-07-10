@@ -3,6 +3,8 @@ local reason_obj = {}
 local comms = require("comms")
 local deep_copy = require("deep_copy") -- luacheck: ignore
 
+local MetaScript = require("reasoning.MetaScript")
+
 -- TODO combing through the wait list
 -- if element.useBuilding ~= nil and element:useBuilding("check")
 
@@ -24,7 +26,8 @@ local scripts = {}
 scripts[1] = dofile("/home/robot/reasoning/scripts/debug/06.lua")
 -- local recipes = {}
 
-local cur_script = nil
+-- TEMPORARY TODO, update cur_script programatically
+local cur_script = scripts[1]
 
 -- TODO there might be a big problem with the naive method of saving things and the waiting list which contains
 -- references to things like Goals and Recipes, but we'll see
@@ -49,8 +52,10 @@ function reason_obj.get_data()
     return big_table
 end
 
-function reason_obj.re_insantiate(big_table)
-    scripts = big_table[1]
+function reason_obj.re_instantiate(big_table)
+    for _, raw_data in ipairs(big_table[1]) do
+        table.insert(scripts, MetaScript:reInstantiate(raw_data))
+    end
     cur_script = scripts[big_table[2]]
 end
 

@@ -69,8 +69,7 @@ function module.get_data()
     return big_table
 end
 
-function module.re_instantiate(serial_str)
-    local big_table = serialize.unserialize(serial_str)
+function module.re_instantiate(big_table)
     virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
 
     local external_table = {}

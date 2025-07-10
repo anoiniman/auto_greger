@@ -408,7 +408,7 @@ function module.re_instantiate(big_table)
 
     -- Then we reinstate the basic chunk_info
     -- chunk_proper_sub_table = {x, z, {[marks]}, height_override, roads_cleared}
-    for _, chunk_info in chunks_proper do
+    for _, chunk_info in ipairs(chunks_proper) do
         local x = chunk_info[1]
         local z = chunk_info[2]
         local chunk_ref = module.chunk_exists({x, z})
