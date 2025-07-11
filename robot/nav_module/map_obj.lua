@@ -15,17 +15,22 @@ local MetaQuad = require("nav_module.MetaQuad")
 local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 
 
-local areas_table = {}
-function areas_table:addArea(new_area)
-    for _, area in ipairs(areas_table) do -- checks if the area is already added
+local AreasTable = {}
+function AreasTable:new()
+    local new = deep_copy.copy(self, pairs)
+    return new
+end
+
+function AreasTable:addArea(new_area)
+    for _, area in ipairs(self) do -- checks if the area is already added
         if area.name == new_area.name then return end
     end
 
     table.insert(self, new_area)
 end
 
-function areas_table:isInArea(what_chunk) -- luacheck: ignore
-    for _, area in ipairs(areas_table) do
+function AreasTable:isInArea(what_chunk) -- luacheck: ignore
+    for _, area in ipairs(self) do
         for _, area_chunk in ipairs(area.chunks) do
             if what_chunk[1] == area_chunk[1] and what_chunk[2] == area_chunk[2] then
                 return true
@@ -34,12 +39,13 @@ function areas_table:isInArea(what_chunk) -- luacheck: ignore
     end
     return false
 end
-function areas_table:getArea(name) -- luacheck: ignore
-    for _, area in ipairs(areas_table) do
+function AreasTable:getArea(name) -- luacheck: ignore
+    for _, area in ipairs(self) do
         if area.name == name then return area end
     end
     return nil
 end
+local areas_table = AreasTable:new()
 
 -- Names MUST be unique, they are ID's, IDENTIFIERS!
 -- We do NOT store REFERENCES to child chunks, we only store their INDICES!
@@ -385,13 +391,13 @@ end
 -- reinstantiation so that we might provide a different chunk offset, do soon!
 function module.re_instantiate(big_table)
     -- First we "recreate" the areas
-    areas_table = {}
+    areas_table = AreasTable:new()
     for _, raw_area in ipairs(big_table[1]) do
         local new_area = deep_copy.copy(NamedArea, pairs) -- makes sure we copy the functions over
         for name, value in pairs(raw_area) do
             new_area[name] = value
         end
-        table.insert(areas_table, new_area)
+        areas_table:addArea(new_area)
     end
 
     local chunks_proper = big_table[2]
