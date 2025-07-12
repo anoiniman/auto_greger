@@ -108,7 +108,7 @@ function module.automatic(parent_name, state, depleted_string, check_subset, f_s
             error(comms.robot_send("fatal", "surface_resource_sweep sweep_result is not expected"))
         end
     elseif state.step == 4 then -- there is a good block below us
-        if not f_step4(check_subset) then -- if its true maintain step as 4
+        if not f_step4(state) then -- if its true maintain step as 4
             state.step = 31
         end
     end
