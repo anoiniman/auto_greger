@@ -81,8 +81,10 @@ local function surface_resource_sweep(arguments)
             local command_prio = state.priority
 
             -- Detects if we want a permanent or impermanent change in prio
-            if new_prio ~= nil and new_prio < 0 then state.priority = new_prio end
-            if new_prio < 0 then command_prio = new_prio end
+            if new_prio ~= nil then
+                if new_prio > 0 then state.priority = new_prio
+                else command_prio = new_prio end
+            end
 
             -- return a priority given back by "automatic" OR default - mechanism.priority
             return {command_prio, mechanism.algorithm, table.unpack(arguments)}

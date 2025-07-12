@@ -49,7 +49,7 @@ function reason_obj.get_data()
             table_of_goals[goal.name] = inner_table
         end
 
-        table.insert(no_func_scripts, deep_copy.copy_no_functions(script))
+        script_tbl[script.desc] = table_of_goals
     end
     if cur_script_desc == nil then
         print(comms.robot_send("error", "Saving reas_obj, couldn't find index to cur_script??? defaulting to \"default\""))
