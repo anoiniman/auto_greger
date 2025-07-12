@@ -44,8 +44,8 @@ function reason_obj.get_data()
         local table_of_goals = {meta = false}
         for _, goal in ipairs(script.goals) do
             -- table so that it is expandable in the future
-            local lock_value = goal.constraint.lock[1]
-            local inner_table = {goal.constraint.lock[1]}
+            local lock_value = goal.constraint.const_obj.lock[1]
+            local inner_table = {goal.constraint.const_obj.lock[1]}
             table_of_goals[goal.name] = inner_table
         end
 
@@ -78,7 +78,7 @@ local function try_load_script(real_script, desc)
             print(comms.robot_send("warning", "Loading Script state, goal name unmatched in save file, did you add a new goal?"))
             goto continue
         end
-        goal.constraint.lock[1] = inner_table[1]
+        goal.constraint.const_obj.lock[1] = inner_table[1]
 
         ::continue::
     end

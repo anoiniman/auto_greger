@@ -114,7 +114,7 @@ function Module:reInstantiate(big_table)
     local symbol = big_table[7]
     local sp_index = big_table[8]
 
-    local new = deep_copy.copy(self, ipairs)
+    local new = deep_copy.copy(self, pairs)
     new.parent_build = real_build
     new.ledger = real_ledger
 

@@ -78,10 +78,14 @@ local function surface_resource_sweep(arguments)
     if state.mode == "automatic" then
         local is_finished, new_prio = automatic(state)
         if not is_finished then -- I think everything is getting passed as ref so it's ok to pass arguments back in
-            if new_prio ~= nil then state.priority = new_prio end
+            local command_prio = state.priority
+
+            -- Detects if we want a permanent or impermanent change in prio
+            if new_prio ~= nil and new_prio < 0 then state.priority = new_prio end
+            if new_prio < 0 then command_prio = new_prio end
 
             -- return a priority given back by "automatic" OR default - mechanism.priority
-            return {state.priority, mechanism.algorithm, table.unpack(arguments)}
+            return {command_prio, mechanism.algorithm, table.unpack(arguments)}
         else
             print(comms.robot_send("debug", "finished gathering01 routine"))
             lock[1] = 2 -- "Unlock" the lock (will be unlocked based on "do_once"'s value
