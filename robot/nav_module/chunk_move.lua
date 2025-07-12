@@ -77,12 +77,12 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         end
 
         if axis_nearest == 0 then
-            if rel_nearest_side[1] >= 0 then interface.r_move(what_kind, "east", nav_obj)
-            elseif rel_nearest_side[1] < 0 then interface.r_move(what_kind, "west", nav_obj)
+            if rel_nearest_side[1] > 0 then interface.r_move(what_kind, "east", nav_obj)
+            elseif rel_nearest_side[1] <= 0 then interface.r_move(what_kind, "west", nav_obj)
             else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
         else
-            if rel_nearest_side[2] >= 0 then interface.r_move(what_kind, "south", nav_obj)
-            elseif rel_nearest_side[2] < 0 then interface.r_move(what_kind, "north", nav_obj)
+            if rel_nearest_side[2] > 0 then interface.r_move(what_kind, "south", nav_obj)
+            elseif rel_nearest_side[2] <= 0 then interface.r_move(what_kind, "north", nav_obj)
             else print(comms.robot_send("error", "Navigate Chunk, find nearest side fatal logic impossibility detected")) end
         end
 
@@ -91,7 +91,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         return cur_rel[1] == 0 or cur_rel[1] == 15 or cur_rel[2] == 0 or cur_rel[2] == 15
     end
     if cur_building == nil then
-        return nearest_side(what_kind, nav_obj)
+        return nearest_side()
     end
 
     local doors = cur_building:getDoors()
@@ -106,17 +106,17 @@ local function move_to_road(what_kind, nav_obj, cur_building)
             dist = inner_dist
         end
     end
-    if what_door == nil then nearest_side(what_kind, nav_obj) end
+    if what_door == nil then nearest_side() end
 
     local cur_height = nav_obj.height
     local goal_rel = {what_door.x, what_door.z, cur_height}
     local result, _ = rel_move.access_opaque(nav_obj, goal_rel, nil)
     update_chunk_nav(nav_obj)
 
-    if result == 0 then return end
+    if result == 0 then return false end
     if result == nil then
         nav_obj.cur_building = nil
-        return
+        return false
     end -- else movement failed
     print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))
 end
