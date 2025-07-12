@@ -39,7 +39,7 @@ function module.automatic(parent_name, state, depleted_string, check_subset, f_s
         local chunk_to_act_upon
         for _, chunk_coords in ipairs(area.chunks) do
             local chunk = map.get_chunk(chunk_coords)
-            if chunk.mark == nil or not chunk:checkMarks(depleted_string) then
+            if chunk.chunk.mark == nil or not chunk:checkMarks(depleted_string) then
                 chunk_to_act_upon = chunk
                 break
             end
@@ -62,7 +62,7 @@ function module.automatic(parent_name, state, depleted_string, check_subset, f_s
 
     elseif state.step == 2 then
         if not nav.is_setup_navigate_chunk() then
-            local chunk_coords = {state.chunk.x, state.chunk.z}
+            local chunk_coords = {state.chunk.chunk.x, state.chunk.chunk.z}
             nav.setup_navigate_chunk(chunk_coords)
         end
 
