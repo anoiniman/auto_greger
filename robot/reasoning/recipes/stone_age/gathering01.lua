@@ -73,7 +73,7 @@ local function surface_resource_sweep(arguments)
     local lock = arguments[4]
 
     if state.interrupt == true then
-        return {mechanism.priority, mechanism.algorithm, mechanism}
+        return {state.priority, mechanism.algorithm, table.unpack(arguments)}
     end
     if state.mode == "automatic" then
         local is_finished, new_prio = automatic(state)
@@ -83,7 +83,7 @@ local function surface_resource_sweep(arguments)
             -- return a priority given back by "automatic" OR default - mechanism.priority
             return {state.priority, mechanism.algorithm, table.unpack(arguments)}
         else
-            state.chunk:addMark("surface_depleted") -- Will mark chunk such that we don't try to gather it again
+            print(comms.robot_send("debug", "finished gathering01 routine"))
             lock[1] = 2 -- "Unlock" the lock (will be unlocked based on "do_once"'s value
             return nil
         end
