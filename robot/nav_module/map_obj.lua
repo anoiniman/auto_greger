@@ -485,6 +485,18 @@ function module.chunk_set_parent(what_chunk, what_area, height_override)
     local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
+    what_area:addChunkToSelf(what_chunk)
+    return map_chunk:setParent(what_area, height_override)
+end
+
+function module.chunk_set_parent_name(what_chunk, area_name, height_override)
+    local map_chunk = module.chunk_exists(what_chunk)
+    if map_chunk == nil then return false end
+
+    local what_area = areas_table:getArea(area_name)
+    if what_area == nil then return false end
+
+    what_area:addChunkToSelf(what_chunk)
     return map_chunk:setParent(what_area, height_override)
 end
 
@@ -554,7 +566,6 @@ function module.pretend_build(area_name, build_name, what_chunk, what_quad) -- I
     local area = areas_table:getArea(area_name)
     if area == nil then return 1 end
 
-    area:addChunkToSelf(what_chunk)
     module.chunk_set_parent(what_chunk, area, nil) -- nil = no override
 
     local chunk = module.chunk_exists(what_chunk)
@@ -705,7 +716,6 @@ function module.start_auto_build(ab_metainfo)
             goto fall
             -- old return
         end
-        area:addChunkToSelf(what_chunk)
 
         local height_override = data[2] -- it's ok if it's nil
         module.chunk_set_parent(what_chunk, area, height_override) -- the important thing of this step

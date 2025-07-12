@@ -24,8 +24,8 @@ function module.chunk_set_parent(arguments)
     end
 
     local what_chunk = {x, z}
-    local as_what = arguments[3]
-    if as_what == nil then
+    local area_name = arguments[3]
+    if area_name == nil then
         print(comms.robot_send("error", "chunk_set_parent -- chunk as what is nil"))
         return nil
     end
@@ -35,7 +35,7 @@ function module.chunk_set_parent(arguments)
         print(comms.robot_send("debug", "chunk_set_parent -- no height provided or NaN -- assuming no-override"))
     end
 
-    if map_obj.chunk_set_parent(what_chunk, as_what, at_what_height) then -- if we succeded
+    if map_obj.chunk_set_parent_name(what_chunk, area_name, at_what_height) then -- if we succeded
         return nil
     else
         print(comms.robot_send("error", "chunk_set_parent -- failed somewhere"))

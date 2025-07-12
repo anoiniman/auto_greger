@@ -115,7 +115,9 @@ function module.debug(arguments)
     elseif arguments[1] == "save" then
         post_exit.save_state()
     elseif arguments[1] == "load" then
-        post_exit.load_state()
+        table.remove(arguments, 1)
+        local exclude_table = arguments
+        post_exit.load_state(exclude_table)
     elseif arguments[1] == "pretend_build" then
         local area_name = tostring(arguments[2])
         local name = tostring(arguments[3])

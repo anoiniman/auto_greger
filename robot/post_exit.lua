@@ -1,6 +1,7 @@
 -- Things to do after exit is called
 local comms = require("comms")
 local deep_copy = require("deep_copy")
+local search_table = require("search_table")
 
 local keep_alive = require("keep_alive")
 
@@ -59,7 +60,6 @@ local nav_path = save_home .. "/nav.save"
 local reas_path = save_home .. "/reas.save"
 
 
--- be careful to maintain abi, otherwise waste_full disk-writes will occur (wasting power) [not that it matters much]
 function module.save_state(extra)
     if not filesystem.isDirectory(save_home) then
         filesystem.makeDirectory(save_home)
@@ -88,14 +88,14 @@ local function load_thing(path, obj, extra)
     obj.re_instantiate(big_table, extra)
 end
 
-function module.load_state()
+function module.load_state(exclude)
     if not filesystem.isDirectory(save_home) then
         return
     end
-    load_thing(inv_path, inv)
-    load_thing(map_path, map)
-    load_thing(nav_path, nav, map)
-    load_thing(reas_path, reas)
+    if not search_table(exclude, "-inv") then load_thing(inv_path, inv) end
+    if not search_table(exclude, "-map") then load_thing(map_path, map) end
+    if not search_table(exclude, "-nav") then load_thing(nav_path, nav, map) end
+    if not search_table(exclude, "-reas") then load_thing(reas_path, reas) end
 end
 
 

@@ -30,34 +30,77 @@ scripts[1] = dofile("/home/robot/reasoning/scripts/debug/06.lua")
 -- TEMPORARY TODO, update cur_script programatically
 local cur_script = scripts[1]
 
--- TODO there might be a big problem with the naive method of saving things and the waiting list which contains
--- references to things like Goals and Recipes, but we'll see
+-- the only thing we need to save is the locks of the goals lol
 function reason_obj.get_data()
-    local cur_script_index
-    local no_func_scripts = {}
+    local cur_script_desc = nil
+    local script_tbl = {}
     for index, script in ipairs(scripts) do
         if script == cur_script then
-            cur_script_index = index
+            cur_script_desc = script.desc
         end
+
+        -- "loaded" is a temporary value that determins if we've already loaded this in the current session (when we load)
+        -- (Just make sure to not "name" any script as "loaded")
+        local table_of_goals = {meta = false}
+        for _, goal in ipairs(script.goals) do
+            -- table so that it is expandable in the future
+            local lock_value = goal.constraint.lock[1]
+            local inner_table = {goal.constraint.lock[1]}
+            table_of_goals[goal.name] = inner_table
+        end
+
         table.insert(no_func_scripts, deep_copy.copy_no_functions(script))
     end
-    if cur_script_index == nil then
-        print(comms.robot_send("error", "Saving reas_obj, couldn't find index to cur_script??? defaulting to 1"))
-        cur_script_index = 1
+    if cur_script_desc == nil then
+        print(comms.robot_send("error", "Saving reas_obj, couldn't find index to cur_script??? defaulting to \"default\""))
+        cur_script_desc = "default"
     end
 
     local big_table = {
-        no_func_scripts,
-        cur_script_index
+        script_tbl,
+        cur_script_desc
     }
     return big_table
 end
 
-function reason_obj.re_instantiate(big_table)
-    for _, raw_data in ipairs(big_table[1]) do
-        table.insert(scripts, MetaScript:reInstantiate(raw_data))
+local save_table
+local function try_load_script(real_script, desc)
+    local goal_table = save_table[1][desc]
+    if goal_table.loaded then
+        print(comms.robot_send("debug", "Tried to load a script that was already loaded!"))
+        return
     end
-    cur_script = scripts[big_table[2]]
+
+    goal_table.loaded = true
+    for _, goal in ipairs(real_script.goals) do
+        local inner_table = goal_table[goal.name]
+        if inner_table == nil then
+            print(comms.robot_send("warning", "Loading Script state, goal name unmatched in save file, did you add a new goal?"))
+            goto continue
+        end
+        goal.constraint.lock[1] = inner_table[1]
+
+        ::continue::
+    end
+end
+
+function reason_obj.re_instantiate(big_table)
+    save_table = big_table[1]
+    local save_script_desc = big_table[2]
+
+    local s_index = -1
+    for index, script in ipairs(scripts) do
+        if script.desc == save_script_desc then
+            cur_script = scripts[index]
+            success = true
+            break
+        end
+    end
+    if s_index == -1 then
+        print(comms.robot_send("error", "error in loading script"))
+        return
+    end
+    try_load_script(cur_script, s_index)
 end
 
 

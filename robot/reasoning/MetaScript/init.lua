@@ -23,15 +23,6 @@ local StructureDeclaration, _ = table.unpack(require("reasoning.MetaScript.Const
 -- Maybe add "current_goal" param, so we don't have to search for best goal everytime idk
 local MetaScript = {desc = nil, goals = {}, posterior = nil, p_unlock_condition = nil, recipes = {}, dictionary = nil}
 function MetaScript:new() return deep_copy.copy(self, pairs) end
-function MetaScript:reInstantiate(raw_data)
-    local new = self:new()
-    for name, item in pairs(raw_data) do
-        new[name] = item
-    end
-
-    return new
-end
-
 function MetaScript:addGoal(goal)
     if goal == nil or goal.constraint == nil then
         error(comms.robot_send("fatal", "MetaScript:addGoal, attempted to add nil or bad goal :/"))
@@ -125,6 +116,11 @@ end
 local Goal = {name = "None", dependencies = nil, constraint = nil, priority = 0, do_once = false}
 function Goal:new(dependencies, constraint, priority, name, do_once)
     local new = deep_copy.copy(self, pairs)
+    if name == nil then 
+        print(comms.robot_send("error", "Failed to create goal because no name sent"))
+        print(comms.robot_send("error", debug.traceback()))
+    end
+
     new.name = name or "None"
     new.do_once = do_once or false
     if dependencies == nil then
