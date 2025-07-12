@@ -92,10 +92,10 @@ function module.load_state(exclude)
     if not filesystem.isDirectory(save_home) then
         return
     end
-    if not search_table(exclude, "-inv") then load_thing(inv_path, inv) end
-    if not search_table(exclude, "-map") then load_thing(map_path, map) end
-    if not search_table(exclude, "-nav") then load_thing(nav_path, nav, map) end
-    if not search_table(exclude, "-reas") then load_thing(reas_path, reas) end
+    if not search_table.ione(exclude, "-inv") then load_thing(inv_path, inv) end
+    if not search_table.ione(exclude, "-map") then load_thing(map_path, map) end
+    if not search_table.ione(exclude, "-nav") then load_thing(nav_path, nav, map) end
+    if not search_table.ione(exclude, "-reas") then load_thing(reas_path, reas) end
 end
 
 
