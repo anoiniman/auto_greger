@@ -162,7 +162,7 @@ function module.is_in_chunk(target_chunk)
 end
 
 function module.is_setup_navigate_chunk()
-    return chunk_move.is_setup
+    return chunk_move.is_setup()
 end
 
 function module.setup_navigate_chunk(what_chunk)

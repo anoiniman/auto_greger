@@ -41,6 +41,11 @@ local function update_chunk_nav(nav_obj)
 end
 
 function module.setup_navigate_chunk(to_what_chunk, nav_obj)
+    if is_setup then
+        print(comms.robot_send("warning", "Attempted to setup chunk move when already setup"))
+        return
+    end
+
     cur_in_road = false
     is_setup = true
 
@@ -155,6 +160,10 @@ function module.navigate_chunk(what_kind, nav_obj, cur_building)
     print(comms.robot_send("info", "We've arrived at the target chunk"))
     is_setup = false
     return true
+end
+
+function module.is_setup()
+    return is_setup
 end
 
 
