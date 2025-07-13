@@ -806,6 +806,8 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
         local how_many_in_inv = module.virtual_inventory:howMany(lable, name)
         local how_many_can_craft = math.floor(how_many_in_inv / how_many_needed)
         if how_many_can_craft < how_much_to_craft then -- no bueno
+            print(comms.robot_send("error", "how many can craft: " .. how_many_can_craft .. " || \z
+                                    how much to craft: " .. how_much_to_craft))
             clean_up = true
             break
         end
