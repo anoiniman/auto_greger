@@ -96,7 +96,7 @@ function module.automatic(parent_name, state, depleted_string, check_subset, f_s
             state.chunk:addMark("surface_depleted")
             return true, nil
         elseif sweep_result == 0 then
-            -- careful with hardened clay
+            -- careful with hardened _clay_ (and _sand_stone)
             local interesting_block = check_subset(state)
             if interesting_block == true then
                 state.step = 4

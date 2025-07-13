@@ -25,9 +25,15 @@ local do_exit = false
 -- 0 = continue, 1 = stop
 local watch_dog = 0
 
+local msg = ""
+if DO_LOAD then msg = "And Loading......." end
+
 term.clear()
-print(comms.robot_send("info", robot_name .. " -- Now Online!"))
+print(comms.robot_send("info", robot_name .. " -- Now Online! " .. msg))
 term.setCursorBlink(false)
+
+if DO_LOAD then post_exit.load_state({}) end
+
 
 --luacheck: globals CRON_TIME DO_REASONING REASON_ONCE
 CRON_TIME = 5

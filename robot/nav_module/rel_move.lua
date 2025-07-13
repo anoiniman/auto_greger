@@ -196,7 +196,7 @@ function module.sweep(nav_obj, is_surface)
     end
 
     local result = nil; local data = nil -- luacheck: ignore
-    if (nav_obj.rel[2] >= 15 and not sweep_reverse) or (nav_obj.rel[2] <= 0 and sweep_reverse) then
+    if (nav_obj.rel[2] > 15 and not sweep_reverse) or (nav_obj.rel[2] <= 0 and sweep_reverse) then
         result, data = sweep_x_axis(nav_obj)
         sweep_reverse = not sweep_reverse
     else
