@@ -287,7 +287,7 @@ function MSBuilder:build()
 end
 
 function MSBuilder:setDictionary(dict)
-    self.dictionary = dict
+    self.base_script.dictionary = dict
     return self
 end
 

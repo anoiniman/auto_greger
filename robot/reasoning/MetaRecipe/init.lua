@@ -250,7 +250,7 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
     elseif self.meta_type == "crafting_table" then
         -- seems good? All that is missing is a mechanism that limites the batch size for a craft
         -- (so that we don't try and craft 234 things at once for example) -- add this to the mechanism?!
-        return {priority, inv.craft, dictionary, self.mechanism.crafting_recipe, up_to_quantity, lock_ref}
+        return {priority, inv.craft, dictionary, self.mechanism.crafting_recipe, self.output, up_to_quantity, lock_ref}
     else
         error(comms.robot_send("fatal", "Unimplemented meta_type selected for returnCommand in MetaRecipe: \""
             .. self.meta_type .. "\""))

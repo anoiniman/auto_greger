@@ -770,7 +770,7 @@ function module.isCraftActive()
 end
 
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
-local function self_craft(dictionary, recipe, how_much_to_craft)
+local function self_craft(dictionary, recipe, output, how_much_to_craft)
     if not crafting_table_clear then
         print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
         return false
@@ -783,6 +783,7 @@ local function self_craft(dictionary, recipe, how_much_to_craft)
         if occurence_table[char] == nil then
             occurence_table[char] = {slot}
             local ingredient = dictionary[char]
+            table.insert(ingredient_table, ingredient)
         else
             table.insert(occurence_table[char], slot)
         end
@@ -836,7 +837,7 @@ local function self_craft(dictionary, recipe, how_much_to_craft)
     end
 
     -- Now the virtual crafting-table should be assembled, lets do the thing!
-    local output_slot = virtual_inventory:getSmallestSlot(recipe.output.lable, recipe.output.name)
+    local output_slot = virtual_inventory:getSmallestSlot(output.lable, output.name)
     if  output_slot == nil
         or virtual_inventory:howManySlot(output_slot) + how_much_to_craft > 64
     then
@@ -854,7 +855,7 @@ local function self_craft(dictionary, recipe, how_much_to_craft)
 
 
     -- Optimistically Update the thingy-majig
-    virtual_inventory:forceUpdateSlot(recipe.output.lable, recipe.output.name, how_much_to_craft, output_slot)
+    virtual_inventory:forceUpdateSlot(output.lable, output.name, how_much_to_craft, output_slot)
 
     robot.select(1)
     return true
@@ -863,12 +864,13 @@ end
 -- It seems that we we self_craft this is done in one execution cycle!
 function module.craft(arguments)
     local dictionary = arguments[1]
-    local recipe = arguments[2] -- recipe as defined in reasoning
-    local how_much = arguments[3]
-    local loc_ref = arguments[4]
+    local recipe_grid = arguments[2]
+    local output = arguments[3]
+    local how_much = arguments[4]
+    local loc_ref = arguments[5]
 
     if use_self_craft then 
-        self_craft(dictionary, recipe, how_much) -- this returns a result, but we don't care?
+        self_craft(dictionary, recipe_grid, output, how_much) -- this returns a result, but we don't care?
         loc_ref[1] = 2
         return nil
     else error(comms.robot_send("fatal", "TODO!")) end
