@@ -860,7 +860,10 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
     end
 
     if output_slot == nil then error(comms.robot_send("fatal", "assert failed!")) end
-    robot.select(1)
+    print(output_slot)
+    io.read()
+
+    robot.select(output_slot)
     local result = crafting_component.craft(64)     -- craft as many as possible, in case of gross oversight
                                                     -- this should at least keep the crafting area clear
 
@@ -868,7 +871,7 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
     if not result then
         error(comms.robot_send("fatal", "failed to craft :("))
     end
-    robot.transferTo(output_slot, 64)
+    -- robot.transferTo(output_slot, 64)
 
 
     local new_quantity = module.virtual_inventory:howManySlot(output_slot) + how_much_to_craft

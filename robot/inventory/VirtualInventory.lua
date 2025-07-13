@@ -165,7 +165,7 @@ end
 -- if you want Strict mode only (return nil on nil lable), use "getAllSlotsStrict"
 function Module:getAllSlots(lable, name, up_to)
     local check_func
-    if lable ~= nil then check_func = self.checkEntry
+    if lable ~= nil and lable ~= "nil" and lable ~= "nil_lable" then check_func = self.checkEntry
     else check_func = self.checkEntryPermissive end
 
     return self:getAllSlotsInternal(lable, name, check_func, up_to)

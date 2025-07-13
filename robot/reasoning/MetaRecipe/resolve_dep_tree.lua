@@ -47,8 +47,8 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
         end
 
         if true then
-            local print_lable = lable
-            local print_name = name
+            local print_lable = inner.output.lable
+            local print_name = inner.output.name
             if print_lable == nil then print_lable = "nil" end
             if print_name == nil then print_name = "nil" end
 
