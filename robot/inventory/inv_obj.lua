@@ -38,8 +38,7 @@ local use_self_craft = true
 
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
-local virtual_inventory = VirtualInventory:new(inventory_size)
-module.virtual_inventory = virtual_inventory -- ref
+module.virtual_inventory = VirtualInventory:new(inventory_size)
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_inventories = {}
@@ -47,7 +46,7 @@ local external_inventories = {}
 local equiped_tool = nil
 
 function module.get_data()
-    local virtual_inventory = virtual_inventory:getData()
+    local virtual_inventory = module.virtual_inventory:getData()
     local external_table = {}
     for _, vinv_external in ipairs(external_inventories) do
         local vinv = vinv_external:getData()
@@ -71,7 +70,7 @@ end
 
 local MetaExternalInventory = nil
 function module.re_instantiate(big_table)
-    virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
+    module.virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
 
     local external_table = {}
     for _, entry in ipairs(big_table[2]) do -- entry is fat ledger, remember
@@ -101,12 +100,12 @@ function module.register_ledger(fat_ledger)
 end
 
 function module.how_many_internal(lable, name)
-    local quantity = virtual_inventory:howMany(lable, name)
+    local quantity = module.virtual_inventory:howMany(lable, name)
     return quantity
 end
 
 function module.how_many_total(lable, name)
-    local quantity = virtual_inventory:howMany(lable, name)
+    local quantity = module.virtual_inventory:howMany(lable, name)
     for _, fat_ledger in ipairs(external_inventories) do
         local ledger = fat_ledger.ledger
         quantity = quantity + ledger:howMany(lable, name)
@@ -367,7 +366,7 @@ end
 
 
 local function compress_into_slot(lable, name, slot)
-    local all_slots = virtual_inventory:getAllSlots(lable, name)
+    local all_slots = module.virtual_inventory:getAllSlots(lable, name)
 
     -- Order things up in place (smallest to biggest)
     sort_slot_table(all_slots)
@@ -401,7 +400,7 @@ local function compress_into_slot(lable, name, slot)
             return false
         end
 
-        local empty_slot = virtual_inventory:getEmptySlot()
+        local empty_slot = module.virtual_inventory:getEmptySlot()
         if empty_slot == nil then error(comms.robot_send("error", "assertion failed")) end
 
         robot.select(inner_slot)
@@ -430,8 +429,8 @@ local function compress_into_slot(lable, name, slot)
         end
 
         -- Important: this below updates the internal represetation of the inventory to match the new state:
-       virtual_inventory:removeFromSlot(inner_slot, to_transfer)
-       virtual_inventory:forceUpdateSlot(lable, name, cur_target_size + to_transfer, target_slot)
+       module.virtual_inventory:removeFromSlot(inner_slot, to_transfer)
+       module.virtual_inventory:forceUpdateSlot(lable, name, cur_target_size + to_transfer, target_slot)
     end
     robot.select(1)
     return true
@@ -587,7 +586,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
         return swing_result
     end
 
-    local slot = virtual_inventory:getSmallestSlot(b_lable, b_name)
+    local slot = module.virtual_inventory:getSmallestSlot(b_lable, b_name)
     if slot == nil then
         print(comms.robot_send("warning", "couldn't find id: \"" .. block_identifier .. "\" lable -- " .. lable_type))
         return false
@@ -618,7 +617,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
     robot.select(1)
 
     if place_result then
-        virtual_inventory:removeFromSlot(slot, 1)
+        module.virtual_inventory:removeFromSlot(slot, 1)
     end
     return place_result
 end
@@ -652,7 +651,7 @@ function module.suck_vinventory(external_inventory, left_to_suck, matching_slots
 
         -- I'm going to trust it is this simple, because the way the api's "suck into slot" and our
         -- addOrCreate seem to map 1-to-1, if de-syncs start to happen use a smarter solution I guess
-        local internal_slot = virtual_inventory:getSmallestSlot(lable, name)
+        local internal_slot = module.virtual_inventory:getSmallestSlot(lable, name)
         robot.select(internal_slot)
 
         if not inventory.suckFromSlot(sides_api.front, slot, cur_suck_quantity) then
@@ -661,7 +660,7 @@ function module.suck_vinventory(external_inventory, left_to_suck, matching_slots
         end
 
         local how_much_sucked = math.min(cur_suck_quantity, quantity)
-        virtual_inventory:addOrCreate(lable, name, how_much_sucked, get_forbidden_table())
+        module.virtual_inventory:addOrCreate(lable, name, how_much_sucked, get_forbidden_table())
         external_inventory:removeFromSlot(slot, how_much_sucked)
         if left_to_suck ~= nil then
             left_to_suck = left_to_suck - how_much_sucked
@@ -717,10 +716,10 @@ function module.dump_all_possible(external_inventory) -- respect "special slots"
 
         robot.select(slot)
         if not robot.drop() then goto continue end
-        local lable, name, quantity = virtual_inventory:getSlotInfo(slot)
+        local lable, name, quantity = module.virtual_inventory:getSlotInfo(slot)
 
         external_inventory:addOrCreate(lable, name, quantity, nil)
-        virtual_inventory:removeFromSlot(slot, 64) -- 64 for try to remove entire stack
+        module.virtual_inventory:removeFromSlot(slot, 64) -- 64 for try to remove entire stack
         ::continue::
     end
     robot.select(1)
@@ -744,11 +743,11 @@ function module.dump_only_matching(external_inventory, matching_slots)
 
         robot.select(slot)
         if not robot.drop(quantity) then goto continue end
-        virtual_inventory:subtract(slot, quantity)
+        module.virtual_inventory:subtract(slot, quantity)
 
         local index = (slot * 3) - 2
-        local lable = virtual_inventory.inv_table[index]
-        local name = virtual_inventory.inv_table[index + 1]
+        local lable = module.virtual_inventory.inv_table[index]
+        local name = module.virtual_inventory.inv_table[index + 1]
 
         if external_inventory == nil or type(external_inventory) ~= "table" then goto continue end
         external_inventory:addOrCreate(lable, name, quantity, nil)
@@ -792,7 +791,7 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
     end
 
     local clean_up = false
-    for stbl_index, sub_table in ipairs(occurence_table) do
+    for stbl_index, sub_table in pairs(occurence_table) do
         local lable, name
         local ingredient = ingredient_table[stbl_index]
         if type(ingredient) == "table" then -- select strict search (or permissive is ingredient[1] is nil)
@@ -804,7 +803,7 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
         end
 
         local how_many_needed = #sub_table
-        local how_many_in_inv = virtual_inventory:howMany(lable, name)
+        local how_many_in_inv = module.virtual_inventory:howMany(lable, name)
         local how_many_can_craft = math.floor(how_many_in_inv / how_many_needed)
         if how_many_can_craft < how_much_to_craft then -- no bueno
             clean_up = true
@@ -816,8 +815,8 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
             if c_table_slot > 6 then c_table_slot = c_table_slot + 2
             elseif c_table_slot > 3 then c_table_slot = c_table_slot + 1 end
 
-            local ingredient_slot = virtual_inventory:getLargestSlot(lable, name)
-            local slot_size = virtual_inventory:howManySlot(ingredient_slot)
+            local ingredient_slot = module.virtual_inventory:getLargestSlot(lable, name)
+            local slot_size = module.virtual_inventory:howManySlot(ingredient_slot)
             if slot_size < how_much_to_craft then
                 local result = compress_into_slot(lable, name, ingredient_slot)
                 if not result then clean_up = true; break end
@@ -837,11 +836,11 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
     end
 
     -- Now the virtual crafting-table should be assembled, lets do the thing!
-    local output_slot = virtual_inventory:getSmallestSlot(output.lable, output.name)
+    local output_slot = module.virtual_inventory:getSmallestSlot(output.lable, output.name)
     if  output_slot == nil
-        or virtual_inventory:howManySlot(output_slot) + how_much_to_craft > 64
+        or module.virtual_inventory:howManySlot(output_slot) + how_much_to_craft > 64
     then
-        output_slot = virtual_inventory:getEmptySlot(get_forbidden_table())
+        output_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
     end
 
     if output_slot == nil then error(comms.robot_send("fatal", "assert failed!")) end
@@ -855,7 +854,7 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
 
 
     -- Optimistically Update the thingy-majig
-    virtual_inventory:forceUpdateSlot(output.lable, output.name, how_much_to_craft, output_slot)
+    module.virtual_inventory:forceUpdateSlot(output.lable, output.name, how_much_to_craft, output_slot)
 
     robot.select(1)
     return true
@@ -890,7 +889,7 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(1)
         local lable = item.label; local name = item.name
-        virtual_inventory:addOrCreate(lable, name, quantity, get_forbidden_table())
+        module.virtual_inventory:addOrCreate(lable, name, quantity, get_forbidden_table())
 
         -- Make sure that these clear_functions act in the sameway that addOrCreate does (I think it does but who knows)
         if use_self_craft then result = clear_first_slot(non_craft_slot_iter)
@@ -906,8 +905,8 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
     local slot_table
     -- [1] - Strict Matching, find this lable, [2] - Name Matching, find all that matches this "bucket"
     -- [3] - We'll have to do it the dumb way
-    if lable_hint ~= nil then slot_table = virtual_inventory:getAllSlots(lable_hint, name_hint)
-    elseif name_hint ~= nil then slot_table = virtual_inventory:getAllSlotsPermissive(name_hint)
+    if lable_hint ~= nil then slot_table = module.virtual_inventory:getAllSlots(lable_hint, name_hint)
+    elseif name_hint ~= nil then slot_table = module.virtual_inventory:getAllSlotsPermissive(name_hint)
     else
         module.force_update_vinv()
         return true
@@ -922,9 +921,9 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         -- haha, something did get added (assume only 1 stack at the time so return)
         local diff = expected_quantity - stack_info.size
         if diff > 0 then
-            virtual_inventory:subtract(slot, diff)
+            module.virtual_inventory:subtract(slot, diff)
         elseif diff < 0 then
-            virtual_inventory:addOrCreate(stack_info.label, stack_info.name, math.abs(diff), get_forbidden_table())
+            module.virtual_inventory:addOrCreate(stack_info.label, stack_info.name, math.abs(diff), get_forbidden_table())
         end -- else all good, keep checking
     end
 
@@ -937,13 +936,13 @@ function module.force_add_in_slot(slot) -- ahr ahr
         used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(slot)
         local name = item.name; local lable = item.label
-        virtual_inventory:forceUpdateSlot(lable, name, quantity, slot)
+        module.virtual_inventory:forceUpdateSlot(lable, name, quantity, slot)
     end
     -- Separate out into a function that clears the crafting table for us?
 end
 
 function module.force_update_vinv()
-    virtual_inventory:forceUpdateInternal()
+    module.virtual_inventory:forceUpdateInternal()
 end
 
 
