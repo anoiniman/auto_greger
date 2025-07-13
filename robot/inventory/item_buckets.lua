@@ -44,23 +44,29 @@ function module.identify(name, lable)
         return "any:grass"
     end
 
+    if string.find(lable, "Planks") then
+        return "any:plank"
+    end
+
     if string.find(name, "log") then    -- this could have awful results if something that isn't a log is caught,
                                         -- check NEI and improve the regex if needed
         return "any:log"
 
     elseif string.find(name, "sapling") then
         return "any:sapling"
-    elseif string.find(name, "^minecraft:") then
+    elseif string.find(lable, "Ingot$") then
+        return "any:ingot"
+    elseif string.find(lable, "Sword") or string.find(lable, "sword") then
+        return "any:sword", true
+    end
+
+    if string.find(name, "^minecraft:") then
         return "minecraft:generic"
     elseif string.find(name, "^gregtech:") then
         if string.find(lable, "^Raw") and string.find(lable, "Ore$") then
             return "gregtech:raw_ore"
         end
         return "gregtech:generic"
-    elseif string.find(lable, "Ingot$") then
-        return "any:ingot"
-    elseif string.find(lable, "Sword") or string.find(lable, "sword") then
-        return "any:sword", true
     end
 
     return "generic", nil

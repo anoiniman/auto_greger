@@ -794,6 +794,11 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
     for stbl_index, sub_table in pairs(occurence_table) do
         local lable, name
         local ingredient = ingredient_table[stbl_index]
+
+        if ingredient == nil then
+            error(comms.robot_send("fatal", "assertion failed"))
+        end
+
         if type(ingredient) == "table" then -- select strict search (or permissive is ingredient[1] is nil)
             lable = ingredient[1]
             name = ingredient[2]
@@ -809,8 +814,11 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
             print(comms.robot_send("error", "how many can craft: " .. how_many_can_craft .. " || \z
                                     how much to craft: " .. how_much_to_craft))
             local print_name = name
-            if name == nil then print_name = "nil" end
-            print(comms.robot_send("error", "lable was: " .. lable .. " || name was: " .. print_name))
+            local print_lable = lable
+            if print_name == nil then print_name = "nil" end
+            if print_lable == nil then print_lable = "nil" end
+
+            print(comms.robot_send("error", "lable was: " .. print_lable .. " || name was: " .. print_name))
             print(comms.robot_send("error", "how many in inv was: " .. how_many_in_inv .. " || how many needed was: " .. how_many_needed))
             clean_up = true
             break

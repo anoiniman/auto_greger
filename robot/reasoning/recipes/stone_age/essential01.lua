@@ -13,7 +13,8 @@ local any_log = {
 }
 
 local dictionary = {
-    w = any_plank,
+    p = any_plank,
+    l = any_log,
     g = "Gravel",
     f = "Flint",
     s = "Stick",
@@ -41,12 +42,25 @@ local output = {lable = nil, name = "any:log"}
 local wood = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "no_store", nil, nil)
 
 temp = {
- 0,  'w',  0 ,
+ 0,  'l',  0 ,
  0 ,  0 ,  0 ,
  0 ,  0 ,  0
 }
 local wood_dep = MetaDependency:new(wood, 1)
-local stick = MetaRecipe:newCraftingTable("Stick", temp, wood_dep, nil)
+output = {
+    lable = nil,
+    name = "any:plank"
+}
+local plank = MetaRecipe:newCraftingTable(output, temp, wood_dep, nil)
+
+
+temp = {
+ 0,  'p',  0 ,
+ 0 , 'p',  0 ,
+ 0 ,  0 ,  0
+}
+local plank_dep = MetaDependency:new(plank, 2)
+local stick = MetaRecipe:newCraftingTable("Stick", temp, plank_dep, nil)
 
 temp = {
 'f', 'f', 'f',
@@ -59,4 +73,4 @@ deps = {stick_dep, flint_dep}
 
 local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", temp, deps, nil)
 
-return {{flint, flint_pickaxe, stick}, dictionary} -- this means that the only "public dependencies" are: flint and flint_pickaxe
+return {{flint, flint_pickaxe, stick}, dictionary} -- this means that the only "public dependencies" are: flint, flint_pickaxe and stick
