@@ -67,8 +67,8 @@ temp = {
  0 , 's',  0 ,
  0 , 's',  0
 }
-local stick_dep = MetaDependency:new(flint, 3)
-local flint_dep = MetaDependency:new(stick, 2)
+local stick_dep = MetaDependency:new(stick, 2)
+local flint_dep = MetaDependency:new(flint, 3)
 deps = {stick_dep, flint_dep}
 
 local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", temp, deps, nil)

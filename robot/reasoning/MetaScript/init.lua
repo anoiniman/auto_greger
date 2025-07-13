@@ -189,7 +189,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, ctx)
         error(comms.robot_send("fatal", "recurse_recipe_tree, unknown"))
     end
 
-    if not recurse then return recipe_to_execute, return_info end
+    if not recurse then return recipe_to_execute, return_info, needed_quantity end
 
     if recurse_watch_dog > 20 then
         error(comms.robot_send("fatal", "Goal:step() -- watch_dog exceeded, does recipe not get solved?"))
@@ -223,7 +223,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     end
 
     local extra_info
-    needed_recipe, extra_info = recurse_recipe_tree(needed_recipe, needed_quantity, MetaContext:new(needed_recipe))
+    needed_recipe, extra_info, needed_quantity = recurse_recipe_tree(needed_recipe, needed_quantity, MetaContext:new(needed_recipe))
 
     -- TODO implement mechanism to unlock this lock
     if needed_recipe == nil then
@@ -245,11 +245,11 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     -- local serial_recipe = serialize.serialize(needed_recipe, 40)
     -- print(comms.robot_send("debug", serial_recipe))
 
-    local up_to_quantity = self.constraint.const_obj.reset_count
+    -- local up_to_quantity = self.constraint.const_obj.reset_count
     local return_table = needed_recipe:returnCommand(
         self.priority,
         self.constraint.const_obj.lock,
-        up_to_quantity,
+        needed_quantity,
         extra_info,
         parent_script.dictionary
     )
