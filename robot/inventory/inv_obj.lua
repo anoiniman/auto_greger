@@ -850,31 +850,25 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
     end
 
     -- Now the virtual crafting-table should be assembled, lets do the thing!
-    local was_empty = false
     local output_slot = module.virtual_inventory:getSmallestSlot(output.lable, output.name)
     if  output_slot == nil
         or module.virtual_inventory:howManySlot(output_slot) + how_much_to_craft > 64
     then
         output_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
-        was_empty = true
     end
 
     if output_slot == nil then error(comms.robot_send("fatal", "assert failed!")) end
-    print(output_slot)
-    io.read()
 
     robot.select(output_slot)
     local result = crafting_component.craft(64)     -- craft as many as possible, in case of gross oversight
-                                                    -- this should at least keep the crafting area clear
-
+                                                    -- this should at least crash hard
 
     if not result then
         error(comms.robot_send("fatal", "failed to craft :("))
     end
-    -- robot.transferTo(output_slot, 64)
 
-
-    local new_quantity = module.virtual_inventory:howManySlot(output_slot) + how_much_to_craft
+    -- TODO make it not use getStackInInternalSlot se we're a bit faster
+    local new_quantity = inventory.getStackInInternalSlot(output_slot).size
     -- Optimistically Update the thingy-majig
     module.virtual_inventory:forceUpdateSlot(output.lable, output.name, new_quantity, output_slot)
 
