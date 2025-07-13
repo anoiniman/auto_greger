@@ -153,9 +153,7 @@ Module.hooks = {
     -- luacheck: no unused args
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            -- TODO other checks, like tool checks
             if computer.uptime() - state.last_checked < 60 * 22 then return "wait" end
-            -- check for flint axe?
 
             return "all_good"
         elseif flag ~=  "raw_usage" and flag ~= "no_store" then

@@ -90,7 +90,7 @@ end
 
 function Module:checkEntryPermissive(_, name, at_index)
     local i_name = self.inv_table[at_index + 1]
-    return name == "generic" or name == i_name
+    return name == i_name
 end
 
 local function calc_add_to_stack(current, to_add)

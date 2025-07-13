@@ -47,7 +47,13 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
         end
 
         if true then
-            print(comms.robot_send("debug", "depth_recurse in solve_tree:search -- " .. debug_name))
+            local print_lable = lable
+            local print_name = name
+            if print_lable == nil then print_lable = "nil" end
+            if print_name == nil then print_name = "nil" end
+
+            print(comms.robot_send("debug", "depth_recurse in solve_tree:search -- " .. debug_name
+                                    .. " || not enough: " .. print_lable .. ", " .. print_name))
             mode = "depth"
             dep_found = dep
             break

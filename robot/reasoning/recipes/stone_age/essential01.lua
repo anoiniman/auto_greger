@@ -59,7 +59,7 @@ temp = {
  0 , 'p',  0 ,
  0 ,  0 ,  0
 }
-local plank_dep = MetaDependency:new(plank, 2)
+local plank_dep = MetaDependency:new(plank, 1)
 local stick = MetaRecipe:newCraftingTable("Stick", temp, plank_dep, nil)
 
 temp = {
