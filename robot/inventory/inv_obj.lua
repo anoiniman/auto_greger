@@ -808,7 +808,9 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
         if how_many_can_craft < how_much_to_craft then -- no bueno
             print(comms.robot_send("error", "how many can craft: " .. how_many_can_craft .. " || \z
                                     how much to craft: " .. how_much_to_craft))
-            print(comms.robot_send("error", "lable was: " .. lable .. " || name was: " .. name))
+            local print_name = name
+            if name == nil then print_name = "nil" end
+            print(comms.robot_send("error", "lable was: " .. lable .. " || name was: " .. print_name))
             print(comms.robot_send("error", "how many in inv was: " .. how_many_in_inv .. " || how many needed was: " .. how_many_needed))
             clean_up = true
             break
