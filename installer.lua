@@ -157,6 +157,12 @@ local function robot_build_primitives()
     end
     download("/robot/build/bd_storeroom/storeroom_north.lua", "self")
     download("/robot/build/bd_storeroom/storeroom_south.lua", "self")
+
+    if not filesystem.isDirectory("/home/robot/build/simplified") then
+       filesystem.makeDirectory("/home/robot/build/simplified")
+    end
+    download("/robot/build/simplified/storeroom_north.lua", "self")
+    download("/robot/build/simplified/storeroom_south.lua", "self")
 end
 
 local function robot_meta_build()
