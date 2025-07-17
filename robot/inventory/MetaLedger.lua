@@ -3,7 +3,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 -- local SpecialDefinition = require("inventory.SpecialDefinition")
-local bucket_funcs, _ = table.unpack(require("inventory.item_buckets"))
+local item_bucket = require("inventory.item_buckets")
 
 -- It is assumed this will never be used for the robots own inventory
 
@@ -55,7 +55,7 @@ end
 
 -- special definitions will not be stored per se (they'll not be treated in a special manner)
 function Module:addOrCreate(lable, name, to_be_added)
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
 
     local index = self:findIndex(lable, name)
     if index ~= -1 then
@@ -70,7 +70,7 @@ function Module:addOrCreate(lable, name, to_be_added)
 end
 
 function Module:subtract(lable, name, to_remove)
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
 
     local index = self:findIndex(lable, name)
     if index == -1 then
@@ -94,7 +94,7 @@ function Module:subtract(lable, name, to_remove)
 end
 
 function Module:howMany(lable, name)
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
     local index = self:findIndex(lable, name)
     if index == -1 then return 0 end
 
@@ -103,7 +103,7 @@ end
 
 -- returns table of lable-quantity pairs (ok for lable to be nil)
 function Module:howManyPermissive(lable, name)
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
     local indices = self:findIndicesPermissive(lable, name)
     if indices == nil then return 0 end
 

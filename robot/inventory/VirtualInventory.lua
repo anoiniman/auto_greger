@@ -6,7 +6,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 local search_table = require("search_table")
 
-local bucket_funcs, _ = table.unpack(require("inventory.item_buckets"))
+local item_bucket = require("inventory.item_buckets")
 local inventory = component.getPrimary("inventory_controller")
 
 -- luacheck: globals EMPTY_STRING
@@ -106,7 +106,7 @@ local function calc_add_to_stack(current, to_add)
 end
 
 function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
     if to_be_added <= 0 then return 0 end
 
     for index = 1, self.table_size, 3 do
@@ -131,7 +131,7 @@ end
 -- WARNING: If addOrCreate doesn't mimic/isn't used 100% accuratly to model the real behaviour we're ffed
 -- if name is not provided, name is probably generic, if name is generic, it is accepted by any lable
 function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
     if to_be_added <= 0 then return 0 end
 
     -- do valid stack growth according to the rules of opencomputers (reduce left-first)
@@ -182,7 +182,7 @@ end
 
 function Module:getAllSlotsInternal(lable, name, check_func, up_to)
     if up_to == nil then up_to = 100000 end
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
 
     local slot_table = {}
     for index = 1, self.table_size, 3 do
@@ -249,7 +249,7 @@ end
 end--]]
 
 function Module:getSmallestSlot(lable, name) -- returns a slot num
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
 
     local slot_table = self:getAllSlots(lable, name)
     if slot_table == nil then return nil end
@@ -275,7 +275,7 @@ function Module:getSmallestSlot(lable, name) -- returns a slot num
 end
 
 function Module:getLargestSlot(lable, name)
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
 
     local slot_table = self:getAllSlots(lable, name)
     if slot_table == nil then return nil end
@@ -338,7 +338,7 @@ function Module:forceUpdateSlot(lable, name, quantity, slot)
         print(comms.robot_send("error", debug.traceback()))
         return
     end
-    name = bucket_funcs.identify(name, lable)
+    name = item_bucket.identify(name, lable)
 
     local index = (slot * 3) - 2
     self.inv_table[index] = lable
@@ -369,6 +369,15 @@ function Module:forceUpdateGeneral(is_internal)
 
     -- self.inv_table = nil
     self.inv_table = temp.inv_table
+end
+
+-- returns slot to actually robot.select && robot.equip()
+function Module:equipSomething(wanted_tool, wanted_level)
+    if self.equip_tbl == nil then print(comms.send_unexpected()) end    
+
+    local tmp = deep_copy.copy(self.equip_tbl[1])
+    local offset = fromSlot * 
+    self.equip_tbl[1] =
 end
 
 local ComparisonDiff = {

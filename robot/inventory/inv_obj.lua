@@ -14,7 +14,7 @@ local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 local search_table = require("search_table")
 
-local bucket_functions, item_buckets = table.unpack(require("inventory.item_buckets"))
+local item_bucket = require("inventory.item_buckets")
 --local MetaLedger = require("inventory.MetaLedger")
 local VirtualInventory = require("inventory.VirtualInventory")
 local SpecialDefinition = require("inventory.SpecialDefinition")
@@ -30,7 +30,6 @@ local inventory_size = 32
 local used_up_capacity = 0
 
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
-local tool_belt_slots = {}
 local slot_managed = {}
 
 local crafting_table_clear = true
@@ -43,8 +42,6 @@ module.virtual_inventory = VirtualInventory:new(inventory_size)
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_inventories = {}
 
-local equiped_tool = nil
-
 function module.get_data()
     local virtual_inventory = module.virtual_inventory:getData()
     local external_table = {}
@@ -52,18 +49,17 @@ function module.get_data()
         local vinv = vinv_external:getData()
         table.insert(external_table, vinv)
     end
-    
+
     -- local inv_size = serialize.serialize(inventory_size, false)
     local big_table = {
         virtual_inventory, -- 1
         external_table,
 
         used_up_capacity,
-        tool_belt_slots, -- 4
-        slot_managed,
+        slot_managed, -- 4
 
         crafting_table_clear,
-        use_self_craft, -- 7
+        use_self_craft, -- 6
     }
     return big_table
 end
@@ -83,13 +79,10 @@ function module.re_instantiate(big_table)
     external_inventories = external_table
 
     used_up_capacity = big_table[3]
-    tool_belt_slots = big_table[4]
-    slot_managed = big_table[5]
+    slot_managed = big_table[4]
 
-    crafting_table_clear = big_table[6]
-    use_self_craft = big_table[7]
-
-    -- TODO reinstantiate equiped tool if possible
+    crafting_table_clear = big_table[5]
+    use_self_craft = big_table[6]
 end
 
 
@@ -163,123 +156,16 @@ end
 
 ---}}}
 
--- Slot Definition et al. {{{
-
-local SlotDefinition = {
-    slot_number = nil,
-    special_definiiton = nil,
-}
---function SlotDefinition:newFromCurrent(slot_numbers, material, item_name, item_level)
-
--- slot_numbers, might actually be a non-table number!
-function SlotDefinition:new(slot_number, item_name)
-    local new = deep_copy.copy(self, pairs)
-    new.special_definition = SpecialDefinition:new(item_name)
-    new.slot_number = slot_number
-
-    table.insert(tool_belt_slots, slot_number) -- important
-    return new
-end
-
-local slot_manager = {}
-function slot_manager.add(obj)
-    if obj.special_definition ~= nil then
-        local name = obj.special_definition.item_name
-        if slot_managed[name] == nil then slot_managed[name] = {} end
-        table.insert(slot_managed[name], obj)
-        return
-    end
-
-    local sd = obj.special_definition
-    for _, slot_def in ipairs(obj) do
-        local name = slot_def.special_definition.item_name
-        if slot_managed[name] == nil then slot_managed[name] = {} end
-        table.insert(slot_managed[name], slot_def)
-    end
-end
-
-function slot_manager.find_all(item_name, level)
-    local return_table = {}
-    for _, multi_def in pairs(slot_managed) do
-        for _, slot_def in pairs(multi_def) do
-            local def = slot_def.special_definition
-            if def.item_name == item_name and def.item_level >= level then
-                table.insert(return_table, slot_def)
-            end
-        end
-    end
-    if #return_table > 0 then return return_table end
-    return nil
-end
-
--- I think this is fine
-function slot_manager.find_slot(item_name, level) -- returns a slot number
-    local result = slot_manager.find_all(item_name, level)
-    if result ~= nil then
-       return result[1].slot_number
-    end
-    return nil
-end
-
-function slot_manager.find_first(item_name, level)
-    local result = slot_manager.find_all(item_name, level)
-    if result ~= nil then
-        return result[1]
-    end
-    return nil
-end
-
-function slot_manager.find_empty_slot(item_name) -- returns a slot number
-    -- This filters two times, but the performance drop is acceptable
-    local result = slot_manager.find_all(item_name, -1)
-    for _, slot_def in ipairs(result) do
-        local def = slot_def.special_definition
-        if def.item_level == -1 then
-            return def.slot_number
-        end
-    end
-    return nil
-end
-
--- puts item from x slot into appropriate tool slot
-function slot_manager.put_from_slot(from_slot, item_name)
-    local result = slot_manager.find_empty_slot(item_name)
-    if result == nil then return false end -- return failure, aka, no empty slot, or no good item
-
-    local old_select = robot.select(from_slot)
-    result = robot.transferTo(result) -- if false failure, if true success
-    robot.select(old_select)
-    return result
-end
-
-
---- Write more slot definitions :)
---
---  15,  16,  17,  18,  19,  20
--- (21)  22,  23,  24, (25)  26,
--- (27) (28) (29) (30) (31) (32)
-local sd = SlotDefinition
-slot_manager.add({sd:new(27, "pickaxe"), sd:new(21, "pickaxe")}) -- pickaxe
-slot_manager.add({sd:new(31,"axe"), sd:new(25, "axe")}) -- axe
-slot_manager.add({sd:new(29, "fuel"), sd:new(30, "fuel")}) -- fuel
-
-slot_manager.add(sd:new(28, "shovel"))
-slot_manager.add(sd:new(32, "sword"))
-sd = nil
-
-function module.special_slot_find_all(item_name, level)
-    return slot_manager.find_all(item_name, level)
-end
+-- ->>-- Load Outs --<<--------- {{{
+-- TODO :)
 
 ---}}}
 
 --->>-- Local Functions --<<-----{{{
 
-local big_table = {tool_belt_slots, crafting_table_slots}
-
 local function get_forbidden_table()
-    if use_self_craft then return big_table end
-    return tool_belt_slots
+    if use_self_craft then return crafting_table_slots end
+    return nil
 end
 
 local function non_craft_slot_iter()
@@ -440,9 +326,6 @@ end
 ---}}}
 
 --->>-- Tool Use --<<-----{{{
-function module.get_equiped_tool_name()
-    return equiped_tool.item_name
-end
 
 -- Assume that the tools are in their correct slots at all the times, it is not the responsibility
 -- of this function to make sure that the items are in the desitred slot, unless of course, the
@@ -487,7 +370,7 @@ function module.equip_tool(tool_type, wanted_level)
     -- (since it was swapped into a forbiden slot)
     -- if it was tool and wasn't moved succesefully, just try and clear it from the current slot
     local new_item = inventory.getStackInInternalSlot(slot)
-    local what_item = bucket_functions.identify(new_item.name, new_item.lable)
+    local what_item = item_bucket.identify(new_item.name, new_item.lable)
     local is_tool = slot_manager.find(what_item, -1)
     if is_tool ~= nil then
         if slot_manager.put_from_slot(slot, what_item) then
