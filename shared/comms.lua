@@ -90,4 +90,12 @@ function module.robot_send(part1, part2) -- part1 & 2 must be strings
     return final_string
 end
 
+function module.send_unexpected()
+    return module.robot_send(
+        "Warning",
+        "Hey brosky, this is code-path should not be being threaded, watch yo back!\n"
+        .. debug.traceback()
+    )
+end
+
 return module

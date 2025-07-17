@@ -19,7 +19,7 @@ function MetaItem:new(name, lable, permissive, output)
     local new = deep_copy.copy(self, pairs)
     new.name = name
     new.lable = lable
-    new.permissive = permissive
+    new.permissive = permissive or false
     new.output = output
 
     return new

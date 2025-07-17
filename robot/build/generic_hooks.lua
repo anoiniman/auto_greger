@@ -12,7 +12,7 @@ local nav_to_build = require("nav_module.nav_to_building")
 
 local general_functions = require("build.general_functions")
 
-
+---------------------
 local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm)
     if not nav.is_setup_navigate_rel() then
         nav.setup_navigate_rel(target_coords)
@@ -35,7 +35,6 @@ local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm
 end
 
 local count_occurence_of_symbol = general_functions.count_occurence_of_symbol
-
 
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis
 function module.std_hook1(state, parent, flag, state_init_func, name)
@@ -182,7 +181,7 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
             return 4
         end
     elseif state.fsm == 5 then -- we done, let us reset ourselves
-        print(comms.robot_send("info", "FSM finished " .. name)) -- TODO change this to debug
+        print(comms.robot_send("debug", "FSM finished " .. name))
          -- reset state
         local new_state = state_init_func()
         for key, value in pairs(new_state) do
@@ -195,5 +194,12 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     end
     error("fall-through")
 end
+---------------
+
+-- TODO properly integrate this sort of function
+function module.use_cache(state)
+
+end
+
 
 return module

@@ -85,7 +85,7 @@ Module.state_init = {
         local new_machine = MetaInventory:newMachine(input_items, parent, '*', 1)
         local new_machine = MetaInventory:newMachine(input_items, parent, '*', 2)
         -- new_machine["state_type"] = "inventory"
-        return new_machine
+        return nil
     end,
     function(parent)
         local output_items = {
