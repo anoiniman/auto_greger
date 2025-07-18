@@ -247,12 +247,11 @@ local function robot_inventory()
     download("/robot/inventory/external_inv_obj.lua", "self")
     download("/robot/inventory/inv_obj.lua", "self")
     download("/robot/inventory/item_buckets.lua", "self")
-    download("/robot/inventory/special_cases.lua", "self")
 
     download("/robot/inventory/VirtualInventory.lua", "self")
     download("/robot/inventory/MetaExternalInventory.lua", "self")
     download("/robot/inventory/MetaLedger.lua", "self")
-    download("/robot/inventory/SpecialDefinition.lua", "self")
+    download("/robot/inventory/tool_definition.lua", "self")
 end
 
 local function robot_complex_algorithms()
