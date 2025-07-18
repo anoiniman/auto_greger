@@ -169,4 +169,4 @@ and state-fudging tecnhiques hehe
 
 Weird thing happen with chunk_move, move too far, me no get
 
-we're having some troube with the deserialization as per latest screenshot
+we need to "fix" the serialization so it includes de equipd slot!

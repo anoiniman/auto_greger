@@ -56,6 +56,7 @@ function module.get_data()
     -- local inv_size = serialize.serialize(inventory_size, false)
     local big_table = {
         virtual_inventory, -- 1
+        module.virtual_inventory.equip_tbl,
         external_table,
 
         used_up_capacity,
@@ -70,9 +71,10 @@ end
 local MetaExternalInventory = nil
 function module.re_instantiate(big_table)
     module.virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
+    module.equip_tbl = big_table[2] -- it's ok to do this directly since only primitives are "in there"
 
     local external_table = {}
-    for _, entry in ipairs(big_table[2]) do -- entry is fat ledger, remember
+    for _, entry in ipairs(big_table[3]) do -- entry is fat ledger, remember
         -- another wholesome hack TODO (fix this shit)
         if MetaExternalInventory == nil then MetaExternalInventory = require("inventory.MetaExternalInventory")[1] end
 
@@ -81,11 +83,11 @@ function module.re_instantiate(big_table)
     end
     external_inventories = external_table
 
-    used_up_capacity = big_table[3]
-    slot_managed = big_table[4]
+    used_up_capacity = big_table[4]
+    slot_managed = big_table[5]
 
-    crafting_table_clear = big_table[5]
-    use_self_craft = big_table[6]
+    crafting_table_clear = big_table[6]
+    use_self_craft = big_table[7]
 end
 
 
