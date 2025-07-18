@@ -371,14 +371,57 @@ function Module:forceUpdateGeneral(is_internal)
     self.inv_table = temp.inv_table
 end
 
--- returns slot to actually robot.select && robot.equip()
-function Module:equipSomething(wanted_tool, wanted_level)
-    if self.equip_tbl == nil then print(comms.send_unexpected()) end    
+-- returns slot to actually robot.select && robot.equip() [does not equip by itself! only updates the virtual inventory!]
+-- Note, that if we return nil nothing has been updated in the internal database
+function Module:equipSomething(tool_type, tool_level)
+    if self.equip_tbl == nil then print(comms.send_unexpected()) end
+    local lable_table = item_bucket.id_equipment(tool_type, tool_level)
+    if lable_table == nil then return nil end
 
-    local tmp = deep_copy.copy(self.equip_tbl[1])
-    local offset = fromSlot * 
-    self.equip_tbl[1] =
+    local from_slot, from_lable
+    -- this only works because the tables are already pre-sorted from best to worst
+    for _, lable in ipairs(lable_table) do
+        local possible_slot = self:getLargestSlot()
+        if possible_slot ~= nil then
+            from_lable = lable
+            from_slot = possible_slot
+            break
+        end
+    end
+
+    -- WARNING -- very very dependend on we detecting an equipment break BEFORE we "equipSomething"
+    local old_lable = self.equip_tbl.lable
+    local old_name = self.equip_tbl.name
+
+    self.equip_tbl.lable = from_lable
+    self.equip_tbl.tool_type = tool_type
+    self.equip_tbl.name = "any:" .. tool_type
+
+    local offset = (from_slot * 3) - 2
+    self.inv_table[offset] = old_lable
+    self.inv_table[offset + 1] = old_name
+    if old_lable ~= EMPTY_STRING then
+        self.inv_table[offset + 2] = 1 -- WARNING -- asumes equipment is non-stackable
+    else
+        self.inv_table[offset + 2] = 0
+    end
+
+    return from_slot
 end
+
+-- basically re-inits the table lol
+function Module:reportEquipedBreak()
+    self.equip_tbl.lable = EMPTY_STRING
+    self.equip_tbl.name = EMPTY_STRING
+
+    self.equip_tbl.tool_type = EMPTY_STRING
+    self.equip_tbl.equiped_level = -1
+end
+
+function Module:getEquipedInfo()
+    return self.equip_tbl.lable, self.equip_tbl.tool_type, self.equiped_level
+end
+
 
 local ComparisonDiff = {
     lable = nil,

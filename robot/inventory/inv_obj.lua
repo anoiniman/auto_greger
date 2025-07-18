@@ -1,3 +1,4 @@
+-- luacheck: globals EMPTY_STRING
 local module = {}
 --imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
@@ -38,6 +39,8 @@ local use_self_craft = true
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
 module.virtual_inventory = VirtualInventory:new(inventory_size)
+module.virtual_inventory.equip_tbl = {}
+module.virtual_inventory:reportEquipedBreak()
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_inventories = {}
@@ -330,64 +333,37 @@ end
 -- Assume that the tools are in their correct slots at all the times, it is not the responsibility
 -- of this function to make sure that the items are in the desitred slot, unless of course, the
 -- thing is about returning currently equiped tools to the correct slot
-function module.equip_tool(tool_type, wanted_level)
+function module.equip_tool(tool_type, tool_level)
     -- Listen, it might start swinging at air with a sword but who cares
-    if tool_type == nil or wanted_level == nil then
+    if tool_type == nil or tool_level == nil then
         return true
     end
-    print(comms.robot_send("debug", "Equiping tool: " .. tool_type .. ", " .. wanted_level))
+    print(comms.robot_send("debug", "Equiping tool: " .. tool_type .. ", " .. tool_level))
 
+    local equiped_lable, equiped_type, equiped_level = module.virtual_inventory:getEquipedInfo()
     -- First, check if it already equiped
-    if equiped_tool ~= nil and equiped_tool.item_name == tool_type and equiped_tool.item_level >= wanted_level then
+    if equiped_lable ~= EMPTY_STRING and equiped_type == tool_type and equiped_level >= tool_level then
         -- Update internal representation if the tool is now broken
         robot.select(1) -- empty slot
         inventory.equip()
         if robot.count(1) == 0 then -- tool broke
+            module.virtual_inventory:reportEquipedBreak()
             goto fall_through
         end -- else tool is good!
         inventory.equip() -- equip it again
 
-        return true -- "We equipped it succesefully"
+        return true -- We "equipped" it succesefully
     end
     ::fall_through::
 
-    local first_tool = slot_manager.find_first(tool_type, wanted_level)
-    local slot = nil
-    local sp_definition = nil
-    if first_tool ~= nil then
-        slot = first_tool.slot_number
-        sp_definition = first_tool.special_definition
-    end
 
+    local slot = module.virtual_inventory:equipSomething(tool_type, tool_level)
     -- Equip required tool if found else return false
     if slot == nil then return false end
     robot.select(slot)
     local result = inventory.equip()
-    equiped_tool = sp_definition -- ref
 
-    -- Check if something was swapped (aka there was already something equiped) and if it is a
-    -- tool move it to the appropriate slot, else try to move item to an availabe free slot
-    -- (since it was swapped into a forbiden slot)
-    -- if it was tool and wasn't moved succesefully, just try and clear it from the current slot
-    local new_item = inventory.getStackInInternalSlot(slot)
-    local what_item = item_bucket.identify(new_item.name, new_item.lable)
-    local is_tool = slot_manager.find(what_item, -1)
-    if is_tool ~= nil then
-        if slot_manager.put_from_slot(slot, what_item) then
-            return result, true
-        end -- elseif unsucceseful
-        local iter
-        if use_self_craft then iter = non_craft_slot_iter
-        else iter = free_slot_iter end
-        local secondary_result = clear_any_slot(slot, iter)
-        return result, secondary_result
-    end -- else if it's not tool
-
-    local iter
-    if use_self_craft then iter = non_craft_slot_iter
-    else iter = free_slot_iter end
-    local secondary_result = clear_any_slot(slot, iter)
-    return result, secondary_result
+    return result
 end
 
 local function swing_general(swing_function, dir, pre_analysis)
@@ -767,7 +743,7 @@ function module.craft(arguments)
     local how_much = arguments[4]
     local loc_ref = arguments[5]
 
-    if use_self_craft then 
+    if use_self_craft then
         self_craft(dictionary, recipe_grid, output, how_much) -- this returns a result, but we don't care?
         loc_ref[1] = 2
         return nil
