@@ -5,6 +5,7 @@ local sides_api = require("sides")
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local search_table = require("search_table")
+local PPObj = require("common_pp_format")
 
 local item_bucket = require("inventory.item_buckets")
 local inventory = component.getPrimary("inventory_controller")
@@ -23,29 +24,30 @@ Module.inv_table = {}
 
 
 function Module:getFmtObj()
-    local print_table = {}
+    local print_table = PPObj:new()
+    print_table:setTitle("Default VInventory fmtObj:")
+
     for index = 1, #self.inv_table, 3 do
         if self.inv_table[index + 0] == EMPTY_STRING and self.inv_table[index + 1] == EMPTY_STRING then
             goto continue
         end
 
         local slot = (index + 2) / 3
-        table.insert(print_table, "(Slot: ")
-        table.insert(print_table, slot)
-        table.insert(print_table, ")")
-        table.insert(print_table, "\n")
-        table.insert(print_table, self.inv_table[index + 0])
-        table.insert(print_table, ", ")
-        table.insert(print_table, self.inv_table[index + 1])
-        table.insert(print_table, " (")
-        table.insert(print_table, self.inv_table[index + 2])
-        table.insert(print_table, ")")
-
-        table.insert(print_table, "\n")
-        table.insert(print_table, "----\n")
+        print_table:addString("(Slot: ")
+                   :addString(slot)
+                   :addString(")")
+                   :newLine()
+        print_table:addString(self.inv_table[index + 0])
+                   :addString(", ")
+                   :addString(self.inv_table[index + 1])
+                   :addString(" (")
+                   :addString(self.inv_table[index + 2])
+                   :addString(")")
+                   :newLine()
 
         ::continue::
     end
+    print_table:build()
 
     -- print(comms.robot_send("info", table.concat(print_table)))
     return print_table

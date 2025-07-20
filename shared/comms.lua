@@ -3,6 +3,7 @@ local module = {}
 -- because this is not a server :P
 -- Correction -- Is this an hybrid approach now?
 
+local term = require("term")
 local serialize = require("serialization")
 local component = require("component")
 local event = require("event")
@@ -70,7 +71,7 @@ function module.controller_send(any)
     local message_table = serialize.serialize(any, false)
     tunnel.send(message_table)
     return message_table
-end
+en
 
 function module.robot_send(part1, part2) -- part1 & 2 must be strings
     if (part1 == "debug" or part1 == "eval") and DO_DEBUG_PRINT ~= nil and not DO_DEBUG_PRINT then
@@ -96,6 +97,23 @@ function module.send_unexpected()
         "Hey brosky, this is code-path should not be being threaded, watch yo back!\n"
         .. debug.traceback()
     )
+end
+
+function module.cls_nself()
+    term.clear()
+    tunnel.send(serialize.serialize({"command", "term.clear"}))
+end
+
+function module.send_command(...)
+    local args = {...}
+    table.insert(args, "command")
+    local serial = serialize.serialize(args)
+    tunnel.send(serial)
+end
+
+-- prints a buffer expanded to a full screen (because computer monitor and robot monitor have different resolutions)
+function module module.screen_print()
+
 end
 
 return module

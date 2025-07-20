@@ -14,6 +14,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 local search_table = require("search_table")
+local PPObj = require("common_pp_formate")
 
 local item_bucket = require("inventory.item_buckets")
 --local MetaLedger = require("inventory.MetaLedger")
@@ -95,40 +96,62 @@ local function iter_external_inv(build_name)
     if build_name == nil then
         local inner, next_index
         local iteration = math.max
-        local function real_iter(_tbl)
-            if iteration <= #inner then
+        local function real_next(_tbl)
+            if inner ~= nil and iteration <= #inner then
                 iteration = iteration + 1
-                return inner[iteration], iteration
+                local value = inner[iteration]
+                if value == nil then inner = nil; return real_next(_tbl) end
+                return iteration, inner[iteration]
             else
-                next_index, inner = next(outer_tbl, a)
-                if next_index == nil then return nil end
+                next_index, inner = next(_tbl, next_index)
+                if inner == nil then return nil end
 
-                iteration = 1
-                return real_iter(_tbl)
+                iteration = 0
+                return real_next(_tbl)
             end
         end
-        return real_iter, external_inventories
+        return real_next, external_inventories
     end
 
     return ipairs(external_inventories[build_name])
 end
 
+local function do_pp_print(fat_ledger, index, size)
+    local pp_obj = fat_ledger:getFmtObj()
+    local title_string = {"<External Inventory> (", index, "/", size, ")"}
+    pp_obj:setTitle(table.concat(title_string))
 
-local function template_pp0(buffer, str)
-    --table.insert(buffer,
+    local new_obj = deep_copy.copy(pp_obj)
+    new_obj:printPage(false)
+
+    local castrated_object = deep_copy.copy_no_functions(pp_obj)
+    comms.send_command("ppObj", "printPage", castrated_object, true) -- this is ok to do because they'll simple be queued
+
+    return
 end
 
+local interactive_print = true
 function module.print_external_inv(name, index)
-    local le_next, tbl = itern_external_inv(name)
+    comms.cls_nself()
+    local le_next, tbl, num = iter_external_inv(name)
 
-    local buffer = {"\n <External Inventory> (", index, "/", #tbl_to_print, ")"}
-    if index ~= nil then
-        --template_pp0(buffer, 
+    -- TODO we'll prob have to concat the internal inventories or have alterante view modes or whatever, for now just a simple print
+    if name ~= nil and index ~= nil then
+        local fat_ledger = tbl[index]
+        do_pp_print(fat_ledger, index, #tbl)
+    elseif name == nil and index ~= nil then
+        print(comms.robot_send("warning", "Invalid name / index combination"))
         return
     end
 
-    for _, fat_ledger in le_next, tbl, nil do
-        --template_pp0(buffer,
+    local real_tbl_size = #tbl
+    if num == nil then -- aka, we're iterating over multiple sub tables through our custom iteratior
+        real_tbl_size = 0
+        for _, _ in le_next, tbl, nil do real_tbl_size = real_tbl_size + 1 end
+    end
+
+    for jindex, fat_ledger in le_next, tbl, num do
+        do_pp_print(fat_ledger, jindex, real_tbl_size)
     end
 end
 

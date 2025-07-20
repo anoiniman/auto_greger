@@ -98,7 +98,12 @@ function module.debug(arguments)
 
         if arguments[2] == "print" then
             if arguments[3] == "internal" then
-                print(comms.robot_send("info", table.concat(inv.virtual_inventory:getFmtObj())))
+                local pp_obj = inv.virtual_inventory:getFmtObj() -- it's already pre-built for us
+                local new_obj = deep_copy.copy(pp_obj)
+                new_obj:printPage(false)
+
+                local castrated_object = deep_copy.copy_no_functions(pp_obj)
+                comms.send_command("ppObj", "printPage", castrated_object, true)
             elseif arguments[3] == "external" then
                 inv.virtual_inventory:printExtern(arguments[4], tonumber(arguments[5]))
             end

@@ -83,6 +83,8 @@ local function shared()
     download("/shared/prio_insert.lua", "/usr/lib/prio_insert.lua")
     download("/shared/search_table.lua", "/usr/lib/search_table.lua")
     download("/shared/simple_hash.lua", "/usr/lib/simple_hash.lua")
+
+    download("/shared/common_pp_format.lua", "/usr/lib/common_pp_format.lua")
 end
 
 local function robot_top_level()
