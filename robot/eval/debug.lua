@@ -96,14 +96,17 @@ function module.debug(arguments)
         end
     elseif arguments[1] == "inv" or arguments[1] == "inventory" then
 
-        if arguments[2] == "print" and arguments[3] == "internal" then
-            inv.virtual_inventory:printObj()
+        if arguments[2] == "print" then
+            if arguments[3] == "internal" then
+                print(comms.robot_send("info", table.concat(inv.virtual_inventory:getFmtObj())))
+            elseif arguments[3] == "external" then
+                inv.virtual_inventory:printExtern(arguments[4], tonumber(arguments[5]))
+            end
         elseif arguments[2] == "force" and arguments[3] == "add_all" then
             inv.force_update_vinv()
         else
             print(comms.robot_send("error", "invalid arguments"))
         end
-
     elseif arguments[1] == "debug_mode" then
         if arguments[2] == "on" or tonumber(arguments[2]) == 1 then
             DO_DEBUG_PRINT = true

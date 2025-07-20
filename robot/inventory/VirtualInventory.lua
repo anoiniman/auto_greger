@@ -22,7 +22,7 @@ Module.table_size = -1
 Module.inv_table = {}
 
 
-function Module:printObj()
+function Module:getFmtObj()
     local print_table = {}
     for index = 1, #self.inv_table, 3 do
         if self.inv_table[index + 0] == EMPTY_STRING and self.inv_table[index + 1] == EMPTY_STRING then
@@ -46,7 +46,9 @@ function Module:printObj()
 
         ::continue::
     end
-    print(comms.robot_send("info", table.concat(print_table)))
+
+    -- print(comms.robot_send("info", table.concat(print_table)))
+    return print_table
 end
 
 function Module:getData()

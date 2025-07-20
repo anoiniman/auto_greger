@@ -48,7 +48,7 @@ local external_inventories = {}
 function module.get_data()
     local virtual_inventory = module.virtual_inventory:getData()
     local external_table = {}
-    for _, vinv_external in ipairs(external_inventories) do
+    for _, vinv_external in pairs(external_inventories) do
         local vinv = vinv_external:getData()
         table.insert(external_table, vinv)
     end
@@ -90,11 +90,58 @@ function module.re_instantiate(big_table)
     use_self_craft = big_table[7]
 end
 
-
 --->>-- Check on the ledgers --<<-----{{{
+local function iter_external_inv(build_name)
+    if build_name == nil then
+        local inner, next_index
+        local iteration = math.max
+        local function real_iter(_tbl)
+            if iteration <= #inner then
+                iteration = iteration + 1
+                return inner[iteration], iteration
+            else
+                next_index, inner = next(outer_tbl, a)
+                if next_index == nil then return nil end
+
+                iteration = 1
+                return real_iter(_tbl)
+            end
+        end
+        return real_iter, external_inventories
+    end
+
+    return ipairs(external_inventories[build_name])
+end
+
+
+local function template_pp0(buffer, str)
+    --table.insert(buffer,
+end
+
+function module.print_external_inv(name, index)
+    local le_next, tbl = itern_external_inv(name)
+
+    local buffer = {"\n <External Inventory> (", index, "/", #tbl_to_print, ")"}
+    if index ~= nil then
+        --template_pp0(buffer, 
+        return
+    end
+
+    for _, fat_ledger in le_next, tbl, nil do
+        --template_pp0(buffer,
+    end
+end
+
 
 function module.register_ledger(fat_ledger)
-    table.insert(external_inventories, fat_ledger)
+    local build_name = fat_ledger.parent_build.name
+    if build_name == nil then print(comms.send_unexpected()); return end
+
+    if external_inventories[build_name] == nil then
+        external_inventories[build_name] = {fat_ledger}
+        return
+    end
+    table.insert(external_inventories[build_name], fat_ledger)
 end
 
 function module.how_many_internal(lable, name)
@@ -104,7 +151,7 @@ end
 
 function module.how_many_total(lable, name)
     local quantity = module.virtual_inventory:howMany(lable, name)
-    for _, fat_ledger in ipairs(external_inventories) do
+    for _, fat_ledger in iter_external_inv(external_inventories) do
         local ledger = fat_ledger.ledger
         quantity = quantity + ledger:howMany(lable, name)
     end
@@ -116,7 +163,7 @@ local max_combined_travel = 512 + 128
 function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
     -- ordered with biggest in the pop position (#size - 1)
     local ref_quant_table = nil
-    for _, fat_inv in ipairs(external_inventories) do
+    for _, fat_inv in iter_external_inv(external_inventories) do
         local pinv = fat_inv.ledger
 
         local quantity = pinv:howMany(lable, name)
