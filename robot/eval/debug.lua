@@ -105,7 +105,12 @@ function module.debug(arguments)
                 local castrated_object = deep_copy.copy_no_functions(pp_obj)
                 comms.send_command("ppObj", "printPage", castrated_object, true)
             elseif arguments[3] == "external" then
-                inv.virtual_inventory:printExtern(arguments[4], tonumber(arguments[5]))
+                local uncompressed = arguments[4]
+                if uncompressed == "full" or uncompressed == "uncompressed" or uncompressed == "-u"  then
+                    uncompressed = true
+                else uncompressed = false end
+
+                inv.virtual_inventory:printExtern(arguments[4], tonumber(arguments[5]), uncompressed)
             end
         elseif arguments[2] == "force" and arguments[3] == "add_all" then
             inv.force_update_vinv()

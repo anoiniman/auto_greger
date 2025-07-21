@@ -116,29 +116,43 @@ local function iter_external_inv(build_name)
     return ipairs(external_inventories[build_name])
 end
 
-local function do_pp_print(fat_ledger, index, size)
-    local pp_obj = fat_ledger:getFmtObj()
+local function prepare_pp_print(uncompressed, fat_ledger, index, size, large_pp)
+    local pp_obj
+    if uncompressed then
+        pp_obj = fat_ledger.ledger:getFmtObj()
+    else
+        pp_obj = fat_ledger.ledger:getCompressedFmtObj()
+    end
+
     local title_string = {"<External Inventory> (", index, "/", size, ")"}
     pp_obj:setTitle(table.concat(title_string))
+    pp_obj:initPages()
 
-    local new_obj = deep_copy.copy(pp_obj)
-    new_obj:printPage(false)
+    if large_pp.title == nil then
+        for k, v in pairs(pp_obj) do large_pp[k] = v end
+        return
+    end
 
-    local castrated_object = deep_copy.copy_no_functions(pp_obj)
+    large_pp:addPagesToSelf(pp_obj) 
+end
+
+local function do_pp_print(large_pp)
+    large_pp:printPage(false)
+    local castrated_object = deep_copy.copy_no_functions(large_pp)
     comms.send_command("ppObj", "printPage", castrated_object, true) -- this is ok to do because they'll simple be queued
-
-    return
 end
 
 local interactive_print = true
-function module.print_external_inv(name, index)
+function module.print_external_inv(name, index, uncompressed)
     comms.cls_nself()
     local le_next, tbl, num = iter_external_inv(name)
 
     -- TODO we'll prob have to concat the internal inventories or have alterante view modes or whatever, for now just a simple print
     if name ~= nil and index ~= nil then
         local fat_ledger = tbl[index]
-        do_pp_print(fat_ledger, index, #tbl)
+        local pp_obj = {}
+        prepare_pp_print(uncompressed, fat_ledger, index, #tbl, pp_obj)
+        do_pp_print(pp_obj)
     elseif name == nil and index ~= nil then
         print(comms.robot_send("warning", "Invalid name / index combination"))
         return
@@ -150,9 +164,11 @@ function module.print_external_inv(name, index)
         for _, _ in le_next, tbl, nil do real_tbl_size = real_tbl_size + 1 end
     end
 
+    local pp_obj = {}
     for jindex, fat_ledger in le_next, tbl, num do
-        do_pp_print(fat_ledger, jindex, real_tbl_size)
+        prepare_pp_print(uncompressed, fat_ledger, jindex, #tbl, pp_obj)
     end
+    do_pp_print(pp_obj)
 end
 
 

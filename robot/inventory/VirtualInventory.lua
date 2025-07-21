@@ -22,6 +22,44 @@ Module.table_size = -1
 -- of the array will be the select
 Module.inv_table = {}
 
+function Module:getCompressedFmtObj()
+    local print_table = PPObj:new()
+    print_table:setTitle("Default VInventory cfmtObj:")
+
+    local lable_table = {}
+    local name_table = {}
+
+    for index = 1, #self.inv_table, 3 do
+        local lable = self.inv_table[index]
+        local name = self.inv_table[index + 1]
+
+        if  (lable == EMPTY_STRING and name == EMPTY_STRING)
+            or (search_table.ione(lable_table, lable)
+            and search_table.ione(name_table, name ))
+        then
+            goto continue
+        end
+
+        table.insert(lable_table, lable)
+        table.insert(name_table, name)
+
+        ::continue::
+    end
+
+    for index, lable in ipairs(lable_table) do
+        local name = name_table[index]
+        print_table:addString(lable)
+        :addString(", ")
+        :addString(name)
+        :addString(" (")
+        :addString(self:howMany(lable, name))
+        :addString(")")
+        :newLine()
+    end
+
+    print_table:build()
+    return print_table
+end
 
 function Module:getFmtObj()
     local print_table = PPObj:new()

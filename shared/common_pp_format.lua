@@ -6,7 +6,8 @@ local deep_copy = require("deep_copy")
 
 local PPObj = {
     title = nil,
-
+    page_titles = nil,
+    
     pages = nil,
     lines = nil,
     buffer = nil,
@@ -18,10 +19,9 @@ local PPObj = {
 function PPObj:new(screen_type)
     local new = deep_copy.copy(PPObj)
 
-    new.pages = {}
     new.lines = {}
     new.buffer = {}
-    self:setScreen(screen_type)
+    new:setScreen(screen_type)
 
     return new
 end
@@ -81,7 +81,7 @@ function PPObj:build()
         local str = self.lines[index]
         if str == nil then break end
 
-        index = self:splitLineIf(str)
+        index = self:splitLineIf(str, index)
         index = index + 1
     end
 
@@ -122,6 +122,29 @@ function PPObj:subDividePages(lines, tbl)
     return tbl
 end
 
+function PPObj:initPages()
+    if self.pages == nil then
+        local page_tbl = {}
+        page_tbl = self:subDividePages(self.lines, page_tbl)
+        self.pages = page_tbl
+    end
+    if self.page_titles == nil then
+        self.page_titles = {}
+        for index, _ in ipairs(self.pages) do
+            self.page_titles[index] = self.title
+        end
+    end
+end
+
+function PPObj:addPagesToSelf(other)
+    if other.pages == nil then other:initPages() end
+
+    for _, page in ipairs(other.pages) do
+        table.insert(self.pages, page)
+        table.insert(self.page_titles, other.title)
+    end
+end
+
 function PPObj:printPage(interactive_mode)
     if interactive_mode == nil or type(interactive_mode) ~= "boolean" then interactive_mode = false end
     if self.title == nil then self.title = "Default Title" end
@@ -135,20 +158,24 @@ function PPObj:printPage(interactive_mode)
     -- smart printing of pages
     if interactive_mode then
         -- we need to build a "page", basically a sub-tbl of lines
-        local page_tbl = {}
-        page_tbl = self:subDividePages(self.lines, page_tbl)
+        self:initPages()
 
         local index = 1
         while true do
-            local page = page_tbl[index]
-            print(self.title); print();
+            local title = self.page_titles[index]
+            if title == nil then title = self.title end
+
+            local page = self.pages[index]
+            print(title); print();
             for _, line in ipairs(page) do
                 print(line)
             end
 
-            local footer_left = {"Pages ", index, "/", #page_tbl }
+            local footer_left = {"Pages ", index, "/", #self.pages }
+            print()
             print(table.concat(footer_left))
 
+            os.sleep(0.1)
             local breakout = false
             while true do
                 if keyboard.isKeyDown(keyboard.keys.left) then
@@ -157,7 +184,7 @@ function PPObj:printPage(interactive_mode)
                 end
 
                 if keyboard.isKeyDown(keyboard.keys.right) then
-                    index = math.min(#page_tbl, index + 1)
+                    index = math.min(#self.pages, index + 1)
                     break
                 end
 
@@ -169,6 +196,8 @@ function PPObj:printPage(interactive_mode)
 
             if breakout then break end
         end
+        
+        return
     end
 
     -- Corblimey, just print the lines out

@@ -13,6 +13,7 @@ end
 
 function module.copy_table(old_table, iter_func) -- pair or ipair
     if old_table == nil then return nil end
+    if iter_func == nil then iter_func = pairs end
     local new_table = {}
 
     local old_meta = getmetatable(old_table)

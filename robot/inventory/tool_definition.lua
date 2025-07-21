@@ -8,7 +8,7 @@ local mct = MATERIAL_CONDITION_TABLE
 
 local tool_types = {
     "sword",
-    "pickaxe"
+    "pickaxe",
     "axe",
     "shovel",
     "hoe",
