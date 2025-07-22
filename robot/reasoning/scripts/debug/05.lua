@@ -19,7 +19,7 @@ local coke_quad_goal = Goal:new(oak_farm_goal, constraint, 40, "coke_quad_const"
 constraint = Constraint:newItemConstraint("minecraft:coal", "Charcoal", 32, 156, nil)
 local charcoal_goal = Goal:new(coke_quad_goal, constraint, 40, "charcoal_const", true)
 
-local very_simple_storage = StructureDeclaration("sp_storeroom", 0, 0, 1)
+local very_simple_storage = StructureDeclaration:new("sp_storeroom", 0, 0, 1)
 constraint = Constraint:newBuildingConstraint(very_simple_storage, nil)
 local storage_goal = Goal:new(nil, constraint, 40, "sp_storeroom_const", true)
 

@@ -249,7 +249,7 @@ function Module:getAllSlotsInternal(lable, name, check_func, up_to)
     return slot_table
 end
 
-function Module:getEmptySlot(forbidden_slots) -- including forbidden ones!
+function Module:getEmptySlot(forbidden_slots)
     for index = 1, #self.inv_table, 3 do
         local empty = self.inv_table[index] == EMPTY_STRING
         if not empty then goto continue end

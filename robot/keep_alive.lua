@@ -8,28 +8,32 @@ local robot = require("robot")
 
 local component = require("component")
 local gen = component.getPrimary("generator")
+local inv_controller = component.getPrimary("inventory_controller")
+
 
 function module.prepare_exit()
     gen.remove(gen.count())
     inv.maybe_something_added_to_inv()
 end
 
+local cur_lable, cur_name
+
 -- very temporary code
 function module.keep_alive()
     local fuel_count = gen.count()
-    if fuel_count > 60 then
+    if fuel_count > 24 then
         return
     end
 
-    local fuel_defs = inv.special_slot_find_all("fuel", -1)
-    for _, def in ipairs(fuel_defs) do
-        local slot_num = def.slot_number
-        robot.select(slot_num)
-        if robot.count() > 0 then
-            gen.insert(64 - fuel_count)
-            break
-        end
-    end
+    -- TODO (ATTENTION) In the early game we'll need to burn logs and shit, so add a flag to
+    -- switch "any:fuel" to "any:plank" (it is free to turn logs into planks)
+    local fuel_slot = inv.find_largest_slot(nil, "any:fuel")
+    local slot_info = inv_controller.getStackInInternalSlot(fuel_slot)
+    cur_lable = slot_info.label; cur_name = slot_info.name;
+
+    robot.select(fuel_slot)
+    gen.insert(64 - fuel_count)
+
     robot.select(1)
 end
 

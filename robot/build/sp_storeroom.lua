@@ -12,7 +12,8 @@ local Module = {parent = nil}
 Module.name = "sp_storeroom"
 
 Module.dictionary = {
-    ["c"] = {"Chest", "minecraft:chest"}
+    c = {"Chest", "minecraft:chest"},
+    l = {"nil", "any:log", "name"} 
 }
 
 -- (*) stand for permanent storage

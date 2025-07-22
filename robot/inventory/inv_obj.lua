@@ -14,7 +14,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 local search_table = require("search_table")
-local PPObj = require("common_pp_formate")
+local PPObj = require("common_pp_format")
 
 local item_bucket = require("inventory.item_buckets")
 --local MetaLedger = require("inventory.MetaLedger")
@@ -181,6 +181,10 @@ function module.register_ledger(fat_ledger)
         return
     end
     table.insert(external_inventories[build_name], fat_ledger)
+end
+
+function module.find_largest_slot(lable, name)
+    return module.virtual_inventory:getLargestSlot(lable, name)
 end
 
 function module.how_many_internal(lable, name)

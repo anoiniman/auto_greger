@@ -65,7 +65,9 @@ function Module:new(item_defs, parent_build, is_cache, symbol, index, storage_ty
     new.symbol = symbol
     new.special_block_index = index
 
-    inv.register_ledger(new) -- important
+    if not is_cache then
+        inv.register_ledger(new) -- important
+    end
     return new
 end
 

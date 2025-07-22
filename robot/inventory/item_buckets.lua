@@ -18,6 +18,12 @@ function module.identify(name, lable)
     if flabl ("Ingot$")             then return     "any:ingot"         end
     if flabl ("Sword")              then return     "any:equipment"     end
 
+    -- prob will catch the blocks as well
+    if flabl ("Coal")               then return     "any:fuel"          end
+    if flabl ("Coke")               then return     "any:fuel"          end
+    if flabl ("Charcoal")           then return     "any:fuel"          end
+
+
     if fname ("log")                then return     "any:log"           end
     if fname ("sapling")            then return     "any:sapling"       end
     if fname ("^any:building$")     then return     "any:building"      end

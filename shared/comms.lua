@@ -71,7 +71,7 @@ function module.controller_send(any)
     local message_table = serialize.serialize(any, false)
     tunnel.send(message_table)
     return message_table
-en
+end
 
 function module.robot_send(part1, part2) -- part1 & 2 must be strings
     if (part1 == "debug" or part1 == "eval") and DO_DEBUG_PRINT ~= nil and not DO_DEBUG_PRINT then
@@ -112,7 +112,7 @@ function module.send_command(...)
 end
 
 -- prints a buffer expanded to a full screen (because computer monitor and robot monitor have different resolutions)
-function module module.screen_print()
+function module.screen_print()
 
 end
 
