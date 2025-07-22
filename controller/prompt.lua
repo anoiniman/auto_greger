@@ -29,16 +29,6 @@ local function simple_print(msg_tbl)
         print(to_print)
 end
 
-local function print_mode()
-    local print_clock = 0
-    while not keyboard.isKeyDown(keyboard.keys.q) do
-        if computer.uptime() - print_clock > 0.2 then
-            do_recieve()
-            print_clock = computer.uptime()
-        end
-    end
-end
-
 local ppObj = require("common_pp_format")
 local valid_command_table = {
     ppObj = ppObj
@@ -85,6 +75,18 @@ local function do_recieve()
         simple_print(msg_tbl)
     end
 end
+
+
+local function print_mode()
+    local print_clock = 0
+    while not keyboard.isKeyDown(keyboard.keys.q) do
+        if computer.uptime() - print_clock > 0.2 then
+            do_recieve()
+            print_clock = computer.uptime()
+        end
+    end
+end
+
 
 local function comm_terminal()
     comms.setup_listener()
