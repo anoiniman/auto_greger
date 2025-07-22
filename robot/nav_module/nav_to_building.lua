@@ -5,7 +5,7 @@ local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
 
 function module.need_move(what_chunk, door_info)
-    local target_build = find_build(what_chunk, door_info) -- should be fine?
+    local target_build = map.find_build(what_chunk, door_info) -- should be fine?
     local cur_build = nav.get_cur_building()
     if cur_build ~= nil and target_build == cur_build then return false end
     return true

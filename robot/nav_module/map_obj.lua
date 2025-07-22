@@ -315,8 +315,8 @@ function module.gen_map_obj(offset)
     local size = default_map_size
     for x = 1, size, 1 do
         map_obj[x] = {}
+        local real_x = x - map_obj_offsets[1];
         for z = 1, size, 1 do
-            local real_x = x - map_obj_offsets[1];
             local real_z = z - map_obj_offsets[2];
             map_obj[x][z] = UnderlyingChunk:new(real_x, real_z)
         end
@@ -354,6 +354,7 @@ local function translate_chunk(chunk, a_table, build_table, chunks_proper)
         chunk.marks,
         chunk.height_override,
         chunk.roads_cleared
+        chunk.parent.name
     }
     table.insert(chunks_proper, sub_table)
 end
@@ -417,6 +418,14 @@ function module.re_instantiate(big_table)
         chunk_ref.marks = chunk_info[3]
         chunk_ref.height_override = chunk_info[4]
         chunk_ref.roads_cleared = chunk_info[5]
+
+        local area_name = chunk_info[6]
+        local area = areas_table:getArea(area_name)
+        if area == nil then
+            print(comms.robot_send("error", "failure in re-adding parent when re-instaiting chunk" .. x .. ", " .. z))
+            goto continue
+        end
+        chunk_ref.parent = area
 
         ::continue::
     end
@@ -718,7 +727,9 @@ function module.start_auto_build(ab_metainfo)
         end
 
         local height_override = data[2] -- it's ok if it's nil
-        module.chunk_set_parent(what_chunk, area, height_override) -- the important thing of this step
+        if not module.chunk_set_parent(what_chunk, area, height_override) then -- the important thing of this step
+            print(comms.robot_send("error", "There was an error executing chunk_set_parent"))
+        end
         interactive.del_element(id)
 
         what_step = 4
