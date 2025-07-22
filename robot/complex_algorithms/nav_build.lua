@@ -100,7 +100,20 @@ function module.nav_and_build(instructions, post_run)
         if not inv.place_block(place_dir, block_info, "table", place_side) then
             -- Real error handling will come some other time
             if not swing_func() then -- just break the damn block and try again
+                -- TODO in an ideal world we'll simply interrupt the task and allow manual override instead of continueing
                 print(comms.robot_send("error", "Could not break block: \"" .. place_dir .. "\"during move and build smart_cleanup"))
+
+                local something_down _ = robot.detectDown()
+                if  not instructions.foundation_fill and not instructions:includes("do_fill_foundation") 
+                    and not something_down
+                then
+                    -- remember that instructions are "short lived" and live not throught building, 
+                    -- but rather throughout each block placing
+                    print(comms.robot_send("debug", "attempting to auto_fill as a last resort"))
+                    instructions:addExtra("do_fill_foundation")
+                    return self_return
+                end
+
                 return post_run -- continue as if the block had been placed
                 --return nil
             end

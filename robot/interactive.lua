@@ -65,14 +65,14 @@ function module.print_list()
         return
     end
 
-    print(comms.robot_send("info", "--- Wait List print begin ---"))
+    local buffer = {}
+    table.insert(buffer, "--- Wait List print begin ---\n")
     for id, element in pairs(wait_list) do
-        local print_table = {"id -- [",  id,  "] -- ",  element.interactive_type,  " -- \"",  element.human_readable,  "\""}
-        local print_string = table.concat(print_table)
-        print(comms.robot_send("info", print_string))
+        local print_table = {"id -- [",  id,  "] -- ",  element.interactive_type,  " -- \"",  element.human_readable,  "\"\n"}
+        table.insert(buffer, table.concat(print_table))
     end
-    print(comms.robot_send("info", "--- Wait List print END ---"))
-    print(comms.robot_send("\0", "\0"))
+    table.insert(buffer, "--- Wait List print END ---\n")
+    print(comms.robot_send("info", table.concat(buffer)))
 end
 
 -- gonna need to programe something in prompt side for this cool thing to happen, but can also just add

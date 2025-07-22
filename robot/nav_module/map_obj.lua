@@ -747,7 +747,9 @@ function module.start_auto_build(ab_metainfo)
     elseif what_step == 5 then
         local result = module.setup_build(what_chunk, what_quad)
         if not result then
-            error(comms.robot_send("fatal", "start_auto_build, step == 5 | TODO - idem :)"))
+            print(comms.robot_send("error", "start_auto_build, step == 5 | TODO - idem :)"))
+            lock[1] = 0
+            return nil
         end
 
         what_step = 6

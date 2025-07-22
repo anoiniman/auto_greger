@@ -80,6 +80,7 @@ end
 local function print_mode()
     local print_clock = 0
     while not keyboard.isKeyDown(keyboard.keys.q) do
+        os.sleep(0.05)
         if computer.uptime() - print_clock > 0.2 then
             do_recieve()
             print_clock = computer.uptime()
@@ -120,6 +121,7 @@ local function comm_terminal()
         end
 
 
+        do_recieve()
         os.sleep(0.1)
     end
     exit_comm = false

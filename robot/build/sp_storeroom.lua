@@ -13,7 +13,7 @@ Module.name = "sp_storeroom"
 
 Module.dictionary = {
     c = {"Chest", "minecraft:chest"},
-    l = {"nil", "any:log", "name"} 
+    l = {"nil", "any:log"} 
 }
 
 -- (*) stand for permanent storage

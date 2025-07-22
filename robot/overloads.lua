@@ -1,6 +1,9 @@
 -- luacheck: globals OLD_PRINT DO_DEBUG_PRINT EMPTY_TABLE DO_LOAD
 EMPTY_TABLE = {}
 
+-- TODO adding a save file to save this sort of global variables or a way to autocheck them idk
+DO_AUTO_FILL = false
+
 DO_DEBUG_PRINT = false
 DO_LOAD = true
 
