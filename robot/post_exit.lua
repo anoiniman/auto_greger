@@ -19,7 +19,7 @@ local module = {}
 -- This will be where we do the saving the state things
 function module.exit()
     keep_alive.prepare_exit()
-    module.save_builds()
+    module.save_state()
 end
 
 -- returns table of different indexes (useless right now)

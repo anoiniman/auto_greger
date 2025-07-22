@@ -28,6 +28,8 @@ function module.keep_alive()
     -- TODO (ATTENTION) In the early game we'll need to burn logs and shit, so add a flag to
     -- switch "any:fuel" to "any:plank" (it is free to turn logs into planks)
     local fuel_slot = inv.find_largest_slot(nil, "any:fuel")
+    if fuel_slot == nil then return end
+
     local slot_info = inv_controller.getStackInInternalSlot(fuel_slot)
     cur_lable = slot_info.label; cur_name = slot_info.name;
 

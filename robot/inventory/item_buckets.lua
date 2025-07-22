@@ -22,6 +22,7 @@ function module.identify(name, lable)
     if flabl ("Coal")               then return     "any:fuel"          end
     if flabl ("Coke")               then return     "any:fuel"          end
     if flabl ("Charcoal")           then return     "any:fuel"          end
+    if fname ("^any:fuel$")         then return     "any:fuel"          end
 
 
     if fname ("log")                then return     "any:log"           end
