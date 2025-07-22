@@ -353,9 +353,12 @@ local function translate_chunk(chunk, a_table, build_table, chunks_proper)
         chunk.z,
         chunk.marks,
         chunk.height_override,
-        chunk.roads_cleared
-        chunk.parent.name
+        chunk.roads_cleared,
     }
+    if chunk.parent_area ~= nil then
+        sub_table[6] = chunk.parent_area.name
+    end
+
     table.insert(chunks_proper, sub_table)
 end
 
