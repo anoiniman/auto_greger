@@ -62,14 +62,9 @@ function module.setup_navigate_chunk(to_what_chunk, nav_obj)
     return chunk_nearest_side, rel_nearest_side
 end
 
--- checks if we're in road and in the target_chunk()
 function module.quick_check(nav_obj, target_chunk)
     local cur_chunk = nav_obj.chunk
-    if cur_chunk[1] ~= target_chunk[1] or cur_chunk[2] ~= target_chunk[2] then return false end
-
-    local rel = nav_obj.rel
-
-    return f_cur_in_road(nav_obj)
+    return cur_chunk[1] == target_chunk[1] or cur_chunk[2] == target_chunk[2]
 end
 
 
@@ -94,7 +89,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
 
         update_chunk_nav(nav_obj)
         local cur_rel = nav_obj.rel
-        return cur_rel[1] == 0 or cur_rel[1] == 15 or cur_rel[2] == 0 or cur_rel[2] == 15
+        return f_cur_in_road()
     end
 
     -- The move to road part
@@ -141,7 +136,7 @@ function module.navigate_chunk(what_kind, nav_obj, cur_building)
     -- "move to the road"
     if not cur_in_road then
         cur_in_road = move_to_road(what_kind, nav_obj, cur_building)
-        return false
+        if not cur_in_road then return false end
     end
 
     -- after being in road we start moving towards the target chunk
