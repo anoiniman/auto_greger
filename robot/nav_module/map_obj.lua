@@ -611,7 +611,7 @@ function module.find_quad(what_chunk, door_info)
 end
 
 function module.find_build(what_chunk, door_info)
-    local cur_quad = module.get_find_quad(what_chunk, door_info)
+    local cur_quad = module.find_quad(what_chunk, door_info)
     if cur_quad ~= nil then
         return cur_quad:getBuild()
     end

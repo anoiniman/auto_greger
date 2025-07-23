@@ -20,16 +20,16 @@ local function update_chunk_nav(nav_obj)
     local chunk = nav_obj["chunk"]
 
     if rel[1] > 15 then
-        rel[1] = rel[1] - 16
+        rel[1] = 0
         chunk[1] = chunk[1] + 1
     elseif rel[1] < 0 then
-        rel[1] = rel[1] + 16
+        rel[1] = 15
         chunk[1] = chunk[1] - 1
     elseif rel[2] > 15 then
-        rel[2] = rel[2] - 16
+        rel[2] = 0
         chunk[2] = chunk[2] + 1
     elseif rel[2] < 0 then
-        rel[2] = rel[2] + 16
+        rel[2] = 15
         chunk[2] = chunk[2] - 1
     end
 
@@ -63,12 +63,8 @@ function module.quick_check(nav_obj, target_chunk)
     if cur_chunk[1] ~= target_chunk[1] or cur_chunk[2] ~= target_chunk[2] then return false end
 
     local rel = nav_obj.rel
-    local _nearest_side = {-1, -1}
 
-    _nearest_side[1] = rel[1] - half_chunk_square
-    _nearest_side[2] = rel[2] - half_chunk_square
-    local _cur_in_road = (math.abs(_nearest_side[1]) == 8) or (math.abs(_nearest_side[2]) == 8)
-    return _cur_in_road
+    return rel[1] == 0 or rel[1] == 15 or rel[2] == 0 or rel[2] == 15
 end
 
 
@@ -95,10 +91,13 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         local cur_rel = nav_obj.rel
         return cur_rel[1] == 0 or cur_rel[1] == 15 or cur_rel[2] == 0 or cur_rel[2] == 15
     end
+
+    -- The move to road part
     if cur_building == nil then
         return nearest_side()
     end
 
+    -- The move out of building part
     local doors = cur_building:getDoors()
     local cur_rel = nav_obj.rel
 

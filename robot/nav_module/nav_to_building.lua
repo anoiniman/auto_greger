@@ -23,11 +23,9 @@ function module.do_move(what_chunk, door_info)
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)
         end
-        nav.navigate_chunk("surface") -- for now surface move only
-
+        chunk_moved = nav.navigate_chunk("surface") -- for now surface move only
         return false
     end
-    chunk_moved = true
 
     -------- SANITY CHECK ---------
     if nav.is_setup_navigate_chunk() then
