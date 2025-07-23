@@ -173,6 +173,10 @@ function module.navigate_chunk(what_kind)
     return chunk_move.navigate_chunk(what_kind, nav_obj)
 end
 
+function module.force_reset_navigate_chunk()
+    chunk_move.reset()
+end
+
 function module.debug_move(dir, distance, forget)
     return interface.debug_move(dir, distance, forget, nav_obj)
 end

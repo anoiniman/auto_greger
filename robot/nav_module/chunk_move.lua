@@ -158,12 +158,16 @@ function module.navigate_chunk(what_kind, nav_obj, cur_building)
         end
 
         update_chunk_nav(nav_obj)
-        return false
+        if (chunk_nearest_side[1] ~= 0) or (chunk_nearest_side[2] ~= 0) then return false end
     end
 
+    module.reset()
+    return true
+end
+
+function module.reset()
     print(comms.robot_send("info", "We've arrived at the target chunk"))
     is_setup = false
-    return true
 end
 
 function module.is_setup()

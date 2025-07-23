@@ -8,11 +8,11 @@ function module.need_move(what_chunk, door_info)
     local target_build = map.find_build(what_chunk, door_info) -- should be fine?
     local cur_build = nav.get_cur_building()
     if cur_build ~= nil and target_build == cur_build then 
-        print(comms.robot_send("debug", "we're not in building"))
+        print(comms.robot_send("debug", "we're in building"))
         return false 
     end
 
-    print(comms.robot_send("debug", "we're in building"))
+    print(comms.robot_send("debug", "we're not in building"))
     return true
 end
 
@@ -23,7 +23,7 @@ local chunk_moved = false
 -- false == continue, true == over
 function module.do_move(what_chunk, door_info)
     --------- CHUNK MOVE -----------
-    if not chunk_moved or not nav.is_in_chunk(what_chunk) then
+    if not chunk_moved and not nav.is_in_chunk(what_chunk) then
         -- print("debug", "move_chunk")
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)
@@ -34,6 +34,7 @@ function module.do_move(what_chunk, door_info)
 
     -------- SANITY CHECK ---------
     if nav.is_setup_navigate_chunk() then
+        -- nav.force_reset_navigate_chunk()
         error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?"))
     end
     -------- DO MOVE DOOR ----------
