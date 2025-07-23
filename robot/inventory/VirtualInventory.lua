@@ -138,13 +138,13 @@ end
 local function calc_add_to_stack(current, to_add)
     local naive_add = current + to_add
     local div = math.floor(naive_add / 64)
-    if div == 0 then return to_add end -- we can add everything in, because the result is smaller than 1 stack
+    if math.floor(div) == 0 then return to_add end -- we can add everything in, because the result is smaller than 1 stack
 
     local modulo = naive_add % 64
-    if modulo == 0 then return to_add end -- this is just the right ammount to make 1 stack, add everything
+    if math_floor(modulo) == 0 then return to_add end -- this is just the right ammount to make 1 stack, add everything
 
     -- then we should add (64 - modulo) in order to make a full stack
-    return 64 - modulo
+    return math.max(64 - modulo - 1, 0)
 end
 
 function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
@@ -187,7 +187,7 @@ function Module:addOrCreate(lable, name, to_be_added, forbidden_slots)
 
         local cur_add = calc_add_to_stack(current, to_be_added)
         self.inv_table[index + 2] = current + cur_add
-        if self.inv_table[index + 2] > 64 then error(comms.robot_send("fatal", "assert failed")) end
+        if self.inv_table[index + 2] > 64 then error(comms.robot_send("fatal", "assert failed: " .. self.inv_table[index + 2])) end
 
         to_be_added = to_be_added - cur_add
         if to_be_added == 0 then break end
