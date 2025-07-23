@@ -17,7 +17,7 @@ function module.iter(base_table, goal, segments)
 
         local cur_segment = segments[iteration]
         if cur_segment == nil then
-            print(comms.robot_send("debug", "iter_func -- segment at iter: " .. tostring(iteration) .. " -- is null"))
+            -- print(comms.robot_send("debug", "iter_func -- segment at iter: " .. tostring(iteration) .. " -- is null"))
             return iteration, cur_base
         end
 
@@ -27,7 +27,7 @@ function module.iter(base_table, goal, segments)
             local term = replaces[1]
             for _, replace_index in pairs(replaces[2]) do
                 square_segment_to_return[replace_index] = term
-                print(comms.robot_send("debug", "iter_func -> \n" .. serialize.serialize(square_segment_to_return, true)))
+                -- print(comms.robot_send("debug", "iter_func -> \n" .. serialize.serialize(square_segment_to_return, true)))
             end
         end
         return iteration, square_segment_to_return

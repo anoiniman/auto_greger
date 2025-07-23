@@ -41,6 +41,7 @@ local function update_chunk_nav(nav_obj)
 end
 
 local function f_cur_in_road(nav_obj)
+    local rel = nav_obj.rel
     return rel[1] == 0 or rel[1] == 15 or rel[2] == 0 or rel[2] == 15
 end
 

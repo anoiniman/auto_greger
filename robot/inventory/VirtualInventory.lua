@@ -91,6 +91,11 @@ function Module:getFmtObj()
     return print_table
 end
 
+function Module:printObj()
+    local print_table = self:getFmtObj()
+    print_table:printPage(false)
+end
+
 function Module:getData()
     return self.inv_table
 end
