@@ -40,13 +40,17 @@ local function update_chunk_nav(nav_obj)
     rel_nearest_side[2] = rel[2] - half_chunk_square
 end
 
+local function f_cur_in_road(nav_obj)
+    return rel[1] == 0 or rel[1] == 15 or rel[2] == 0 or rel[2] == 15
+end
+
 function module.setup_navigate_chunk(to_what_chunk, nav_obj)
     if is_setup then
         print(comms.robot_send("warning", "Attempted to setup chunk move when already setup"))
         return
     end
 
-    cur_in_road = false
+    cur_in_road = f_cur_in_road(nav_obj)
     is_setup = true
 
     -- copy provided table (assuming to_what_chunk = {int, int}) (num, num)
@@ -64,7 +68,7 @@ function module.quick_check(nav_obj, target_chunk)
 
     local rel = nav_obj.rel
 
-    return rel[1] == 0 or rel[1] == 15 or rel[2] == 0 or rel[2] == 15
+    return f_cur_in_road(nav_obj)
 end
 
 
@@ -110,7 +114,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
             dist = inner_dist
         end
     end
-    if what_door == nil then nearest_side() end
+    if what_door == nil then return nearest_side() end
 
     local cur_height = nav_obj.height
     local goal_rel = {what_door.x, what_door.z, cur_height}

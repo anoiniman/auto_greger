@@ -103,7 +103,7 @@ function module.debug(arguments)
                 new_obj:printPage(false)
 
                 local castrated_object = deep_copy.copy_no_functions(pp_obj)
-                comms.send_command("ppObj", "printPage", castrated_object, true)
+                comms.send_command("execute", "ppObj", "printPage", castrated_object, false)
             elseif arguments[3] == "external" then
                 local uncompressed = arguments[4]
                 if uncompressed == "full" or uncompressed == "uncompressed" or uncompressed == "-u"  then

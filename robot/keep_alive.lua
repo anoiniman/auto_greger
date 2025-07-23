@@ -30,7 +30,10 @@ function module.keep_alive()
     local fuel_slot = inv.find_largest_slot(nil, "any:fuel")
     if fuel_slot == nil then return end
 
+    -- TODO report these little errors to a log file or smthning
     local slot_info = inv_controller.getStackInInternalSlot(fuel_slot)
+    if slot_info == nil then return end
+
     cur_lable = slot_info.label; cur_name = slot_info.name;
 
     robot.select(fuel_slot)

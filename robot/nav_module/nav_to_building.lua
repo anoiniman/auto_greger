@@ -7,7 +7,12 @@ local map = require("nav_module.map_obj")
 function module.need_move(what_chunk, door_info)
     local target_build = map.find_build(what_chunk, door_info) -- should be fine?
     local cur_build = nav.get_cur_building()
-    if cur_build ~= nil and target_build == cur_build then return false end
+    if cur_build ~= nil and target_build == cur_build then 
+        print(comms.robot_send("debug", "we're not in building"))
+        return false 
+    end
+
+    print(comms.robot_send("debug", "we're in building"))
     return true
 end
 
@@ -18,7 +23,7 @@ local chunk_moved = false
 -- false == continue, true == over
 function module.do_move(what_chunk, door_info)
     --------- CHUNK MOVE -----------
-    if not chunk_moved and not nav.is_in_chunk(what_chunk) then
+    if not chunk_moved or not nav.is_in_chunk(what_chunk) then
         -- print("debug", "move_chunk")
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)
@@ -47,7 +52,7 @@ function module.do_move(what_chunk, door_info)
         else error(comms.robot_send("fatal", "nav_to_build: unexpected2!")) end
     end
 
-    -- print("debug", "done_move")
+    print("debug", "nav_to_build done")
     chunk_moved = false
     nav.set_cur_building(map.find_build(what_chunk, door_info)) -- should be fine?
     return true
