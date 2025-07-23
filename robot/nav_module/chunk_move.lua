@@ -64,7 +64,7 @@ end
 
 function module.quick_check(nav_obj, target_chunk)
     local cur_chunk = nav_obj.chunk
-    return cur_chunk[1] == target_chunk[1] or cur_chunk[2] == target_chunk[2]
+    return cur_chunk[1] == target_chunk[1] and cur_chunk[2] == target_chunk[2]
 end
 
 
