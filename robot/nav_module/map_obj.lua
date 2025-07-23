@@ -337,8 +337,8 @@ local function translate_chunk(chunk, a_table, build_table, chunks_proper)
             local sub_table = {
                 chunk.parent_area.name,
                 quad:getName(),
-                chunk.x,
-                chunk.z,
+                math.floor(chunk.x),
+                math.floor(chunk.z),
                 quad:getNum()
             }
 
@@ -349,8 +349,8 @@ local function translate_chunk(chunk, a_table, build_table, chunks_proper)
 
     ----- CHUNKS PROPER ------
     local sub_table = {
-        chunk.x,
-        chunk.z,
+        math.floor(chunk.x),
+        math.floor(chunk.z),
         chunk.marks,
         chunk.height_override,
         chunk.roads_cleared,
@@ -409,8 +409,8 @@ function module.re_instantiate(big_table)
     -- Then we reinstate the basic chunk_info
     -- chunk_proper_sub_table = {x, z, {[marks]}, height_override, roads_cleared}
     for _, chunk_info in ipairs(chunks_proper) do
-        local x = chunk_info[1]
-        local z = chunk_info[2]
+        local x = math.floor(chunk_info[1])
+        local z = math.floor(chunk_info[2])
         local chunk_ref = module.chunk_exists({x, z})
         if chunk_ref == nil then
             print(comms.robot_send("error", "failed to re-instantiate chunk: " .. x .. ", " .. z))
@@ -418,9 +418,9 @@ function module.re_instantiate(big_table)
         end
 
         -- this is ok, because de-serialized data is dumped, so ownership is transfered
-        chunk_ref.marks = chunk_info[3]
-        chunk_ref.height_override = chunk_info[4]
-        chunk_ref.roads_cleared = chunk_info[5]
+        chunk_ref.chunk.marks = chunk_info[3]
+        chunk_ref.chunk.height_override = chunk_info[4]
+        chunk_ref.chunk.roads_cleared = chunk_info[5]
 
         local area_name = chunk_info[6]
         local area = areas_table:getArea(area_name)
@@ -428,7 +428,7 @@ function module.re_instantiate(big_table)
             print(comms.robot_send("error", "failure in re-adding parent when re-instaiting chunk" .. x .. ", " .. z))
             goto continue
         end
-        chunk_ref.parent = area
+        chunk_ref.chunk.parent_area = area
 
         ::continue::
     end
