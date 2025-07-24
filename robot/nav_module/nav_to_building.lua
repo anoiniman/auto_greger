@@ -53,7 +53,7 @@ function module.do_move(what_chunk, door_info)
         else error(comms.robot_send("fatal", "nav_to_build: unexpected2!")) end
     end
 
-    print("debug", "nav_to_build done")
+    -- print(comms.robot_send("debug", "nav_to_build done"))
     chunk_moved = false
     nav.set_cur_building(map.find_build(what_chunk, door_info)) -- should be fine?
     return true

@@ -598,12 +598,17 @@ function module.find_quad(what_chunk, door_info)
         if not quad:isBuilt() then goto continue end
 
         local doors = quad:getDoors()
-        for _, door in ipairs(doors) do
+        if doors == door_info then -- checks if references match
+            cur_quad = quad
+            break
+        end
+
+        --[[for _, door in ipairs(doors) do
             if door == door_info then -- checks if references match
                 cur_quad = quad
                 break
             end
-        end
+        end --]]
 
         ::continue::
     end
