@@ -595,8 +595,7 @@ function module.find_quad(what_chunk, door_info)
     local quads = module.get_chunk(what_chunk).chunk.meta_quads
     local cur_quad = nil
     for _, quad in ipairs(quads) do
-        if not quad:isBuilt() then goto continue end
-
+        -- if not quad:isBuilt() then goto continue end
         local doors = quad:getDoors()
         if doors == door_info then -- checks if references match
             cur_quad = quad

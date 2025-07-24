@@ -1,5 +1,7 @@
 local module = {}
 
+local robot = require("robot")
+
 -- local imports
 local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
