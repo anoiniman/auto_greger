@@ -16,12 +16,10 @@ function module.setup(t_height)
     target_height = t_height
 end
 
+-- false for continue, true to go next
 local function down_stroke()
     local something_below, _ = robot.detectDown()
-    if something_below then
-        going_down = false
-        return false
-    end
+    if something_below then return true end
 
     nav.debug_move("down", 1)
     return false
@@ -45,12 +43,8 @@ function module.fill()
 
     if going_down then
         local result = down_stroke()
-        if result then
-            target_height = -1
-            going_down = true
-            is_setup = false
-        end
-        return result
+        if result then going_down = false end
+        return false
     end
 
     local result = up_stroke()

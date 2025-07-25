@@ -23,7 +23,10 @@ local ABMetaInfo = {
     prio = nil,
 
     door_move_done = false,
-    bridge_mode = false
+    bridge_mode = false,
+
+    --foundation_filled = false,
+    do_foundation_fill = false
 }
 
 function ABMetaInfo:new(
