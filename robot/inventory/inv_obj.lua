@@ -510,8 +510,8 @@ function module.place_block(dir, block_identifier, lable_type, side)
     -- if side is nil it doesn't matter
     if side ~= nil then side = sides_api[side] end
 
-    local b_lable
-    local b_name
+    local b_lable = nil
+    local b_name = nil
     if type(block_identifier) == "table" then
         b_lable = block_identifier.lable
         b_name = block_identifier.name

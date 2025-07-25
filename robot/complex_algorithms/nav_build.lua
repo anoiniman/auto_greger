@@ -53,7 +53,7 @@ function module.nav_and_build(instructions, post_run)
     end
 
     -------- DO MOVE REL -----------
-    if not rel.is_setup() then
+    if not ab_meta_info.rel_moved and not rel.is_setup() then
         -- a little hack to optimize building, basically, we are pre-moving up, rather than going up
         -- and down to place blocks, theoretically saving a lot of time and energy
         if not instructions:includes("top_to_bottom") then
@@ -73,6 +73,8 @@ function module.nav_and_build(instructions, post_run)
     -----------------------------------------
 
     if result == -1 then -- movement completed (place block, and go back to build_function)
+        ab_meta_info.rel_moved = true
+
         local new_orient = instructions:getArg("orient")
         if new_orient ~= nil then
             nav.change_orientation(new_orient)
@@ -105,11 +107,11 @@ function module.nav_and_build(instructions, post_run)
                 -- TODO in an ideal world we'll simply interrupt the task and allow manual override instead of continueing
                 print(comms.robot_send("error", "Could not break block: \"" .. place_dir .. "\"during move and build smart_cleanup"))
 
-                local something_down _ = robot.detectDown()
-                if  not ab_meta_info.foundation_filled and not ab_meta_info.do_foundation_fill 
+                local something_down, _ = robot.detectDown()
+                if  not ab_meta_info.foundation_filled and not ab_meta_info.do_foundation_fill
                     and not something_down
                 then
-                    -- remember that instructions are "short lived" and live not throught building, 
+                    -- remember that instructions are "short lived" and live not throught building,
                     -- but rather throughout each block placing
                     print(comms.robot_send("debug", "attempting to auto_fill as a last resort"))
                     ab_meta_info.do_foundation_fill = true
@@ -122,6 +124,7 @@ function module.nav_and_build(instructions, post_run)
             return self_return
         end -- after this SUCCESS
         ab_meta_info.foundation_filled = false
+        ab_meta_info.rel_moved = false
 
         return post_run
     elseif result == 1 then -- means error
