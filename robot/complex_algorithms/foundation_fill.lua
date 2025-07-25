@@ -30,7 +30,7 @@ local function up_stroke()
     if cur_height >= target_height + 1 then return true end
 
     nav.debug_move("up", 1)
-    inv.place_block("down", "any:building", "name", nil) -- if it fails, just keep climbing until le target height
+    inv.place_block("down", {"any:building", "any:grass"}, "name_table", nil) -- if it fails, just keep climbing until le target height
     return false
 end
 
