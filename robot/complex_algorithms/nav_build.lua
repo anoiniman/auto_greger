@@ -97,7 +97,7 @@ function module.nav_and_build(instructions, post_run)
 
         -------- Fill Foundations ----------
         if not ab_meta_info.foundation_filled and ab_meta_info.do_foundation_fill then
-            if not foundation_fill.is_setup then foundation_fill.setup(rel_coords[3]) end
+            if not foundation_fill.is_setup() then foundation_fill.setup(rel_coords[3]) end
             local result = foundation_fill.fill()
             ab_meta_info.foundation_filled = result -- works because result true == done
 

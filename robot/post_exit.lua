@@ -41,10 +41,10 @@ local function compare_tables(old, new)
     return diff
 end
 
-local function save_thing(path, obj)
+local function save_thing(path, obj, extra)
     if filesystem.exists(path) then filesystem.remove(path) end
     local file = io.open(path, "w")
-    local new = obj.get_data()
+    local new = obj.get_data(extra)
     -- hacking because this shit's stupid, hope this doesn't cuse RAM issues in the future
     new = deep_copy.copy_no_functions(new)
 
@@ -60,13 +60,13 @@ local nav_path = save_home .. "/nav.save"
 local reas_path = save_home .. "/reas.save"
 
 
-function module.save_state(extra)
+function module.save_state(options)
     if not filesystem.isDirectory(save_home) then
         filesystem.makeDirectory(save_home)
     end
     save_thing(inv_path, inv)
     save_thing(map_path, map)
-    save_thing(nav_path, nav, map, extra)
+    save_thing(nav_path, nav, map)
     save_thing(reas_path, reas)
 end
 

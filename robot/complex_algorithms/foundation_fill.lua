@@ -16,6 +16,10 @@ function module.setup(t_height)
     target_height = t_height
 end
 
+function module.is_setup()
+    return is_setup
+end
+
 -- false for continue, true to go next
 local function down_stroke()
     local something_below, _ = robot.detectDown()
