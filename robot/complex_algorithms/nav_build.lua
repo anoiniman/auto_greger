@@ -69,7 +69,12 @@ function module.nav_and_build(instructions, post_run)
         extra_sauce = {"auto_bridge"}
     end
 
-    local result, err = nav.navigate_rel(extra_sauce)
+    local result, err
+    if not ab_meta_info.rel_moved then
+        result, err = nav.navigate_rel(extra_sauce)
+    else
+        result = -1
+    end
     -----------------------------------------
 
     if result == -1 then -- movement completed (place block, and go back to build_function)
