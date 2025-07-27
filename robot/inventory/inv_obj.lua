@@ -48,9 +48,11 @@ local external_inventories = {}
 function module.get_data()
     local virtual_inventory = module.virtual_inventory:getData()
     local external_table = {}
-    for _, vinv_external in pairs(external_inventories) do
-        local vinv = vinv_external:getData()
-        table.insert(external_table, vinv)
+    for _name, inner_table in pairs(external_inventories) do
+        for _, fat_ledger in ipairs(inner_table) do
+            local vinv = fat_ledger:getData()
+            table.insert(external_table, vinv)
+        end
     end
 
     -- local inv_size = serialize.serialize(inventory_size, false)
