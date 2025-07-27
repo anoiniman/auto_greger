@@ -101,6 +101,7 @@ function module.nav_and_build(instructions, post_run)
             if not foundation_fill.is_setup() then foundation_fill.setup(unmodified_height_target) end
             local result = foundation_fill.fill()
             ab_meta_info.foundation_filled = result -- works because result true == done
+            if result then ab_meta_info.rel_moved = false end
 
             return self_return
         end
