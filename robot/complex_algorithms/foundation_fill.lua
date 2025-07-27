@@ -31,7 +31,7 @@ end
 
 local function up_stroke()
     local cur_height = nav.get_height()
-    if cur_height >= target_height + 1 then return true end
+    if cur_height >= target_height then return true end
 
     nav.debug_move("up", 1)
     inv.place_block("down", {"any:building", "any:grass"}, "name_table", nil) -- if it fails, just keep climbing until le target height
@@ -50,7 +50,7 @@ function module.fill()
         if result then going_down = false end
 
         local cur_height = nav.get_height()
-        if not going_down and cur_height >= target_height + 1 then
+        if not going_down and cur_height >= target_height then
             print(comms.robot_send("warning", "erratic movement pattern discovered in foundation_fill"))
         end
         return false
