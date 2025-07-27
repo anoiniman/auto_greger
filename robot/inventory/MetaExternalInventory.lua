@@ -187,7 +187,7 @@ end
 
 
 function Module:newLongTermStorage(item_defs, parent_build, symbol, index, storage_type)
-    local new = self:new(item_defs, parent_build, symbol, index, storage_type)
+    local new = self:new(item_defs, parent_build, false, symbol, index, storage_type)
     new.storage = true
     new.long_term_storage = true
     return new
@@ -201,13 +201,13 @@ function Module:newSelfCache()
 end
 
 function Module:newStorage(item_defs, parent_build, symbol, index, storage_type)
-    local new = self:new(item_defs, parent_build, symbol, index, storage_type)
+    local new = self:new(item_defs, parent_build, false, symbol, index, storage_type)
     new.storage = true
     return new
 end
 
 function Module:newMachine(item_defs, parent_build, symbol, index, storage_type)
-    local new = self:new(item_defs, parent_build, symbol, index, storage_type)
+    local new = self:new(item_defs, parent_build, false, symbol, index, storage_type)
     new.storage = false
     return new
 end
