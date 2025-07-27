@@ -52,6 +52,7 @@ function module.nav_and_build(instructions, post_run)
         return self_return
     end
 
+    local unmodified_height_target = rel_coords[3]
     -------- DO MOVE REL -----------
     if not ab_meta_info.rel_moved and not rel.is_setup() then
         -- a little hack to optimize building, basically, we are pre-moving up, rather than going up
@@ -97,7 +98,7 @@ function module.nav_and_build(instructions, post_run)
 
         -------- Fill Foundations ----------
         if not ab_meta_info.foundation_filled and ab_meta_info.do_foundation_fill then
-            if not foundation_fill.is_setup() then foundation_fill.setup(rel_coords[3]) end
+            if not foundation_fill.is_setup() then foundation_fill.setup(unmodified_height_target) end
             local result = foundation_fill.fill()
             ab_meta_info.foundation_filled = result -- works because result true == done
 

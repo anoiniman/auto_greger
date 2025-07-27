@@ -32,7 +32,6 @@ local inventory_size = 32
 local used_up_capacity = 0
 
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
-local slot_managed = {}
 
 local crafting_table_clear = true
 local use_self_craft = true
@@ -41,7 +40,7 @@ local use_self_craft = true
 -- rather than having to create a sort of universal ledger
 module.virtual_inventory = VirtualInventory:new(inventory_size)
 module.virtual_inventory.equip_tbl = {}
-module.virtual_inventory:reportEquipedBreak()
+module.virtual_inventory:reportEquipedBreak() -- smart?
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_inventories = {}
@@ -60,8 +59,7 @@ function module.get_data()
         module.virtual_inventory.equip_tbl,
         external_table,
 
-        used_up_capacity,
-        slot_managed, -- 4
+        used_up_capacity, -- 4
 
         crafting_table_clear,
         use_self_craft, -- 6
@@ -72,7 +70,9 @@ end
 local MetaExternalInventory = nil
 function module.re_instantiate(big_table)
     module.virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
-    module.equip_tbl = big_table[2] -- it's ok to do this directly since only primitives are "in there"
+    if big_table[2] ~= nil then
+        module.equip_tbl = big_table[2] -- it's ok to do this directly since only primitives are "in there"
+    end
 
     local external_table = {}
     for _, entry in ipairs(big_table[3]) do -- entry is fat ledger, remember
@@ -85,10 +85,9 @@ function module.re_instantiate(big_table)
     external_inventories = external_table
 
     used_up_capacity = big_table[4]
-    slot_managed = big_table[5]
 
-    crafting_table_clear = big_table[6]
-    use_self_craft = big_table[7]
+    crafting_table_clear = big_table[5]
+    use_self_craft = big_table[6]
 end
 
 --->>-- Check on the ledgers --<<-----{{{
