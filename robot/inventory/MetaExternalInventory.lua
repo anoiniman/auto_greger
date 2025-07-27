@@ -61,7 +61,7 @@ function Module:new(item_defs, parent_build, is_cache, symbol, index, storage_ty
     local storage_size = get_storage_size(storage_type)
     new.ledger = VirtualInventory:new(storage_size)     -- for now we'll do everything as a vinv to make things
                                                         -- easier for us. If we start running out of ram then woops
-    new.parent_build = parent
+    new.parent_build = parent_build
     new.symbol = symbol
     new.special_block_index = index
 
@@ -74,12 +74,11 @@ end
 function Module:getData()
     local save_ledger = self.ledger:getData()
     local parent_chunk = "nil"
-    local door_info = "nil"
     local what_quad = "nil"
 
     if self.parent_build ~= nil then
         parent_chunk = self.parent_build.what_chunk
-        door_info = self.parent_build.doors
+        local door_info = self.parent_build.doors
         what_quad = map.find_quad(parent_chunk, door_info)
     end
 
@@ -138,11 +137,11 @@ function Module:reInstantiate(big_table)
 end
 
 function Module:getDistance()
-    return self.parent:getDistToSpecial(self.symbol, self.special_block_index)
+    return self.parent_build:getDistToSpecial(self.symbol, self.special_block_index)
 end
 
 function Module:getCoords()
-    return self.parent:getSpecialCoords(self.symbol, self.special_block_index)
+    return self.parent_build:getSpecialCoords(self.symbol, self.special_block_index)
 end
 
 
