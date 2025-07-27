@@ -68,10 +68,13 @@ function module.get_data()
 end
 
 local MetaExternalInventory = nil
-function module.re_instantiate(big_table)
+function module.re_instantiate(big_table) -- WARNING: reInstantiate will DELETE equip_tbl, you need to reinstantiate equiptbl in separate for now
     module.virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
     if big_table[2] ~= nil then
-        module.equip_tbl = big_table[2] -- it's ok to do this directly since only primitives are "in there"
+        module.virtual_inventory.equip_tbl = big_table[2] -- it's ok to do this directly since only primitives are "in there"
+    else
+        module.virtual_inventory.equip_tbl = {}
+        module.virtual_inventory:reportEquipedBreak() -- smart?
     end
 
     local external_table = {}
@@ -553,7 +556,7 @@ function module.place_block(dir, block_identifier, lable_type, side)
 
     local slot = module.virtual_inventory:getSmallestSlot(b_lable, b_name)
     if slot == nil then
-        print(comms.robot_send("warning", "couldn't find id: \"" .. block_identifier .. "\" lable -- " .. lable_type))
+        print(comms.robot_send("debug", "couldn't find id: \"" .. block_identifier .. "\" lable -- " .. lable_type))
         return false
     elseif slot < -1 then
         return false
