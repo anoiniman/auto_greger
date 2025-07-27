@@ -48,17 +48,19 @@ local function do_recieve()
         local f_table = valid_command_table[table_name]
         if f_table == nil then
             simple_print({"internal_error", table.concat({"table (name): ", table_name, " -- the table name is invalid"})})
+            return
         end
 
         local func_name = table.remove(copy, 1)
         local func = f_table[func_name]
         if func == nil then
             simple_print({"internal_error", table.concat({"command (name): ", func_name, " -- the func name is invalid"})})
+            return
         end
 
         local serial_obj = copy[1]
         if type(serial_obj) == "table" then -- we assume that a table will be a deconstituted class-object
-            local reconstituted_obj = table_name:new()
+            local reconstituted_obj = f_table:new()
             for key, value in pairs(serial_obj) do
                 reconstituted_obj[key] = serial_obj[value]
             end

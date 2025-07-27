@@ -145,6 +145,19 @@ function Module:getCoords()
     return self.parent:getSpecialCoords(self.symbol, self.special_block_index)
 end
 
+
+function Module:getQuad()
+    local chunk = self.parent_build.what_chunk
+    local doors = self.parent_build.doors
+    local quad_num = map.find_quad(chunk, doors)
+    if quad_num == nil then
+        print(comms.robot_send("warning", "MetaExternalInventory, was unable to getQuad?!"))
+        quad_num = -1
+    end
+
+    return quad_num
+end
+
 function Module:getChunk()
     return deep_copy.copy(self.parent_build.what_chunk)
 end

@@ -32,19 +32,34 @@ local nav_obj = {
     orientation = "north"
 }
 
--- TODO save and load functions for this module here (and remember for reasoning as well!
+function module.print_nav_obj()
+    local print_buffer = {"\n"}
+    for k, v in pairs(nav_obj) do
+        if type(v) == "table" then
+            local str = string.format("%s = (%s, %s)\n", tostring(k), tostring(v[1]), tostring(v[2]))
+            table.insert(print_buffer, str)
+        elseif type(v) ~= "number" and type(v) ~= "string" then goto continue end
+
+        local str = string.format("%s = (%s)\n", tostring(k), tostring(v))
+        table.insert(print_buffer, str)
+        ::continue::
+    end
+
+    local final_str = table.concat(print_buffer)
+    print(comms.robot_send("info", final_str))
+end
+
 -- (the locks are what comes to mind, I don't think there is any other long-term state in there)
 function module.get_data(map)
-    local bd_info = nil
-    local bd_chunk = nil
-    local bd_quad = nil
+    local bd_info = "nil"
     if nav_obj.cur_building ~= nil then
-        bd_chunk = nav_obj.cur_building.what_chunk
+        local bd_chunk = nav_obj.cur_building.what_chunk
         local door_info = nav_obj.cur_building.doors
 
+        local bd_quad = nil
         for _, quad in (map.get_chunk(bd_chunk).meta_quads) do
             if door_info == quad:getDoors() then -- checks for refs matching, witch should be the case
-                quad = bd_quad
+                bd_quad = bd_quad
                 break
             end
         end
@@ -130,10 +145,17 @@ function module.set_height(height)
     nav_obj.height = height
 end
 
-function module.set_absolute(x,z,y)
+function module.set_pos_auto(x, z, y)
+    if y ~= nil then nav_obj.height = y end
+
     nav_obj.abs[1] = x
     nav_obj.abs[2] = z
-    nav_obj.height = y
+
+    nav_obj.rel[1] = x % 16
+    nav_obj.rel[2] = z % 16
+
+    nav_obj.chunk[1] = math.floor(x / 16)
+    nav_obj.chunk[2] = math.floor(z / 16)
 end
 
 function module.set_rel(x, z)

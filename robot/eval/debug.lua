@@ -65,6 +65,7 @@ function module.debug(arguments)
         local chunk = {x,z}
         nav.setup_navigate_chunk(chunk)
         return {50, "navigate_chunk", "surface"}
+
     elseif arguments[1] == "set_orientation" then
         local o = arguments[2]
         if o == nil then
@@ -82,9 +83,18 @@ function module.debug(arguments)
             return nil
         end
         nav.set_height(height)
+    elseif arguments[1] == "set_pos" then -- x and z as abs
+        local x = tonumber(arguments[2])
+        local z = tonumber(arguments[3])
+        local y = tonumber(arguments[4])
+        if x == nil then print(comms.robot_send("error", "set_pos: invalid x")) end
+        if z == nil then print(comms.robot_send("error", "set_pos: invalid z")) end
+
+        nav.set_pos_auto(x, z, y)
+
     elseif arguments[1] == "print" then
         if arguments[2] == "nav" then
-            print_obj(nav)
+            nav.print_nav_obj()
         elseif arguments[2] == "inv" then
             print_obj(inv)
         elseif arguments[2] == "map" then
@@ -96,7 +106,14 @@ function module.debug(arguments)
         end
     elseif arguments[1] == "inv" or arguments[1] == "inventory" then
 
-        if arguments[2] == "print" then
+        if arguments[2] == "list" then
+            if arguments[3] == "external" then
+                inv.list_external_inv()
+            else
+                print(comms.robot_send("error", "invalid inv-list argument provided"))
+            end
+
+        elseif arguments[2] == "print" then
             if arguments[3] == "internal" then
                 local pp_obj = inv.virtual_inventory:getFmtObj() -- it's already pre-built for us
                 local new_obj = deep_copy.copy(pp_obj)
@@ -112,8 +129,16 @@ function module.debug(arguments)
 
                 inv.virtual_inventory:printExtern(arguments[4], tonumber(arguments[5]), uncompressed)
             end
-        elseif arguments[2] == "force" and arguments[3] == "add_all" then
-            inv.force_update_vinv()
+        elseif arguments[2] == "force" then
+            if arguments[3] == "add_all" then
+                if arguments[4] == "internal" or arguments[4] == nil then
+                    inv.force_update_vinv()
+                else
+                    print(comms.robot_send("error", "invalid arguments for inv force add_all"))
+                end
+            elseif arguments[3] == "add_to" or arguments[3] == "at" then -- TODO FROM HERE <----
+
+            end
         else
             print(comms.robot_send("error", "invalid arguments"))
         end

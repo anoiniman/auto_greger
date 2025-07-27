@@ -94,6 +94,91 @@ function module.re_instantiate(big_table) -- WARNING: reInstantiate will DELETE 
 end
 
 --->>-- Check on the ledgers --<<-----{{{
+
+local function get_fat_ledger(table_name, index)
+    if table_name == nil or index == nil  then
+        print(comms.robot_send("error", "couldn't get fat_ledger, you have nils blud" ))
+        return nil
+    end
+
+    local name_table = external_inventories[table_name]
+    if name_table == nil then
+        print(comms.robot_send("error", "couldn't add item to external, table_name has no table: " .. table_name))
+        return nil
+    end
+
+    local fat_ledger = name_table[index]
+    if fat_ledger == nil then
+        print(comms.robot_send("error", "couldn't add item to external, index points to nothing: " .. index))
+        return nil
+    end
+
+    return fat_ledger
+end
+
+
+function module.add_item_to_external(table_name, index, lable, name, to_be_added)
+    local fat_ledger = get_fat_ledger(table_name, index)
+    if fat_ledger == nil or lable == nil or name == nil or to_be_added == nil then
+        print(comms.robot_send("error", "couldn't add item to external, you have nils blud" ))
+        return false
+    end
+
+    local ledger = fat_ledger.ledger
+    ledger:addOrCreate(lable, name, to_be_added)
+
+    return true
+end
+
+function module.remove_stack_from_external(table_name, index, slot, how_much)
+    local fat_ledger = get_fat_ledger(table_name, index)
+    if fat_ledger == nil or slot == nil or how_much == nil or how_much < 0 then
+        print(comms.robot_send("error", "couldn't add item to external, you have nils blud" ))
+        return false
+    end
+
+    if how_much == 0 then return true end
+    if how_much > 64 then how_much = 64 end
+
+    local ledger = fat_ledger.ledger
+    ledger:removeFromSlot(slot, how_much)
+
+    return true
+end
+
+function module.list_external_inv()
+    local print_buffer = {"\n"}
+    for name, inner_tbl in pairs(external_inventories) do
+        table.insert(print_buffer, string.format("%s = #%d\n", name, #inner_tbl))
+
+        for index, fat_buffer in ipairs(inner_tbl) do
+            local other_buffer = {}
+
+            table.insert(other_buffer, "    ")
+            table.insert(other_buffer, index)
+            table.insert(other_buffer, ":\n")
+
+            table.insert(other_buffer, "--      ")
+            table.insert(other_buffer, "chunk = (")
+            local chunk = fat_buffer.parent_build.what_chunk
+            table.insert(other_buffer, tostring(chunk[1]))
+            table.insert(other_buffer, ", ")
+            table.insert(other_buffer, tostring(chunk[2]))
+            table.insert(other_buffer, ")\n")
+
+            table.insert(other_buffer, "--      ")
+            table.insert(other_buffer, "quad = ")
+            local quad_str = tostring(fat_buffer:get_quad())
+            table.insert(other_buffer, quad_str)
+            table.insert("\n")
+
+            table.insert(print_buffer, table.concat(other_buffer))
+        end
+    end
+    local str = table.concat(print_buffer)
+    print(comms.robot_send("info", str))
+end
+
 local function iter_external_inv(build_name)
     if build_name == nil then
         local inner, next_index
@@ -135,7 +220,7 @@ local function prepare_pp_print(uncompressed, fat_ledger, index, size, large_pp)
         return
     end
 
-    large_pp:addPagesToSelf(pp_obj) 
+    large_pp:addPagesToSelf(pp_obj)
 end
 
 local function do_pp_print(large_pp)
