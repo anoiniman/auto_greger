@@ -137,7 +137,20 @@ function module.debug(arguments)
                     print(comms.robot_send("error", "invalid arguments for inv force add_all"))
                 end
             elseif arguments[3] == "add_to" or arguments[3] == "at" then -- TODO FROM HERE <----
+                local table_name = arguments[4]
+                local index = tonumber(arguments[5])
+                local lable = arguments[6]
+                local name = arguments[7]
+                local to_add = tonumber(arguments[7])
 
+                inv.add_item_to_external(table_name, index, lable, name, to_add)
+            elseif arguments[3] == "remove_from" or arguments[3] == "rf" then
+                local table_name = arguments[4]
+                local index = tonumber(arguments[5])
+                local slot = tonumber(arguments[6])
+                local to_remove = tonumber(arguments[7])
+
+                inv.remove_stack_from_external(table_name, index, slot, to_remove)
             end
         else
             print(comms.robot_send("error", "invalid arguments"))
