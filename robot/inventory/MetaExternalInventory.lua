@@ -71,6 +71,17 @@ function Module:new(item_defs, parent_build, is_cache, symbol, index, storage_ty
     return new
 end
 
+local function find_function(table, sindex)
+    for key, value in pairs(table) do
+        if type(value) == "table" then
+            find_function(value, string.format("%s-%s", sindex, tostring(key)))
+        elseif type(value) == "function" then
+            print("We found a function on: " .. string.format("%s-%s", sindex, tostring(key)))
+            io.read()
+        end
+    end
+end
+
 function Module:getData()
     local save_ledger = self.ledger:getData()
     local parent_chunk = "nil"
@@ -82,6 +93,7 @@ function Module:getData()
         what_quad = map.find_quad(parent_chunk, door_info)
     end
 
+    -- BLOODY HELL, A FUNCTION'S GETTING IN HERE
     local big_table = {
         parent_chunk,               -- 1
         what_quad,
@@ -93,6 +105,12 @@ function Module:getData()
         self.symbol,
         self.special_block_index,    -- 8
     }
+    for index, value in ipairs(big_table) do
+        if type(value) == "table" then
+            find_function(value, string.format("%d", index))
+        end
+    end
+
     return big_table
 end
 
