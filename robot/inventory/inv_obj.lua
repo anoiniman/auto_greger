@@ -170,7 +170,7 @@ function module.list_external_inv()
 
             table.insert(other_buffer, "--      ")
             table.insert(other_buffer, "quad = ")
-            local quad_str = tostring(fat_buffer:get_quad())
+            local quad_str = tostring(fat_buffer:getQuadNum())
             table.insert(other_buffer, quad_str)
             table.insert("\n")
 

@@ -71,7 +71,7 @@ function Module:new(item_defs, parent_build, is_cache, symbol, index, storage_ty
     return new
 end
 
-local function find_function(table, sindex)
+local function find_function(table, sindex) -- has a tendency to go on ininite loops! (yay)
     for key, value in pairs(table) do
         if type(value) == "table" then
             find_function(value, string.format("%s-%s", sindex, tostring(key)))
@@ -90,7 +90,7 @@ function Module:getData()
     if self.parent_build ~= nil then
         parent_chunk = self.parent_build.what_chunk
         local door_info = self.parent_build.doors
-        what_quad = map.find_quad(parent_chunk, door_info)
+        what_quad = map.find_quad(parent_chunk, door_info).quad
     end
 
     -- BLOODY HELL, A FUNCTION'S GETTING IN HERE
@@ -105,11 +105,11 @@ function Module:getData()
         self.symbol,
         self.special_block_index,    -- 8
     }
-    for index, value in ipairs(big_table) do
+    --[[for index, value in ipairs(big_table) do
         if type(value) == "table" then
             find_function(value, string.format("%d", index))
         end
-    end
+    end--]]
 
     return big_table
 end
@@ -163,12 +163,12 @@ function Module:getCoords()
 end
 
 
-function Module:getQuad()
+function Module:getQuadNum()
     local chunk = self.parent_build.what_chunk
     local doors = self.parent_build.doors
-    local quad_num = map.find_quad(chunk, doors)
+    local quad_num = map.find_quad(chunk, doors).quad
     if quad_num == nil then
-        print(comms.robot_send("warning", "MetaExternalInventory, was unable to getQuad?!"))
+        print(comms.robot_send("warning", "MetaExternalInventory, was unable to getQuadNum?!"))
         quad_num = -1
     end
 
