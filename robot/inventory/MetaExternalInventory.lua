@@ -147,7 +147,7 @@ function Module:reInstantiate(big_table)
     else new.item_defs = nil end
 
     new.storage = storage
-    new. long_term_storage = long_term_storage
+    new.long_term_storage = long_term_storage
     new.symbol = symbol
     new.special_block_index = sp_index
 

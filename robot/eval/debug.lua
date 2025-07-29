@@ -122,12 +122,13 @@ function module.debug(arguments)
                 local castrated_object = deep_copy.copy_no_functions(pp_obj)
                 comms.send_command("execute", "ppObj", "printPage", castrated_object, false)
             elseif arguments[3] == "external" then
-                local uncompressed = arguments[4]
+                local name = arguments[4]; local index = tonumber(arguments[5]);
+                local uncompressed = arguments[6]
                 if uncompressed == "full" or uncompressed == "uncompressed" or uncompressed == "-u"  then
                     uncompressed = true
                 else uncompressed = false end
 
-                inv.virtual_inventory:printExtern(arguments[4], tonumber(arguments[5]), uncompressed)
+                inv.print_external_inv(name, index, uncompressed)
             end
         elseif arguments[2] == "force" then
             if arguments[3] == "add_all" then

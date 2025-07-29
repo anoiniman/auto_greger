@@ -79,15 +79,13 @@ function module.re_instantiate(big_table) -- WARNING: reInstantiate will DELETE 
         module.virtual_inventory:reportEquipedBreak() -- smart?
     end
 
-    local external_table = {}
     for _, entry in ipairs(big_table[3]) do -- entry is fat ledger, remember
         -- another wholesome hack TODO (fix this shit)
         if MetaExternalInventory == nil then MetaExternalInventory = require("inventory.MetaExternalInventory")[1] end
 
         local external = MetaExternalInventory:reInstantiate(entry)
-        table.insert(external_table, external)
+        module.register_ledger(external)
     end
-    external_inventories = external_table
 
     used_up_capacity = big_table[4]
 
@@ -160,7 +158,7 @@ function module.list_external_inv()
             table.insert(other_buffer, index)
             table.insert(other_buffer, ":\n")
 
-            table.insert(other_buffer, "--      ")
+            table.insert(other_buffer, "   -- ")
             table.insert(other_buffer, "chunk = (")
             local chunk = fat_buffer.parent_build.what_chunk
             table.insert(other_buffer, tostring(chunk[1]))
@@ -168,11 +166,11 @@ function module.list_external_inv()
             table.insert(other_buffer, tostring(chunk[2]))
             table.insert(other_buffer, ")\n")
 
-            table.insert(other_buffer, "--      ")
+            table.insert(other_buffer, "   -- ")
             table.insert(other_buffer, "quad = ")
             local quad_str = tostring(fat_buffer:getQuadNum())
             table.insert(other_buffer, quad_str)
-            table.insert("\n")
+            table.insert(other_buffer, "\n")
 
             table.insert(print_buffer, table.concat(other_buffer))
         end
@@ -217,7 +215,7 @@ local function prepare_pp_print(uncompressed, fat_ledger, index, size, large_pp)
     pp_obj:setTitle(table.concat(title_string))
     pp_obj:initPages()
 
-    if large_pp.title == nil then
+    if large_pp.title == nil then -- aka, if large_pp is still just a {} instead of a inst of ppObj
         for k, v in pairs(pp_obj) do large_pp[k] = v end
         return
     end
@@ -242,6 +240,7 @@ function module.print_external_inv(name, index, uncompressed)
         local pp_obj = {}
         prepare_pp_print(uncompressed, fat_ledger, index, #tbl, pp_obj)
         do_pp_print(pp_obj)
+        return
     elseif name == nil and index ~= nil then
         print(comms.robot_send("warning", "Invalid name / index combination"))
         return
@@ -254,10 +253,13 @@ function module.print_external_inv(name, index, uncompressed)
     end
 
     local pp_obj = {}
-    for jindex, fat_ledger in le_next, tbl, num do
+    local iterated = false
+    for jindex, fat_ledger in le_next, tbl, num do -- NOTHING'S BEING PREPARED AHHHHHH
+        iterated = true
         prepare_pp_print(uncompressed, fat_ledger, jindex, #tbl, pp_obj)
     end
-    do_pp_print(pp_obj)
+    if iterated then do_pp_print(pp_obj)
+    else print(comms.robot_send("info", "Empty")) end
 end
 
 

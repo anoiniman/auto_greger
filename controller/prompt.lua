@@ -30,8 +30,10 @@ local function simple_print(msg_tbl)
 end
 
 local ppObj = require("common_pp_format")
+local term = require("term")
 local valid_command_table = {
-    ppObj = ppObj
+    ppObj = ppObj,
+    term = term
 }
 
 local function do_recieve()
@@ -62,7 +64,7 @@ local function do_recieve()
         if type(serial_obj) == "table" then -- we assume that a table will be a deconstituted class-object
             local reconstituted_obj = f_table:new()
             for key, value in pairs(serial_obj) do
-                reconstituted_obj[key] = serial_obj[value]
+                reconstituted_obj[key] = value
             end
             copy[1] = reconstituted_obj
         elseif serial_obj == "nil" then table.remove(copy, 1) end -- a nice hack

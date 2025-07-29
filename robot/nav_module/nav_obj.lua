@@ -90,7 +90,7 @@ end
 function module.re_instantiate(big_table, map)
     local bd_info = big_table[7]
     local bd_ref = nil
-    if bd_info ~= nil then
+    if bd_info ~= nil and bd_info ~= "nil" then
         local chunk_ref = map.get_chunk(bd_info[1])
         bd_ref = chunk_ref.meta_quads[bd_info[2]]
     end
