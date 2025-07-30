@@ -4,14 +4,28 @@ local module = {}
 local comms = require("comms")
 
 -- After moving to the correct x,z, move 1 inside the building
-local goal_rel = {0,0, -1}
+local goal_rel = {0, 0, -1}
 local move_setup = false
+local cur_goal_rel = {0, 0, -1}
+
+
 function module.is_setup()
     return move_setup
 end
 
-local function finish_setup(door_info)
+local function finish_setup(door_info, cur_position)
    goal_rel[1] = door_info.x; goal_rel[2] = door_info.z;
+
+   -- if this is the case we can move naivly
+   if cur_position[1] - goal_rel[1] == 0  or cur_position[2] - goal_rel[2] == 0 then
+        cur_goal_rel[1] = goal_rel[1]
+        cur_goal_rel[2] = goal_rel[2]
+        return
+   end
+   -- TODO
+   -- Cases remaining, it is in the opposite side OR it is either to the right or the left
+
+   cur_goal_rel[1]
 end
 
 -- we have to assume that we are in a road
@@ -41,7 +55,7 @@ function module.setup_move(door_info_table, cur_position)
     end
 
     local door_info = table_search(door_info_table, cur_position)
-    finish_setup(door_info)
+    finish_setup(door_info, cur_position)
     move_setup = true
 end
 
@@ -55,6 +69,12 @@ local function last_move(nav_func) -- changed to 2, but could be 1 idk
     end
 end
 
+
+-- local function
+
+
+-- we must move --around-- in the road so that le things are le good, this means, we first move to the nearest corner,
+-- then forward, then into the doorway in a worst case scenario
 function module.do_move(nav_func)
     if not move_setup then return 1 end
     local result, data = nav_func.navigate_rel_opaque(goal_rel)
