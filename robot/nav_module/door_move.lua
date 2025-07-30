@@ -13,19 +13,59 @@ function module.is_setup()
     return move_setup
 end
 
-local function finish_setup(door_info, cur_position)
-   goal_rel[1] = door_info.x; goal_rel[2] = door_info.z;
-
-   -- if this is the case we can move naivly
+local function calc_new_cur_goal(cur_position)
+   -- if this is the case we can move naivly (it means one of the end points is in our place)
    if cur_position[1] - goal_rel[1] == 0  or cur_position[2] - goal_rel[2] == 0 then
         cur_goal_rel[1] = goal_rel[1]
         cur_goal_rel[2] = goal_rel[2]
         return
    end
-   -- TODO
-   -- Cases remaining, it is in the opposite side OR it is either to the right or the left
+   -- Cases remaining, it is in the opposite side OR it is either to the right or the left, OR we are on an corner
 
-   cur_goal_rel[1]
+   -- This checks if we're on an edge, and naive move is not possible (as per the previous check)
+   if cur_position[1] % 15 == 0 and cur_position[2] % 15 == 0 then
+        -- check which coord is directly opposite to us and move towards it
+        if math.abs(cur_position[1] - goal_rel[1]) == 15 then
+            cur_goal_rel[1] = goal_rel[1]
+            cur_goal_rel[2] = cur_position[2]
+            return
+        end
+
+        if math.abs(cur_position[2] - goal_rel[2]) == 15 then
+            cur_goal_rel[2] = goal_rel[2]
+            cur_goal_rel[1] = cur_position[1]
+            return
+        end
+
+        error(comms.robot_send("fatal", "Unexpected! Corner navigation of door_move case"))
+   end
+
+   -- This checks if we're opposite to something and in which way are we opposite
+   -- find closest side, move to corner, using road, and then the corner thing mabob might be able to fix it
+   if goal_rel[1] % 15 == 0 then
+        cur_goal_rel[1] = cur_position[1]
+
+        if goal_rel[2] <= 8 then
+            cur_goal_rel[2] = 0
+        else
+            cur_goal_rel[2] = 15
+        end
+   elseif goal_rel[2] % 15 == 0 then
+        cur_goal_rel[2] = cur_position[2]
+
+        if goal_rel[1] <= 8 then
+            cur_goal_rel[1] = 0
+        else
+            cur_goal_rel[1] = 15
+        end
+   end
+
+   error(comms.robot_send("fatal", "Unexpected"))
+end
+
+local function finish_setup(door_info, cur_position)
+    goal_rel[1] = door_info.x; goal_rel[2] = door_info.z;
+    calc_new_cur_goal(cur_position)
 end
 
 -- we have to assume that we are in a road
@@ -77,7 +117,10 @@ end
 -- then forward, then into the doorway in a worst case scenario
 function module.do_move(nav_func)
     if not move_setup then return 1 end
-    local result, data = nav_func.navigate_rel_opaque(goal_rel)
+
+    local cur_position = nav_func.get_rel
+    calc_new_cur_goal(cur_position)
+    local result, data = nav_func.navigate_rel_opaque(cur_goal_rel)
 
     if result == nil then -- luacheck: ignore
     elseif result == 0 then return 0 end
