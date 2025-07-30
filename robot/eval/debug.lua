@@ -122,8 +122,11 @@ function module.debug(arguments)
                 local castrated_object = deep_copy.copy_no_functions(pp_obj)
                 comms.send_command("execute", "ppObj", "printPage", castrated_object, false)
             elseif arguments[3] == "external" then
-                local name = arguments[4]; local index = tonumber(arguments[5]);
-                local uncompressed = arguments[6]
+                local name = arguments[5]; local index = tonumber(arguments[6]);
+                if name == "nil" then name = nil end
+                if index <= 0 then index = nil end
+
+                local uncompressed = arguments[4]
                 if uncompressed == "full" or uncompressed == "uncompressed" or uncompressed == "-u"  then
                     uncompressed = true
                 else uncompressed = false end

@@ -79,6 +79,7 @@ function module.re_instantiate(big_table) -- WARNING: reInstantiate will DELETE 
         module.virtual_inventory:reportEquipedBreak() -- smart?
     end
 
+    external_inventories = {}
     for _, entry in ipairs(big_table[3]) do -- entry is fat ledger, remember
         -- another wholesome hack TODO (fix this shit)
         if MetaExternalInventory == nil then MetaExternalInventory = require("inventory.MetaExternalInventory")[1] end
