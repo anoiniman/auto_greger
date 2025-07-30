@@ -124,7 +124,7 @@ function module.debug(arguments)
             elseif arguments[3] == "external" then
                 local name = arguments[5]; local index = tonumber(arguments[6]);
                 if name == "nil" then name = nil end
-                if index <= 0 then index = nil end
+                if index == nil or index <= 0 then index = nil end
 
                 local uncompressed = arguments[4]
                 if uncompressed == "full" or uncompressed == "uncompressed" or uncompressed == "-u"  then
@@ -145,7 +145,7 @@ function module.debug(arguments)
                 local index = tonumber(arguments[5])
                 local lable = arguments[6]
                 local name = arguments[7]
-                local to_add = tonumber(arguments[7])
+                local to_add = tonumber(arguments[8])
 
                 inv.add_item_to_external(table_name, index, lable, name, to_add)
             elseif arguments[3] == "remove_from" or arguments[3] == "rf" then

@@ -246,6 +246,7 @@ function module.print_external_inv(name, index, uncompressed)
         print(comms.robot_send("warning", "Invalid name / index combination"))
         return
     end
+    if tbl == nil then return end
 
     local real_tbl_size = #tbl
     if num == nil then -- aka, we're iterating over multiple sub tables through our custom iteratior

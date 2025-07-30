@@ -106,7 +106,7 @@ end
 
 function module.send_command(...)
     local args = {...}
-    table.insert(args, "command")
+    table.insert(args, 1, "command")
     local serial = serialize.serialize(args)
     tunnel.send(serial)
 end
