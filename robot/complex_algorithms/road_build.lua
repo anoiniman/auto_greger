@@ -146,7 +146,9 @@ function module.step(instructions, return_table)
         if not is_chunk_setup then
             nav.setup_navigate_chunk(what_chunk)
         end
+
         nav.navigate_chunk("surface")
+        return return_table
     end
 
     if starting_coords[1] == -1 or starting_coords[2] == -1 then
@@ -189,7 +191,7 @@ function module.step(instructions, return_table)
     end
 
     if finished then
-        map.get_chunk(what_chunk).roads_cleared = true
+        map.get_chunk(what_chunk).chunk.roads_cleared = true
         starting_coords[1] = -1
         starting_coords[2] = -1
         return return_table

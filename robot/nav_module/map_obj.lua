@@ -812,6 +812,9 @@ local what_chunk = {-2,0}
 module.gen_map_obj({1,1})
 module.get_chunk(what_chunk).chunk.roads_cleared = true
 
+what_chunk[2] = -1
+module.get_chunk(what_chunk).chunk.roads_cleared = true
+
 -- more temp
 --[[
 module.create_named_area("gather", "green", 69, "dirt")

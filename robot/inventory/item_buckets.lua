@@ -63,7 +63,9 @@ local tm_table, tt_table = table.unpack(req_tbl)
 local max_tool_level = 3
 -- returns {lable} table, organized from most preferential to least preferential
 function module.id_equipment(tool_type, tool_level)
-    if tool_level <= 0 then
+    if tool_level = 0 then
+        return "empty_hand"
+    elseif tool_level < 0 then
         print(comms.robot_send("error", "Unexpected tool_level: " .. tool_level))
         return nil
     end

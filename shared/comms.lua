@@ -101,7 +101,7 @@ end
 
 function module.cls_nself()
     term.clear()
-    tunnel.send(serialize.serialize({"command", "term.clear"}))
+    tunnel.send(serialize.serialize({"command", "term", "clear"}))
 end
 
 function module.send_command(...)

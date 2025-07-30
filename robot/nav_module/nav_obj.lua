@@ -57,7 +57,7 @@ function module.get_data(map)
         local door_info = nav_obj.cur_building.doors
 
         local bd_quad = nil
-        for _, quad in (map.get_chunk(bd_chunk).meta_quads) do
+        for _, quad in (map.get_chunk(bd_chunk).chunk.meta_quads) do
             if door_info == quad:getDoors() then -- checks for refs matching, witch should be the case
                 bd_quad = bd_quad
                 break
@@ -92,7 +92,7 @@ function module.re_instantiate(big_table, map)
     local bd_ref = nil
     if bd_info ~= nil and bd_info ~= "nil" then
         local chunk_ref = map.get_chunk(bd_info[1])
-        bd_ref = chunk_ref.meta_quads[bd_info[2]]
+        bd_ref = chunk_ref.chunk.meta_quads[bd_info[2]]
     end
 
     nav_obj = {
