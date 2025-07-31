@@ -821,6 +821,12 @@ function module.load_preset()
     -- I think this is being erased by the loading process :P
     what_chunk[2] = -1
     module.get_chunk(what_chunk).chunk.roads_cleared = true
+
+
+    local chunk = {-2, 0}
+    module.pretend_build("home", "coke_quad", chunk, 1)
+    module.pretend_build("home", "oak_tree_farm", chunk, 3)
+    module.pretend_build("home", "sp_storeroom", what_chunk, 1)
 end
 
 -- more temp

@@ -223,17 +223,4 @@ function module.debug(arguments)
     return nil
 end
 
--- this needs to be changed into a load preset thing
-local function fixed_pretend_build(area_name, name, what_chunk, quad)
-    local err = map.pretend_build(area_name, name, what_chunk, quad)
-    if err ~= 0 then
-        print(comms.robot_send("error", "error in FIXED pretending at: " .. err))
-    end
-end
-
--- temp
-local chunk = {-2, 0}
-fixed_pretend_build("home", "coke_quad", chunk, 1)
-fixed_pretend_build("home", "oak_tree_farm", chunk, 3)
-
 return module
