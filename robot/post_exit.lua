@@ -88,6 +88,10 @@ local function load_thing(path, obj, extra)
     obj.re_instantiate(big_table, extra)
 end
 
+local function do_presets(obj)
+    obj.load_preset()
+end
+
 function module.load_state(exclude)
     if not filesystem.isDirectory(save_home) then
         return
@@ -96,6 +100,10 @@ function module.load_state(exclude)
     if not search_table.ione(exclude, "-map") then load_thing(map_path, map) end
     if not search_table.ione(exclude, "-nav") then load_thing(nav_path, nav, map) end
     if not search_table.ione(exclude, "-reas") then load_thing(reas_path, reas) end
+
+    if not search_table.ione(exclude, "-auto") then
+        do_presets(map)
+    end
 end
 
 

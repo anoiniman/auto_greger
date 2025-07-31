@@ -806,15 +806,22 @@ function module.start_auto_build(ab_metainfo)
     return {prio, "start_auto_build", ab_metainfo}
 end
 
--- temp
-module.create_named_area("home", "green", 69, "dirt")
-local what_chunk = {-2,0}
 module.gen_map_obj({1,1})
-module.get_chunk(what_chunk).chunk.roads_cleared = true
 
--- I think this is being erased by the loading process :P
-what_chunk[2] = -1
-module.get_chunk(what_chunk).chunk.roads_cleared = true
+-- temp
+function module.load_presets()
+    local name = "home"
+    if areas_table:getArea("home") == nil then
+        module.create_named_area("home", "green", 69, "dirt")
+    end
+
+    local what_chunk = {-2,0}
+    module.get_chunk(what_chunk).chunk.roads_cleared = true
+
+    -- I think this is being erased by the loading process :P
+    what_chunk[2] = -1
+    module.get_chunk(what_chunk).chunk.roads_cleared = true
+end
 
 -- more temp
 --[[

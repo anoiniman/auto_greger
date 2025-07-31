@@ -16,6 +16,14 @@ local map = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local reason = require("reasoning.reasoning_obj")
 
+local known_symbols = {
+    geolyzer = geolyzer,
+    nav = nav,
+    map = map,
+    inv = inv,
+    reason = reason,
+}
+
 
 local function print_obj(obj)
     local copy = deep_copy.copy_no_functions(obj) -- this prob no worky because of how require works :/
@@ -189,6 +197,26 @@ function module.debug(arguments)
         if err ~= 0 then
             print(comms.robot_send("error", "error in pretending at: " .. err))
         end
+    elseif arguments[1] == "load_preset" then
+        local symbol_name = arguments[2]
+        if symbol_name == nil then
+            print(comms.robot_send("error", "load_preset, name needed as argument"))
+            return nil
+        end
+
+        local t_symbol = known_symbols[symbol_name]
+        if t_symbol == nil then
+            print(comms.robot_send("error", "load_preset, name is invalid"))
+            return nil
+        end
+
+        local has_func = t_symbol.load_preset
+        if has_func == nil then
+            print(comms.robot_send("error", "load_preset, name exists but has no load_preset func"))
+            return nil
+        end
+
+        t_symbol.load_preset()
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end
