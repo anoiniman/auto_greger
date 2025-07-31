@@ -812,6 +812,7 @@ local what_chunk = {-2,0}
 module.gen_map_obj({1,1})
 module.get_chunk(what_chunk).chunk.roads_cleared = true
 
+-- I think this is being erased by the loading process :P
 what_chunk[2] = -1
 module.get_chunk(what_chunk).chunk.roads_cleared = true
 

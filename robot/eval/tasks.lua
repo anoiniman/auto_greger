@@ -43,6 +43,28 @@ function module.chunk_set_parent(arguments)
     end
 end
 
+function module.set_road_cleared(arguments)
+    local x = tonumber(arguments[1])
+    local z = tonumber(arguments[2])
+    if tonumber(x) == nil or tonumber(z) == nil then
+        print(comms.robot_send("error", "chunk_mark -- malformed command, x or z not number or nil"))
+        return nil
+    end
+
+    local what_chunk = {x, z}
+    local as_what = arguments[3]
+
+    local real_what
+    if as_what == "true" or as_what == "1" then real_what = true
+    elseif as_what == "false" or as_what == "0" then real_what = false
+    else return nil end
+
+    local result = map_obj.get_chunk(what_chunk)
+    if result == nil then return nil end
+
+    result.chunk.roads_cleared = real_what
+end
+
 function module.chunk_add_mark(arguments)
     local x = tonumber(arguments[1])
     local z = tonumber(arguments[2])
