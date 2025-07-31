@@ -93,7 +93,6 @@ function Module:getData()
         what_quad = map.find_quad(parent_chunk, door_info).quad
     end
 
-    -- BLOODY HELL, A FUNCTION'S GETTING IN HERE
     local big_table = {
         parent_chunk,               -- 1
         what_quad,

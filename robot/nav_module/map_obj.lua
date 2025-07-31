@@ -809,7 +809,7 @@ end
 module.gen_map_obj({1,1})
 
 -- temp
-function module.load_presets()
+function module.load_preset()
     local name = "home"
     if areas_table:getArea("home") == nil then
         module.create_named_area("home", "green", 69, "dirt")

@@ -38,6 +38,7 @@ function module.print_nav_obj()
         if type(v) == "table" then
             local str = string.format("%s = (%s, %s)\n", tostring(k), tostring(v[1]), tostring(v[2]))
             table.insert(print_buffer, str)
+            goto continue
         elseif type(v) ~= "number" and type(v) ~= "string" then goto continue end
 
         local str = string.format("%s = (%s)\n", tostring(k), tostring(v))
@@ -57,7 +58,7 @@ function module.get_data(map)
         local door_info = nav_obj.cur_building.doors
 
         local bd_quad = nil
-        for _, quad in (map.get_chunk(bd_chunk).chunk.meta_quads) do
+        for _, quad in ipairs(map.get_chunk(bd_chunk).chunk.meta_quads) do
             if door_info == quad:getDoors() then -- checks for refs matching, witch should be the case
                 bd_quad = bd_quad
                 break

@@ -13,6 +13,7 @@ function module.is_setup()
     return move_setup
 end
 
+-- somehow we're going towards the diametrically opposed side :P
 local function calc_new_cur_goal(cur_position)
    -- if this is the case we can move naivly (it means one of the end points is in our place)
    if cur_position[1] - goal_rel[1] == 0  or cur_position[2] - goal_rel[2] == 0 then
@@ -50,6 +51,8 @@ local function calc_new_cur_goal(cur_position)
         else
             cur_goal_rel[2] = 15
         end
+
+        return
    elseif goal_rel[2] % 15 == 0 then
         cur_goal_rel[2] = cur_position[2]
 
@@ -58,6 +61,8 @@ local function calc_new_cur_goal(cur_position)
         else
             cur_goal_rel[1] = 15
         end
+
+        return
    end
 
    error(comms.robot_send("fatal", "Unexpected"))
@@ -118,7 +123,7 @@ end
 function module.do_move(nav_func)
     if not move_setup then return 1 end
 
-    local cur_position = nav_func.get_rel
+    local cur_position = nav_func.get_rel()
     calc_new_cur_goal(cur_position)
     local result, data = nav_func.navigate_rel_opaque(cur_goal_rel)
 

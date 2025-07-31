@@ -85,7 +85,9 @@ function module.re_instantiate(big_table) -- WARNING: reInstantiate will DELETE 
         if MetaExternalInventory == nil then MetaExternalInventory = require("inventory.MetaExternalInventory")[1] end
 
         local external = MetaExternalInventory:reInstantiate(entry)
-        module.register_ledger(external)
+        if external.parent_build ~= nil then -- because it might just be a self-cache duh
+            module.register_ledger(external)
+        end
     end
 
     used_up_capacity = big_table[4]

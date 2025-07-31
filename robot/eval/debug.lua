@@ -223,6 +223,7 @@ function module.debug(arguments)
     return nil
 end
 
+-- this needs to be changed into a load preset thing
 local function fixed_pretend_build(area_name, name, what_chunk, quad)
     local err = map.pretend_build(area_name, name, what_chunk, quad)
     if err ~= 0 then

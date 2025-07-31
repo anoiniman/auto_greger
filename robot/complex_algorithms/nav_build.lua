@@ -54,6 +54,7 @@ function module.nav_and_build(instructions, post_run)
 
     local unmodified_height_target = rel_coords[3]
     -------- DO MOVE REL -----------
+    -- WARNING, when we return self_return the state of instructions is carried over!
     if not ab_meta_info.rel_moved and not rel.is_setup() then
         -- a little hack to optimize building, basically, we are pre-moving up, rather than going up
         -- and down to place blocks, theoretically saving a lot of time and energy
@@ -101,7 +102,10 @@ function module.nav_and_build(instructions, post_run)
             if not foundation_fill.is_setup() then foundation_fill.setup(unmodified_height_target) end
             local result = foundation_fill.fill()
             ab_meta_info.foundation_filled = result -- works because result true == done
-            if result then ab_meta_info.rel_moved = false end
+            if result then
+                ab_meta_info.rel_moved = false
+                rel_coords[3] = unmodified_height_target
+            end
 
             return self_return
         end
@@ -145,7 +149,7 @@ function module.nav_and_build(instructions, post_run)
                 if not result then
                     error(comms.robot_send("fatal", "Wasn't able to place down bridge block in nav_build"))
                 end
-
+                return self_return
             elseif err ~= "solid" then error(comms.robot_send("fatal", "Is this even possible")) end
 
             --[[if block_already_valid(rel_coords, block_info) then
@@ -153,11 +157,17 @@ function module.nav_and_build(instructions, post_run)
             end -- else ]]
 
             local height_diff = nav.get_height() - rel_coords[3]
-            local swing_front_success = true
-            if not inv.blind_swing_front() then -- try and destory the block
-                --print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
-                swing_front_success = false
+            local swing_front_success = false
+
+            local le_detect, _ = robot.detect()
+            if le_detect then
+                swing_front_success = true
+                if not inv.blind_swing_front() then -- try and destory the block
+                    --print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
+                    swing_front_success = false
+                end
             end
+
             if not swing_front_success and height_diff > 0 and not inv.blind_swing_down() then -- just break the damn block te-he
                 print(comms.robot_send("error", "Could not break nor block in front, nor block down during move and build smart_cleanup"))
                 return nil -- this breaks out of the "job"
