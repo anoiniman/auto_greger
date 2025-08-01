@@ -346,6 +346,8 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
         dist_sum = dist_sum + i_distance
         if quant_sum >= total_needed_quantity then break end
     end
+    -- remembered to account for internal inventory
+    quant_sum = quant_sum + module.how_many_internal(lable, name)
     if dist_sum > max_combined_travel or quant_sum < total_needed_quantity then return nil end
 
     -- we'll be recomputing the table for everystep but who cares?

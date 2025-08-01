@@ -167,6 +167,6 @@ should be managed by the ingame machine "logic" rather than by the robot agent, 
 I think all we need to do now, is write some nice test scripts, and maybe even implement more powerful state-saving
 and state-fudging tecnhiques hehe
 
-Weird thing happen with chunk_move, move too far, me no get
-
-we need to "fix" the serialization so it includes de equipd slot!
+Also add a:
+"go store" command to the robot, in order to test that mechanism, and also in order to have an 
+interface that is capable of doing that automatically, but uhh prob after we test all of this uh
