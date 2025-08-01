@@ -43,7 +43,7 @@ local function calc_new_cur_goal(cur_position)
 
    -- This checks if we're opposite to something and in which way are we opposite
    -- find closest side, move to corner, using road, and then the corner thing mabob might be able to fix it
-   if goal_rel[1] % 15 == 0 then
+   if goal_rel[1] % 15 == 0 then -- door is in an x-aligned edge
         cur_goal_rel[1] = cur_position[1]
 
         if goal_rel[2] <= 8 then
@@ -53,7 +53,7 @@ local function calc_new_cur_goal(cur_position)
         end
 
         return
-   elseif goal_rel[2] % 15 == 0 then
+   elseif goal_rel[2] % 15 == 0 then -- door is in a z aligned edge
         cur_goal_rel[2] = cur_position[2]
 
         if goal_rel[1] <= 8 then
@@ -125,17 +125,19 @@ function module.do_move(nav_func)
 
     local cur_position = nav_func.get_rel()
     calc_new_cur_goal(cur_position)
-    local result, data = nav_func.navigate_rel_opaque(cur_goal_rel)
+    local dir, data = nav_func.navigate_rel_opaque(cur_goal_rel)
 
-    if result == nil then -- luacheck: ignore
-    elseif result == 0 then return 0 end
+    if dir == 0 then return 0
+    elseif dir == nil then -- This means that we've finished the current treck
+        -- (we need to check if we are at the true goal or if we need to calculate again and keep going)
+        if cur_position[1] == goal_rel[1] and cur_position[2] == goal_rel[2] then -- finish up
+            last_move(nav_func)
+            move_setup = false
+            return -1
+        end -- else generate new move position
 
-    local dir = result
-    if dir == nil then
-        -- This means that we've arrived at the spot
-        last_move(nav_func)
-        move_setup = false
-        return -1
+        calc_new_cur_goal(cur_position)
+        return 0
     end
 
     return 1, data -- couldn't move
