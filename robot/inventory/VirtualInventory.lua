@@ -381,13 +381,25 @@ end
 
 function Module:forceUpdateSlot(lable, name, quantity, slot)
     if lable == nil then
-        print(comms.robot_send("error", "foceUpdateSlot - lable not provided!"))
+        print(comms.robot_send("error", "forceUpdateSlot - lable not provided!"))
         print(comms.robot_send("error", debug.traceback()))
         return
     end
+    if slot == nil then
+        print(comms.robot_send("error", "forceUpdateSlot - slot not provided!"))
+        print(comms.robot_send("error", debug.traceback()))
+        return
+    end
+
     name = item_bucket.identify(name, lable)
 
     local index = (slot * 3) - 2
+    if self.inv_table[index] == nil then
+        print(comms.robot_send("error", "forceUpdateSlot - slot_num provided is invalid!"))
+        print(comms.robot_send("error", debug.traceback()))
+        return
+    end
+
     self.inv_table[index] = lable
     self.inv_table[index + 1] = name
     self.inv_table[index + 2] = quantity

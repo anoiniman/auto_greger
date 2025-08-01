@@ -45,6 +45,13 @@ module.virtual_inventory:reportEquipedBreak() -- smart?
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
 local external_inventories = {}
 
+-- It is difficult to serialize by building, since their references changes as the programme is loaded/unloaded,
+-- and storing enough information to know what building is what is unwieldy, so this table needs to
+-- be recomputed from the "main table" everytime we start the programme, still, it is useful for a wide
+-- variety of reasons, mainly when you are interested in putting certain things in specific buildings
+-- local short_lived_ordered_inventories = {}
+
+
 function module.get_data()
     local virtual_inventory = module.virtual_inventory:getData()
     local external_table = {}
@@ -299,7 +306,7 @@ end
 -- No, I'm not going to solve the travelling salesman problem
 local max_combined_travel = 512 + 128
 function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
-    -- ordered with biggest in the pop position (#size - 1)
+    -- ordered with biggest in the top position (#size - 1)
     local ref_quant_table = nil
     for _, fat_inv in iter_external_inv(external_inventories) do
         local pinv = fat_inv.ledger
@@ -341,8 +348,99 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
     end
     if dist_sum > max_combined_travel or quant_sum < total_needed_quantity then return nil end
 
-    return ref_quant_table[#ref_quant_table][2] -- we'll be recomputing the table for everystep but who cares?
+    -- we'll be recomputing the table for everystep but who cares?
+    return ref_quant_table[#ref_quant_table][2] -- returns a MetaExternalInventory object
 end
+
+local function filter_bd_table(name, map)
+    local filtered_build_table = {}
+    for _, build in ipairs(map.all_builds) do
+        if build.name == name then
+            table.insert(filtered_build_table, build)
+        end
+    end
+    if #filtered_build_table == 0 then return nil end
+    return filtered_build_table
+end
+
+function module.print_build_inventory(map, uncompressed, name, index)
+    local build_table = filter_bd_table(name, map)
+    if build_table == nil then
+        print(comms.robot_send("info", "No building with such a name exists/is built"))
+        return
+    end
+
+    local build = build_table[index]
+    if build == nil then
+        if index <= 0 then build = build_table[1]
+        elseif index > #build_table then build = build_table[#build_table]
+        else error(comms.robot_send("fatal", "No Bueno!")) end
+    end
+
+    local looped = false
+    local pp_obj = {}
+    local inv_table = build:getInventories()
+    for i, inv in ipairs(inv_table) do
+        looped = true
+        prepare_pp_print(uncompressed, inv, i, #inv_table, pp_obj)
+    end
+
+    if not looped then
+        print(comms.robot_send("error", "Print Build Inventory, did not go into loop?!"))
+        return
+    end
+    do_pp_print(pp_obj)
+end
+
+-- building index is relative to distance to building, where <1 is the nearest and #size> is the furthest
+-- this is like this because I cannot be arsed to do better, and most additions/removings will not happen
+-- through this interface, but rather directly through direct building interaction and building
+-- agnostic direct inventory interaction, no point messing around with the data structuring just to
+-- help out this very minor debug-ish function
+function module.add_to_inventory(map, build_name, index, lable, name, quantity, slot_num)
+    local build_table = filter_bd_table(build_name, map)
+    if build_table == nil then
+        print(comms.robot_send("error", "No building exists with such a name: " .. build_name))
+        return false
+    end
+
+    local build = build_table[index]
+    if build == nil then
+        print(comms.robot_send("error", "Index for building_table is invalid! Index: " .. index))
+        return false
+    end
+
+    local can_add_inv = nil
+    for i = 2, #build.post_build_state, 1 do
+        local state = build.post_build_state
+
+        local inv_table = state[2]
+        for _, inv in ipairs(inv_table) do
+            if inv:canAdd(lable, name) then
+                can_add_inv = inv
+                break
+            end
+        end
+
+        if can_add_inv ~= nil then break end
+    end
+
+    if can_add_inv == nil then
+        print(comms.robot_send("error", "There is no valid inventory in this building for this item: " .. name .. ", " .. lable))
+        return false
+    end
+
+    -- Remember, (inv) is a fat_ledger
+    local v_inv = can_add_inv.ledger
+    if slot_num == nil then
+        v_inv:addOrCreate(lable, name, quantity)
+    else
+        v_inv:forceUpdateSlot(lable, name, quantity, slot_num)
+    end
+
+    return true
+end
+
 
 ---}}}
 

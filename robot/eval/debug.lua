@@ -217,6 +217,34 @@ function module.debug(arguments)
         end
 
         t_symbol.load_preset()
+    elseif arguments[1] == "print_build_inventory" or arguments[1] == "pbi" then
+        local name = arguments[2]
+        local index = tonumber(arguments[3])
+
+        if name == nil or index == nil then
+            print(comms.robot_send("error", "print_build_inventory name/index are nil/invalid"))
+            return nil
+        end
+        local uncompressed = arguments[4]
+        if uncompressed == nil or uncompressed == "false" or uncompressed == '1' then uncompressed = false
+        elseif uncompressed == "true" or uncompressed == '0' then uncompressed = true
+        else uncompressed = false end
+
+        module.print_build_inventory(map, uncompressed, name, index)
+    elseif arguments[1] == "add_to_inventory" or arguments[1] == "ati" then
+        local build_name = arguments[2]
+        local index = tonumber(arguments[3])
+        local lable = arguments[4]
+        local name = arguments[5]
+        local quantity = tonumber(arguments[6])
+        local slot_num = tonumber(arguments[7])
+
+        if build_name == nil or index == nil or lable == nil or name == nil or quantity == nil or slot_num == nil then
+            print(comms.robot_send("error", "add_to_inventory something is nil/invalid"))
+            return nil
+        end
+
+        module.add_to_inventory(map, build_name, index, lable, name, quantity, slot_num)
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end

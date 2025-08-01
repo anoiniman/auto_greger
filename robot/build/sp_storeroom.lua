@@ -54,16 +54,18 @@ Module.state_init = {
             MetaItem:new("any:plank"),
             MetaItem:new("any:pretty_build"),
         }
-        local building_chest1 = MetaInventory:newLongTermStorage(bd_table, parent, "*", 2, "double_chest")
-        local building_chest2 = MetaInventory:newLongTermStorage(bd_table, parent, "*", 3, "double_chest")
+        local st_table = {}
 
-        local ore_table = { MetaItem:new("gregtech:raw_ore", nil) }
-        local ore_chest1 = MetaInventory:newLongTermStorage(ore_table, parent, "*", 4, "double_chest")
+        table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 2, "double_chest"))
+        table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 3, "double_chest"))
 
-        local material_b_crafting_table = {MetaItem:new("any:intermediate_material"), MetaItem:new("any:basic_crafting")}
-        local ibct_chest1 = MetaInventory:newLongTermStorage(material_b_crafting_table, parent, "*", 5, "double_chest")
+        table.insert(st_table, { MetaItem:new("gregtech:raw_ore", nil) })
+        table.insert(st_table, MetaInventory:newLongTermStorage(ore_table, parent, "*", 4, "double_chest"))
 
-        return nil
+        table.insert(st_table, {MetaItem:new("any:intermediate_material"), MetaItem:new("any:basic_crafting")})
+        table.insert(st_table, MetaInventory:newLongTermStorage(material_b_crafting_table, parent, "*", 5, "double_chest"))
+
+        return {1, st_table}
     end,
     function(parent)
         local dump_chest = MetaInventory:newSelfCache()

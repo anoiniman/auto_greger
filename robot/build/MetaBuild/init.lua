@@ -292,6 +292,25 @@ function Module:finalizeBuild(doors)
 end
 
 
+function Module:getInventories()
+    local all_inventories = {}
+    for index = 2, #self.post_build_state, 1 do
+        local state = self.post_build_state[index]
+        if state == nil then goto continue end
+
+        -- checks for the format I've been using for inventories
+        if state[2] == nil or state[2].storage == nil then goto continue end
+
+        for _, entry in ipairs(state[2]) do
+            table.insert(all_inventories, entry)
+        end
+        ::continue::
+    end
+    if #all_inventories == 0 then return nil end
+    return all_inventories
+end
+
+
 function Module:runBuildCheck(quantity_goal)
     -- self:useBuilding(nil, "only_check", nil, quantity_goal, nil, nil)
     return self.post_build_hooks[1](self.post_build_state[1], self, "only_check", quantity_goal, self.post_build_state)

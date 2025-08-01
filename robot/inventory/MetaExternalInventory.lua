@@ -8,6 +8,7 @@ local VirtualInventory = require("inventory.VirtualInventory")
 local inv = require("inventory.inv_obj")
 
 -- as obvious, if it is an item inside a static storage it has no output
+-- permissive matters no more, because to be permissive we simple have to have a "name with no lable" association, but I guess it is important right now because some checks depend on this :tf:
 local MetaItem = {
     name = nil,
     lable = nil,
@@ -178,6 +179,19 @@ function Module:getChunk()
     return deep_copy.copy(self.parent_build.what_chunk)
 end
 
+
+function Module:canAdd(lable, name)
+    if self.item_defs == nil then -- we can add anything, I guess?
+        return true 
+    end
+
+    for _, meta_item in ipairs(self.item_defs) do
+        if meta_item.name == name and meta_item.lable == lable then
+            return true
+        end
+    end
+    return false
+end
 
 function Module:itemDefIter()
     local iteration = 0
