@@ -71,7 +71,7 @@ function module.get_data(map)
             ))
             bd_info = "nil"
         else
-            bd_info = {bd_chunk, bd_quad}
+            bd_info = {bd_chunk, bd_quad.quad}
         end
     end
 
