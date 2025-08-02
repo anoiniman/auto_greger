@@ -400,15 +400,16 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
     local can_add_inv = nil
     for i = 2, #build.post_build_state, 1 do
         local state = build.post_build_state[i]
+        search_table.print_structure(state)
+        io.read()
 
         local inv_table = state[2]
+        search_table.print_structure(inv_table)
+        io.read()
 
         for _, inv in ipairs(inv_table) do
-            -- temp print_thing
-            local func_less_copy = deep_copy.copy_no_functions(inv)
-            print(serialize.serialize(func_less_copy))
+            search_table.print_structure(inv)
             io.read()
-            --
 
             if inv:canAdd(lable, name) then
                 can_add_inv = inv
