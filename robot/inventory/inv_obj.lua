@@ -400,16 +400,16 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
     local can_add_inv = nil
     for i = 2, #build.post_build_state, 1 do
         local state = build.post_build_state[i]
-        search_table.print_structure(state, "state")
-        io.read()
+        if state == nil then goto continue end
+        -- search_table.print_structure(state, "state")
 
         local inv_table = state[2]
-        search_table.print_structure(inv_table, "inv_table")
-        io.read()
+        if inv_table == nil then goto continue end
+        -- search_table.print_structure(inv_table, "inv_table")
 
         for _, inv in ipairs(inv_table) do
-            search_table.print_structure(inv, "inv")
-            io.read()
+            if inv.storage == nil then goto continue end
+            -- search_table.print_structure(inv, "inv")
 
             if inv:canAdd(lable, name) then
                 can_add_inv = inv
@@ -418,6 +418,7 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
         end
 
         if can_add_inv ~= nil then break end
+        ::continue::
     end
 
     if can_add_inv == nil then
