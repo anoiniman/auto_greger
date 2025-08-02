@@ -400,15 +400,15 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
     local can_add_inv = nil
     for i = 2, #build.post_build_state, 1 do
         local state = build.post_build_state[i]
-        search_table.print_structure(state)
+        search_table.print_structure(state, "state")
         io.read()
 
         local inv_table = state[2]
-        search_table.print_structure(inv_table)
+        search_table.print_structure(inv_table, "inv_table")
         io.read()
 
         for _, inv in ipairs(inv_table) do
-            search_table.print_structure(inv)
+            search_table.print_structure(inv, "inv")
             io.read()
 
             if inv:canAdd(lable, name) then
