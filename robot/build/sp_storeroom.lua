@@ -59,10 +59,10 @@ Module.state_init = {
         table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 2, "double_chest"))
         table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 3, "double_chest"))
 
-        table.insert(st_table, { MetaItem:new("gregtech:raw_ore", nil) })
+        local ore_table = { MetaItem:new("gregtech:raw_ore", nil) }
         table.insert(st_table, MetaInventory:newLongTermStorage(ore_table, parent, "*", 4, "double_chest"))
 
-        table.insert(st_table, {MetaItem:new("any:intermediate_material"), MetaItem:new("any:basic_crafting")})
+        local material_b_crafting_table = {MetaItem:new("any:intermediate_material"), MetaItem:new("any:basic_crafting")}
         table.insert(st_table, MetaInventory:newLongTermStorage(material_b_crafting_table, parent, "*", 5, "double_chest"))
 
         return {1, st_table}

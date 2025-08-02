@@ -3,8 +3,7 @@ local module = {}
 
 local function print_buffer(tbl, buffer, ref_buffer)
     for key, value in pairs(tbl) do
-        if ref_buffer[key] ~= nil then
-            if type(ref_buffer[key]) ~= "table" then ref_buffer[key] = {ref_buffer[key]} end
+        if ref_buffer[key] ~= nil then -- this loop detection is terrible, we really ought to build trees
             for _, o_value in ipairs(ref_buffer[key]) do
                 if value == o_value then -- loop detected
                     table.insert(buffer, key .. " = Loop Detected\n")
@@ -13,7 +12,7 @@ local function print_buffer(tbl, buffer, ref_buffer)
             end
             table.insert(ref_buffer[key], value)
         else
-            ref_buffer[key] = value
+            ref_buffer[key] = {value}
         end
 
         if type(value) == "function" then
