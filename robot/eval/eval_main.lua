@@ -76,6 +76,9 @@ function module.eval_command(command_arguments)
         return interactive.print_list()
     elseif command == "interactive_force_set" or command == "ifs" then
         return interactive.force_set_data_table(arguments)
+    else
+        print(comms.robot_send("error", "invalid command: " .. command))
+        return nil
     end
     return nil
 end

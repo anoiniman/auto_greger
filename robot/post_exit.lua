@@ -88,8 +88,8 @@ local function load_thing(path, obj, extra)
     obj.re_instantiate(big_table, extra)
 end
 
-local function do_presets(obj)
-    obj.load_preset()
+local function do_presets(obj, extra)
+    obj.load_preset(extra)
 end
 
 function module.load_state(exclude)
@@ -103,6 +103,7 @@ function module.load_state(exclude)
 
     if not search_table.ione(exclude, "-auto") then
         do_presets(map)
+        do_presets(inv, map)
     end
 end
 

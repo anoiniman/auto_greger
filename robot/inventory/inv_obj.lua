@@ -1122,8 +1122,16 @@ function module.force_update_vinv()
     module.virtual_inventory:forceUpdateInternal()
 end
 
+local function press_enter()
+    print(comms.robot_send("info", "Press Enter to continue"))
+    io.read()
+end
 
 -- temp thing to get us going
-module.force_update_vinv()
+function module.load_preset(map)
+    module.force_update_vinv()
+    if not module.add_to_inventory(map, "sp_storeroom", 1, "Flint", "minecraft:generic", 31, 1) then press_enter() end
+    if not module.add_to_inventory(map, "sp_storeroom", 1, "Oak Wood", "any:log", 31, 1) then press_enter() end
+end
 
 return module

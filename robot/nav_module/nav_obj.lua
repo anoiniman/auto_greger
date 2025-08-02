@@ -60,7 +60,7 @@ function module.get_data(map)
         local bd_quad = nil
         for _, quad in ipairs(map.get_chunk(bd_chunk).chunk.meta_quads) do
             if door_info == quad:getDoors() then -- checks for refs matching, witch should be the case
-                bd_quad = bd_quad
+                bd_quad = quad
                 break
             end
         end

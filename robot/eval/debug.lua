@@ -244,8 +244,8 @@ function module.debug(arguments)
             return nil
         end
 
-        module.add_to_inventory(map, build_name, index, lable, name, quantity, slot_num)
-    elseif arguments[1] == "force_set_building" or arguments[1] == "fsb" then
+        inv.add_to_inventory(map, build_name, index, lable, name, quantity, slot_num)
+    elseif arguments[1] == "force_set_build" or arguments[1] == "fsb" then
         local x = tonumber(arguments[2])
         local z = tonumber(arguments[3])
         if x == nil or z == nil then
@@ -253,13 +253,15 @@ function module.debug(arguments)
             return nil
         end
 
+        local what_chunk = {x, z}
+
         local what_quad = tonumber(arguments[4])
         if what_quad == nil then
             print(comms.robot_send("error", "force_set_building error: what_quad is nil/invalid"))
             return nil
         end
 
-        if not map.force_set_building(nav, what_chunk, what_quad) then
+        if not map.force_set_build(nav, what_chunk, what_quad) then
             print(comms.robot_send("error", "force_set_building error in function"))
             return nil
         end
