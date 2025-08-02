@@ -1,7 +1,21 @@
+local comms = require("comms")
 local module = {}
 
-local function print_buffer(tbl, buffer)
+local function print_buffer(tbl, buffer, ref_buffer)
     for key, value in pairs(tbl) do
+        if ref_buffer[key] ~= nil then
+            if type(ref_buffer[key]) ~= "table" then ref_buffer[key] = {ref_buffer[key]} end
+            for _, o_value in ipairs(ref_buffer[key]) do
+                if value == o_value then -- loop detected
+                    table.insert(buffer, key .. " = Loop Detected")
+                    return
+                end
+            end
+            table.insert(ref_buffer[key], value)
+        else
+            ref_buffer[key] = value
+        end
+
         if type(value) == "function" then
             -- table.insert(buffer, tostring(key) .. " is function")
         elseif type(value) == "table" then
@@ -21,10 +35,10 @@ function module.print_structure(obj, name)
     if type(obj) == "number" then print(comms.robot_send("info", name .. "(number): " .. obj)); return end
     if type(obj) == "function" then print(comms.robot_send("info", name .. "(function): ")); return end
 
-    if type(obj) == "table" then 
-        local buffer = print_buffer(obj, {""})
+    if type(obj) == "table" then
+        local buffer = print_buffer(obj, {""}, {obj})
         print(comms.robot_send("info", name .. table.concat(buffer)))
-        return 
+        return
     end
 end
 
@@ -33,7 +47,7 @@ function module.ione(tbl, particle)
     if tbl == nil or type(tbl) ~= "table" then return false end
 
     for _, element in ipairs(tbl) do
-        if type(element) == "table" then 
+        if type(element) == "table" then
             if module.ione(element, particle) then return true end
         end
         if particle == element then return true end
