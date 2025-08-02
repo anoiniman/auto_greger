@@ -408,13 +408,14 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
         -- search_table.print_structure(inv_table, "inv_table")
 
         for _, inv in ipairs(inv_table) do
-            if inv.storage == nil then goto continue end
+            if inv.storage == nil then goto short_continue end
             -- search_table.print_structure(inv, "inv")
 
             if inv:canAdd(lable, name) then
                 can_add_inv = inv
                 break
             end
+            ::short_continue::
         end
 
         if can_add_inv ~= nil then break end

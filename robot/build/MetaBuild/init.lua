@@ -299,10 +299,12 @@ function Module:getInventories()
         if state == nil then goto continue end
 
         -- checks for the format I've been using for inventories
-        if state[2] == nil or state[2].storage == nil then goto continue end
+        if state[2] == nil then goto continue end
 
         for _, entry in ipairs(state[2]) do
+            if entry.storage == nil then goto short_continue end
             table.insert(all_inventories, entry)
+            ::short_continue::
         end
         ::continue::
     end

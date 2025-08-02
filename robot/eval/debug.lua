@@ -226,11 +226,11 @@ function module.debug(arguments)
             return nil
         end
         local uncompressed = arguments[4]
-        if uncompressed == nil or uncompressed == "false" or uncompressed == '1' then uncompressed = false
-        elseif uncompressed == "true" or uncompressed == '0' then uncompressed = true
+        if uncompressed == nil or uncompressed == "false" or uncompressed == '0' then uncompressed = false
+        elseif uncompressed == "true" or uncompressed == '1' then uncompressed = true
         else uncompressed = false end
 
-        module.print_build_inventory(map, uncompressed, name, index)
+        inv.print_build_inventory(map, uncompressed, name, index)
     elseif arguments[1] == "add_to_inventory" or arguments[1] == "ati" then
         local build_name = arguments[2]
         local index = tonumber(arguments[3])
