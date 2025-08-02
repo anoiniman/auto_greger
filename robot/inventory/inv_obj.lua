@@ -160,6 +160,9 @@ function module.list_external_inv()
     local print_buffer = {"\n"}
     for name, inner_tbl in pairs(external_inventories) do
         table.insert(print_buffer, string.format("%s = #%d\n", name, #inner_tbl))
+        local other_buffer = {}
+
+        -- TODO have it loop and find only the chunk/quad combinations that are unique
 
         local fat_buffer = inner_tbl[1]
         table.insert(other_buffer, "   -- ")
@@ -347,21 +350,10 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
     return ref_quant_table[#ref_quant_table][2] -- returns a MetaExternalInventory object
 end
 
-local function filter_bd_table(name, map)
-    local filtered_build_table = {}
-    for _, build in ipairs(map.all_builds) do
-        if build.name == name then
-            table.insert(filtered_build_table, build)
-        end
-    end
-    if #filtered_build_table == 0 then return nil end
-    return filtered_build_table
-end
-
 function module.print_build_inventory(map, uncompressed, name, index)
-    local build_table = filter_bd_table(name, map)
+    local build_table = map.get_buildings(name)
     if build_table == nil then
-        print(comms.robot_send("info", "No building with such a name exists/is built"))
+        print(comms.robot_send("info", "No building with such a name exists/is built: " .. name))
         return
     end
 
@@ -393,7 +385,7 @@ end
 -- agnostic direct inventory interaction, no point messing around with the data structuring just to
 -- help out this very minor debug-ish function
 function module.add_to_inventory(map, build_name, index, lable, name, quantity, slot_num)
-    local build_table = filter_bd_table(build_name, map)
+    local build_table = map.get_buildings(build_name)
     if build_table == nil then
         print(comms.robot_send("error", "No building exists with such a name: " .. build_name))
         return false
