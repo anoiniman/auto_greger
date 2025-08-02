@@ -161,29 +161,22 @@ function module.list_external_inv()
     for name, inner_tbl in pairs(external_inventories) do
         table.insert(print_buffer, string.format("%s = #%d\n", name, #inner_tbl))
 
-        for index, fat_buffer in ipairs(inner_tbl) do
-            local other_buffer = {}
+        local fat_buffer = inner_tbl[1]
+        table.insert(other_buffer, "   -- ")
+        table.insert(other_buffer, "chunk = (")
+        local chunk = fat_buffer.parent_build.what_chunk
+        table.insert(other_buffer, tostring(chunk[1]))
+        table.insert(other_buffer, ", ")
+        table.insert(other_buffer, tostring(chunk[2]))
+        table.insert(other_buffer, ")\n")
 
-            table.insert(other_buffer, "    ")
-            table.insert(other_buffer, index)
-            table.insert(other_buffer, ":\n")
+        table.insert(other_buffer, "   -- ")
+        table.insert(other_buffer, "quad = ")
+        local quad_str = tostring(fat_buffer:getQuadNum())
+        table.insert(other_buffer, quad_str)
+        table.insert(other_buffer, "\n")
 
-            table.insert(other_buffer, "   -- ")
-            table.insert(other_buffer, "chunk = (")
-            local chunk = fat_buffer.parent_build.what_chunk
-            table.insert(other_buffer, tostring(chunk[1]))
-            table.insert(other_buffer, ", ")
-            table.insert(other_buffer, tostring(chunk[2]))
-            table.insert(other_buffer, ")\n")
-
-            table.insert(other_buffer, "   -- ")
-            table.insert(other_buffer, "quad = ")
-            local quad_str = tostring(fat_buffer:getQuadNum())
-            table.insert(other_buffer, quad_str)
-            table.insert(other_buffer, "\n")
-
-            table.insert(print_buffer, table.concat(other_buffer))
-        end
+        table.insert(print_buffer, table.concat(other_buffer))
     end
     local str = table.concat(print_buffer)
     print(comms.robot_send("info", str))

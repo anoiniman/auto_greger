@@ -115,7 +115,7 @@ function module.debug(arguments)
     elseif arguments[1] == "inv" or arguments[1] == "inventory" then
 
         if arguments[2] == "list" then
-            if arguments[3] == "external" then
+            if arguments[3] == "external" or arguments[3] == nil then
                 inv.list_external_inv()
             else
                 print(comms.robot_send("error", "invalid inv-list argument provided"))
