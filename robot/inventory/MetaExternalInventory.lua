@@ -57,7 +57,7 @@ function Module:new(item_defs, parent_build, is_cache, symbol, index, storage_ty
     end
 
     local new = deep_copy.copy(self, pairs)
-    if item_defs.lable ~= nil then item_defs = {item_defs} end
+    if item_defs ~= nil and item_defs.lable ~= nil then item_defs = {item_defs} end
     new.item_defs = item_defs
 
     local storage_size = get_storage_size(storage_type)

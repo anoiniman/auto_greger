@@ -118,6 +118,9 @@ function PPObj:subDividePages(lines, tbl)
         end -- else
         table.insert(tbl, page2)
     end
+    if #tbl == 0 then -- The lines were inside the possible padding (they all fit on the screen without paging)
+        tbl = {lines}
+    end
 
     return tbl
 end

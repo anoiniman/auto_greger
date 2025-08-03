@@ -36,6 +36,10 @@ local valid_command_table = {
     term = term
 }
 
+local function do_le_debug()
+    print(debug.traceback())
+end
+
 local function do_recieve()
     local r_table = comms.recieve()
     local something, _, msg_tbl = r_table[1], r_table[2], r_table[3]
@@ -69,7 +73,7 @@ local function do_recieve()
             copy[1] = reconstituted_obj
         elseif serial_obj == "nil" then table.remove(copy, 1) end -- a nice hack
 
-        local result, err = pcall(func, table.unpack(copy)) -- we'll prob never check for actual returns n' shiet
+        local result, err = xpcall(func, do_le_debug, table.unpack(copy)) -- we'll prob never check for actual returns n' shiet
         if not result then 
             simple_print(
                 {"internal_error", table.concat({"error executing command (name): ", table_name, "\n(error)", err})}
