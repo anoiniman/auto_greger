@@ -353,7 +353,7 @@ end
 function module.print_build_inventory(map, uncompressed, name, index)
     local build_table = map.get_buildings(name)
     if build_table == nil then
-        print(comms.robot_send("info", "No building with such a name exists/is built: " .. name))
+        print(comms.robot_send("error", "No building with such a name exists/is built: " .. name))
         return
     end
 
@@ -377,10 +377,6 @@ function module.print_build_inventory(map, uncompressed, name, index)
         return
     end
     do_pp_print(pp_obj)
-end
-
-local function go_through_build_state(check_func)
-
 end
 
 -- building index is relative to distance to building, where <1 is the nearest and #size> is the furthest
@@ -445,6 +441,53 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
         v_inv:forceUpdateSlot(lable, name, quantity, slot_num)
     end
 
+    return true
+end
+
+-- inv_index is optional
+function module.get_inv_pos(map, bd_name, bd_index, state_index, inv_index)
+    local build_table = map.get_buildings(bd_name)
+    if build_table == nil then
+        print(comms.robot_send("error", "No building with such a name exists/is built: " .. bd_name))
+        return false
+    end
+
+    local build = build_table[bd_index]
+    if build == nil then
+        print(comms.robot_send("error", "No building of such a name with such an index: " .. bd_index))
+        return false
+    end
+
+    local state = build.post_build_state[state_index]
+    if build == nil then
+        print(comms.robot_send("error", "No such state index: " .. state_index))
+        return false
+    end
+
+    if inv_index ~= nil then
+        local inv = state[2][inv_index]
+        if inv == nil then
+            print(comms.robot_send("error", "No such inv index: " .. inv_index))
+            return false
+        end
+        local symbol = inv.symbol
+        local coords = inv:getCoords()
+        print(comms.robot_send("info", string.format("'%s' = (%d, %d) h:%d", symbol, coords[1], coords[2], coords[3])))
+
+        return true
+    end
+
+    local print_buffer = {"\n List: \n"}
+    for index, inv in ipairs(state[2]) do
+        if inv == nil then goto continue end
+
+        local symbol = inv.symbol
+        local coords = inv:getCoords()
+        table.insert(print_buffer, string.format("[%d] '%s' = (%d, %d) h:%d\n", index, symbol, coords[1], coords[2], coords[3]))
+
+        ::continue::
+    end
+    print(comms.robot_send("info", table.concat(print_buffer)))
     return true
 end
 
