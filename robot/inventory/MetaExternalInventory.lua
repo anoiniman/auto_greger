@@ -192,7 +192,7 @@ function Module:canAdd(lable, name)
     for _, meta_item in ipairs(self.item_defs) do
         if meta_item.name == name and meta_item.lable == lable then return true
         elseif meta_item.name == nil and meta_item.lable == lable then return true
-        elseif meta_item.name == name and meta_item.lable == nil then return true
+        elseif meta_item.name == name and meta_item.lable == nil then return true end
         -- elseif meta_item.name == "any:any" then return true end
     end
     return false

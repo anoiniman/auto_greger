@@ -35,6 +35,13 @@ local nav_obj = {
 function module.print_nav_obj()
     local print_buffer = {"\n"}
     for k, v in pairs(nav_obj) do
+        if k == "cur_building" then
+            local name = v.name
+            local str = string.format("%s = %s\n", tostring(k), name)
+            table.insert(print_buffer, str)
+            goto continue
+        end
+
         if type(v) == "table" then
             local str = string.format("%s = (%s, %s)\n", tostring(k), tostring(v[1]), tostring(v[2]))
             table.insert(print_buffer, str)
@@ -93,7 +100,7 @@ function module.re_instantiate(big_table, map)
     local bd_ref = nil
     if bd_info ~= nil and bd_info ~= "nil" then
         local chunk_ref = map.get_chunk(bd_info[1])
-        bd_ref = chunk_ref.chunk.meta_quads[bd_info[2]]
+        bd_ref = chunk_ref.chunk.meta_quads[bd_info[2]].build
     end
 
     nav_obj = {
