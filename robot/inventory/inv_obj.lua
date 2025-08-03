@@ -379,6 +379,10 @@ function module.print_build_inventory(map, uncompressed, name, index)
     do_pp_print(pp_obj)
 end
 
+local function go_through_build_state(check_func)
+
+end
+
 -- building index is relative to distance to building, where <1 is the nearest and #size> is the furthest
 -- this is like this because I cannot be arsed to do better, and most additions/removings will not happen
 -- through this interface, but rather directly through direct building interaction and building
@@ -397,6 +401,7 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
         return false
     end
 
+    local misc_list = {}
     local can_add_inv = nil
     for i = 2, #build.post_build_state, 1 do
         local state = build.post_build_state[i]
@@ -415,6 +420,8 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
                 can_add_inv = inv
                 break
             end
+            if inv:canAny() then table.insert(misc_list, inv) end
+
             ::short_continue::
         end
 
@@ -423,8 +430,11 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
     end
 
     if can_add_inv == nil then
-        print(comms.robot_send("error", "There is no valid inventory in this building for this item: " .. name .. ", " .. lable))
-        return false
+       if #misc_list == 0 then
+            print(comms.robot_send("error", "There is no valid inventory in this building for this item: " .. name .. ", " .. lable))
+            return false
+        end -- listen, this is all very kludgy because I don't care rn
+        can_add_inv = misc_list[1]
     end
 
     -- Remember, (inv) is a fat_ledger

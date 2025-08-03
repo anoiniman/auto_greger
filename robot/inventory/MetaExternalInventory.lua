@@ -182,8 +182,9 @@ end
 
 
 function Module:canAdd(lable, name)
-    if self.item_defs == nil then -- we can add anything, I guess?
-        return true 
+    if self.item_defs == nil then
+        print(comms.robot_send("warning", "item_defs == nil"))
+        return false
     end
 
     -- faking hell man, I should've really had made a standardized way to do this comparisions
@@ -192,7 +193,19 @@ function Module:canAdd(lable, name)
         if meta_item.name == name and meta_item.lable == lable then return true
         elseif meta_item.name == nil and meta_item.lable == lable then return true
         elseif meta_item.name == name and meta_item.lable == nil then return true
-        elseif meta_item.name == "any:any" then return true end
+        -- elseif meta_item.name == "any:any" then return true end
+    end
+    return false
+end
+
+-- call this after getting nil from canAdd
+function Module:canAny()
+    if self.item_defs == nil then
+        return false
+    end
+
+    for _, meta_item in ipairs(self.item_defs) do
+        if meta_item.name == "any:any" then return true end
     end
     return false
 end

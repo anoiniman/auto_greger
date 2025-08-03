@@ -54,7 +54,7 @@ Module.state_init = {
             MetaItem:new("any:plank"),
             MetaItem:new("any:pretty_build"),
         }
-        local st_table = {}
+        local st_table = {misc_chest}
 
         table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 2, "double_chest"))
         table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 3, "double_chest"))

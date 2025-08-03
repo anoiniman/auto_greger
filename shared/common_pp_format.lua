@@ -1,6 +1,7 @@
 local keyboard = require("keyboard")
 
 local comms = require("comms")
+local term = require("term")
 local deep_copy = require("deep_copy")
 
 
@@ -160,11 +161,19 @@ function PPObj:printPage(interactive_mode)
 
     -- smart printing of pages
     if interactive_mode then
+        print("Hello, I want to print something in interactive mode, do you accept? (y/n)")
+        while true do
+            local read = io.read()
+            if read == "y" then break end
+            if read == "n" then return end
+        end
+
         -- we need to build a "page", basically a sub-tbl of lines
         self:initPages()
 
         local index = 1
         while true do
+            term.clear()
             local title = self.page_titles[index]
             if title == nil then title = self.title end
 
@@ -178,9 +187,9 @@ function PPObj:printPage(interactive_mode)
             print()
             print(table.concat(footer_left))
 
-            os.sleep(0.1)
             local breakout = false
             while true do
+                os.sleep(0.1)
                 if keyboard.isKeyDown(keyboard.keys.left) then
                     index = math.max(1, index - 1)
                     break
