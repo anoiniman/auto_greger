@@ -46,7 +46,7 @@ Module.state_init = {
         }
     end,
     function(parent)
-        local misc_chest = MetaInventory:newLongTermStorage(MetaItem:new("any:any", nil, false, nil), parent, "*", 1, "double_chest")
+        local misc_chest = MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 1, "double_chest")
 
         local bd_table = {
             MetaItem:new("any:log", nil),
