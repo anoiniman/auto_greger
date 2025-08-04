@@ -461,7 +461,7 @@ function module.get_inv_pos(map, bd_name, bd_index, state_index, inv_index)
     end
 
     local state = build.post_build_state[state_index]
-    if state == nil or type(state) ~= "table" or type(state[1] ~= "table") then
+    if state == nil or type(state) ~= "table" or type(state[1]) ~= "table" then
         print(comms.robot_send("error", "No such state index: " .. state_index))
         return false
     end

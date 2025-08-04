@@ -143,6 +143,12 @@ end
 function Module:translateSpecial(quad_num, logical_chunk_height, primitive_offset)
     local special_table = self.special_blocks
 
+    print(string.format("Name is: %s", self.name))
+    local a_special = special_table[1]
+    local str = string.format("Special was: [%s] (%s, %s) h:%s", a_special[1], a_special[2], a_special[3], a_special[4])
+    print(str)
+    io.read()
+
     local function case_one(special)
         special[2] = special[2] + 8 -- x
         special[3] = special[3] + 1 -- z
@@ -160,7 +166,7 @@ function Module:translateSpecial(quad_num, logical_chunk_height, primitive_offse
         special[3] = special[3] + 8 -- z
     end
 
-    local case_function = nil
+    local case_function
     if quad_num == 1 then
         case_function = case_one
     elseif quad_num == 2 then
@@ -183,6 +189,12 @@ function Module:translateSpecial(quad_num, logical_chunk_height, primitive_offse
         special[3] = special[3] + primitive_offset[2]
         special[4] = special[4] + primitive_offset[3]
     end
+
+    local special = special_table[1]
+    local str = string.format("Special now is: [%s] (%s, %s) h:%s", special[1], special[2], special[3], special[4])
+    print(str)
+    print()
+    io.read()
 
     return true
 end
