@@ -266,10 +266,10 @@ function module.debug(arguments)
             return nil
         end
     elseif arguments[1] == "get_inv_pos" or arguments[1] == "gip" then
-        local bd_name = arguments[1]
-        local bd_index = tonumber(arguments[2])
-        local state_index = tonumber(arguments[3])
-        local inv_index = tonumber(arguments[4])
+        local bd_name = arguments[2]
+        local bd_index = tonumber(arguments[3])
+        local state_index = tonumber(arguments[4])
+        local inv_index = tonumber(arguments[5])
 
         if bd_name == nil or bd_index == nil or state_index == nil then
             print(comms.robot_send("error", "get_inv_pos, something is invalid or nil or whatever"))

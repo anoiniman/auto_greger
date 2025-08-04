@@ -65,7 +65,7 @@ Module.state_init = {
         local material_b_crafting_table = {MetaItem:new("any:intermediate_material"), MetaItem:new("any:basic_crafting")}
         table.insert(st_table, MetaInventory:newLongTermStorage(material_b_crafting_table, parent, "*", 5, "double_chest"))
 
-        return {1, st_table}
+        return {st_table, 1}
     end,
     function(parent)
         local dump_chest = MetaInventory:newSelfCache()

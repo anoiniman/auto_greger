@@ -78,6 +78,7 @@ function Module:is_extra(str)
     return result
 end
 
+-- symbol[4] is nil for some reason
 function Module:getSpecialCoords(what_symbol, index)
     local symbol, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
     return {symbol[2], symbol[3], symbol[4]}
@@ -299,9 +300,9 @@ function Module:getInventories()
         if state == nil then goto continue end
 
         -- checks for the format I've been using for inventories
-        if state[2] == nil then goto continue end
+        if state[1] == nil then goto continue end
 
-        for _, entry in ipairs(state[2]) do
+        for _, entry in ipairs(state[1]) do
             if entry.storage == nil then goto short_continue end
             table.insert(all_inventories, entry)
             ::short_continue::

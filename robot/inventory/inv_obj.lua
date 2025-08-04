@@ -404,7 +404,7 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
         if state == nil then goto continue end
         -- search_table.print_structure(state, "state")
 
-        local inv_table = state[2]
+        local inv_table = state[1]
         if inv_table == nil then goto continue end
         -- search_table.print_structure(inv_table, "inv_table")
 
@@ -446,6 +446,8 @@ end
 
 -- inv_index is optional
 function module.get_inv_pos(map, bd_name, bd_index, state_index, inv_index)
+    state_index = state_index + 1 -- because no.1 is always facking reserved
+
     local build_table = map.get_buildings(bd_name)
     if build_table == nil then
         print(comms.robot_send("error", "No building with such a name exists/is built: " .. bd_name))
@@ -459,13 +461,13 @@ function module.get_inv_pos(map, bd_name, bd_index, state_index, inv_index)
     end
 
     local state = build.post_build_state[state_index]
-    if build == nil then
+    if state == nil or type(state) ~= "table" or type(state[1] ~= "table") then
         print(comms.robot_send("error", "No such state index: " .. state_index))
         return false
     end
 
     if inv_index ~= nil then
-        local inv = state[2][inv_index]
+        local inv = state[1][inv_index]
         if inv == nil then
             print(comms.robot_send("error", "No such inv index: " .. inv_index))
             return false
@@ -478,12 +480,16 @@ function module.get_inv_pos(map, bd_name, bd_index, state_index, inv_index)
     end
 
     local print_buffer = {"\n List: \n"}
-    for index, inv in ipairs(state[2]) do
+    for index, inv in ipairs(state[1]) do
         if inv == nil then goto continue end
 
         local symbol = inv.symbol
         local coords = inv:getCoords()
-        table.insert(print_buffer, string.format("[%d] '%s' = (%d, %d) h:%d\n", index, symbol, coords[1], coords[2], coords[3]))
+
+        -- temporary debugging thang
+        local height = coords[3]
+        if height == nil then height = -1 end
+        table.insert(print_buffer, string.format("[%d] '%s' = (%d, %d) h:%d\n", index, symbol, coords[1], coords[2], height))
 
         ::continue::
     end
