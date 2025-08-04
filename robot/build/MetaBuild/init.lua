@@ -78,15 +78,14 @@ function Module:is_extra(str)
     return result
 end
 
--- symbol[4] is nil for some reason
 function Module:getSpecialCoords(what_symbol, index)
-    local symbol, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
-    return {symbol[2], symbol[3], symbol[4]}
+    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
+    return {coords[1], coords[2], coords[3]} -- this is effectifly a deep_copy
 end
 
 function Module:getDistToSpecial(what_symbol, index)
-    local symbol, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
-    local x, z, y = symbol[2], symbol[3], symbol[4]
+    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
+    local x, z, y = coords[1], coords[2], coords[3]
     local cabs_x = self.what_chunk[1] * 16
     local cabs_z = self.what_chunk[2] * 16
 
@@ -143,11 +142,11 @@ end
 function Module:translateSpecial(quad_num, logical_chunk_height, primitive_offset)
     local special_table = self.special_blocks
 
-    print(string.format("Name is: %s", self.name))
+    --[[print(string.format("Name is: %s", self.name))
     local a_special = special_table[1]
     local str = string.format("Special was: [%s] (%s, %s) h:%s", a_special[1], a_special[2], a_special[3], a_special[4])
     print(str)
-    io.read()
+    io.read()--]]
 
     local function case_one(special)
         special[2] = special[2] + 8 -- x
@@ -190,11 +189,11 @@ function Module:translateSpecial(quad_num, logical_chunk_height, primitive_offse
         special[4] = special[4] + primitive_offset[3]
     end
 
-    local special = special_table[1]
+    --[[local special = special_table[1]
     local str = string.format("Special now is: [%s] (%s, %s) h:%s", special[1], special[2], special[3], special[4])
     print(str)
     print()
-    io.read()
+    io.read()--]]
 
     return true
 end
@@ -220,7 +219,7 @@ function Module:setupBuild(what_quad, chunk_height)
     -- its ok to retain this after dumping the primitive because of GC, I think
     self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
     if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
-        self.s_interface.build_stack.logical_y = self.primitive.height
+        self.s_interface.build_stack.logical_y = self.primitive.origin_block[3]
     end
     self.special_blocks = self.s_interface:getSpecialBlocks()
 
@@ -249,7 +248,7 @@ function Module:setupBuild(what_quad, chunk_height)
 
     self.is_nil = false
 
-    local result = self:translateSpecial(what_quad, chunk_height, self.primitive.origin_block)
+    local result = self:translateSpecial(what_quad, chunk_height, old_origin_block)
     if not result then return false end
 
     return true

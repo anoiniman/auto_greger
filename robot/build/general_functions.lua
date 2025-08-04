@@ -100,7 +100,7 @@ function module.count_occurence_of_symbol(what_symbol, how_much, where)
         if hits == how_much then
             num_to_return = how_much + 1
             local copy = deep_copy.copy(symbol, ipairs)
-            table.remove(copy, 1)
+            table.remove(copy, 1) -- you fucker man, damn
             to_return = copy
             break
         end
