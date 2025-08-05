@@ -4,6 +4,7 @@ local module = {}
 -- import of globals
 local serialize = require("serialization")  -- luacheck: push no unused
                                             -- luacheck: pop
+local keyboard = require("keyboard")
 
 -- local imports
 local comms = require("comms")
@@ -22,7 +23,7 @@ local tasks = require("eval.tasks")
 -- programatically, this is, maybe, a bit "ugly" (design-wise), but it is a cute solution
 -- (programming-wise) and makes things easier and less boiler-platy for me
 function module.eval_command(command_arguments)
-    local _ = table.remove(command_arguments, 1) -- prio
+    local prio = table.remove(command_arguments, 1) -- prio
     local command = table.remove(command_arguments, 1)
     local arguments = command_arguments
 
@@ -77,7 +78,37 @@ function module.eval_command(command_arguments)
     elseif command == "interactive_force_set" or command == "ifs" then
         return interactive.force_set_data_table(arguments)
     else
-        print(comms.robot_send("error", "invalid command: " .. command))
+        if command == nil then command = "nil" end
+        local buffer = {"\n"}
+        table.insert(buffer, string.format("(p%d) Command: \"%s\" is invalid!\n", prio, command))
+
+        local max_depth = 10; local depth = 0;
+        local function recursive_append(tbl)
+            if depth >= max_depth then return end
+            depth = depth + 1
+            table.insert(buffer, "{\n")
+            for key, value in ipairs(tbl) do
+                table.insert(buffer, string.format("%s = ", tostring(key)))
+
+                if type(value) == "table" then recursive_append(value)
+                elseif type(value) == "function" then table.insert(buffer, "function")
+                elseif type(value) == "boolean" or type(value) == "string" or type(value) == "number" then
+                    table.insert(buffer, tostring(value))
+                else table.insert(buffer, "other") end
+
+                table.insert(buffer, ", ")
+            end
+            table.insert(buffer, "}\n")
+        end
+        recursive_append(arguments)
+
+        print(comms.robot_send("error", table.concat(buffer)))
+        local counter = 0
+        while true do
+            os.sleep(0.1)
+            if counter >= 60 or keyboard.isKeyDown(keyboard.keys.q) then break end
+            counter = counter + 0.1
+        end
         return nil
     end
     return nil
