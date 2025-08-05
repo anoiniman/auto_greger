@@ -10,6 +10,7 @@ local prio_insert = require("prio_insert")
 
 ---- Other ----
 --local MetaRecipe = require("reasoning.MetaRecipe")
+local command_helper = require("command_helper")
 local solve_tree = require("reasoning.MetaRecipe.resolve_dep_tree")
 
 local MetaContext = require("reasoning.MetaScript.RecipeTreeContext")
@@ -238,6 +239,9 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         table.insert(extra_info, 1, self.priority)
         table.insert(extra_info, self.constraint.const_obj.lock)
         local return_table = extra_info
+        local prio, command, arguments = command_helper.raw_break_appart(return_table)
+        command_helper.inspect_raw(prio, command, arguments)
+
         return return_table
     end
     print(comms.robot_send("debug", "Found needed_recipe for: " .. needed_recipe.output.lable))

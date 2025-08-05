@@ -98,6 +98,8 @@ local function robot_top_level()
     download("/robot/keep_alive.lua", "self")
     download("/robot/post_exit.lua", "self")
 
+    download("/robot/command_helper.lua", "self")
+
     download("/robot/robo_main.lua", "self")
     download("/robot/robo_routine.lua", "self")
     download("/robot/overloads.lua", "self")
