@@ -307,7 +307,7 @@ end
 local max_combined_travel = 512 + 128
 function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
     -- ordered with biggest in the top position (#size - 1)
-    local ref_quant_table = nil
+    local ref_quant_table = {}
     for _, fat_inv in iter_external_inv() do
         local pinv = fat_inv.ledger
 
@@ -315,7 +315,7 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
         if quantity == nil or quantity < min_quantity then goto continue end
         local new_ref_quant = {quantity, fat_inv}
 
-        if ref_quant_table == nil then table.insert(ref_quant_table, new_ref_quant); goto continue end
+        if #ref_quant_table == 0 then table.insert(ref_quant_table, new_ref_quant); goto continue end
         local distance = fat_inv:getDistance()
 
         for index, entry in ipairs(ref_quant_table) do
@@ -332,7 +332,7 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
         table.insert(ref_quant_table, new_ref_quant)
         ::continue::
     end
-    if ref_quant_table == nil then return nil end
+    if #ref_quant_table == 0 then return nil end
 
     local dist_sum = 0
     local quant_sum = 0
@@ -1101,11 +1101,11 @@ function module.craft(arguments)
     local recipe_grid = arguments[2]
     local output = arguments[3]
     local how_much = arguments[4]
-    local loc_ref = arguments[5]
+    local lock_ref = arguments[5]
 
     if use_self_craft then
         self_craft(dictionary, recipe_grid, output, how_much) -- this returns a result, but we don't care?
-        loc_ref[1] = 2
+        lock_ref[1] = 2
         return nil
     else error(comms.robot_send("fatal", "TODO!")) end
 end

@@ -43,6 +43,8 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
             local logistic_nav = {inner.doTheThing, inner} -- command gets "completed" by caller
             mode = "execute"
             dep_found = logistic_nav
+
+            print(comms.robot_send("debug", "solve_tree:search, decided to execute logistic_nav"))
             break
         end
 
@@ -72,6 +74,7 @@ end
 
 function solve_tree.interpretSelection(ctx, needed_quantity, meta_type)
     local mode, dep_found = solve_tree.selectDependency(ctx, needed_quantity, meta_type)
+
     if mode == "depth" or mode == "execute" then
         return mode, dep_found
     elseif mode == "loop_detected" then

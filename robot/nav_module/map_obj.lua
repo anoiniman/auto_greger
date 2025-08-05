@@ -799,7 +799,7 @@ function module.start_auto_build(ab_metainfo)
         local result, status, instruction = module.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
         if status == "done" then
-            lock[1] = 0 -- VERY IMPORTANT, unlocking the building constraint
+            lock[1] = 3 -- VERY IMPORTANT, locking the building constraint
             return nil -- I think we return nil?
         end
 

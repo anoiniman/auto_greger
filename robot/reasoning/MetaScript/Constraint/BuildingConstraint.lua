@@ -1,3 +1,4 @@
+-- luacheck: globals DO_DEBUG_PRINT
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
@@ -36,14 +37,24 @@ function BuildingConstraint:new(structures, chunk_centre)
     new.chunk_centre = chunk_centre or nil
     return new
 end
+
+-- Because of the way buildings are built right now (this is to say, because they are built one-shot)
+-- It makes little sense to interpret a differnace between a 2 and a 3
 function BuildingConstraint:check(do_once)
-    if not do_once and self.lock[1] == 2 then -- le reset switch :)
-        self.lock[1] = 0
+    if self.lock[1] == 1 or self.lock[1] == 4 then
+        return nil, nil -- Hold It
     end
 
-    -- early return
-    if self.lock[1] == 1 or self.lock[1] == 3 then return nil, nil end -- le HOLD IT signal
-    if self.lock[1] == 2 then return 0, nil end -- le Go On signal
+    if self.lock[1] == 2 then
+        print(comms.robot_send("warning", "BuildingConstraint, unideomatic lock state (2)"))
+        self.lock[1] = 3
+        return 0, nil
+    end
+    if self.lock[1] == 3 then
+        if do_once then return 0, nil end
+        -- else
+        self.lock[1] = 0 -- and continue
+    end
 
     local heap = {}
     for index, structure in ipairs(self.structures) do

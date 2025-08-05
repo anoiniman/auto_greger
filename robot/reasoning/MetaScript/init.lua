@@ -211,7 +211,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
     local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
     if needed_recipe == nil then
-        -- self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input (TODO)
+        -- self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input (TODO)
         self.constraint.const_obj.lock[1] = 0 -- auto-unlock until we implement the waiting list fully
         return nil
     end
@@ -229,7 +229,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     -- TODO implement mechanism to unlock this lock
     if needed_recipe == nil then
         -- TODO -- add different lock number for: "we check again after this many seconds" (3 is == "add to ils-system")
-        self.constraint.const_obj.lock[1] = 3  -- aka -> locked until user input
+        self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input
         return nil
     elseif needed_recipe == "breadth" then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))

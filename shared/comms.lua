@@ -1,3 +1,5 @@
+-- luacheck: globals DO_DEBUG_PRINT
+
 local module = {}
 -- Robot message handling is poll based rather than call-back based
 -- because this is not a server :P
@@ -91,9 +93,14 @@ function module.robot_send(part1, part2) -- part1 & 2 must be strings
     return final_string
 end
 
-function module.send_unexpected()
+function module.send_unexpected(fatal)
+    if fatal == nil then fatal = false end
+
+    local str = "warning"
+    if fatal then str = "fatal" end
+
     return module.robot_send(
-        "Warning",
+        str,
         "Hey brosky, this is code-path should not be being threaded, watch yo back!\n"
         .. debug.traceback()
     )

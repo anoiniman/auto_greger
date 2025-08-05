@@ -140,7 +140,7 @@ function Module.doTheThing(arguments)
 
     local result = self.mode_func(self)
     if result == "done" then
-        lock[1] = 0
+        lock[1] = 0 -- We set directly to 0 because this is just a logistic step that doesn't change the underlying requirement
         return nil
     end -- else
     return {prio, self.doTheThing, self, lock, prio}
