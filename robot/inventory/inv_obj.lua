@@ -206,6 +206,10 @@ local function iter_external_inv(build_name)
         return real_next, external_inventories
     end
 
+    if external_inventories[build_name] == nil then --some basic runtime checking
+        return function() return nil end
+    end
+
     return ipairs(external_inventories[build_name])
 end
 
@@ -292,7 +296,7 @@ end
 
 function module.how_many_total(lable, name)
     local quantity = module.virtual_inventory:howMany(lable, name)
-    for _, fat_ledger in iter_external_inv(external_inventories) do
+    for _, fat_ledger in iter_external_inv() do
         local ledger = fat_ledger.ledger
         quantity = quantity + ledger:howMany(lable, name)
     end
@@ -304,7 +308,7 @@ local max_combined_travel = 512 + 128
 function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
     -- ordered with biggest in the top position (#size - 1)
     local ref_quant_table = nil
-    for _, fat_inv in iter_external_inv(external_inventories) do
+    for _, fat_inv in iter_external_inv() do
         local pinv = fat_inv.ledger
 
         local quantity = pinv:howMany(lable, name)
