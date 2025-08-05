@@ -15,6 +15,8 @@ function module.identify(name, lable)
     end
 
     if flabl ("Planks")             then return     "any:plank"         end
+    if fname ("any:plank")          then return     "any:plank"         end
+
     if flabl ("Ingot$")             then return     "any:ingot"         end
     if flabl ("Sword")              then return     "any:equipment"     end
 
