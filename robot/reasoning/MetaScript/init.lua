@@ -239,8 +239,8 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         table.insert(extra_info, 1, self.priority)
         table.insert(extra_info, self.constraint.const_obj.lock)
         local return_table = extra_info
-        local prio, command, arguments = command_helper.raw_break_appart(return_table)
-        command_helper.inspect_raw(prio, command, arguments)
+        -- local prio, command, arguments = command_helper.raw_break_appart(return_table)
+        -- command_helper.inspect_raw(prio, command, arguments)
 
         return return_table
     end

@@ -38,7 +38,7 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
         -- so we'll go with the simpler and least efficient route of going to the first thing we're missing
         if pinv ~= nil then
             local item_table = {inner.output.lable, inner.output.name, dep_needed_quantity}
-            local to_transfer = {item_table}
+            local to_transfer = {item_table} -- table of items
             local inner = LogisticTransfer:new(pinv, "self", to_transfer)
             local logistic_nav = {inner.doTheThing, inner} -- command gets "completed" by caller
             mode = "execute"
