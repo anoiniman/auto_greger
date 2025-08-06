@@ -43,7 +43,7 @@ function Module:new(from_inventory, to_inventory, item_tbl)
 end
 
 function Module:doLogistics()
-    if dbg_call < 5 then print(comms.robot_send("debug", "doLogistics")) end
+    if dbg_call < 5 then print(comms.robot_send("debubi", "doLogistics")) end
 
     if self.item_tbl_index > #self.item_tbl then -- go to next where if applicable
         self.item_tbl_index = 1
@@ -90,7 +90,7 @@ end
 
 
 function Module:goTo()
-    if dbg_call < 5 then print(comms.robot_send("debug", "goTo")) end
+    if dbg_call < 5 then print(comms.robot_send("debubi", "goTo")) end
 
     local target
     if self.where == 1 then target = self.from_inventory
@@ -112,7 +112,12 @@ function Module:goTo()
 
     -- Door Move
     if not self.has_door_moved then
-        local door_info = self.where.parent:getDoors()
+        if nav.get_cur_building() == target.parent_build:getDoors() then
+            self.has_door_moved = true
+            goto skip_door_move
+        end
+
+        local door_info = target.parent_build:getDoors()
         if not door_move.is_setup() then door_move.setup_move(door_info, cur_coords) end
         local result, _ = door_move.do_move(nav)
         if result == 0 then return "go_on"
@@ -120,6 +125,7 @@ function Module:goTo()
             self.has_door_moved = true
         else os.sleep(1) --[[ :) --]] end
     end
+    ::skip_door_move::
 
 
     -- Rel Move to Special Block
@@ -145,7 +151,7 @@ function Module.doTheThing(arguments)
     local prio = arguments[3]
 
     if dbg_call < 4 then
-        print(comms.robot_send("debug", "Logistiking"))
+        print(comms.robot_send("debubi", "Logistiking"))
         dbg_call = dbg_call + 1
     end
 
