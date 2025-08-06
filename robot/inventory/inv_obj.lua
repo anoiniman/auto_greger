@@ -849,36 +849,45 @@ end
 function module.suck_vinventory(external_inventory, left_to_suck, matching_slots)
     local inv_table = external_inventory.inv_table
     for index = 1, #inv_table, 3 do
-        local slot = (index + 2) / 3
-        if matching_slots ~= nil and not search_table.ione(matching_slots, slot) then goto continue end
+        local external_slot = (index + 2) / 3
+        if matching_slots ~= nil and not search_table.ione(matching_slots, external_slot) then goto continue end
 
         local lable = inv_table[index]
         local name = inv_table[index + 1]
         local quantity = inv_table[index + 2]
 
-        local cur_suck_quantity = 64
-        if left_to_suck ~= nil then
-            if left_to_suck <= 0 then break end
-
-            local div = math.floor(left_to_suck / 64)
-            if div == 0 then cur_suck_quantity = left_to_suck
-            elseif div < 0 then error(comms.robot_send("fatal", "impossible state")) end
-            -- else retain 64
-        end
-
+        local cur_suck_quantity
         -- I'm going to trust it is this simple, because the way the api's "suck into slot" and our
         -- addOrCreate seem to map 1-to-1, if de-syncs start to happen use a smarter solution I guess
         local internal_slot = module.virtual_inventory:getSmallestSlot(lable, name)
+        if internal_slot == nil then
+            internal_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
+            cur_suck_quantity = 64
+        else
+            cur_suck_quantity = 64 - module.virtual_inventory:howManySlot(internal_slot)
+        end
+
+        if left_to_suck ~= nil then
+            if left_to_suck <= 0 then break end -- HERE is the early return
+            local available_quantity = cur_suck_quantity
+
+            local div = math.floor(left_to_suck / available_quantity)
+            if div == 0 then cur_suck_quantity = left_to_suck
+            elseif div > 0 then cur_suck_quantity = available_quantity
+            elseif div < 0 then error(comms.robot_send("fatal", "impossible state")) end
+        end
+
         robot.select(internal_slot)
 
-        if not inventory.suckFromSlot(sides_api.front, slot, cur_suck_quantity) then
+        if not inventory.suckFromSlot(sides_api.front, external_slot, cur_suck_quantity) then
             print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to suck"))
             goto continue
         end
 
         local how_much_sucked = math.min(cur_suck_quantity, quantity)
+        -- Change the addOrCreate to a forceUpdateInternal if you start running into problems :P, this should be fine tho
         module.virtual_inventory:addOrCreate(lable, name, how_much_sucked, get_forbidden_table())
-        external_inventory:removeFromSlot(slot, how_much_sucked)
+        external_inventory:removeFromSlot(external_slot, how_much_sucked)
         if left_to_suck ~= nil then
             left_to_suck = left_to_suck - how_much_sucked
         end
