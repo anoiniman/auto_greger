@@ -1,5 +1,6 @@
 local os = require("os")
 local component = require("component")
+local sides_api = require("sides")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")
@@ -68,7 +69,7 @@ function Module:doLogistics()
 
     local opposite = nav.get_opposite_orientation()
     while true do -- orient thyself
-        local is_inv = inv_controller.getInventorySize()
+        local is_inv = inv_controller.getInventorySize(sides_api.front)
         if is_inv ~= nil then break end
 
         nav.rotate_right()
@@ -80,6 +81,13 @@ function Module:doLogistics()
 
     local cur_item = self.item_tbl[self.item_tbl_index]
     local lable = cur_item[1]; local name = cur_item[2]; local up_to = cur_item[3]
+
+    -- Another important thing I forgot, if target is "self", then it doesn't make sense to "dump" to self, or "suck" to self,
+    -- so we skip
+    if target_inv == "self" then
+        self.item_tbl_index = 5000 -- hacky, but whatever
+        return "go_on"
+    end
 
     local matching_slots = target_inv.ledger:getAllSlots(lable, name, up_to)
     inv_action(target_inv.ledger, matching_slots)
@@ -98,6 +106,13 @@ function Module:goTo()
     elseif self.where == 2 then target = self.to_inventory
     elseif self.where == 3 then return "done"
     else error(comms.robot_send("fatal", "invalid state")) end
+
+    -- Very Important thing I forgot, if the target is self, well, we're already there right?
+    if target == "self" then
+        self.mode_func = self.doLogistics
+        dbg_call = 0
+        return "go_on"
+    end
 
     local target_chunk = target:getChunk()
     -- Chunk Move
@@ -130,8 +145,9 @@ function Module:goTo()
 
 
     -- Rel Move to Special Block
+    local height = nav.get_height()
     local target_coords = target:getCoords()
-    if cur_coords[1] ~= target_coords[1] or cur_coords[2] ~= target_coords[2] or cur_coords[3] ~= target_coords[3] then
+    if cur_coords[1] ~= target_coords[1] or cur_coords[2] ~= target_coords[2] or height ~= target_coords[3] then
         if not nav.is_setup_navigate_rel() then
             nav.setup_navigate_rel(target_coords)
         end
