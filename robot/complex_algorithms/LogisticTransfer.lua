@@ -44,7 +44,7 @@ function Module:new(from_inventory, to_inventory, item_tbl)
 end
 
 function Module:doLogistics()
-    if dbg_call < 4 then print(comms.robot_send("debubi", "doLogistics")) end
+    if dbg_call < 4 then print(comms.robot_send("debug", "doLogistics")) end
 
     if self.item_tbl_index > #self.item_tbl then -- go to next where if applicable
         self.item_tbl_index = 1
@@ -99,7 +99,7 @@ end
 
 
 function Module:goTo()
-    if dbg_call < 4 then print(comms.robot_send("debubi", "goTo")) end
+    if dbg_call < 4 then print(comms.robot_send("debug", "goTo")) end
 
     local target
     if self.where == 1 then target = self.from_inventory
@@ -169,7 +169,7 @@ function Module.doTheThing(arguments)
     local prio = arguments[3]
 
     if dbg_call < 4 then
-        print(comms.robot_send("debubi", "Logistiking"))
+        print(comms.robot_send("debug", "Logistiking"))
         dbg_call = dbg_call + 1
     end
 
