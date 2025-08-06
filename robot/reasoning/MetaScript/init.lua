@@ -237,7 +237,9 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         -- nice and abstract
         if extra_info == nil or type(extra_info) ~= "table" then error(comms.robot_send("fatal", "bad arguments!")) end
         table.insert(extra_info, 1, self.priority)
+
         table.insert(extra_info, self.constraint.const_obj.lock)
+        table.insert(extra_info, self.priority)
         local return_table = extra_info
         -- local prio, command, arguments = command_helper.raw_break_appart(return_table)
         -- command_helper.inspect_raw(prio, command, arguments)

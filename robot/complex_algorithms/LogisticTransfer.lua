@@ -43,7 +43,7 @@ function Module:new(from_inventory, to_inventory, item_tbl)
 end
 
 function Module:doLogistics()
-    if dbg_call < 5 then print(comms.robot_send("debubi", "doLogistics")) end
+    if dbg_call < 4 then print(comms.robot_send("debubi", "doLogistics")) end
 
     if self.item_tbl_index > #self.item_tbl then -- go to next where if applicable
         self.item_tbl_index = 1
@@ -85,12 +85,13 @@ function Module:doLogistics()
     inv_action(target_inv.ledger, matching_slots)
 
     self.item_tbl_index = self.item_tbl_index + 1
+    dbg_call = 0
     return "go_on"
 end
 
 
 function Module:goTo()
-    if dbg_call < 5 then print(comms.robot_send("debubi", "goTo")) end
+    if dbg_call < 4 then print(comms.robot_send("debubi", "goTo")) end
 
     local target
     if self.where == 1 then target = self.from_inventory
@@ -112,12 +113,12 @@ function Module:goTo()
 
     -- Door Move
     if not self.has_door_moved then
-        if nav.get_cur_building() == target.parent_build:getDoors() then
+        if nav.get_cur_building() == target.parent_build then
             self.has_door_moved = true
             goto skip_door_move
         end
 
-        local door_info = target.parent_build:getDoors()
+        local door_info = target.parent_build.doors
         if not door_move.is_setup() then door_move.setup_move(door_info, cur_coords) end
         local result, _ = door_move.do_move(nav)
         if result == 0 then return "go_on"
@@ -142,6 +143,7 @@ function Module:goTo()
     end
 
     self.mode_func = self.doLogistics
+    dbg_call = 0
     return "go_on"
 end
 

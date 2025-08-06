@@ -92,6 +92,13 @@ end
 
 -- we assume that our cur_position is already on a road
 function module.setup_move(door_info_table, cur_position)
+    -- check if the invariants are broken
+    if cur_position[1] ~= 15 and cur_position[1] ~= 0 and cur_position[2] ~= 15 and cur_position[2] ~= 0 then
+        print(comms.robot_send("error", "door_move setup precondition is broken, returning unsetuped"))
+        move_setup = false
+        return
+    end
+
     if type(door_info_table) ~= "table" then
         print(comms.robot_send("warning", "door_move, door_info is not a table, this is non-standard"))
         finish_setup(door_info_table)
