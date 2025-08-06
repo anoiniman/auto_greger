@@ -90,7 +90,7 @@ function Module:doLogistics()
     end
 
     local matching_slots = target_inv.ledger:getAllSlots(lable, name, up_to)
-    inv_action(target_inv.ledger, matching_slots)
+    inv_action(target_inv.ledger, up_to, matching_slots)
 
     self.item_tbl_index = self.item_tbl_index + 1
     dbg_call = 0

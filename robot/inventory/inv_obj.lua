@@ -847,12 +847,10 @@ end
 
 -- if matching_slots is nil, return early and falsy, for sucking all use suck all, dummy
 function module.suck_vinventory(external_inventory, left_to_suck, matching_slots)
-    if matching_slots == nil then return false end
-
     local inv_table = external_inventory.inv_table
     for index = 1, #inv_table, 3 do
         local slot = (index + 2) / 3
-        if not search_table.ione(matching_slots, slot) then goto continue end
+        if matching_slots ~= nil and not search_table.ione(matching_slots, slot) then goto continue end
 
         local lable = inv_table[index]
         local name = inv_table[index + 1]
@@ -911,8 +909,8 @@ function module.suck_all(external_inventory) -- runs no checks what-so-ever (ass
     local inv_type = external_inventory.inv_type
     if inv_type == nil then inv_type = "nil" end
 
-    if inv_type == "ledger" then module.suck_ledger(external_inventory, false)
-    elseif inv_type ~= "virtual_inventory" then module.suck_vinventory(external_inventory, false)
+    if inv_type == "ledger" then module.suck_ledger(external_inventory)
+    elseif inv_type == "virtual_inventory" then module.suck_vinventory(external_inventory, nil)
     else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
 end
 
@@ -921,8 +919,8 @@ function module.suck_only_matching(external_inventory, quantity, matching)
     local inv_type = external_inventory.inv_type
     if inv_type == nil then inv_type = "nil" end
 
-    if inv_type == "ledger" then module.suck_ledger(external_inventory, true, quantity, matching)
-    elseif inv_type ~= "virtual_inventory" then module.suck_vinventory(external_inventory, true, quantity, matching)
+    if inv_type == "ledger" then module.suck_ledger(external_inventory, quantity, matching)
+    elseif inv_type == "virtual_inventory" then module.suck_vinventory(external_inventory, quantity, matching)
     else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
 end
 

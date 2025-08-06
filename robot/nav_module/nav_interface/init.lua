@@ -83,7 +83,7 @@ function inward_facing.convert_orientation(orientation)
 end
 
 function to_export.rotate_right(nav_obj)
-    local orient = nav_obj.get_orientation()
+    local orient = nav_obj.orientation
     if orient == "north" then
         inward_facing.change_orientation("east", nav_obj)
     elseif orient == "east" then
