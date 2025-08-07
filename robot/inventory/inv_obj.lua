@@ -549,13 +549,20 @@ local function free_slot_iter()
     end
 end
 
+local function smaller_than(a,b) return a < b end
+local function bigger_than(a,b) return a > b end
 
-local function sort_slot_table(tbl)
+-- In place (insertion?) sort, smallest to biggest!
+local function sort_slot_table(tbl, reverse)
+    local cmp
+    if reverse == nil or reverse == false then cmp = bigger_than
+    else cmp = smaller_than end
+
     for head = 2, #tbl do
         local key = tbl[head]
 
         local t_index = head - 1
-        while t_index >= 1 and tbl[t_index][2] > key[2] do
+        while t_index >= 1 and cmp(tbl[t_index][2], key[2]) do
             tbl[t_index + 1] = tbl[t_index]
             t_index = t_index - 1
         end
@@ -597,78 +604,6 @@ end
 -- end
 
 -----------------------------------------
-
-
-local function compress_into_slot(lable, name, slot)
-    local all_slots = module.virtual_inventory:getAllSlots(lable, name)
-
-    -- Order things up in place (smallest to biggest)
-    sort_slot_table(all_slots)
-
-    -- Now we exclude the "slot" slot from the table, and "recover it" (transmute from number to table)
-    for index, element in ipairs(all_slots) do
-        if element[1] == slot then
-            slot = table.remove(all_slots, index)
-            break
-        end
-    end
-    if type(slot) ~= "table" then error(comms.robot_send("fatal", "assertion failed")) end
-
-    for _, element in ipairs(all_slots) do
-        local inner_slot = element[1]
-        local inner_size = element[2]
-        if inner_size == 64 then break end
-
-        local target_slot = slot[2]
-        local cur_target_size = slot[2]
-
-        local sum = cur_target_size + inner_size
-        local diff = 64 - sum
-
-        local to_transfer = math.min(64, 64 + diff) -- if diff is negative then the min will be smaller than 64
-        if to_transfer <= 0 then break end
-
-        local detect = robot.detectUp()
-        if detect then
-            print(comms.robot_send("error", "could not perform exchange, no space above"))
-            return false
-        end
-
-        local empty_slot = module.virtual_inventory:getEmptySlot()
-        if empty_slot == nil then error(comms.robot_send("error", "assertion failed")) end
-
-        robot.select(inner_slot)
-        if not robot.transferTo(empty_slot, to_transfer) then
-            print(comms.robot_send("error", "could not perform exchange, couldn't transfer to empty"))
-            robot.select(1)
-            return false
-        end
-        robot.select(empty_slot)
-
-        if not robot.dropUp() then -- drops entire item stack!
-            print(comms.robot_send("error", "could not perform exchange, couldn't dropUp \n\z
-                As a consequence the inventory representation is now effed, force updating inventory.... \n\z
-                Crafting table is now probabily poluted, you'll have to fix that on your own!"
-            ))
-            module.force_update_vinv()
-
-            robot.select(1)
-            return false
-        end
-
-        robot.select(target_slot)
-        local result = true
-        while result do
-            result = robot.suckUp()
-        end
-
-        -- Important: this below updates the internal represetation of the inventory to match the new state:
-       module.virtual_inventory:removeFromSlot(inner_slot, to_transfer)
-       module.virtual_inventory:forceUpdateSlot(lable, name, cur_target_size + to_transfer, target_slot)
-    end
-    robot.select(1)
-    return true
-end
 
 --
 ---}}}
@@ -1055,19 +990,42 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
             if c_table_slot > 6 then c_table_slot = c_table_slot + 2
             elseif c_table_slot > 3 then c_table_slot = c_table_slot + 1 end
 
-            local ingredient_slot = module.virtual_inventory:getLargestSlot(lable, name)
-            local slot_size = module.virtual_inventory:howManySlot(ingredient_slot)
-            if slot_size < how_much_to_craft then
-                local result = compress_into_slot(lable, name, ingredient_slot)
-                if not result then clean_up = true; break end
-            end
+            local ingredient_slots = {}
+            local accumulator = 0
+            local i_slot_tbl = module.virtual_inventory:getAllSlots(lable, name)
+            local i_slot_tbl = sort_slot_table(i_slot_tbl)
+            for _, inner_slot in ipairs(i_slot_tbl) do
+                local slot_size = module.virtual_inventory:howManySlot(inner_slot)
+                accumulator = accumulator + slot_size
+                table.insert(ingredient_slots, inner_slot)
 
-            local result = robot.select(ingredient_slot)
-            if result ~= ingredient_slot or not robot.transferTo(c_table_slot, how_much_to_craft) then
-                print(comms.robot_send("error", "something went wrong in self_crafting"))
+                if accumulator >= how_much_to_craft then
+                    break
+                end
+            end
+            if accumulator < how_much_to_craft then
                 clean_up = true
                 break
             end
+
+            local reverse_accumulator = how_much_to_craft
+            local do_break = false
+            for _, i_slot in ipairs(ingredient_slots) do -- usually we'll only iterate once, but we never know!
+                local slot_size = module.virtual_inventory:howManySlot(i_slot)
+                local to_transfer = math.min(reverse_accumulator, slot_size)
+
+                local result = robot.select(i_slot)
+                if result ~= i_slot or not robot.transferTo(c_table_slot, to_transfer) then
+                    print(comms.robot_send("error", "something went wrong in self_crafting"))
+                    clean_up = true
+                    do_break = true
+                    break
+                end -- else we succeded! (yay!)
+                module.virtual_inventory:removeFromSlot(i_slot, to_transfer) -- it's ok to overshoot!
+                reverse_accumulator = reverse_accumulator - slot_size
+            end
+            if reverse_accumulator ~= 0 then print(comms.robot_send("warning", "r_accumulator was: " .. reverse_accumulator)) end
+            if do_break then break end
         end
     end -- Then check for errors
     if clean_up then
