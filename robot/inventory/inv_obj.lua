@@ -1141,6 +1141,16 @@ function module.force_add_in_slot(slot) -- ahr ahr
     -- Separate out into a function that clears the crafting table for us?
 end
 
+function module.remove_from_slot(what_slot, quantity)
+    if slot == nil or type(slot) == "number" then
+        print(comms.robot_send("error", "failure to remove_from slot"))
+        return false
+    end
+    module.virtual_inventory:removeFromSlot(what_slot, quantity)
+
+    return true
+end
+
 function module.force_update_vinv()
     module.virtual_inventory:forceUpdateInternal()
 end

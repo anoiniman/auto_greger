@@ -19,6 +19,8 @@ local reasoning = require("reasoning.reasoning_obj")
 
 local robot_routine = require("robo_routine")
 
+comms.inject_post_exit(post_exit)
+
 local block_read_bool = true
 local do_exit = false
 

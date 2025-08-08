@@ -9,7 +9,9 @@ local term = require("term")
 local serialize = require("serialization")
 local component = require("component")
 local event = require("event")
-local table = require("table")
+
+local filesystem = require("filesystem")
+
 
 local tunnel = component.tunnel
 --local tunnel_addr = tunnel.getChannel()
@@ -75,7 +77,20 @@ function module.controller_send(any)
     return message_table
 end
 
+local post_exit = nil
+function module.inject_post_exit(obj)
+    post_exit = obj
+end
+
+-- luacheck: globals ALREADY_SAVED
+ALREADY_SAVED = false
 function module.robot_send(part1, part2) -- part1 & 2 must be strings
+    if part1 == "fatal" and filesystem.exists("/home/robot") then -- le emergency save
+        ALREADY_SAVED = true
+        post_exit.exit()
+        return part1, part2
+    end
+
     if (part1 == "debug" or part1 == "eval") and DO_DEBUG_PRINT ~= nil and not DO_DEBUG_PRINT then
         return part1, part2
     end
