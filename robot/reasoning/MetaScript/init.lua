@@ -229,7 +229,8 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     -- TODO implement mechanism to unlock this lock
     if needed_recipe == nil then
         -- TODO -- add different lock number for: "we check again after this many seconds" (3 is == "add to ils-system")
-        self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input
+        -- eh, for now fuck it, just return nil and wait?
+        -- self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input
         return nil
     elseif needed_recipe == "breadth" then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))

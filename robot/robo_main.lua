@@ -52,11 +52,7 @@ local function cron_jobs()
     local cron_time_delta = computer.uptime() - cron_time_interval
     if cron_time_delta > CRON_TIME then
         cron_time_interval = computer.uptime()
-
-        -- Great and in this way the priority of keep_alive actions over reasoning actions is maked
-        -- into the structure of the code, might as well make the return explicit
-        message_type, cron_message = keep_alive.keep_alive()
-        if cron_message ~= nil then return cron_message end
+        keep_alive.keep_alive()
 
         -- Deep Thoughts
         if DO_REASONING then

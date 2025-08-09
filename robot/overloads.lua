@@ -1,8 +1,11 @@
--- luacheck: globals OLD_PRINT DO_DEBUG_PRINT EMPTY_TABLE DO_LOAD
+-- luacheck: globals OLD_PRINT DO_DEBUG_PRINT EMPTY_TABLE DO_LOAD FUEL_TARGET DO_FUEL_GRIND FUEL_TYPE
 EMPTY_TABLE = {}
 
 -- TODO adding a save file to save this sort of global variables or a way to autocheck them idk
 DO_AUTO_FILL = false
+
+-- IS_MIN_BASE_ACHIEVED = false (replaced by DO_FUEL_GRIND)
+FUEL_TARGET = 192 -- sU, corresponds to 2 stacks of planks
 DO_FUEL_GRIND = false
 FUEL_TYPE = "wood"
 

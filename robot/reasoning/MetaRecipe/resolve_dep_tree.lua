@@ -128,11 +128,12 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
                 return "all_good", build
 
             elseif result == "wait" then
-                REASON_WAIT_LIST:checkAndAdd(build) -- building was sent to waiting list, cron will the re-rerun checks
+                -- TODO actually wait kekekekekeekek
+                -- REASON_WAIT_LIST:checkAndAdd(build) -- building was sent to waiting list, cron will the re-rerun checks
                                                     -- if we still need to use the building and it becomes avaliable use it
                                                     -- otherwise remove it form list (TODO)
 
-            elseif result == "no_resources" then -- TODO -> continue from here, add some debug symbols
+            elseif result == "no_resources" then
                 if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "MetaScript no dependencies when we should have some")) end
 
                 -- For example if we fail: No resources -> Oak Log, or No resources -> any:log etc. we should have a gathering or

@@ -71,8 +71,8 @@ local input_items = {
 Module.state_init = {
     function()
         return {
-            --last_checked = computer.uptime()
-            last_checked = computer.uptime() - 1000, -- temp (s)-
+            last_checked = computer.uptime()
+            -- last_checked = computer.uptime() - 1000, -- temp (s)-
 
             fsm = 1,
             in_what_asterisk = 1,
@@ -109,12 +109,10 @@ Module.hooks = { -- TODO this
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             if computer.uptime() - state.last_checked < 920 then return "wait" end
-            -- TODO generisize this harder, in the sense, that'll look specifically for what the caller is trying to
-            -- check, not just hardcoded "Oak Log"
 
             local storage_table = state_table[3][1]
             local input_storage = storage_table[1]
-            local how_many_log = input_storage.ledger:tryDetermineHowMany("log", nil, "expand_bucket")
+            local how_many_log = input_storage.ledger:howMany(nil, "any:log")
             if how_many_log < quantity_goal then
                 --comms.robot_send("debug", "no_resources coke_quad: how many log is:" .. how_many_log)
                 --comms.robot_send("debug", "no_resources coke_quad: needed is:" .. quantity_goal)
@@ -122,7 +120,7 @@ Module.hooks = { -- TODO this
             end -- else
 
             return "all_good"
-        elseif flag ~=  "raw_usage" and flag ~= "no_store" then
+        elseif flag ~= "raw_usage" and flag ~= "no_store" then
             error(comms.robot_send("fatal", "coke_quad -- todo (3)"))
         end
         local serial = serialize.serialize(state, true)

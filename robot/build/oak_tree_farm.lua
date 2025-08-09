@@ -82,8 +82,8 @@ end
 Module.state_init = {
     function()
         return {
-            last_checked = computer.uptime() - 60 * 23, -- temp thing
-            -- last_checked = computer.uptime(),
+            -- last_checked = computer.uptime() - 60 * 23, -- temp thing
+            last_checked = computer.uptime(),
 
             fsm = 1,
             in_what_asterisk = 1,

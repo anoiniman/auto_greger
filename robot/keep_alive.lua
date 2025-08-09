@@ -124,11 +124,11 @@ local function basic_energy_management(cur_energy, percentage)
     if raw_percentage < 15.0 then os.sleep(3) end
 end
 
+-- Maybe this is not necessary if we make it so the energy management things have the highest priority idk in rasoning
 local function advanced_energy_management(cur_energy, percentage)
     if not DO_FUEL_GRIND then return nil end
     local coke_quads = map.get_buildings("coke_quad")   -- hehehhe if we le coke quad etc.
 
-    local command = nil
     
     return command
 end
@@ -142,8 +142,7 @@ function module.keep_alive()
     local percentage = (cur_energy / max_energy) * 100
     basic_energy_management(cur_energy, percentage)
 
-    local command = advanced_energy_management(cur_energy, precentage) -- Might return a command to execute
-    return nil, command
+    return nil
 end
 
 return module
