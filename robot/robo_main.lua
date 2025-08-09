@@ -1,3 +1,4 @@
+-- luacheck: globals DO_LOAD
 local robot_name = "sumire-chan"
 require("overloads")
 
@@ -38,29 +39,35 @@ if DO_LOAD then post_exit.load_state({}) end
 
 
 --luacheck: globals CRON_TIME DO_REASONING REASON_ONCE
-CRON_TIME = 5
+CRON_TIME = 3.3
 DO_REASONING = false
 REASON_ONCE = false
 
 local cron_time_interval = computer.uptime()
 local function cron_jobs()
     -- luacheck: ignore message_type
-    local cron_message = nil
-    local message_type = nil
+    local cron_message
+    local message_type
 
     local cron_time_delta = computer.uptime() - cron_time_interval
     if cron_time_delta > CRON_TIME then
-        keep_alive.keep_alive()
         cron_time_interval = computer.uptime()
+
+        -- Great and in this way the priority of keep_alive actions over reasoning actions is maked
+        -- into the structure of the code, might as well make the return explicit
+        message_type, cron_message = keep_alive.keep_alive()
+        if cron_message ~= nil then return cron_message end
+
+        -- Deep Thoughts
         if DO_REASONING then
             message_type, cron_message = reasoning.step_script()
         elseif REASON_ONCE then
             REASON_ONCE = false
             message_type, cron_message = reasoning.step_script()
         end
-    end
 
-    return cron_message
+        return cron_message
+    end
 end
 
 -- Very special commands I guess

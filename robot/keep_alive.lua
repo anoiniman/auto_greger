@@ -1,21 +1,25 @@
--- luacheck: globals FUEL_TYPE
-FUEL_TYPE = false
+-- luacheck: globals FUEL_TYPE, DO_FUEL_GRIND
 
 -- For now, (but we'll need to improve this for the stone age to even work, as is obvious)
 -- we simply take wood from a predefined slot and shovel it into the generator, but hey
 -- baby steps
 local module = {}
 
+local computer = require("computer")
 local robot = require("robot")
 local component = require("component")
 
 local comms = require("comms")
 local inv = require("inventory.inv_obj")
 local item_buckets = require("inventory.item_buckets")
+local map = require("map_obj")
+
 
 local gen = component.getPrimary("generator")
 local inv_controller = component.getPrimary("inventory_controller")
 
+-- TODO programme the basic fuel-farming routines and when to start them, aka, stop doing progress and
+-- grind the fuel
 
 function module.prepare_exit()
     gen.remove(gen.count())
@@ -32,7 +36,16 @@ local function refuel()
 
     -- TODO (ATTENTION) In the early game we'll need to burn logs and shit, so add a flag to
     -- switch "any:fuel" to "any:plank" (it is free to turn logs into planks)
-    local fuel_slot = inv.find_largest_slot(nil, "any:fuel")
+    local fuel_slot
+    if FUEL_TYPE == "loose_coal" then
+        fuel_slot = inv.find_largest_slot(nil, "any:fuel") -- bucket name will probabily need to change
+    elseif FUEL_TYPE == "wood" then
+        fuel_slot = inv.find_largest_slot(nil, "any:plank")
+    else
+        print(comms.robot_send("error", "Unexpected fuel type"))
+        return false
+    end
+
     if fuel_slot == nil then return end
 
     -- TODO report these little errors to a log file or smthning
@@ -53,13 +66,23 @@ local function refuel()
     robot.select(1)
 end
 
+function module.force_fuel(slot_num)
+    robot.select(slot_num)
+    gen.insert(64)
+    robot.select(1)
+end
+
 -- Power Unit (PU) = (MJ * 4) / 10
 -- Coal Unit (cU) = 1280 MJ = 512 PU
 -- Standard Unit (sU) = 1/8 cU
 -- 1 Move = 15 PU = 1/34 cU = 4 * 1/4 (17/4) (4.25) sU, Moving 1 chunk = 240 PU = 1/2 cU = 4 sU = 1.5 logs
 local u_coal = 8.0; local u_wood = 1.5
 local u_creosote = 32.0
-local function calculate_cur_energy()
+function module.calculate_cur_energy(reserve) -- reserve, for example, always have 32 planks available for non power usage
+    local reserve = tonumber(reserve)
+    if reserve == nil then reserve = 0
+    elseif reserve < 0 then reserve = 0 end
+
     local unit_mult
     if cur_lable == "Coal" or cur_lable == "Charcoal" then unit_mult = u_coal
     elseif cur_name == "any:plank" or cur_name == "any:wood" then unit_mult = u_wood
@@ -69,13 +92,58 @@ local function calculate_cur_energy()
         return -1
     end
 
-    return cur_ammount * unit_mult -- sU
+    local total_ammount = cur_ammount + inv.virual_inventory:howMany(cur_lable, cur_name) - reserve
+    local fuel_energy = total_ammount * unit_mult -- sU
+    local battery_energy = computer.energy() / 64.0 -- PU -> sU
+
+    return battery_energy + fuel_energy
 end
 
--- very temporary code
+function module.possible_round_trip_distance(reserve)
+    local cur_energy = calculate_cur_energy(reserve)
+    -- take away some of it away to give us some margin (1/3)
+    cur_energy = cur_energy - (max_energy / 3.0)
+    return cur_energy 
+end
+
+local function basic_energy_management(cur_energy, percentage)
+    -- Determine if we have to emergency shut-off or something like that
+    if percentage < 12.0 then
+        print(comms.robot_send("warning", "Energy Dropped below 12%, shutting down"))
+        os.sleep(2.0) -- IDK if it matters, but it is good practice imo
+        computer.shutdown()
+    elseif percentage < 50.0 and not issued_warning then -- issue a warning
+        print(comms.robot_send("warning", "Energy Dropped below 50%"))
+        issued_warning = true
+    end
+
+    if percentage > 50.0 and issued_warning then issued_warning = false end
+
+    -- Determine if we need to take a break
+    local raw_percentage = ((computer.energy() / 64.0) / max_energy) * 100
+    if raw_percentage < 15.0 then os.sleep(3) end
+end
+
+local function advanced_energy_management(cur_energy, percentage)
+    if not DO_FUEL_GRIND then return nil end
+    local coke_quads = map.get_buildings("coke_quad")   -- hehehhe if we le coke quad etc.
+
+    local command = nil
+    
+    return command
+end
+
+local issued_warning = false
+local max_energy = computer.maxEnergy() / 64.0
 function module.keep_alive()
-    refuel()
-    local cur = calculate_cur_energy
+    refuel() -- The cool thing
+
+    local cur_energy = calculate_cur_energy()
+    local percentage = (cur_energy / max_energy) * 100
+    basic_energy_management(cur_energy, percentage)
+
+    local command = advanced_energy_management(cur_energy, precentage) -- Might return a command to execute
+    return nil, command
 end
 
 return module

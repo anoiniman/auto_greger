@@ -23,7 +23,7 @@ local el_state = {
     chunk = nil,
     i_id = nil,
 
-    sub_set = {"log"},
+    sub_set = {"wood"},  -- The subset doesn't check for the inv definition, but rather the golyzer definition
     interrupt = false,
     mode = "automatic", -- will search for areas tagged with "gather"
                         -- otherwise it will use the interactive system
@@ -70,7 +70,7 @@ local function climb_loop(state)
     while block_intersting do
         result = robot.swingUp() -- make sure this returns false on hitting air
         if not result then break end
-        inv.maybe_something_added_to_inv()
+        inv.maybe_something_added_to_inv(nil, "any:log")
 
         result, err = nav.debug_move("up", 1, 0)
         if not result then break end
@@ -84,7 +84,7 @@ local function work_stroke(state)
     -- We don't really care if it fails to equip tool since we can mine the blocks with our "hands" anyway
     local _ = inv.equip_tool("axe", 0)
     local break_result, _ = robot.swing() -- yurp
-    inv.maybe_something_added_to_inv()
+    inv.maybe_something_added_to_inv(nil, "any:log")
 
     if not break_result then
         print(comms.robot_send("warning", "surface_resource_sweep, I thought the block was a block we \z
@@ -95,9 +95,15 @@ local function work_stroke(state)
     nav.force_forward()
     climb_loop(state)
     come_down()
-    os.sleep(10) -- wait for leaves to decay
-    sucker.suck() -- assuming all this goes into first slot, otherwise we need to change the inv code
-    inv.maybe_something_added_to_inv()
+    os.sleep(16) -- wait for leaves to decay
+    -- assuming all this goes into first slot, otherwise we need to change the inv code
+
+    local le_suck = true
+    while le_suck do
+        le_suck = sucker.suck()
+        inv.maybe_something_added_to_inv(nil, "any:sapling")
+        inv.maybe_something_added_to_inv("Apple", nil)
+    end
 
     return false
 end

@@ -3,6 +3,8 @@ EMPTY_TABLE = {}
 
 -- TODO adding a save file to save this sort of global variables or a way to autocheck them idk
 DO_AUTO_FILL = false
+DO_FUEL_GRIND = false
+FUEL_TYPE = "wood"
 
 DO_DEBUG_PRINT = false
 DO_LOAD = true

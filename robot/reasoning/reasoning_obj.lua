@@ -92,6 +92,7 @@ function reason_obj.re_instantiate(big_table)
     for index, script in ipairs(scripts) do
         if script.desc == save_script_desc then
             cur_script = scripts[index]
+            s_index = index
             success = true
             break
         end

@@ -646,6 +646,7 @@ function module.equip_tool(tool_type, tool_level)
     return result
 end
 
+-- These blind swing this are pretty much only needed if you don't know what you're swinging at
 local function swing_general(swing_function, dir, pre_analysis)
     local g_info
     if pre_analysis ~= nil then

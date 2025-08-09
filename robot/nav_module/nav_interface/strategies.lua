@@ -23,16 +23,22 @@ local function table_contains(extra_sauce, what)
     return false
 end
 
+local smart_move_down_forwards, smart_move_down_backwards
 local function do_move_down(parent, nav_obj, extra_sauce)
+    -- Maybe faulty nil corrections, oh well
+    if smart_move_down_forwards == nil then smart_move_down_forwards = nav_obj.get_orientation() end
+    if smart_move_down_backwards == nil then 
+        smart_move_down_backwards = parent.get_opposite_orientation(nav_obj.get_orientation())
+    end
+
     local result, err = parent.base_move("down", nav_obj)
 
     if table_contains(extra_sauce, "smart_fall") then
         if result then -- else let it fall through, the caller will deal with it
-            local old_orient = nav_obj.get_orientation()
-            local new_orient = parent.get_opposite_orientation(nav_obj)
-            parent.change_orientation(new_orient, nav_obj)
+            local orient = nav_obj.get_orientation()
+            if orient ~= smart_move_down_backwards then parent.change_orientation(new_orient, nav_obj) end
 
-            local result = inv.place_block("front", "any:building_block", "name")
+            local result = inv.place_block("front", {"any:building_block", "any:grass"}, "name_table")
             if not result then
 
                 inv.equip("sword")
@@ -50,8 +56,6 @@ local function do_move_down(parent, nav_obj, extra_sauce)
 
                 ::no_error::
             end
-
-            parent.change_orientation(old_orient, nav_obj) -- required so that we do not lose track of which way "forwards" is
         end
     end
 
@@ -59,7 +63,7 @@ local function do_move_down(parent, nav_obj, extra_sauce)
 end
 
 -- If lava then uhhh don't?
--- It'll move down as much as it can without returning to the main loop, while the down-sides are
+-- It'll move down as much as it can without/before returning to the main loop, while the down-sides are
 -- obvious it really simplifies the internal logic and mantains this functions as stateless
 local function maybe_move_down(parent, nav_obj, extra_sauce)
     -- luacheck: ignore result err
@@ -67,7 +71,7 @@ local function maybe_move_down(parent, nav_obj, extra_sauce)
     local err = nil
 
     local _, block_type = robot.detectDown()
-    if block_type == "air" or block_type == "liquid" then
+    if block_type == "air" then
         -- Aka: just dew it
         result, err = do_move_down(parent, nav_obj, extra_sauce)
 
@@ -141,8 +145,8 @@ local function surface(parent, direction, nav_obj, extra_sauce)
 
     if err ~= nil and err == "impossible move" then
         -- for know we just panic, maybe one day we'll add better AI
-        print(comms.robot_send("error", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
-        return false, "impossible"
+        error(comms.robot_send("fatal", "real_move: we just IMPOSSIBLE MOVED OURSELVES"))
+        -- return false, "impossible"
 
     elseif err ~= nil and err ~= "impossible move" then
         if not table_contains(extra_sauce, "no_auto_up") then
@@ -174,7 +178,10 @@ end
 
 -- Added this "entry-function" so that I can capture the results, and track some state (evil)
 function module.surface(parent, direction, nav_obj, extra_sauce)
+    smart_move_down_forwards = direction
     local result, err = surface(parent, direction, nav_obj, extra_sauce)
+    smart_move_down_forwards = nil
+
     if result then
         entity_watch_dog = 0
         if err == nil or err ~= "auto_up" then
@@ -190,7 +197,7 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
     end
     if climb_watch_dog == 2 then -- let's see if there is a tree ahead of us, and in front as whell (fat trees)
         local analysis = geolyzer.simple_return()
-        if geolyzer.sub_compare("log", "naive_contains", analysis) then
+        if geolyzer.sub_compare("wood", "naive_contains", analysis) then
             -- forward
             inv.equip_tool("axe", 0) -- maybe unneeded?
             robot.swing() -- will succeed
@@ -199,14 +206,14 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
 
             -- 1
             robot.swingDown()
-            inv.maybe_something_added_to_inv()
+            inv.maybe_something_added_to_inv(nil, "any:log")
             local result, err = module.free(parent, "down", nav_obj, EMPTY_TABLE)
             if not result then goto get_out end
 
 
             -- 2
             robot.swingDown()
-            inv.maybe_something_added_to_inv()
+            inv.maybe_something_added_to_inv(nil, "any:log")
             local result, err = module.free(parent, "down", nav_obj, EMPTY_TABLE)
             if not result then goto get_out end
 
@@ -250,7 +257,9 @@ function module.free(parent, direction, nav_obj, extra_sauce)
         -- sanity check
         if direction == "up" or direction == "down" then
             print(comms.robot_send("warning", "free_move, passed a \"auto_bridge\" directive to an 'up' or 'down' direction"))
-            return true, nil
+            local result, err = parent.base_move(direction, nav_obj)
+            return result, err
+            --return true, nil
         end
 
         -- luacheck: ignore
