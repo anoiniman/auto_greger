@@ -167,6 +167,14 @@ function module.debug(arguments)
         else
             print(comms.robot_send("error", "invalid arguments"))
         end
+    elseif arguments[1] == "reas" then
+
+        if arguments[2] == "print_dud" then
+            reason.print_dud()
+        else
+            print(comms.robot_send("error", "invalid arguments"))
+        end
+
     elseif arguments[1] == "debug_mode" then
         if arguments[2] == "on" or tonumber(arguments[2]) == 1 then
             DO_DEBUG_PRINT = true

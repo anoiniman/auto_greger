@@ -1,6 +1,7 @@
 ---- Global Objects ----
 -- luacheck: push ignore
 local serialize = require("serialization")
+local computer = require("computer")
 -- luacheck: pop
 
 ---- Shared ----
@@ -29,6 +30,12 @@ function MetaScript:addGoal(goal)
         error(comms.robot_send("fatal", "MetaScript:addGoal, attempted to add nil or bad goal :/"))
     end
     prio_insert.named_insert(self.goals, goal)
+end
+
+MetaScript.latest_dud = {"Nothing", computer.uptime()}
+function MetaScript:printLatestDud()
+    local calc = computer.uptime() - self.latest_dud[2]
+    print(comms.robot_send("info", string.format("Latest Dud: %s, %ss", self.latest_dud[1], calc)))
 end
 
 -- check if posterior script file can be unlocked
@@ -117,7 +124,7 @@ end
 local Goal = {name = "None", dependencies = nil, constraint = nil, priority = 0, do_once = false}
 function Goal:new(dependencies, constraint, priority, name, do_once)
     local new = deep_copy.copy(self, pairs)
-    if name == nil then 
+    if name == nil then
         print(comms.robot_send("error", "Failed to create goal because no name sent"))
         print(comms.robot_send("error", debug.traceback()))
     end
@@ -213,6 +220,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     if needed_recipe == nil then
         -- self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input (TODO)
         self.constraint.const_obj.lock[1] = 0 -- auto-unlock until we implement the waiting list fully
+        parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
         return nil
     end
 
@@ -231,6 +239,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         -- TODO -- add different lock number for: "we check again after this many seconds" (3 is == "add to ils-system")
         -- eh, for now fuck it, just return nil and wait?
         -- self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input
+        parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
         return nil
     elseif needed_recipe == "breadth" then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))

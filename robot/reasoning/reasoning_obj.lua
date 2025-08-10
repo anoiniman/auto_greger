@@ -129,4 +129,8 @@ function reason_obj.step_script()
     return cur_script:step()
 end
 
+function reason_obj.print_print_dud()
+    cur_script:printLatestDud()
+end
+
 return reason_obj
