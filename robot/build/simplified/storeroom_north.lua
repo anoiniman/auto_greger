@@ -1,7 +1,7 @@
 local deep_copy = require("deep_copy")
 
 local Module = {parent = nil}
-Module.name = "simplified.storeroom_north"
+Module.name = "simplified/storeroom_north"
 
 Module.dictionary = {
     ["0"] = "Quarried Brick",

@@ -3,7 +3,7 @@ local deep_copy = require("deep_copy")
 local meta_door = require("build.MetaBuild.MetaDoorInfo")
 
 local Module = {parent = nil}
-Module.name = "simplified.storeroom_south"
+Module.name = "simplified/storeroom_south"
 
 Module.dictionary = {
     ["0"] = "Quarried Brick",

@@ -129,7 +129,7 @@ function Goal:new(dependencies, constraint, priority, name, do_once)
     elseif dependencies.name ~= nil then -- it means this is not a table of dependencies
         new.dependencies = { dependencies }
     else
-        new.dependencies = dependencies
+        new.dependencies = dependencies  -- because it already IS a table of dependencies (hopefully)
     end
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
     new.priority = priority or 0

@@ -142,7 +142,7 @@ local function down_stroke(climbed_amount)
         end
 
         robot.swingDown()
-        inv.maybe_something_added_to_inv()
+        inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
         result = nav.debug_move("down", 1)
         if not result then err_watch_dog = err_watch_dog + 1 end
     end
@@ -153,7 +153,7 @@ local function down_stroke(climbed_amount)
         -- else
 
         robot.swingDown()
-        inv.maybe_something_added_to_inv()
+        inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
         local result = nav.debug_move("down", 1)
         if not result then break end
     end
@@ -169,7 +169,7 @@ local function go_next()
         nav.rotate_right()
     end
     robot.swing()
-    inv.maybe_something_added_to_inv()
+    inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
     local result, _ = nav.force_forward()
     if not result then print(comms.robot_send("error", "We entered a strange state in spruce farming!")) end
 end
@@ -192,7 +192,7 @@ Module.hooks = {
         inv.equip_tool("axe", 0)
 
         robot.swing()
-        inv.maybe_something_added_to_inv()
+        inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
         nav.force_forward()
 
         local _
@@ -207,8 +207,11 @@ Module.hooks = {
             go_next()
         end -- only then try to suck-up saplings
 
-        suck.suck() -- once again I hope it sucks it to the first slot
-        inv.maybe_something_added_to_inv()
+        local do_suck = true
+        while do_suck do
+            do_suck = suck.suck() -- once again I hope it sucks it to the first slot
+            inv.maybe_something_added_to_inv("Spruce Sapling", "any:sapling")
+        end
     end
 }
 

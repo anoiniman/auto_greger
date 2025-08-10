@@ -75,7 +75,7 @@ end
 -- Power Unit (PU) = (MJ * 4) / 10
 -- Coal Unit (cU) = 1280 MJ = 512 PU
 -- Standard Unit (sU) = 1/8 cU
--- 1 Move = 15 PU = 1/34 cU = 4 * 1/4 (17/4) (4.25) sU, Moving 1 chunk = 240 PU = 1/2 cU = 4 sU = 1.5 logs
+-- 1 Move = 15 PU = 1/34 cU = 4/17 (~0.25) sU, Moving 1 chunk = 240 PU = 1/2 cU = 4 sU = 1.5 logs
 local u_coal = 8.0; local u_wood = 1.5
 local u_creosote = 32.0
 function module.calculate_cur_energy(reserve) -- reserve, for example, always have 32 planks available for non power usage
