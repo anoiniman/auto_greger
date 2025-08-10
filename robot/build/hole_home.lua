@@ -7,6 +7,9 @@ local general_functions = require("build.general_functions")
 
 Module.name = "hole_home"
 
+-- we'll need to place the chosen power generator since it is a non OpenOS part, but the rest we'll place by hand,
+-- because... uhhhhh yeah, the rules, and then I guess locking ourselves in really is easier manually, eventually
+-- we'll sub a door in I guess idk
 Module.dictionary = {
     --["t"] = "Torch",
     --["d"] = {"sub", "dirt", "any"}, -- instruction, base, alternative(s) "any" == any
