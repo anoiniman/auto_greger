@@ -10,7 +10,7 @@ local MetaElement = {interactive_type = nil, human_readable = nil, data_table = 
 function MetaElement:new(interactive_type, human_readable)
     --if type(id) ~= "table" then error("what are you, stupid?!") end
     local new = deep_copy.copy(self, pairs)
-    --new.id = id
+
     new.interactive_type = interactive_type
     new.human_readable = human_readable
     return new
@@ -27,7 +27,6 @@ local incremental_id = 0
 
 local function get_new_id() -- now with this linear search will no longer be necessary O(1) baby, we could've
                             -- also simply used an offset bu who cares
-
     if incremental_id > 0 then
         for index = 1, incremental_id, 1 do
             if wait_list[index] == nil then
@@ -43,6 +42,7 @@ end
 function module.add(interactive_type, human_readable) -- returns id
     local new_id = get_new_id()
     local new_element = MetaElement:new(interactive_type, human_readable)
+    print(comms.robot_send("info", string.format("[%s] New ifs entry has been set: %s", new_id, human_readable)))
     wait_list[new_id] = new_element
     return new_id
 end

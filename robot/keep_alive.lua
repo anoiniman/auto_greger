@@ -1,4 +1,4 @@
--- luacheck: globals FUEL_TYPE, DO_FUEL_GRIND
+-- luacheck: globals FUEL_TYPE DO_FUEL_GRIND
 
 -- For now, (but we'll need to improve this for the stone age to even work, as is obvious)
 -- we simply take wood from a predefined slot and shovel it into the generator, but hey
@@ -12,7 +12,7 @@ local component = require("component")
 local comms = require("comms")
 local inv = require("inventory.inv_obj")
 local item_buckets = require("inventory.item_buckets")
-local map = require("map_obj")
+-- local map = require("map_obj")
 
 
 local gen = component.getPrimary("generator")
@@ -34,8 +34,6 @@ local function refuel()
         return
     end
 
-    -- TODO (ATTENTION) In the early game we'll need to burn logs and shit, so add a flag to
-    -- switch "any:fuel" to "any:plank" (it is free to turn logs into planks)
     local fuel_slot
     if FUEL_TYPE == "loose_coal" then
         fuel_slot = inv.find_largest_slot(nil, "any:fuel") -- bucket name will probabily need to change
@@ -59,7 +57,7 @@ local function refuel()
         return
     end
 
-    local to_insert = 64 - fuel_count
+    local to_insert = 64 - gen.count()
     gen.insert(to_insert)
     inv.remove_from_slot(fuel_slot, to_insert)
 
@@ -72,14 +70,17 @@ function module.force_fuel(slot_num)
     robot.select(1)
 end
 
+local issued_warning = false
+local max_energy = computer.maxEnergy() / 64.0
+
 -- Power Unit (PU) = (MJ * 4) / 10
 -- Coal Unit (cU) = 1280 MJ = 512 PU
 -- Standard Unit (sU) = 1/8 cU
 -- 1 Move = 15 PU = 1/34 cU = 4/17 (~0.25) sU, Moving 1 chunk = 240 PU = 1/2 cU = 4 sU = 1.5 logs
 local u_coal = 8.0; local u_wood = 1.5
 local u_creosote = 32.0
-function module.calculate_cur_energy(reserve) -- reserve, for example, always have 32 planks available for non power usage
-    local reserve = tonumber(reserve)
+function module.calculate_cur_energy(o_reserve) -- reserve, for example, always have 32 planks available for non power usage
+    local reserve = tonumber(o_reserve)
     if reserve == nil then reserve = 0
     elseif reserve < 0 then reserve = 0 end
 
@@ -99,14 +100,20 @@ function module.calculate_cur_energy(reserve) -- reserve, for example, always ha
     return battery_energy + fuel_energy
 end
 
-function module.possible_round_trip_distance(reserve)
-    local cur_energy = calculate_cur_energy(reserve)
+function module.possible_round_trip_distance(reserve, high_margin)
+    if high_margin == nil then high_margin = false end
+    local margin
+    if high_margin then margin = max_energy
+    else margin = max_energy / 3.0 end
+
+    local cur_energy = module.calculate_cur_energy(reserve) / 2
     -- take away some of it away to give us some margin (1/3)
-    cur_energy = cur_energy - (max_energy / 3.0)
-    return cur_energy 
+    cur_energy = cur_energy - margin
+
+    return cur_energy * (17.0 / 4.0) -- converts sU into blocks
 end
 
-local function basic_energy_management(cur_energy, percentage)
+local function basic_energy_management(_cur_energy, percentage)
     -- Determine if we have to emergency shut-off or something like that
     if percentage < 12.0 then
         print(comms.robot_send("warning", "Energy Dropped below 12%, shutting down"))
@@ -125,20 +132,18 @@ local function basic_energy_management(cur_energy, percentage)
 end
 
 -- Maybe this is not necessary if we make it so the energy management things have the highest priority idk in rasoning
-local function advanced_energy_management(cur_energy, percentage)
+--[[local function advanced_energy_management(cur_energy, percentage)
     if not DO_FUEL_GRIND then return nil end
     local coke_quads = map.get_buildings("coke_quad")   -- hehehhe if we le coke quad etc.
 
-    
-    return command
-end
 
-local issued_warning = false
-local max_energy = computer.maxEnergy() / 64.0
+    return command
+end--]]
+
 function module.keep_alive()
     refuel() -- The cool thing
 
-    local cur_energy = calculate_cur_energy()
+    local cur_energy = module.calculate_cur_energy()
     local percentage = (cur_energy / max_energy) * 100
     basic_energy_management(cur_energy, percentage)
 

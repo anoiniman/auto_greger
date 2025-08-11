@@ -53,11 +53,6 @@ builder:addGoal(__g_f_shovel01)
 
 -- 03c (Do not use Axes until you've got ore, you'll struggle to have enough flint, shovels are ok-ish tho)
 
--- 03d
-constraint = Constraint:newItemConstraint(nil, "Flint Pickaxe", 1, 2, nil)
-local __g_f_pickaxe01 = Goal:new({__g_logs01, __g_f_shovel01, __g_f_axe01}, constraint, 68, "__g_f_pickaxe01", false)
-builder:addGoal(__g_f_pickaxe01)
-
 -- 04
 constraint = Constraint:newBuildingConstraint(__dec_oak_tree_farm, nil)
 local __g_oak_tree_farm01 = Goal:new(__g_f_axe01, constraint, 60, "__g_oak_tree_farm01", false)
@@ -84,8 +79,16 @@ local __g_coke_quad01 = Goal:new(__g_sp_storeroom01, constraint, 60, "__g_coke_q
 builder:addGoal(__g_coke_quad01)
 
 -----------------------------------------
+-- TODO, don't forget to finger the pie for the buildings! You didn't finger them last time!
 
--- Second Era (Charcoal Burning Era)
+-- Second Era (Charcoal Burning Era) <Aka, Mining Era, etc, and we actually start crafting axes n shit>
+
+-- 01a (TODO -> Remove the flint tool constraints from the tree after we are able to use "good" tools,
+-- remember to use a global variable I guess, so it does not accidentally 'unset' during weird interactions
+-- when we do save/loads)
+constraint = Constraint:newItemConstraint(nil, "Flint Pickaxe", 2, 3, nil)
+local __g_f_pickaxe01 = Goal:new(__g_coke_quad01, constraint, 68, "__g_f_pickaxe01", false)
+builder:addGoal(__g_f_pickaxe01)
 
 
 

@@ -45,6 +45,17 @@ function module.debug(arguments)
         end
         side = tonumber(side)
         geolyzer.debug_print(side)
+    elseif arguments[1] == "set_home" then -- PLEASE NEVER FORGET TO DO THIS!
+        local x = tonumber(arguments[2])
+        local z = tonumber(arguments[3])
+        if x == nil or z == nil then
+            print(comms.robot_send("error", "Invalid argument(s)"))
+            return nil
+        end
+
+        HOME_CHUNK[1] = x
+        HOME_CHUNK[2] = z
+        print(comms.robot_send("info", string.format("HOME_CHUNK = (%s, %s)", HOME_CHUNK[1], HOME_CHUNK[2])))
     elseif arguments[1] == "move" then
         local move = arguments[2]
         local how_much = arguments[3]
@@ -289,6 +300,7 @@ function module.debug(arguments)
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end
+
     return nil
 end
 

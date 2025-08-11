@@ -525,7 +525,7 @@ end
 --
 function module.get_chunk(what_chunk) -- Evil function!
     local map_chunk = module.chunk_exists(what_chunk)
-    if map_chunk == nil then return -1 end
+    if map_chunk == nil then return nil end -- changed from returning -1 to return nil, hopefully no problems I hope
 
     return map_chunk
 end

@@ -207,6 +207,12 @@ function module.force_reset_navigate_chunk()
     chunk_move.reset()
 end
 
+
+-- This is debug_move, but useful for surface navigation
+function module.surface_move(dir)
+    return interface.r_move("surface", dir, nav_obj, EMPTY_TABLE)
+end
+
 function module.debug_move(dir, distance, forget)
     return interface.debug_move(dir, distance, forget, nav_obj)
 end
