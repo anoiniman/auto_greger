@@ -23,7 +23,7 @@ end
 
 local entity_watch = 0
 
-function module.be_an_elevator(target_height, complex_mode, wall_dir)
+function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool)
     if complex_mode == nil then
         complex_mode = false
     end
@@ -34,7 +34,7 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir)
         local is_wall, _ = robot.detect()
         if not is_wall then
             local result = inv.place_block("front", {"any:building", "any:grass"}, "name_table")
-            print(comms.robot_send("warning", "Uh oh, be an elevator"))
+            if not result then print(comms.robot_send("warning", "Uh oh, be an elevator")) end
         end
     end
 
@@ -50,9 +50,19 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir)
     -- This prob can be fixed with auto block placing but I'm too lazy for now TODO
     if err == "impossible" then return false
     elseif err == "block" then
-        return inv.blind_swing_down()
+        if force_tool == nil then
+            return inv.blind_swing_down()
+        else
+            local result = inv.equip_tool(force_tool, 0)
+            if not result then return false end
+
+            local result, _ = robot.swingDown()
+            inv.maybe_something_added_to_inv()
+            return result
+        end
     else
         entity_watch = entity_watch + 1
+        return true
     end
 end
 

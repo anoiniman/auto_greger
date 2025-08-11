@@ -1,7 +1,9 @@
 -- luacheck: globals HOME_CHUNK AUTOMATIC_EXPAND_ORE
 
-local comms = require("comms")
+local sides_api = require("sides")
+local robot = require("robot")
 
+local comms = require("comms")
 local deep_copy = require("deep_copy")
 
 -- local interactive = require("interactive")
@@ -15,12 +17,36 @@ local elevator = require("nav_module.simple_elevator")
 local inv = require("inventory.inv_obj")
 local item_bucket = require("inventory.item_buckets")
 
-
 local MetaRecipe = require("reasoning.MetaRecipe")
 
+------------------------------------
+-- el-state is not global but I saw myself forced to forward declare it for reasons
+
+-- Ideally we'd "feather" out of the chunk a little bit, because of the way ore chunks are, they tend to "spread" into
+-- other chunks somewhat, but that justs makes the code more complicated and I don't want that
+local el_state = {
+    -- i_id = nil,
+    priority = 0,
+
+    not_enough_fuel_reported = false,
+
+    wanted_ore = nil,   -- {lable, name} ahh table plz, needs to be properly initialised by caller :)
+    chunk_ore = nil,
+    needed_tool_level = 0,
+
+    chunk = nil,        -- Only 1 state per chunk please, careful when storing state :)
+                        -- Terrifying - the el state for "gather" actually contains a chunk-ref rather than just coords
+    cleared = false,
+    latest_rel_pos = nil,
+    latest_height = nil,
+
+    step = 0,
+}
+--------------------------------------
 
 ---- Global State -----------
--- TODO - Implement save/load for this global state :( (IT HURRRRTSSSS)
+-- TODO - Implement save/load for this global state :( (IT HURRRRTSSSS), but I think the objects are straight serialiseable
+-- so maybe we're just in luck? No references to handle! :)
 
 local state_list = { -- lists states currently in memory
 
@@ -50,7 +76,7 @@ end
 -- Examples are (1,-1) (22,19) (-124,67) - using chunk X/Z.
 --
 -- abs(chunk) % 3 = 1
-local function get_next_ore_chunk() -- take the last chunk registered
+local function get_next_ore_chunk(wanted_ore) -- take the last chunk registered
     if #state_list == 0 then
         return {1, 1}
     end
@@ -114,9 +140,21 @@ local function get_next_ore_chunk() -- take the last chunk registered
     selected_chunk[1] = selected_chunk[1] + x_offset
     selected_chunk[2] = selected_chunk[2] + z_offset
 
-    if selected_chunk == nil or map.get_chunk(selected_chunk) == nil then -- invalid chunk in search
+    local virtual_chunk = map.get_chunk(selected_chunk)
+    if selected_chunk == nil or virtual_chunk == nil then -- invalid chunk in search
         print(comms.robot_send("error", "automatic ore chunk expansion returned a invalid chunk"))
         return nil
+    end
+
+    -- TODO -> DON'T HARD-CODE THIS (welp, it'll be fine for now.... I hope)
+    if virtual_chunk.chunk.parent_area ~= nil and virtual_chunk.chunk.parent_area.name == "home" then
+        -- we should not dig holes in our base automatically for reasons that should be obvious
+        local fake_state = deep_copy.copy(el_state, pairs)
+        fake_state.wanted_ore = wanted_ore
+        fake_state.chunk = selected_chunk
+        table.insert(state_list, fake_state)
+
+        return get_next_ore_chunk(wanted_ore)  -- hopefully I don't have to tail optimise this crap :sob:
     end
 
     return selected_chunk
@@ -148,28 +186,31 @@ local function get_ore_chunk(wanted_ore)
         return closest_good_state, "state"       -- we know this chunk as what we're looking for ([1] is a state)
     end
 
-    return get_next_ore_chunk(), "chunk_coords"  -- we don't know if this has what we're looking for ([1] is a chunk)
+    return get_next_ore_chunk(wanted_ore), "chunk_coords"  -- we don't know if this has what we're looking for ([1] is a chunk)
+end
+
+-- Checks all possible things that might've been added in exploring underground things
+local function maybe_something_added()
+    inv.maybe_something_added_to_inv(nil, "any:building")
+    inv.maybe_something_added_to_inv("Dirt", nil)
+    inv.maybe_something_added_to_inv("Gravel", nil)
+end
+
+local function set_state22(state, warn)
+    if warn == nil then warn = nil
+    else warn = tostring(warn) end
+
+    state.latest_rel_pos = nav.get_rel()
+    state.latest_height = nav.get_height()
+    state.step = 22
+
+    if warn ~= nil then
+        print(comms.robot_send("warning", "We set 22 in bad circunstances: " .. warn .. "\n" .. debug.traceback()))
+    end
 end
 
 ---- Not Global State -------
 
--- Ideally we'd "feather" out of the chunk a little bit, because of the way ore chunks are, they tend to "spread" into
--- other chunks somewhat, but that justs makes the code more complicated and I don't want that
-local el_state = {
-    i_id = nil,
-    priority = 0,
-
-    not_enough_fuel_reported = false,
-
-    wanted_ore = nil,   -- {lable, name} ahh table plz, needs to be properly initialised by caller :)
-    chunk_ore = nil,
-    needed_tool_level = 0,
-
-    chunk = nil,        -- Only 1 state per chunk please, careful when storing state :)
-                        -- Terrifying - the el state for "gather" actually contains a chunk-ref rather than just coords
-    cleared = false,
-    step = 0,
-}
 
 local function automatic(state, mechanism)
     -- Sanity Check
@@ -181,7 +222,7 @@ local function automatic(state, mechanism)
     end
 
 
-    -- TODO summon logistic storing unneeded stuff
+    -- TODO summon logistic storing unneeded stuff (we'll have load outs n' shit)
     if state.step == 0 then -- Basic state loading
         state.wanted_ore = deep_copy.copy(mechanism.output)
         state.step = 1
@@ -228,6 +269,7 @@ local function automatic(state, mechanism)
         if is_finished then
             state.step = 3
         end
+
         return "Nope", nil
     elseif state.step == 3 then -- I think we should build the shaft in a pre-determined location (rel: 7, 7)
         local cur_rel = nav.get_rel()
@@ -243,7 +285,7 @@ local function automatic(state, mechanism)
     elseif state.step == 4 then -- now we dig a shaft (remember to protect the shaft wall at all times :))
         -- this is literally the worst way to do this, but also the easieast so whatever
         local inv_snapshot = deep_copy.copy(inv.virtual_inventory, pairs)
-        local result = elevator.be_an_elevator(0, true, "south") -- way say: dig till zero, cause we're waiting to hit ore!
+        local result = elevator.be_an_elevator(0, true, "south", "pickaxe") -- way say: dig till zero, cause we're waiting to hit ore!
 
         if not result then -- This means we weren't able to break the block below us, and we need to handle this fact
             local analysis = geolyzer.simple_return()
@@ -257,21 +299,131 @@ local function automatic(state, mechanism)
 
         for _, diff in ipairs(diff_tbl) do
             if diff.lable == state.wanted_ore then
-                local analysis = geolyzer.simple_return()
-                state.needed_tool_level = analysis.harvestLevel
-                state.chunk_ore = item_bucket.normalise_ore(diff.lable)
-                state.step = 5
-            elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
-                local analysis = geolyzer.simple_return()
-                state.needed_tool_level = analysis.harvestLevel
+                state.chunk_ore, state.needed_tool_level = item_bucket.normalise_ore(diff.lable)
+                state.step = 5 -- Continue down the "good path"
 
+                local result, _ = inv.equip_tool("pickaxe", state.needed_tool_level) -- get ourselves 1 block further down
+                if not result then
+                    print(comms.robot_send("error", "Failed to equip pickaxe with needed level in mining: " .. state.needed_tool_level))
+                    state.step = 11
+                    return "Interrupt", nil
+                end
+
+                result, _ = robot.swingDown()
+                if not result then
+                    print(comms.robot_send("error", "Failed to mine 01"))
+                    state.step = 11
+                    return "Interrupt", nil
+                end
+                maybe_something_added() -- Important
+
+                return "Nope", nil
+            elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
+                local analysis = geolyzer.simple_return(sides_api.bottom)
+                state.needed_tool_level = analysis.harvestLevel
+                state.chunk_ore = "Unmined"
+                state.step = 11 -- Swap to bad path 1
+
+                return "Interrupt", nil
             end
         end
-    else
-        error(comms.robot_send("fatal", "Bad State ore-gathering"))
+
+        local cur_height = nav.get_height()
+        if cur_height <= 3 then
+            print(comms.robot_send("error", "We went all the way down to the bedrock, yet....."))
+
+            state.chunk_ore = "Empty"
+            state.step = 22
+            return "Interrupt", nil
+        end
+
+        return "Nope", nil -- keep le digging
+    elseif state.step == 5 then -- now we go to 0,0!
+        -- swing first, axe (ha) questions later
+        local result, _ = inv.equip_tool("pickaxe", state.needed_tool_level) -- get ourselves 1 block further down
+        if not result then set_state22(state) end
+
+        local function s5_move(orient)
+            nav.change_orientation(orient)
+            result, _ = robot.swing()
+            if not result then set_state22(state, "swing failed") end
+
+            maybe_something_added()
+
+            local err
+            result, err = nav.force_forward()
+            if not result then
+                if err ~= "impossible" then
+                    set_state22(state, "err: " .. err)
+                    return false
+                end
+                print(comms.robot_send("error", "this mine is not stable, and I don't care to make it stable, we're bailing \z
+                                        and setting its clear state to: \"clear\", maybe in the future I do it right rn don't care"))
+                state.step = 31
+                return true
+            end
+
+            return true
+        end
+
+        local cur_rel = nav.get_rel()
+        if cur_rel[1] > 0 then
+            local result = s5_move("north")
+            if result then return "Nope", nil
+            else return "Interrupt", nil end
+        end
+        if cur_rel[2] > 0 then
+            local result = s5_move("west")
+            if result then return "Nope", nil
+            else return "Interrupt", nil end
+        end
+
+        -- Great, now we are on 0,0!
+        state.step = 6
+        return "Nope", nil
+    elseif state.step == 6 then -- now we crawl around in the mud! (remember we have rock above us and below, hopefully)
+        -- we'll keep sweeping until we are ~6-7 blocks below our starting point, I think that is the sweet spot
+        if not nav.is_sweep_setup() then
+            nav.setup_sweep()
+        end
+        local sweep_result = nav.sweep(false) -- goes forward one block (not surface_move using)
+
+        if sweep_result == -1 then
+            -- go to mode 21, and move height value further 3-down?, else if we're already low enough, set 41 and clear with no error
+            state.chunk:addMark("surface_depleted")
+            return true, nil
+        elseif sweep_result == 0 then
+            -- careful with hardened _clay_ (and _sand_stone)
+            local interesting_block = check_subset(state)
+            if interesting_block == true then
+                state.step = 4
+            end
+        elseif sweep_result == 1 then
+            -- makes sense for surface move but maybe not so much for other storts of move
+            error(comms.robot_send("fatal", "not able to deal with a failed sweep for now"))
+        else
+            error(comms.robot_send("fatal", "ore_mining sweep_result is not expected"))
+        end
     end
 
-    return "Nope", nil
+    -- state.step == 11 means, we are yet to progress past step 4, this will mostly be
+    -- things that were above our mining level at the time (It won't matter (mostly, I hope) for the stone-age tho)
+    if state.step == 11 then
+        error(comms.robot_send("fatal", "TODO! in oremining"))
+    end
+
+    -- This means "regular" (post step 4) mining interruption (we ran out of pickaxes, or acheived our goal or smthing)
+    if state.step == 21 then
+        error(comms.robot_send("fatal", "TODO2! in oremining"))
+    end
+
+    -- This means: "Time to nigerun-dayo out of here"
+    if state.step == 31 then
+        error(comms.robot_send("fatal", "TODO3! in oremining"))
+        state.clear = true
+    end
+
+    error(comms.robot_send("fatal", "Bad State ore-gathering, we somehow fell through"))
 end
 
 local function ore_mining(arguments)

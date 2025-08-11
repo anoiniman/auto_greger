@@ -105,58 +105,58 @@ function module.normalise_ore(lable)
     local function flabl(hole) return string.find(lable, hole) end
 
     if flabl("Copper") or flabl("Chalcopyrite") or flabl("Raw Iron") or flabl("Pyrite") then
-        return "Raw Copper Ore"
+        return "Raw Copper Ore", 1
     end
     if flabl("Gold") or flabl("Magnetite") or flabl("Raw Iron") then
-        return "Raw Gold Ore"
+        return "Raw Gold Ore", 2
     end
     if flabl("Cassiterite Sand") or flabl("Garnerite Sand") or flabl("Dolomite") or flabl("Asbestos") then
-        return "Raw Tin Ore"
+        return "Raw Tin Sand Ore", 1
     end
 
     if flabl("Cassiterite Ore") or flabl("Tin Ore") then
-        return "Raw Tin Ore"
+        return "Raw Tin Ore", 3
     end
 
     if flabl("Mica") or flabl("Kyanite") or flabl("Pollucite") then
-        return "Raw Mica Ore"
+        return "Raw Mica Ore", 3
     end
 
     -- Some of these checks are more reliable than the others theheehe
     if flabl("Graphite") then
-        return "Raw Graphite Ore"
+        return "Raw Graphite Ore", 3
     end
 
     if flabl("Coal") then
-        return "Raw Coal Ore"
+        return "Raw Coal Ore", 1
     end
 
     if flabl("Lignite") then
-        return "Raw Lignite Ore"
+        return "Raw Lignite Ore", 1
     end
 
     if flabl("Redstone") or flabl("Ruby") or flabl("Cinnabar") then
-        return "Raw Redstone Ore"
+        return "Raw Redstone Ore", 2
     end
 
     if flabl("Lazurite") or flabl("Lapis") or flabl("Sodalite") or flabl("Calcite") then
-        return "Raw Lapis Ore"
+        return "Raw Lapis Ore", 2
     end
 
     if flabl("Soapstone") or flabl("Talc") or flabl("Galuconite") or flabl("Pentlandite") then
-        return "Raw Soapstone Ore"
+        return "Raw Soapstone Ore", 2
     end
 
     if flabl("Basaltic Mineral") or flabl("Granitic Mineral") or flabl("Gypsum") or flabl("Fullers Earth") then
-        return "Raw Basaltic Sand Ore"
+        return "Raw Basaltic Sand Ore", 2
     end
 
     if flabl("Salt") or flabl("Lepidolite") or flabl("Spodumene") then
-        return "Raw Salt Ore"
+        return "Raw Salt Ore", 2
     end
 
     if flabl("Oil Sand") then
-        return "Raw Oil Sand Ore"
+        return "Raw Oil Sand Ore", 2
     end
 
     print(comms.robot_send("error", string.format("Woops, I don't know this ore: \"%s\"", lable)))
