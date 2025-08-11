@@ -11,6 +11,8 @@ local nav = require("nav_module.nav_obj")
 
 ---- Global State -----------
 -- TODO - Implement save/load for this global state :( (IT HURRRRTSSSS)
+-- TODO - dislocate "next_ore_chunk" generation relative to the home chunk so that yeah, we get useful chunks
+-- this we have currently only workds when our home chunk is 0,0, not a difficult add
 
 local state_list = { -- lists states currently in memory
 
