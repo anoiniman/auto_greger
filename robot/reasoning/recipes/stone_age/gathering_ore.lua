@@ -28,6 +28,7 @@ local el_state = {
     -- i_id = nil,
     priority = 0,
 
+    starting_height = nil,
     not_enough_fuel_reported = false,
 
     wanted_ore = nil,   -- {lable, name} ahh table plz, needs to be properly initialised by caller :)
@@ -36,6 +37,7 @@ local el_state = {
 
     chunk = nil,        -- Only 1 state per chunk please, careful when storing state :)
                         -- Terrifying - the el state for "gather" actually contains a chunk-ref rather than just coords
+    shaft_dug = false,
     cleared = false,
     latest_rel_pos = nil,
     latest_height = nil,
@@ -196,13 +198,13 @@ local function maybe_something_added()
     inv.maybe_something_added_to_inv("Gravel", nil)
 end
 
-local function set_state22(state, warn)
+local function set_state21(state, warn)
     if warn == nil then warn = nil
     else warn = tostring(warn) end
 
     state.latest_rel_pos = nav.get_rel()
     state.latest_height = nav.get_height()
-    state.step = 22
+    state.step = 21
 
     if warn ~= nil then
         print(comms.robot_send("warning", "We set 22 in bad circunstances: " .. warn .. "\n" .. debug.traceback()))
@@ -226,7 +228,7 @@ local function automatic(state, mechanism)
     if state.step == 0 then -- Basic state loading
         state.wanted_ore = deep_copy.copy(mechanism.output)
         state.step = 1
-        return "Nope", nil
+        return "All_Good", nil
     elseif state.step == 1 then -- State selector
         -- no manual mode for this mfo because I see no reason why, so just deal with it
         local result, r_type = get_ore_chunk(state.wanted_ore)
@@ -242,7 +244,7 @@ local function automatic(state, mechanism)
             error(comms.robot_send("fatal", "Wowsers, invalid r_type :) yay"))
         end
 
-        return "Nope", nil
+        return "All_Good", nil
     elseif state.step == 2 then -- move to chunk
         local block_move_potential = keep_alive.possible_round_trip_distance(0, true)
         local chunk_move_potential = math.floor(block_move_potential / 16.0)
@@ -257,7 +259,7 @@ local function automatic(state, mechanism)
                 print(comms.robot_send("warning", "Distance diff not good in mine ore, diff was: " .. dist_diff))
                 state.not_enough_fuel_reported = true
             end
-            return "Nope", 1
+            return "All_Good", 1
         end
         state.enough_fuel_reported = false
 
@@ -270,19 +272,21 @@ local function automatic(state, mechanism)
             state.step = 3
         end
 
-        return "Nope", nil
+        return "All_Good", nil
     elseif state.step == 3 then -- I think we should build the shaft in a pre-determined location (rel: 7, 7)
         local cur_rel = nav.get_rel()
-        if cur_rel[1] - 7 > 0 then nav.surface_move("west"); return "Nope", nil
-        elseif cur_rel[1] - 7 < 0 then nav.surface_move("east"); return "Nope", nil end
-        if cur_rel[2] - 7 > 0 then nav.surface_move("north"); return "Nope", nil
-        elseif cur_rel[2] - 7 < 0 then nav.surface_move("south"); return "Nope", nil end
+        if cur_rel[1] - 7 > 0 then nav.surface_move("west"); return "All_Good", nil
+        elseif cur_rel[1] - 7 < 0 then nav.surface_move("east"); return "All_Good", nil end
+        if cur_rel[2] - 7 > 0 then nav.surface_move("north"); return "All_Good", nil
+        elseif cur_rel[2] - 7 < 0 then nav.surface_move("south"); return "All_Good", nil end
         -- now we know for sure that we are on 7, 7
         -- the shaft shall always be on 7,8, thank you!, so when the robot is in 8,8 or whatever it places a block back
 
         state.step = 4
-        return "Nope", nil
+        return "All_Good", nil
     elseif state.step == 4 then -- now we dig a shaft (remember to protect the shaft wall at all times :))
+        -- ATTENTION, IF YOU ALREADY GOT A SHAFT DUG YOU NEED TO GO THROUGH A DIFFERENT STEP NUMBER
+
         -- this is literally the worst way to do this, but also the easieast so whatever
         local inv_snapshot = deep_copy.copy(inv.virtual_inventory, pairs)
         local result = elevator.be_an_elevator(0, true, "south", "pickaxe") -- way say: dig till zero, cause we're waiting to hit ore!
@@ -290,8 +294,8 @@ local function automatic(state, mechanism)
         if not result then -- This means we weren't able to break the block below us, and we need to handle this fact
             local analysis = geolyzer.simple_return()
             state.needed_tool_level = analysis.harvestLevel
-            state.step = 2      -- revert to: 2, cause we'll just have to try again
-            return "Interrupt", nil
+            state.step = 21      -- step 21 will get us out and revert to: 2, cause we'll just have to try again
+            return "All_Good", nil
         end
 
         local updated_inv = inv.virtual_inventory
@@ -306,25 +310,25 @@ local function automatic(state, mechanism)
                 if not result then
                     print(comms.robot_send("error", "Failed to equip pickaxe with needed level in mining: " .. state.needed_tool_level))
                     state.step = 11
-                    return "Interrupt", nil
+                    return "All_Good", nil
                 end
 
                 result, _ = robot.swingDown()
                 if not result then
                     print(comms.robot_send("error", "Failed to mine 01"))
                     state.step = 11
-                    return "Interrupt", nil
+                    return "All_Good", nil
                 end
                 maybe_something_added() -- Important
 
-                return "Nope", nil
+                return "All_Good", nil
             elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
                 local analysis = geolyzer.simple_return(sides_api.bottom)
                 state.needed_tool_level = analysis.harvestLevel
                 state.chunk_ore = "Unmined"
                 state.step = 11 -- Swap to bad path 1
 
-                return "Interrupt", nil
+                return "All_Good", nil
             end
         end
 
@@ -333,20 +337,20 @@ local function automatic(state, mechanism)
             print(comms.robot_send("error", "We went all the way down to the bedrock, yet....."))
 
             state.chunk_ore = "Empty"
-            state.step = 22
-            return "Interrupt", nil
+            state.step = 21
+            return "All_Good", nil
         end
 
-        return "Nope", nil -- keep le digging
+        return "All_Good", nil -- keep le digging
     elseif state.step == 5 then -- now we go to 0,0!
         -- swing first, axe (ha) questions later
-        local result, _ = inv.equip_tool("pickaxe", state.needed_tool_level) -- get ourselves 1 block further down
-        if not result then set_state22(state) end
+        local result, _ = inv.equip_tool("pickaxe", state.needed_tool_level)
+        if not result then set_state21(state); return "All_Good", nil end
 
         local function s5_move(orient)
             nav.change_orientation(orient)
             result, _ = robot.swing()
-            if not result then set_state22(state, "swing failed") end
+            if not result then set_state21(state, "swing failed"); return false end
 
             maybe_something_added()
 
@@ -354,7 +358,7 @@ local function automatic(state, mechanism)
             result, err = nav.force_forward()
             if not result then
                 if err ~= "impossible" then
-                    set_state22(state, "err: " .. err)
+                    set_state21(state, "err: " .. err)
                     return false
                 end
                 print(comms.robot_send("error", "this mine is not stable, and I don't care to make it stable, we're bailing \z
@@ -369,35 +373,61 @@ local function automatic(state, mechanism)
         local cur_rel = nav.get_rel()
         if cur_rel[1] > 0 then
             local result = s5_move("north")
-            if result then return "Nope", nil
-            else return "Interrupt", nil end
+            return "All_Good", nil
         end
         if cur_rel[2] > 0 then
             local result = s5_move("west")
-            if result then return "Nope", nil
-            else return "Interrupt", nil end
+            return "All_Good", nil
         end
 
         -- Great, now we are on 0,0!
         state.step = 6
-        return "Nope", nil
+        return "All_Good", nil
     elseif state.step == 6 then -- now we crawl around in the mud! (remember we have rock above us and below, hopefully)
         -- we'll keep sweeping until we are ~6-7 blocks below our starting point, I think that is the sweet spot
         if not nav.is_sweep_setup() then
             nav.setup_sweep()
         end
+        -- Remember to track your position and keep your "ladder" alive
+
+        local result = inv.equip_tool("pickaxe", state.needed_tool_level)
+        if not result then set_state21(state); return "All_Good", nil end
+        
+        -- swing first, move later, but sometimes we might have to try a second time (curves n'shiet)
+        -- if it doesn't work a second time, then something's wrong tehe
+
         local sweep_result = nav.sweep(false) -- goes forward one block (not surface_move using)
+        local cur_rel = nav.get_rel()
+        if cur_rel[1] == 7 and cur_rel[2] == 8 then
+            local result = inv.equip_tool("pickaxe", state.needed_tool_level)
+            if not result then set_state21(state); return "All_Good", nil end
+            robot.swing()
+            maybe_something_added()
+
+            local result = nav.sweep(false)
+            local watch_dog = 0
+            while result == 1 do -- sweep fail state attempt to recover
+                os.sleep(2)
+                local s_result = nav.sweep(false)
+                if s_result == 0 then break end
+                if watch_dog >= 12 then
+                    state.step = 31
+                    print(comms.robot_send("error", "Ore Mining, got le stuck during le critical moment :sob:"))
+                    return "All_Good", nil
+                end
+            end
+            -- Now you have to place back the block behind you! So that the shaft-ladder continues it's existance
+            -- TODO
+
+            return "All_Good", nil
+        end
 
         if sweep_result == -1 then
             -- go to mode 21, and move height value further 3-down?, else if we're already low enough, set 41 and clear with no error
             state.chunk:addMark("surface_depleted")
             return true, nil
         elseif sweep_result == 0 then
-            -- careful with hardened _clay_ (and _sand_stone)
-            local interesting_block = check_subset(state)
-            if interesting_block == true then
-                state.step = 4
-            end
+            --
         elseif sweep_result == 1 then
             -- makes sense for surface move but maybe not so much for other storts of move
             error(comms.robot_send("fatal", "not able to deal with a failed sweep for now"))
@@ -417,10 +447,15 @@ local function automatic(state, mechanism)
         error(comms.robot_send("fatal", "TODO2! in oremining"))
     end
 
-    -- This means: "Time to nigerun-dayo out of here"
+    -- This means: "Time to abandon this dump"
     if state.step == 31 then
-        error(comms.robot_send("fatal", "TODO3! in oremining"))
         state.clear = true
+        error(comms.robot_send("fatal", "TODO3! in oremining"))
+    end
+
+    -- Alternative step 4 for those that already have a shaft dug
+    if state.step == 41 then
+        error(comms.robot_send("fatal", "TODO4! in oremining"))
     end
 
     error(comms.robot_send("fatal", "Bad State ore-gathering, we somehow fell through"))
@@ -437,7 +472,7 @@ local function ore_mining(arguments)
     end
     if state.mode == "automatic" then
         local finish_state, new_prio = automatic(state, mechanism)
-        if finish_state == "Nope" then -- I think everything is getting passed as ref so it's ok to pass arguments back in
+        if finish_state == "All_Good" then -- I think everything is getting passed as ref so it's ok to pass arguments back in
             local command_prio = state.priority
 
             -- No permanent changes to prio here
