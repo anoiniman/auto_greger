@@ -1,6 +1,8 @@
 -- Basically rel_move adapted to interfacing with door_ways in a simple manner
 local module = {}
 
+local robot = require("robot")
+
 local comms = require("comms")
 local inv = require("inventory.inv_obj")
 local nav = require("nav_module.nav_obj")
@@ -21,7 +23,21 @@ end
 
 local entity_watch = 0
 
-function module.be_an_elevator(target_height)
+function module.be_an_elevator(target_height, complex_mode, wall_dir)
+    if complex_mode == nil then
+        complex_mode = false
+    end
+    if complex_mode then
+        if nav.get_orientation ~= wall_dir then
+            nav.change_orientation(wall_dir)
+        end
+        local is_wall, _ = robot.detect()
+        if not is_wall then
+            local result = inv.place_block("front", {"any:building", "any:grass"}, "name_table")
+            print(comms.robot_send("warning", "Uh oh, be an elevator"))
+        end
+    end
+
     local cur_height = nav.get_rel()
     local diff = target_height - cur_height
 

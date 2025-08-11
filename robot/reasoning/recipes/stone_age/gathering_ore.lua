@@ -6,17 +6,44 @@ local deep_copy = require("deep_copy")
 
 -- local interactive = require("interactive")
 local keep_alive = require("keep_alive")
+local geolyzer = require("geolyzer_wrapper")
+
 local map = require("nav_module.map_obj")
 local nav = require("nav_module.nav_obj")
+local elevator = require("nav_module.simple_elevator")
+
+local inv = require("inventory.inv_obj")
+local item_bucket = require("inventory.item_buckets")
+
+
+local MetaRecipe = require("reasoning.MetaRecipe")
+
 
 ---- Global State -----------
 -- TODO - Implement save/load for this global state :( (IT HURRRRTSSSS)
--- TODO - dislocate "next_ore_chunk" generation relative to the home chunk so that yeah, we get useful chunks
--- this we have currently only workds when our home chunk is 0,0, not a difficult add
 
 local state_list = { -- lists states currently in memory
 
 }
+
+-- adds state into list if state isn't already in the list :)
+-- prints error message if fail because it is unexpected that we try to add something that already exists
+-- due to way in the code exactly we try and add things to the list
+local function add_to_state_list(state_to_add)
+    local in_list = false
+    for _, state in ipairs(state_list) do
+        if state.chunk[1] == state_to_add.chunk[1] and state.chunk[2] == state_to_add.chunk[2] then
+            in_list = true
+            break
+        end
+    end
+    if in_list then
+        print(comms.robot_send("error", "Ore Mining state already in list owsers!"))
+        return
+    end
+
+    table.insert(state_list, state_to_add)
+end
 
 -- Ore center - A chunk that could potentially contain an orevein.
 -- Any chunk that satisfies (abs(ChunkX) % 3 == 1, abs(ChunkZ) % 3 == 1).
@@ -31,9 +58,9 @@ local function get_next_ore_chunk() -- take the last chunk registered
     -- this will not be the mathematically cleanest (or most efficient) algorithm, but I don't care
     local selected_chunk
     local x1, x2, z1, z2
-    x1 = 1; z1 = 1
-    x2 = -1; z2 = -1
+    x1 = 1; x2 = -1;
     while true do -- x level
+        z1 = 1; z2 = -1;
         while true do -- z level
             local positive_fail = false; local negative_fail = false
             local pn_fail = false; local np_fail = false
@@ -57,14 +84,38 @@ local function get_next_ore_chunk() -- take the last chunk registered
         if x1 > AUTOMATIC_EXPAND_ORE or selected_chunk ~= nil then break end
     end
 
-    if selected_chunk == nil or map.get_chunk(selected_chunk) == nil then -- invalid chunk in search
-        print(comms.robot_send("error", "automatic ore chunk expansion returned a invalid chunk"))
-        return nil
+    local function nearest_mult3(raw_offset)
+        local raw_div = raw_offset / 3
+        local mod = raw_offset % 3
+
+        if mod == 0 or mod == 2 then -- roundup
+            if raw_offset >= 0 then -- (for obivous reasons, thang needs to be inverted for negative numbers)
+                return math.ceil(raw_div) * 3
+            else
+                return math.floor(raw_div) * 3
+            end
+        else -- rounddown
+            if raw_offset >= 0 then
+                return math.floor(raw_div) * 3
+            else
+                return math.ceil(raw_div) * 3
+            end
+        end
     end
 
     local home_chunk = HOME_CHUNK
     local dist = math.abs(home_chunk[1] - selected_chunk[1]) + math.abs(home_chunk[2] - selected_chunk[2])
     if dist > AUTOMATIC_EXPAND_ORE then -- fail quietly, because otherwise it is to bothersome to code for now
+        return nil
+    end
+
+    local x_offset = nearest_mult3(home_chunk[1])
+    local z_offset = nearest_mult3(home_chunk[2])
+    selected_chunk[1] = selected_chunk[1] + x_offset
+    selected_chunk[2] = selected_chunk[2] + z_offset
+
+    if selected_chunk == nil or map.get_chunk(selected_chunk) == nil then -- invalid chunk in search
+        print(comms.robot_send("error", "automatic ore chunk expansion returned a invalid chunk"))
         return nil
     end
 
@@ -109,8 +160,11 @@ local el_state = {
     priority = 0,
 
     not_enough_fuel_reported = false,
+
     wanted_ore = nil,   -- {lable, name} ahh table plz, needs to be properly initialised by caller :)
     chunk_ore = nil,
+    needed_tool_level = 0,
+
     chunk = nil,        -- Only 1 state per chunk please, careful when storing state :)
                         -- Terrifying - the el state for "gather" actually contains a chunk-ref rather than just coords
     cleared = false,
@@ -118,6 +172,16 @@ local el_state = {
 }
 
 local function automatic(state, mechanism)
+    -- Sanity Check
+    if item_bucket.normalise_ore(state.wanted_ore) == "Unrecognised Ore" then
+        if state.wanted_ore == nil then state.wanted_ore = "Nil" end
+        error(comms.robot_send("fatal",
+            string.format("We are trying to obtain an un-recognised ore, check you definitions: \"%s\"", state.wanted_ore)
+        ))
+    end
+
+
+    -- TODO summon logistic storing unneeded stuff
     if state.step == 0 then -- Basic state loading
         state.wanted_ore = deep_copy.copy(mechanism.output)
         state.step = 1
@@ -126,6 +190,7 @@ local function automatic(state, mechanism)
         -- no manual mode for this mfo because I see no reason why, so just deal with it
         local result, r_type = get_ore_chunk(state.wanted_ore)
         if r_type == "chunk_coords" then
+            add_to_state_list(state)    -- added to list here
             state.chunk = result
             state.step = 2
         elseif r_type == "state" then -- Now this is super fun, wow nothing will go wrong
@@ -140,8 +205,12 @@ local function automatic(state, mechanism)
     elseif state.step == 2 then -- move to chunk
         local block_move_potential = keep_alive.possible_round_trip_distance(0, true)
         local chunk_move_potential = math.floor(block_move_potential / 16.0)
-        local dist = math.abs(nav.get_chunk() - state.chunk)
-        local dist_diff = chunk_move_potential - dist
+
+        local cur_chunk = nav.get_chunk(); local home_chunk = HOME_CHUNK
+        local home_dist = math.abs(home_chunk[1] - cur_chunk[1]) + math.abs(home_chunk[2] - cur_chunk[2])
+        local dist = math.abs(state.chunk[1] - cur_chunk[1]) + math.abs(state.chunk[2] - cur_chunk[2])
+
+        local dist_diff = chunk_move_potential - dist - home_dist
         if dist_diff < 0 then
             if not state.not_enough_fuel_reported then
                 print(comms.robot_send("warning", "Distance diff not good in mine ore, diff was: " .. dist_diff))
@@ -160,15 +229,44 @@ local function automatic(state, mechanism)
             state.step = 3
         end
         return "Nope", nil
-    elseif state.step == 3 then -- I think we should build the shaft in a pre-determined location (rel: 0, 0)
+    elseif state.step == 3 then -- I think we should build the shaft in a pre-determined location (rel: 7, 7)
         local cur_rel = nav.get_rel()
-        if cur_rel[1] - 0 > 0 then nav.surface_move("west"); return "Nope", nil end
-        if cur_rel[2] - 0 > 0 then nav.surface_move("north"); return "Nope", nil end
-        -- now we know for sure that we are on 0, 0
+        if cur_rel[1] - 7 > 0 then nav.surface_move("west"); return "Nope", nil
+        elseif cur_rel[1] - 7 < 0 then nav.surface_move("east"); return "Nope", nil end
+        if cur_rel[2] - 7 > 0 then nav.surface_move("north"); return "Nope", nil
+        elseif cur_rel[2] - 7 < 0 then nav.surface_move("south"); return "Nope", nil end
+        -- now we know for sure that we are on 7, 7
+        -- the shaft shall always be on 7,8, thank you!, so when the robot is in 8,8 or whatever it places a block back
 
         state.step = 4
         return "Nope", nil
-    elseif state.step == 4 then -- now we dig a shaft
+    elseif state.step == 4 then -- now we dig a shaft (remember to protect the shaft wall at all times :))
+        -- this is literally the worst way to do this, but also the easieast so whatever
+        local inv_snapshot = deep_copy.copy(inv.virtual_inventory, pairs)
+        local result = elevator.be_an_elevator(0, true, "south") -- way say: dig till zero, cause we're waiting to hit ore!
+
+        if not result then -- This means we weren't able to break the block below us, and we need to handle this fact
+            local analysis = geolyzer.simple_return()
+            state.needed_tool_level = analysis.harvestLevel
+            state.step = 2      -- revert to: 2, cause we'll just have to try again
+            return "Interrupt", nil
+        end
+
+        local updated_inv = inv.virtual_inventory
+        local diff_tbl = inv_snapshot:compareWithLedger(updated_inv)
+
+        for _, diff in ipairs(diff_tbl) do
+            if diff.lable == state.wanted_ore then
+                local analysis = geolyzer.simple_return()
+                state.needed_tool_level = analysis.harvestLevel
+                state.chunk_ore = item_bucket.normalise_ore(diff.lable)
+                state.step = 5
+            elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
+                local analysis = geolyzer.simple_return()
+                state.needed_tool_level = analysis.harvestLevel
+
+            end
+        end
     else
         error(comms.robot_send("fatal", "Bad State ore-gathering"))
     end
@@ -199,7 +297,7 @@ local function ore_mining(arguments)
             return {command_prio, mechanism.algorithm, table.unpack(arguments)}
         elseif finish_state == "Interrupt" then -- For now this is just the same as finish
             print(comms.robot_send("debug", "interrupted ore_mining routine"))
-            lock[1] = 2
+            lock[1] = 0 -- Report our lack of success and order the bot to keep looking
             return nil
         elseif finish_state == "Close" then
             print(comms.robot_send("debug", "finished ore_mining routine"))

@@ -79,8 +79,8 @@ local max_energy = computer.maxEnergy() / 64.0
 -- 1 Move = 15 PU = 1/34 cU = 4/17 (~0.25) sU, Moving 1 chunk = 240 PU = 1/2 cU = 4 sU = 1.5 logs
 local u_coal = 8.0; local u_wood = 1.5
 local u_creosote = 32.0
-function module.calculate_cur_energy(o_reserve) -- reserve, for example, always have 32 planks available for non power usage
-    local reserve = tonumber(o_reserve)
+function module.calculate_cur_energy(reserve) -- reserve, for example, always have 32 planks available for non power usage
+    reserve = tonumber(reserve)
     if reserve == nil then reserve = 0
     elseif reserve < 0 then reserve = 0 end
 
