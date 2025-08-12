@@ -252,14 +252,16 @@ end
 
 
 -- TODO: run some periodic power checks to make sure we can get back home, and interrupt if we start nearing the limit
+-- btw, when you check for power usage, make sure you only do it trigger a return if we are actively mining and not
+-- some other more "sensitive" state.step
 
--- TODO: priority better be locked to 100, (exceptions may apply)
+-- WARNING: priority better be locked to 100, (exceptions may apply)
 -- because we always need to use special methods to leave the mine,
 -- we can't just suddenly start doing something else
 local function automatic(state, mechanism, up_to_quantity)
     print(comms.robot_send("debug", "Ore Mining, state.step = " .. state.step))
 
-    -- Sanity Check
+    -- Sanity Check 01
     if item_bucket.normalise_ore(state.wanted_ore) == "Unrecognised Ore" then
         if state.wanted_ore == nil then state.wanted_ore = "Nil" end
         error(comms.robot_send("fatal",
@@ -496,7 +498,7 @@ local function automatic(state, mechanism, up_to_quantity)
                 state.step = 31
                 return "All_Good", nil
             end
-            set_state21(state)
+            set_state21(state)      -- TODO, maybe better way to do this? Or use the layer_done status better inside the 21
             state.layer_done = true
             return "All_Good", nil
         elseif sweep_result == 0 then
@@ -529,7 +531,8 @@ local function automatic(state, mechanism, up_to_quantity)
     -- state.step == 11 means, we are yet to progress past step 4, this will mostly be
     -- things that were above our mining level at the time (It won't matter (mostly, I hope) for the stone-age tho)
     if state.step == 11 then
-        error(comms.robot_send("fatal", "TODO! in oremining"))
+        -- kind of a useless apendage for now, but we'l rethink later :)
+        state.step = 21
     end
 
     -- This means "regular" (post step 4) mining interruption (we ran out of pickaxes, or acheived our goal or smthing)
@@ -567,7 +570,7 @@ local function automatic(state, mechanism, up_to_quantity)
             local result, err = nav.navigate_rel()
             if not result then
                 if err == "impossible" then
-                    print(comms.robot_send("error", "This is bad, ore mining :/"))
+                    print(comms.robot_send("error", "This is bad, ore mining :/ (Come press enter plz)"))
                     io.read()
                     return "Interrupt", nil
                 end -- else we just pretend everything is good
@@ -630,6 +633,13 @@ local function ore_mining(arguments)
     local state = arguments[2]
     local up_to_quantity = arguments[3] -- use for interrupts if needed etc etc
     local lock = arguments[4]
+
+    -- Sanity Check
+    if state.priority ~= 0 and state.priority ~= 100 then
+        print(comms.robot_send("error", "(press enter) Ore mining priority is wrong: " .. state.priority))
+        io.read()
+    end
+
 
     if state.mode == "automatic" then
         local finish_state, new_prio = automatic(state, mechanism, up_to_quantity)
