@@ -207,7 +207,7 @@ function module.force_reset_navigate_chunk()
     chunk_move.reset()
 end
 
-
+-- luacheck: globals EMPTY_TABLE
 -- This is debug_move, but useful for surface navigation
 function module.surface_move(dir)
     return interface.r_move("surface", dir, nav_obj, EMPTY_TABLE)
@@ -249,17 +249,25 @@ function module.door_move()
     return door_move.do_move(module)
 end
 
+
 function module.is_sweep_setup()
     return rel_move.is_sweep_setup()
 end
 
--- Future prep basically, doesn't to much
 function module.setup_sweep()
     return rel_move.setup_sweep(nav_obj)
 end
 
 function module.sweep(is_surface)
     return rel_move.sweep(nav_obj, is_surface)
+end
+
+function module.resume_sweep(s_start, reverse)
+    return rel_move.resume_sweep(nav_obj, s_start, reverse)
+end
+
+function module.interrupt_sweep()
+    return rel_move.interrupt_sweep(nav_obj)
 end
 
 

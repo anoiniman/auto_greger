@@ -138,12 +138,6 @@ function module.interrupt_sweep(nav_obj)
     return nav_obj.get_rel(), sweep_reverse
 end
 
-function module.resume_sweep(nav_obj, prev_position)
-    module.setup_sweep(nav_obj)
-    sweep_start[1] = prev_position[1]
-    sweep_start[2] = prev_position[2]
-end
-
 -- TODO: turns out the z sweep_end is not equal to sweep_start, but rather in the other end, se if it's ok to do as such
 -- rect_offset idea: to create smaller sweeps and shift them around, not for rn tho
 function module.setup_sweep(nav_obj)
@@ -160,11 +154,29 @@ function module.setup_sweep(nav_obj)
 
     sweep_end[1] = math.abs(16 - sweep_start[1])
     -- FOR WHY WE COMMENTED THIS OUT, CHECK OUR DRAWING
-    sweep_end[2] = math.abs(16 - sweep_start[2])
+    -- sweep_end[2] = math.abs(16 - sweep_start[2])
 
     sweep_end[2] = sweep_start[2]
 
     return true -- true to continue
+end
+
+-- Stand Alone, no need to setup, just remember to move to your "continue point" manually before sweeping
+function module.resume_sweep(nav_obj, s_start, reverse)
+    --[[if is_sweep then
+        print(comms.robot_send("error", "Attempted to resume_sweep with is_sweep == true"))
+        return false
+    end--]]
+
+    is_sweep = true
+    move_to_start = false
+    sweep_start = deep_copy.copy(s_start, pairs)
+    sweep_reverse = reverse
+
+    sweep_end[1] = math.abs(16 - sweep_start[1])
+    sweep_end[2] = sweep_start[2]
+
+    return true
 end
 
 -- 1 for fail, -1 for end, 0 for continue

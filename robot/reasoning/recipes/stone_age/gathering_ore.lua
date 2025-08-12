@@ -42,6 +42,7 @@ local el_state = {
     cleared = false,
 
     latest_rel_pos = nil,
+    latest_reverse = nil,
     latest_height = nil,
 
     step = 0,
@@ -214,6 +215,35 @@ local function set_state21(state, warn)
 end
 
 ---- Not Global State -------
+
+-- move_func will either be a nav.sweep(false), or a nav.force_forward()
+local function deal_with_the_ladder(state, move_func)
+    local result = inv.equip_tool("pickaxe", state.needed_tool_level)
+    if not result then set_state21(state); return "All_Good", nil end
+    robot.swing()
+    maybe_something_added()
+
+    local result = move_func(false)
+    local watch_dog = 0
+    while result == 1 do -- sweep fail state attempt to recover
+        os.sleep(2)
+        local s_result = move_func(false)
+        if s_result == 0 then break end
+        if watch_dog >= 12 then
+            state.step = 31
+            print(comms.robot_send("error", "Ore Mining, got le stuck during le critical moment :sob:"))
+            return "All_Good", nil
+        end
+    end
+    -- Now you have to place back the block behind you! So that the shaft-ladder continues it's existance
+    nav.change_orientation(nav.get_opposite_orientation())
+    local result = inv.place_block("front", {"any:building", "any:grass"}, "name_table")
+    if not result then
+        error(comms.robot_send("fatal", "I really don't know how to recover from this, sorry"))
+    end
+
+    return "All_Good", nil
+end
 
 
 local function automatic(state, mechanism)
@@ -390,46 +420,41 @@ local function automatic(state, mechanism)
         return "All_Good", nil
     elseif state.step == 6 then -- now we crawl around in the mud! (remember we have rock above us and below, hopefully)
         -- we'll keep sweeping until we are ~6-7 blocks below our starting point, I think that is the sweet spot
+
+        -- First we have already setup our sweep
         if not nav.is_sweep_setup() then
-            nav.setup_sweep()
+            -- Then we check if we're going to sweep from the begining, or if we need to resume it from somewhere
+            if state.latest_rel_pos == nil then
+                nav.setup_sweep()
+            else
+                nav.resume_sweep(state.latest_rel_pos, state.latest_reverse)
+            end
         end
-        -- Remember to track your position and keep your "ladder" alive
 
         local result = inv.equip_tool("pickaxe", state.needed_tool_level)
         if not result then set_state21(state); return "All_Good", nil end
 
-        -- swing first, move later, but sometimes we might have to try a second time (curves n'shiet)
-        -- if it doesn't work a second time, then something's wrong tehe
+        -- We swing first
+        robot.swing()
+        maybe_something_added()
+        inv.equip_tool("pickaxe", state.needed_tool_level)
+        robot.swingUp()
+        maybe_something_added()
+        inv.equip_tool("pickaxe", state.needed_tool_level)
+        robot.swingDown()
+        maybe_something_added()
+        ----------------------------------------------------
 
+        -- Then we move
         local sweep_result = nav.sweep(false) -- goes forward one block (not surface_move using)
         local cur_rel = nav.get_rel()
+
+        -- Check for the special ladder position
         if cur_rel[1] == 7 and cur_rel[2] == 8 then
-            local result = inv.equip_tool("pickaxe", state.needed_tool_level)
-            if not result then set_state21(state); return "All_Good", nil end
-            robot.swing()
-            maybe_something_added()
-
-            local result = nav.sweep(false)
-            local watch_dog = 0
-            while result == 1 do -- sweep fail state attempt to recover
-                os.sleep(2)
-                local s_result = nav.sweep(false)
-                if s_result == 0 then break end
-                if watch_dog >= 12 then
-                    state.step = 31
-                    print(comms.robot_send("error", "Ore Mining, got le stuck during le critical moment :sob:"))
-                    return "All_Good", nil
-                end
-            end
-            -- Now you have to place back the block behind you! So that the shaft-ladder continues it's existance
-            nav.change_orientation(nav.get_opposite_orientation())
-            local result = inv.place_block("front", {"any:building", "any:grass"}, "name_table")
-            if not result then
-                error(comms.robot_send("fatal", "I really don't know how to recover from this, sorry"))
-            end
-
-            return "All_Good", nil
+            deal_with_the_ladder(state, nav.sweep)
+            return "All_Good", nil -- the function we call manages tate for us
         end
+        -- End of ladder position check
 
         if sweep_result == -1 then
             -- go to mode 21, and move height value further 3-down?, else if we're already low enough, set 31 and clear with no error
@@ -445,7 +470,13 @@ local function automatic(state, mechanism)
         elseif sweep_result == 0 then
             return "All_Good", nil -- just keep goind with no more comments
         elseif sweep_result == 1 then
-            while true do -- sweep fail state attempt to recover
+            -- First we try and mine forward (we might've gotten stuck in a bend)
+            local result = inv.equip_tool("pickaxe", state.needed_tool_level)
+            if not result then set_state21(state); return "All_Good", nil end
+            robot.swing()
+            maybe_something_added()
+
+            while true do -- then we try to recover from the stall
                 os.sleep(2)
                 local s_result = nav.sweep(false)
                 if s_result == 0 then break end
@@ -469,6 +500,20 @@ local function automatic(state, mechanism)
 
     -- This means "regular" (post step 4) mining interruption (we ran out of pickaxes, or acheived our goal or smthing)
     if state.step == 21 then
+        local cur_rel = nav.get_rel()
+
+        -- first we have to forcefully navigate to le right place
+        if cur_rel[1] ~= 7 or cur_rel[2] ~= 7 then
+
+            -- Check for we having moved to a position that might f-up the ladder
+            if  math.abs(cur_rel[1] - 7) == 1 and math.abs(cur_rel[1] - 8) == 1
+                and (cur_rel[1] ~= 7 and cur_rel[2] ~= 7)
+            then
+                deal_with_the_ladder(state, nav.force_forward)
+                return "All_Good", nil
+            end
+        end
+
         error(comms.robot_send("fatal", "TODO2! in oremining"))
     end
 
