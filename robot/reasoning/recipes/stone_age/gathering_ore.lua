@@ -246,6 +246,11 @@ local function deal_with_the_ladder(state, move_func)
 end
 
 
+-- TODO: run some periodic power checks to make sure we can get back home, and interrupt if we start nearing the limit
+
+-- TODO: priority better be locked to 100, (exceptions may apply)
+-- because we always need to use special methods to leave the mine,
+-- we can't just suddenly start doing something else
 local function automatic(state, mechanism)
     print(comms.robot_send("debug", "Ore Mining, state.step = " .. state.step))
 
@@ -501,10 +506,15 @@ local function automatic(state, mechanism)
     -- This means "regular" (post step 4) mining interruption (we ran out of pickaxes, or acheived our goal or smthing)
     if state.step == 21 then
         local cur_rel = nav.get_rel()
+        local cur_height = nav.get_height()
 
-        -- first we have to forcefully navigate to le right place
+        -- first we have to forcefully navigate to le right place;
+        -- I think we'll be able to avoid most error checking if first navigate to x,0 and then to the "hole",
+        -- because of the way we make our way to {0,0} in the first place
         if cur_rel[1] ~= 7 or cur_rel[2] ~= 7 then
+            -- TODO -> continue through here
 
+            cur_rel = nav.get_rel()
             -- Check for we having moved to a position that might f-up the ladder
             if  math.abs(cur_rel[1] - 7) == 1 and math.abs(cur_rel[1] - 8) == 1
                 and (cur_rel[1] ~= 7 and cur_rel[2] ~= 7)
@@ -512,7 +522,10 @@ local function automatic(state, mechanism)
                 deal_with_the_ladder(state, nav.force_forward)
                 return "All_Good", nil
             end
+
+            return "All_Good", nil
         end
+        -- Now we can be sure that we are in the ladder tile
 
         error(comms.robot_send("fatal", "TODO2! in oremining"))
     end
