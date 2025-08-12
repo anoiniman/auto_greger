@@ -1,9 +1,10 @@
 local module = {}
 
-local nav = require("nav_module.nav_interface")
 local comms = require("comms")
+local deep_copy = require("deep_copy")
 
-local math = require("math")
+local nav = require("nav_module.nav_interface")
+
 
 local function attempt_move(nav_obj, dir, extra_sauce)
     if dir ~= nil then
@@ -35,6 +36,7 @@ function module.setup_navigate_rel(x,z,y)
     navigation_setup = true
 end
 
+-- Attempts non-surface (aka - free) move by default
 local function navigate_opaque(nav_obj, goal_rel, extra_sauce)
     local dir = nil
     local result = nil
@@ -114,14 +116,15 @@ local is_sweep = false
 local move_to_start = false
 local sweep_reverse = false
 
-local function sweep_x_axis(nav_obj)
+local function sweep_x_axis(nav_obj, move_func)
     local dir = nil -- luacheck: ignore
     if sweep_start[1] == 0 then
         dir = "east"
     else
         dir = "west"
     end
-    local result, data = attempt_surface_move(nav_obj, dir)
+    -- local result, data = attempt_surface_move(nav_obj, dir)
+    local result, data = move_func(nav_obj, dir)
     if result then return 0 end
     return 1, data
 end
@@ -135,6 +138,7 @@ end
 function module.interrupt_sweep(nav_obj)
     -- I think all we need to return is sweep_reverse and current position
     is_sweep = false
+    move_to_start = true
     return nav_obj.get_rel(), sweep_reverse
 end
 
@@ -162,7 +166,7 @@ function module.setup_sweep(nav_obj)
 end
 
 -- Stand Alone, no need to setup, just remember to move to your "continue point" manually before sweeping
-function module.resume_sweep(nav_obj, s_start, reverse)
+function module.resume_sweep(s_start, reverse)
     --[[if is_sweep then
         print(comms.robot_send("error", "Attempted to resume_sweep with is_sweep == true"))
         return false
@@ -179,9 +183,23 @@ function module.resume_sweep(nav_obj, s_start, reverse)
     return true
 end
 
+function module.reverse_sweep()
+    if not is_sweep then return false end
+
+    sweep_reverse = not sweep_reverse
+
+    -- just swapping some refs around so no problem
+    local temp = sweep_start
+    sweep_start = sweep_end
+    sweep_end = temp
+    return true
+end
+
 -- 1 for fail, -1 for end, 0 for continue
 function module.sweep(nav_obj, is_surface)
-    if not is_surface then error("todo, rel_move:sweep()") end
+    local move_func = attempt_surface_move
+    if not is_surface then move_func = attempt_move end
+
     if not is_sweep then
         print(comms.robot_send("error", "sweep not setup"))
         return 1
@@ -191,7 +209,9 @@ function module.sweep(nav_obj, is_surface)
         if not navigation_setup then
             module.setup_navigate_rel(sweep_start[1], sweep_start[2], -1)
         end
+
         local result, data = module.navigate_rel(nav_obj)
+
         if result == 1 then
             print(comms.robot_send("error", "from: move_rel.sweep, navigate_rel returned err"))
             return 1, data
@@ -209,13 +229,13 @@ function module.sweep(nav_obj, is_surface)
 
     local result = nil; local data = nil -- luacheck: ignore
     if (nav_obj.rel[2] > 15 and not sweep_reverse) or (nav_obj.rel[2] <= 0 and sweep_reverse) then
-        result, data = sweep_x_axis(nav_obj)
+        result, data = sweep_x_axis(nav_obj, move_func)
         sweep_reverse = not sweep_reverse
     else
         local dir
         if not sweep_reverse then dir = "south"
         else dir = "north" end
-        result, data = attempt_surface_move(nav_obj, dir)
+        result, data = move_func(nav_obj, dir)
 
         if result then return 0 end
     end

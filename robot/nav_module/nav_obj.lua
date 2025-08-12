@@ -263,11 +263,15 @@ function module.sweep(is_surface)
 end
 
 function module.resume_sweep(s_start, reverse)
-    return rel_move.resume_sweep(nav_obj, s_start, reverse)
+    return rel_move.resume_sweep(s_start, reverse)
 end
 
 function module.interrupt_sweep()
     return rel_move.interrupt_sweep(nav_obj)
+end
+
+function module.reverse_sweep()
+    return rel_move.reverse_sweep()
 end
 
 

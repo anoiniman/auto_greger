@@ -28,6 +28,7 @@ local el_state = {
     -- i_id = nil,
     priority = 0,
 
+    surface_height = nil,
     starting_height = nil,
     not_enough_fuel_reported = false,
 
@@ -37,7 +38,6 @@ local el_state = {
 
     chunk = nil,        -- Only 1 state per chunk please, careful when storing state :)
                         -- Terrifying - the el state for "gather" actually contains a chunk-ref rather than just coords
-    shaft_dug = false,
     layer_done = false,
     cleared = false,
 
@@ -207,6 +207,10 @@ local function set_state21(state, warn)
 
     state.latest_rel_pos = nav.get_rel()
     state.latest_height = nav.get_height()
+    if nav.is_sweep_setup() then
+        local _
+        _, state.latest_reverse = nav.interrupt_sweep()
+    end
     state.step = 21
 
     if warn ~= nil then
@@ -226,6 +230,7 @@ local function deal_with_the_ladder(state, move_func)
     local result = move_func(false)
     local watch_dog = 0
     while result == 1 do -- sweep fail state attempt to recover
+        watch_dog = watch_dog + 1
         os.sleep(2)
         local s_result = move_func(false)
         if s_result == 0 then break end
@@ -251,7 +256,7 @@ end
 -- TODO: priority better be locked to 100, (exceptions may apply)
 -- because we always need to use special methods to leave the mine,
 -- we can't just suddenly start doing something else
-local function automatic(state, mechanism)
+local function automatic(state, mechanism, up_to_quantity)
     print(comms.robot_send("debug", "Ore Mining, state.step = " .. state.step))
 
     -- Sanity Check
@@ -262,6 +267,21 @@ local function automatic(state, mechanism)
         ))
     end
 
+    -- Early Return Check (we'll eventually have to write something better than this, but not today)
+    if inv.virtual_inventory:howMany(state.wanted_ore, nil) >= up_to_quantity then
+        if state.step > 3 and state.step < 7 then -- aka, if we aren't on the surface
+            if state.step == 6 then
+                set_state21(state)  -- will record certain meta-data
+            else
+                state.step = 21     -- Manually so has to not update meta-data if we're still in a non sweeping state
+            end
+            return "All_Good", nil
+        elseif state.step > 7 then -- just carry on (fall through)
+            local _ = 10
+        else -- we're on the surface
+            return "Interrupt", nil
+        end
+    end
 
     -- TODO summon logistic storing unneeded stuff (we'll have load outs n' shit)
     if state.step == 0 then -- Basic state loading
@@ -321,10 +341,15 @@ local function automatic(state, mechanism)
         -- now we know for sure that we are on 7, 7
         -- the shaft shall always be on 7,8, thank you!, so when the robot is in 8,8 or whatever it places a block back
 
+        state.surface_height = nav.get_height()
         state.step = 4
         return "All_Good", nil
     elseif state.step == 4 then -- now we dig a shaft (remember to protect the shaft wall at all times :))
-        -- ATTENTION, IF YOU ALREADY GOT A SHAFT DUG YOU NEED TO GO THROUGH A DIFFERENT STEP NUMBER
+        -- ATTENTION, IF YOU ALREADY GOT A SHAFT DUG YOU NEED TO GO NOT DIG IT
+        if state.starting_height ~= nil then
+            state.step = 41
+            return "All_Good", nil
+        end
 
         -- this is literally the worst way to do this, but also the easieast so whatever
         local inv_snapshot = deep_copy.copy(inv.virtual_inventory, pairs)
@@ -333,7 +358,7 @@ local function automatic(state, mechanism)
         if not result then -- This means we weren't able to break the block below us, and we need to handle this fact
             local analysis = geolyzer.simple_return()
             state.needed_tool_level = analysis.harvestLevel
-            state.step = 21      -- step 21 will get us out and revert to: 2, cause we'll just have to try again
+            set_state21(state) -- step 21 will get us out and revert to: 2, cause we'll just have to try again
             return "All_Good", nil
         end
 
@@ -377,7 +402,7 @@ local function automatic(state, mechanism)
             print(comms.robot_send("error", "We went all the way down to the bedrock, yet....."))
 
             state.chunk_ore = "Empty"
-            state.step = 21
+            set_state21(state)
             return "All_Good", nil
         end
 
@@ -412,11 +437,13 @@ local function automatic(state, mechanism)
 
         local cur_rel = nav.get_rel()
         if cur_rel[1] > 0 then
-            local result = s5_move("north")
+            -- local _result = s5_move("north")
+            s5_move("north")
             return "All_Good", nil
         end
         if cur_rel[2] > 0 then
-            local result = s5_move("west")
+            -- local _result = s5_move("west")
+            s5_move("west")
             return "All_Good", nil
         end
 
@@ -464,12 +491,12 @@ local function automatic(state, mechanism)
         if sweep_result == -1 then
             -- go to mode 21, and move height value further 3-down?, else if we're already low enough, set 31 and clear with no error
             local cur_height = nav.get_height()
-            local cur_height_diff = state.starting_height - cur_height
+            local cur_height_diff = state.latest_height - cur_height
             if cur_height_diff >= 7 then
                 state.step = 31
                 return "All_Good", nil
             end
-            state.step = 21
+            set_state21(state)
             state.layer_done = true
             return "All_Good", nil
         elseif sweep_result == 0 then
@@ -481,7 +508,9 @@ local function automatic(state, mechanism)
             robot.swing()
             maybe_something_added()
 
+            local watch_dog = 0
             while true do -- then we try to recover from the stall
+                watch_dog = watch_dog + 1
                 os.sleep(2)
                 local s_result = nav.sweep(false)
                 if s_result == 0 then break end
@@ -506,13 +535,44 @@ local function automatic(state, mechanism)
     -- This means "regular" (post step 4) mining interruption (we ran out of pickaxes, or acheived our goal or smthing)
     if state.step == 21 then
         local cur_rel = nav.get_rel()
-        local cur_height = nav.get_height()
-
+        if cur_rel[1] ~= 7 or cur_rel[2] ~= 7 then
+            nav.reverse_sweep()
+            state.step = 22
+        else
+            state.step = 23
+        end
+        return "All_Good", nil
+    elseif state.step == 22 then
         -- first we have to forcefully navigate to le right place;
         -- I think we'll be able to avoid most error checking if first navigate to x,0 and then to the "hole",
         -- because of the way we make our way to {0,0} in the first place
+        local cur_rel = nav.get_rel()
+        if cur_rel[2] == 0 then
+            nav.sweep(false)
+            return "All_Good", nil
+        end
+
+        nav.interrupt_sweep()
+        state.step = 23
+        return "All_Good", nil
+    elseif state.step == 23 then
+        local cur_rel = nav.get_rel()
+        local cur_height = nav.get_height()
+
         if cur_rel[1] ~= 7 or cur_rel[2] ~= 7 then
-            -- TODO -> continue through here
+            if not nav.is_setup_navigate_rel() then
+                nav.setup_navigate_rel({7, 7, cur_height})
+            end
+            -- I'm not bothering to check for errors cleverly here, maybe wrong idk
+            local result, err = nav.navigate_rel()
+            if not result then
+                if err == "impossible" then
+                    print(comms.robot_send("error", "This is bad, ore mining :/"))
+                    io.read()
+                    return "Interrupt", nil
+                end -- else we just pretend everything is good
+                os.sleep(5)
+            end
 
             cur_rel = nav.get_rel()
             -- Check for we having moved to a position that might f-up the ladder
@@ -527,19 +587,40 @@ local function automatic(state, mechanism)
         end
         -- Now we can be sure that we are in the ladder tile
 
-        error(comms.robot_send("fatal", "TODO2! in oremining"))
+        state.step = 24
+        return "All_Good", nil
+    elseif state.step == 24 then -- yo ho yo ho, up the ladder we go
+        local cur_height = nav.get_height()
+        if cur_height < state.surface_height then
+            elevator.be_an_elevator(state.surface_height)
+            return "All_Good", nil
+        end -- WE'RE FREEEEEEEE RAAAAAAAAAAAAAAAHHHHHHHHH
+
+        state.step = 2
+        if state.clear then return "Clear", nil
+        else return "Interrupt", nil end
     end
 
     -- This means: "Time to abandon this dump"
     if state.step == 31 then
         state.clear = true
-        error(comms.robot_send("fatal", "TODO3! in oremining"))
+        set_state21(state)
+        return "All_Good", nil
     end
 
-    -- Alternative step 4 for those that already have a shaft dug
-    if state.step == 41 then
-        error(comms.robot_send("fatal", "TODO4! in oremining"))
+    if state.step == 41 then -- just go down the shaft :)
+        local cur_height = nav.get_height()
+        if cur_height > state.latest_height then
+            elevator.be_an_elevator(state.latest_height)
+            return "All_Good", nil
+        end
+
+        state.step = 5
+        return "All_Good", nil
     end
+
+    -- We do not need a "state.shaft_dug" thing, because we already have it, only when the shaft has been dug will we
+    -- have a "state.starting_height" value, so we just check this little shit for null; it's just too easy.
 
     error(comms.robot_send("fatal", "Bad State ore-gathering, we somehow fell through"))
 end
@@ -550,11 +631,8 @@ local function ore_mining(arguments)
     local up_to_quantity = arguments[3] -- use for interrupts if needed etc etc
     local lock = arguments[4]
 
-    if state.interrupt == true then
-        return {state.priority, mechanism.algorithm, table.unpack(arguments)}
-    end
     if state.mode == "automatic" then
-        local finish_state, new_prio = automatic(state, mechanism)
+        local finish_state, new_prio = automatic(state, mechanism, up_to_quantity)
         if finish_state == "All_Good" then -- I think everything is getting passed as ref so it's ok to pass arguments back in
             local command_prio = state.priority
 
@@ -569,7 +647,7 @@ local function ore_mining(arguments)
             print(comms.robot_send("debug", "interrupted ore_mining routine"))
             lock[1] = 0 -- Report our lack of success and order the bot to keep looking
             return nil
-        elseif finish_state == "Close" then
+        elseif finish_state == "Clear" then
             print(comms.robot_send("debug", "finished ore_mining routine"))
             lock[1] = 2 -- "Unlock" the lock (will be unlocked based on "do_once"'s value
             return nil
