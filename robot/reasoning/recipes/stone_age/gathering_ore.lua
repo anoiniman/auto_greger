@@ -38,7 +38,9 @@ local el_state = {
     chunk = nil,        -- Only 1 state per chunk please, careful when storing state :)
                         -- Terrifying - the el state for "gather" actually contains a chunk-ref rather than just coords
     shaft_dug = false,
+    layer_done = false,
     cleared = false,
+
     latest_rel_pos = nil,
     latest_height = nil,
 
@@ -215,6 +217,8 @@ end
 
 
 local function automatic(state, mechanism)
+    print(comms.robot_send("debug", "Ore Mining, state.step = " .. state.step))
+
     -- Sanity Check
     if item_bucket.normalise_ore(state.wanted_ore) == "Unrecognised Ore" then
         if state.wanted_ore == nil then state.wanted_ore = "Nil" end
@@ -320,6 +324,7 @@ local function automatic(state, mechanism)
                     return "All_Good", nil
                 end
                 maybe_something_added() -- Important
+                state.starting_height = nav.get_height()
 
                 return "All_Good", nil
             elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
@@ -392,7 +397,7 @@ local function automatic(state, mechanism)
 
         local result = inv.equip_tool("pickaxe", state.needed_tool_level)
         if not result then set_state21(state); return "All_Good", nil end
-        
+
         -- swing first, move later, but sometimes we might have to try a second time (curves n'shiet)
         -- if it doesn't work a second time, then something's wrong tehe
 
@@ -417,20 +422,40 @@ local function automatic(state, mechanism)
                 end
             end
             -- Now you have to place back the block behind you! So that the shaft-ladder continues it's existance
-            -- TODO
+            nav.change_orientation(nav.get_opposite_orientation())
+            local result = inv.place_block("front", {"any:building", "any:grass"}, "name_table")
+            if not result then
+                error(comms.robot_send("fatal", "I really don't know how to recover from this, sorry"))
+            end
 
             return "All_Good", nil
         end
 
         if sweep_result == -1 then
-            -- go to mode 21, and move height value further 3-down?, else if we're already low enough, set 41 and clear with no error
-            state.chunk:addMark("surface_depleted")
-            return true, nil
+            -- go to mode 21, and move height value further 3-down?, else if we're already low enough, set 31 and clear with no error
+            local cur_height = nav.get_height()
+            local cur_height_diff = state.starting_height - cur_height
+            if cur_height_diff >= 7 then
+                state.step = 31
+                return "All_Good", nil
+            end
+            state.step = 21
+            state.layer_done = true
+            return "All_Good", nil
         elseif sweep_result == 0 then
-            --
+            return "All_Good", nil -- just keep goind with no more comments
         elseif sweep_result == 1 then
-            -- makes sense for surface move but maybe not so much for other storts of move
-            error(comms.robot_send("fatal", "not able to deal with a failed sweep for now"))
+            while true do -- sweep fail state attempt to recover
+                os.sleep(2)
+                local s_result = nav.sweep(false)
+                if s_result == 0 then break end
+                if watch_dog >= 12 then
+                    state.step = 31
+                    print(comms.robot_send("error", "At the most likely time: Ore Mining, got le stuck :sob:"))
+                    return "All_Good", nil
+                end
+            end
+            return "All_Good", nil
         else
             error(comms.robot_send("fatal", "ore_mining sweep_result is not expected"))
         end
