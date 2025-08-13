@@ -250,16 +250,42 @@ local function deal_with_the_ladder(state, move_func)
     return "All_Good", nil
 end
 
+local function check_fuel(state)
+    local block_move_potential = keep_alive.possible_round_trip_distance(0, true)
+    local chunk_move_potential = math.floor(block_move_potential / 16.0)
 
--- TODO: run some periodic power checks to make sure we can get back home, and interrupt if we start nearing the limit
--- btw, when you check for power usage, make sure you only do it trigger a return if we are actively mining and not
--- some other more "sensitive" state.step
+    local cur_chunk = nav.get_chunk(); local home_chunk = HOME_CHUNK
+    local home_dist = math.abs(home_chunk[1] - cur_chunk[1]) + math.abs(home_chunk[2] - cur_chunk[2])
+    local dist = math.abs(state.chunk[1] - cur_chunk[1]) + math.abs(state.chunk[2] - cur_chunk[2])
 
+    local dist_diff = chunk_move_potential - dist - home_dist
+    if dist_diff < 0 then
+        if not state.not_enough_fuel_reported then
+            print(comms.robot_send("warning", "Distance diff not good in mine ore, diff was: " .. dist_diff))
+            state.not_enough_fuel_reported = true
+        end
+        return false
+    end
+    state.enough_fuel_reported = false
+    return true
+end
+
+local reported_step = -1
 -- WARNING: priority better be locked to 100, (exceptions may apply)
 -- because we always need to use special methods to leave the mine,
 -- we can't just suddenly start doing something else
 local function automatic(state, mechanism, up_to_quantity)
-    print(comms.robot_send("debug", "Ore Mining, state.step = " .. state.step))
+    if state.step ~= reported_step then
+        print(comms.robot_send("debug", "Ore Mining, state.step = " .. state.step))
+        reported_step = state.step
+    end
+
+    -- Power Check
+    if state.step == 6 then
+        if not check_fuel(state) then
+            set_state21(state)  -- It'll trigger the leave protocol
+        end -- else it'll just continue as normal
+    end
 
     -- Sanity Check 01
     if item_bucket.normalise_ore(state.wanted_ore) == "Unrecognised Ore" then
@@ -307,22 +333,9 @@ local function automatic(state, mechanism, up_to_quantity)
 
         return "All_Good", nil
     elseif state.step == 2 then -- move to chunk
-        local block_move_potential = keep_alive.possible_round_trip_distance(0, true)
-        local chunk_move_potential = math.floor(block_move_potential / 16.0)
-
-        local cur_chunk = nav.get_chunk(); local home_chunk = HOME_CHUNK
-        local home_dist = math.abs(home_chunk[1] - cur_chunk[1]) + math.abs(home_chunk[2] - cur_chunk[2])
-        local dist = math.abs(state.chunk[1] - cur_chunk[1]) + math.abs(state.chunk[2] - cur_chunk[2])
-
-        local dist_diff = chunk_move_potential - dist - home_dist
-        if dist_diff < 0 then
-            if not state.not_enough_fuel_reported then
-                print(comms.robot_send("warning", "Distance diff not good in mine ore, diff was: " .. dist_diff))
-                state.not_enough_fuel_reported = true
-            end
-            return "All_Good", 1
+        if not check_fuel(state) then
+            return "All_Good", 0
         end
-        state.enough_fuel_reported = false
 
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(deep_copy.copy(state.chunk))
@@ -628,6 +641,7 @@ local function automatic(state, mechanism, up_to_quantity)
     error(comms.robot_send("fatal", "Bad State ore-gathering, we somehow fell through"))
 end
 
+local file_lock = 0
 local function ore_mining(arguments)
     local mechanism = arguments[1]
     local state = arguments[2]
