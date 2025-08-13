@@ -9,6 +9,10 @@ local serialize = require("serialization")
 local build_eval = require("eval.build")
 local inv = require("inventory.inv_obj")
 
+-- This state_primitive bullshitery and what not seems quite poorly designed, we'll need to revise that for v2
+-- only gathering uses that stupid crap anyway
+
+
 -- Whole recipe get copied/cloned by the caller so that state is not changed in the primitive object for a given recipe
 -- this decouples the definition of behaviour and data structure from its execution and state-change when in-vivo.
 -- Of course, this relies on the caller properly clonning us, but we don't really have a good way to enforce this
@@ -226,9 +230,20 @@ function MetaRecipe:includesOutputLiteral(lable, name)
 end
 
 function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info, dictionary)
+    -- This gathering bullshit is the buggiest, hackiest stuff around, makes sense since it was the first thing I did, but
+    -- holy shit, I should've been way way way smarter.
     if self.meta_type == "gathering" then
-        self.state.priority = priority
-        return {priority, self.mechanism.algorithm, self.mechanism, self.state, up_to_quantity, lock_ref }
+        -- state probabily needs to be copied over no matter what (whenever we create/start a new gathering instance)
+        -- to stop the pie from getting contaminated
+
+        -- self.state.priority = priority
+        self.state.priority = 100   -- I guess that the priority of a gathering once we start doing one should always be 100
+                                    -- we should as well certify that only one gathering occurs at a time, but that is a little
+                                    -- bit more difficult to certify, I just hope that this priority trick is enough
+        -- even though we set the state.priority as 100 we keep the regular priority as whatever was defined in the goal
+        -- this means that the command will be handled as normal BEFORE we start executing the gathering, but once we
+        -- start gathering there is no stopping until we finish the gathering!
+        return {priority, self.mechanism.algorithm, self.mechanism, deep_copy.copy(self.state), up_to_quantity, lock_ref }
     elseif self.meta_type == "building_user" then
         -- here extra info should be a ref to the building we need to use
         local build = extra_info

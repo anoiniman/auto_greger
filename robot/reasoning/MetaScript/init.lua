@@ -66,7 +66,10 @@ function MetaScript:findRecipe(lable, name)
     if lable == nil then lable = "nil" end
     if string.find(lable, "Ore") or string.find(name, ":raw_ore") then
         for _, recipe in ipairs(self.recipes) do
-            if recipe:includesOutputLiteral("_Ore", "_Ore") then return recipe end
+            if recipe:includesOutputLiteral("_Ore", "_Ore") then
+                recipe.mechanism.output = {["lable"] = lable, ["name"] = name} -- dirty hack
+                return recipe
+            end
         end
     end
 

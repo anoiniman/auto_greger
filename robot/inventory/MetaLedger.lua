@@ -15,7 +15,7 @@ local Module = VirtualInventory:new(-1)
 
 -- (new) function is unchanged from VirtualInventory (except for the fact that the table is not pre-inited)
 function Module:new(max_size)
-    local new = deep_copy(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     new.max_size = max_size
     new.table_size = 0 * 3 -- :)
     new.inv_type = "ledger"

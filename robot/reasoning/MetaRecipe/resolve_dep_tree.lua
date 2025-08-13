@@ -110,13 +110,21 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
         return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "gathering" then
+        -- In the case of a gathering that is part of a dependency-tree rather than as a global dependency that
+        -- interacts with goals directly, the pie will be fingered at dependency creation time, this is to
+        -- say that we set up the recipe.mechanism.output there when we define the dependency!
+
         local gathering = parent_recipe.mechanism
-        local tool_dependency = gathering:generateToolDependency(gathering.tool, gathering.level)
-        if tool_dependency == nil then return "all_good", nil end
+        return "all_good", nil
+        -- Attention: no longer auto_generating tool_dependencies because fuck that, that conflicts with
+        -- the layout system we desire to actually fucking use, what the fuck
+
+        -- local tool_dependency = gathering:generateToolDependency(gathering.tool, gathering.level)
+        -- if tool_dependency == nil then return "all_good", nil end
 
         -- we fake it!
-        ctx:addDep(tool_dependency)
-        return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
+        -- ctx:addDep(tool_dependency)
+        -- return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "building_user" then
         -- Check if the building was built

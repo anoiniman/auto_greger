@@ -321,7 +321,7 @@ local function automatic(state, mechanism, up_to_quantity)
 
     -- TODO summon logistic storing unneeded stuff (we'll have load outs n' shit)
     if state.step == 0 then -- Basic state loading
-        state.wanted_ore = deep_copy.copy(mechanism.output)
+        state.wanted_ore = deep_copy.copy(mechanism.output.lable) -- this is the hackiest shit ever, fuck me
         state.step = 1
         return "All_Good", nil
     elseif state.step == 1 then -- State selector
@@ -694,5 +694,5 @@ local function ore_mining(arguments)
 end
 
 -- TODO, hook up, and modify MetaRecipies appropriatly to use this correctly
-local ore_gathering = MetaRecipe:newGathering("_Ore", "_Ore", 0, ore_mining, el_state)
+local ore_gathering = MetaRecipe:newGathering("_Ore", "pickaxe", 0, ore_mining, el_state)
 return {ore_gathering, file_meta_info}
