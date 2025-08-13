@@ -64,6 +64,11 @@ local function refuel()
     robot.select(1)
 end
 
+function module.start_check() -- at programme startup makes sure that we count fuel properly!
+    gen.remove(gen.count())
+    inv.maybe_something_added_to_inv()
+end
+
 function module.force_fuel(slot_num)
     robot.select(slot_num)
     gen.insert(64)
@@ -88,12 +93,14 @@ function module.calculate_cur_energy(reserve) -- reserve, for example, always ha
     if cur_lable == "Coal" or cur_lable == "Charcoal" then unit_mult = u_coal
     elseif cur_name == "any:plank" or cur_name == "any:wood" then unit_mult = u_wood
     elseif cur_lable == "Creosote Bucket" then unit_mult = u_creosote
+    elseif cur_lable == nil and cur_name == nil then -- we have nothing in le hole
+        return computer.energy() / 64.0
     else
         print(comms.robot_send("error", "calculate energy lable/name not recognised: " .. string.format("l: %s, n: %s", cur_lable, cur_name)))
         return -1
     end
 
-    local total_ammount = cur_ammount + inv.virual_inventory:howMany(cur_lable, cur_name) - reserve
+    local total_ammount = cur_ammount + inv.virtual_inventory:howMany(cur_lable, cur_name) - reserve
     local fuel_energy = total_ammount * unit_mult -- sU
     local battery_energy = computer.energy() / 64.0 -- PU -> sU
 

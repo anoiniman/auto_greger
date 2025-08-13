@@ -16,6 +16,8 @@ local comms = require("comms")
 local post_exit = require("post_exit")
 
 local keep_alive = require("keep_alive")
+keep_alive.start_check()
+
 local reasoning = require("reasoning.reasoning_obj")
 
 local robot_routine = require("robo_routine")

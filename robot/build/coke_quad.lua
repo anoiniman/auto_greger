@@ -71,7 +71,7 @@ local input_items = {
 Module.state_init = {
     function()
         return {
-            last_checked = computer.uptime()
+            last_checked = computer.uptime(),
             -- last_checked = computer.uptime() - 1000, -- temp (s)-
 
             fsm = 1,

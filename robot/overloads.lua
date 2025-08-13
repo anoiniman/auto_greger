@@ -12,7 +12,8 @@ DO_AUTO_FILL = false
 -- luacheck: globals FUEL_TARGET DO_FUEL_GRIND FUEL_TYPE
 FUEL_TARGET = 192 -- sU, corresponds to 2 stacks of planks
 DO_FUEL_GRIND = false
-FUEL_TYPE = "wood"
+-- FUEL_TYPE = "wood"
+FUEL_TYPE = "loose_coal" -- temporary
 
 -- luacheck: globals AUTOMATIC_EXPAND_ORE AUTOMATIC_EXPAND_G_GATHER
 AUTOMATIC_EXPAND_ORE = 4        -- how many chunk radius from home can we search in.

@@ -145,5 +145,5 @@ local function surface_resource_sweep(arguments)
 
 end
 
-local log_recipe = MetaRecipe:newGathering("log", "axe", 0, surface_resource_sweep, el_state, "name_naive_contains")
+local log_recipe = MetaRecipe:newGathering({lable = nil, name = "any:log"}, "axe", 0, surface_resource_sweep, el_state)
 return log_recipe

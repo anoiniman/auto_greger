@@ -35,6 +35,9 @@ local MetaRecipe = {
 -- The state and lock are, of course, copied from primitives so that it yeah, for obvious reasions
 function MetaRecipe:new(output, state_primitive, strict, dependencies)
     local new = deep_copy.copy(self, pairs)
+    --[[local serial = serialize.serialize(output)
+    print(serial)
+    io.read()--]]
 
     new.state = deep_copy.copy(state_primitive, pairs)
     if strict ~= nil then
