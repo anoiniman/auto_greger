@@ -62,11 +62,12 @@ function MetaScript:findRecipe(lable, name)
     end -- fallthrough
 
     -- Time for a hack!
-    if name == nil then name = "nil" end
-    if lable == nil then lable = "nil" end
-    if string.find(lable, "Ore") or string.find(name, ":raw_ore") then
+    local s_name = name; local s_lable = lable
+    if name == nil then s_name = "nil" end
+    if lable == nil then s_lable = "nil" end
+    if string.find(s_lable, "Ore") or string.find(s_name, ":raw_ore") then
         for _, recipe in ipairs(self.recipes) do
-            if recipe:includesOutputLiteral("_Ore", "_Ore") then
+            if recipe:includesOutputLiteral("_Ore", nil) then
                 recipe.mechanism.output = {["lable"] = lable, ["name"] = name} -- dirty hack
                 return recipe
             end
