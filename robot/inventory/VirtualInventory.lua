@@ -146,7 +146,7 @@ local function calc_add_to_stack(current, to_add)
     if math.floor(div) == 0 then return to_add end -- we can add everything in, because the result is smaller than 1 stack
 
     local modulo = naive_add % 64
-    if math_floor(modulo) == 0 then return to_add end -- this is just the right ammount to make 1 stack, add everything
+    if math.floor(modulo) == 0 then return to_add end -- this is just the right ammount to make 1 stack, add everything
 
     -- then we should add (64 - modulo) in order to make a full stack
     return math.max(64 - modulo - 1, 0)
@@ -421,6 +421,18 @@ function Module:forceUpdateGeneral(is_internal)
         else stack_info = inventory.getStackInSlot(sides_api.front, slot) end
 
         if stack_info == nil then goto continue end
+
+        local name = item_bucket.identify(stack_info.name, stack_info.label)
+        if string.find(name, "tool:")then
+            local offset = (slot * 3) - 2
+            local o_lable = self.inv_table[offset]
+            local o_name = self.inv_table[offset + 1]
+
+            if o_lable ~= "" and string.find(o_name, "tool:") then
+                temp:forceUpdateSlot(o_lable, o_name, 1, slot)
+                goto continue -- we preserve the original, because of how tools work
+            end
+        end
 
         temp:forceUpdateSlot(stack_info.label, stack_info.name, stack_info.size, slot)
         ::continue::
