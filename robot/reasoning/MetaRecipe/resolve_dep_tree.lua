@@ -5,7 +5,11 @@ local inv = require("inventory.inv_obj")
 local map = require("nav_module.map_obj")
 local LogisticTransfer = require("complex_algorithms.LogisticTransfer")
 
-
+-- If at any point we try go "depth" but there are no further dependencies that means we went down a "bad_path"
+-- and we should try to go back up until an "Optional" dep_type gives us another choice,
+-- however I don't feel like implementing that right now, so instead of "Optional" types I'll simply
+-- "reload" the recipes using global flags once we pass a certain objective and hope for the best,
+-- it'll be enough for today (TODO episode 2)
 local solve_tree = {}
 
 -- It retrieves things logistacally in an eager manner, I hope we will not run out of inventory space or start
@@ -153,6 +157,7 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
 
         return "breath" -- At last, least priority, we look into the other branches if possible
                         -- AKA: This is blocked right now, please go down another sister branch
+                        -- But if you Optional into a breath and you run out of things, you are supposed to report fail
     else
         error(comms.robot_send("fatal", "meta_type was badly set somewhere!"))
     end

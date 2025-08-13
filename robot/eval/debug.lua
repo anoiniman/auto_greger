@@ -159,7 +159,7 @@ function module.debug(arguments)
                 else
                     print(comms.robot_send("error", "invalid arguments for inv force add_all"))
                 end
-            elseif arguments[3] == "add_to" or arguments[3] == "at" then -- TODO FROM HERE <----
+            elseif arguments[3] == "add_to" or arguments[3] == "at" then
                 local table_name = arguments[4]
                 local index = tonumber(arguments[5])
                 local lable = arguments[6]
@@ -167,6 +167,23 @@ function module.debug(arguments)
                 local to_add = tonumber(arguments[8])
 
                 inv.add_item_to_external(table_name, index, lable, name, to_add)
+            elseif arguments[3] == "set" then
+                local slot = tonumber(arguments[4])
+                if slot == nil then
+                    print(comms.robot_send("error", "invalid slot for inv force set"))
+                end
+
+                local lable = tostring(arguments[5])
+                if lable == nil then
+                    print(comms.robot_send("error", "invalid lable for inv force set"))
+                end
+
+                local name = tostring(arguments[6])
+                if name == "nil" then name = nil end
+
+                local quantity = tonumber(arguments[7])
+
+                inv.force_set_slot_as(slot, lable, name, quantity)
             elseif arguments[3] == "remove_from" or arguments[3] == "rf" then
                 local table_name = arguments[4]
                 local index = tonumber(arguments[5])

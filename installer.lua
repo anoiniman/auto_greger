@@ -242,6 +242,7 @@ local function robot_reasoning()
     --download("/robot/reasoning/scripts/debug/04.lua", "self")
     download("/robot/reasoning/scripts/debug/05.lua", "self")
     download("/robot/reasoning/scripts/debug/06.lua", "self")
+    download("/robot/reasoning/scripts/debug/07.lua", "self")
 end
 
 local function robot_inventory()

@@ -1131,6 +1131,21 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
     return result
 end
 
+-- For now this is enough, better interface far in the future
+function module.force_set_slot_as(slot, new_lable, new_name, new_quantity)
+    if new_lable == nil then return end
+    if new_name == nil then name = item_bucket.identify(name, lable) end
+
+    local offset = (slot * 3) - 2
+    local inv_table = module.virtual_inventory.inv_table
+
+    inv_table[offset] = new_lable
+    inv_table[offset + 1] = new_name
+    if new_quantity ~= nil and new_quantity > 0 and new_quantity <= 64 then
+        inv_table[offset + 2] = new_quantity
+    end
+end
+
 function module.force_add_in_slot(slot) -- ahr ahr
     local quantity = robot.count(slot)
     if quantity > 0 then

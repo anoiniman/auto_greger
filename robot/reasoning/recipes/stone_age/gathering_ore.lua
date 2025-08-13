@@ -49,13 +49,21 @@ local el_state = {
 }
 --------------------------------------
 
----- Global State -----------
--- TODO - Implement save/load for this global state :( (IT HURRRRTSSSS), but I think the objects are straight serialiseable
--- so maybe we're just in luck? No references to handle! :)
+local file_meta_info = {}
 
+---- Global State -----------
 local state_list = { -- lists states currently in memory
 
 }
+
+function file_meta_info.get_data()
+    return state_list
+end
+
+function file_meta_info.re_instantiate(big_table)
+    state_list = big_table  -- Should be fine? I don't think I need to copy the entries INTO state_list
+end
+
 
 -- adds state into list if state isn't already in the list :)
 -- prints error message if fail because it is unexpected that we try to add something that already exists
@@ -641,7 +649,7 @@ local function automatic(state, mechanism, up_to_quantity)
     error(comms.robot_send("fatal", "Bad State ore-gathering, we somehow fell through"))
 end
 
-local file_lock = 0
+file_meta_info.file_lock = 0
 local function ore_mining(arguments)
     local mechanism = arguments[1]
     local state = arguments[2]
@@ -687,4 +695,4 @@ end
 
 -- TODO, hook up, and modify MetaRecipies appropriatly to use this correctly
 local ore_gathering = MetaRecipe:newGathering("Ore", "Ore", 0, ore_mining, el_state)
-return ore_gathering
+return {ore_gathering, file_meta_info}

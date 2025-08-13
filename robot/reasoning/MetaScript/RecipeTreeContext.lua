@@ -128,7 +128,7 @@ function MetaContext:unwind(node_index)
         local temp_node = cur_path[temp_index]
         local temp_recipe = temp_node.le_self.inlying_recipe
 
-        if err_recipe:includesOutput(temp_recipe) then
+        if err_recipe:includesOutput(temp_recipe) and temp_node ~= err_node then
             match_node = temp_node
             break
         end

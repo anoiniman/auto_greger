@@ -20,53 +20,55 @@ local dictionary = {
     s = "Stick",
 }
 
-local temp
-local deps
+------ GATHER DEF -----------
+local _, __r_ground_gather = dofile("/home/robot/reasoning/recipes/stone_age/gathering01.lua")
+local __r_ore_gather, _ = dofile("/home/robot/reasoning/recipes/stone_age/gathering_ore.lua")
 
--- gather recipes (gravel, all_gather)
-local _, all_gather = dofile("/home/robot/reasoning/recipes/stone_age/gathering01.lua")
+local __r_log01, _ = dofile("/home/robot/reasoning/recipes/stone_age/gathering_tree.lua")
+-----------------------------
 
-temp = {
+local __c_flint01 = {
 'g', 'g',  0 ,
  0 , 'g',  0 ,
  0 ,  0 ,  0
 }
-local gravel_dep = MetaDependency:selectFromMultiple(all_gather, 3, nil, 1) -- index is hardcoded be mindful with changes
-local flint = MetaRecipe:newCraftingTable("Flint", temp, gravel_dep, nil)
-
--- We'll have multiple wood dependencies, because of: "wood farming/wood gathering/oak farming/spruce farming"
--- So we'll have to eventually implement the OR dependency thing (TODO)
-
--- local wood1 = MetaRecipe:newGathering("Wood etc.
-local output = {lable = nil, name = "any:log"}
-local wood = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "no_store", nil, nil)
-
-temp = {
+local __c_plank01 = {
  0,  'l',  0 ,
  0 ,  0 ,  0 ,
  0 ,  0 ,  0
 }
-local wood_dep = MetaDependency:new(wood, 1)
-output = {
-    lable = nil,
-    name = "any:plank"
-}
-local plank = MetaRecipe:newCraftingTable(output, temp, wood_dep, nil)
-
-
-temp = {
+local __c_stick01 = {
  0,  'p',  0 ,
  0 , 'p',  0 ,
  0 ,  0 ,  0
 }
-local plank_dep = MetaDependency:new(plank, 1)
-local stick = MetaRecipe:newCraftingTable("Stick", temp, plank_dep, nil)
-
-temp = {
+local __c_flint_pickaxe = {
 'f', 'f', 'f',
  0 , 's',  0 ,
  0 , 's',  0
 }
+
+local output
+local dep
+
+-- As you can see the dependencies of a building user are implicit
+output = {lable = nil, name = "any:log"}
+local __r_log02 = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "no_store", nil, nil)
+
+---
+dep = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 1)
+local __r_flint01 = MetaRecipe:newCraftingTable("Flint", __c_flint01, dep, nil)
+
+---
+dep = MetaDependency:new(__r_log01, 1, "Optional")
+local dep2 = MetaDependency:new(__r_log02, 1, "Optional")
+output = { lable = nil, name = "any:plank" }
+local plank = MetaRecipe:newCraftingTable(output, temp, dep, nil)
+
+
+local plank_dep = MetaDependency:new(plank, 1)
+local stick = MetaRecipe:newCraftingTable("Stick", temp, plank_dep, nil)
+
 local stick_dep = MetaDependency:new(stick, 2)
 local flint_dep = MetaDependency:new(flint, 3)
 deps = {stick_dep, flint_dep}
