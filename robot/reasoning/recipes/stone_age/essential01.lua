@@ -24,7 +24,8 @@ local dictionary = {
 
 ------ GATHER DEF -----------
 local _, __r_ground_gather = dofile("/home/robot/reasoning/recipes/stone_age/gathering01.lua")
-local __r_ore_gather, _ = dofile("/home/robot/reasoning/recipes/stone_age/gathering_ore.lua")
+--local __r_ore_gather, _ = table.unpack(dofile("/home/robot/reasoning/recipes/stone_age/gathering_ore.lua"))
+local __r_ore_gather, _ = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
 
 local __r_log01, _ = dofile("/home/robot/reasoning/recipes/stone_age/gathering_tree.lua")
 -----------------------------
@@ -50,6 +51,8 @@ local __c_flint_pickaxe = {
  0 , 's',  0
 }
 
+-- Further refactoring will be necessary
+
 local output
 local dep
 
@@ -71,10 +74,19 @@ local __r_plank01 = MetaRecipe:newCraftingTable(output, __c_plank01, dep, nil)
 dep = MetaDependency:new(__r_plank01, 1)
 local __r_stick01 = MetaRecipe:newCraftingTable("Stick", __c_stick01, dep, nil)
 
-local stick_dep = MetaDependency:new(stick, 2)
-local flint_dep = MetaDependency:new(flint, 3)
-deps = {stick_dep, flint_dep}
+local stick_dep = MetaDependency:new(__r_stick01, 2)
+local flint_dep = MetaDependency:new(__r_flint01, 3)
+local deps = {stick_dep, flint_dep}
 
-local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", temp, deps, nil)
+local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint01, deps, nil)
 
-return {{flint, flint_pickaxe, stick}, dictionary} -- this means that the only "public dependencies" are: flint, flint_pickaxe and stick
+-- return {{flint, flint_pickaxe, stick}, dictionary}  -- this means that the only "public dependencies" are: flint, flint_pickaxe and stick
+                                                       -- we won't be directly crafting anything else
+
+local recipe_table = {
+    __r_log02,
+    __r_flint01,
+    __r_plank01,
+    __r_ore_gather,
+}
+return {recipe_table, dictionary}

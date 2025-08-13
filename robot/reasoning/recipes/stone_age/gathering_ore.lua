@@ -694,5 +694,5 @@ local function ore_mining(arguments)
 end
 
 -- TODO, hook up, and modify MetaRecipies appropriatly to use this correctly
-local ore_gathering = MetaRecipe:newGathering("Ore", "Ore", 0, ore_mining, el_state)
+local ore_gathering = MetaRecipe:newGathering("_Ore", "_Ore", 0, ore_mining, el_state)
 return {ore_gathering, file_meta_info}

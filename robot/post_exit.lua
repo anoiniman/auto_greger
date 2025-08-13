@@ -9,6 +9,7 @@ local map = require("nav_module.map_obj")
 local nav = require("nav_module.nav_obj")
 local inv = require("inventory.inv_obj")
 local reas = require("reasoning.reasoning_obj")
+local _, ore = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
 
 local serialize = require("serialization")
 local io = require("io")
@@ -58,6 +59,7 @@ local inv_path = save_home .. "/inv.save"
 local map_path = save_home .. "/map.save"
 local nav_path = save_home .. "/nav.save"
 local reas_path = save_home .. "/reas.save"
+local ore_path = save_home .. "/ore.save"
 
 
 function module.save_state(options)
@@ -68,6 +70,7 @@ function module.save_state(options)
     save_thing(map_path, map)
     save_thing(nav_path, nav, map)
     save_thing(reas_path, reas)
+    save_thing(ore_path, ore)
 end
 
 local function load_thing(path, obj, extra)
@@ -100,6 +103,7 @@ function module.load_state(exclude)
     if not search_table.ione(exclude, "-map") then load_thing(map_path, map) end
     if not search_table.ione(exclude, "-nav") then load_thing(nav_path, nav, map) end
     if not search_table.ione(exclude, "-reas") then load_thing(reas_path, reas) end
+    if not search_table.ione(exclude, "-ore") then load_thing(ore_path, ore) end
 
     if not search_table.ione(exclude, "-auto") then
         do_presets(map)

@@ -61,6 +61,15 @@ function MetaScript:findRecipe(lable, name)
         end
     end -- fallthrough
 
+    -- Time for a hack!
+    if name == nil then name = "nil" end
+    if lable == nil then lable = "nil" end
+    if string.find(lable, "Ore") or string.find(name, ":raw_ore") then
+        for _, recipe in ipairs(self.recipes) do
+            if recipe:includesOutputLiteral("_Ore", "_Ore") then return recipe end
+        end
+    end
+
     print(comms.robot_send("error", "No recipe for: \"" .. lable .. "\" found!"))
     return nil
 end

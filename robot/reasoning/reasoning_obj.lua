@@ -24,7 +24,7 @@ end
 -- But we can auto_doFile some debug shits, because we're nice I guess
 
 local scripts = {}
-scripts[1] = dofile("/home/robot/reasoning/scripts/debug/06.lua")
+scripts[1] = dofile("/home/robot/reasoning/scripts/debug/07.lua")
 -- local recipes = {}
 
 -- TEMPORARY TODO, update cur_script programatically
