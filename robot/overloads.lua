@@ -3,6 +3,8 @@ EMPTY_TABLE = {}
 
 -- TODO adding a save file to save this sort of global variables or a way to autocheck them idk
 
+HAS_WOOD_FARM = false
+
 -- luacheck: globals HOME_CHUNK DO_AUTO_FILL
 HOME_CHUNK = {0, 0}     -- coords
 DO_AUTO_FILL = false

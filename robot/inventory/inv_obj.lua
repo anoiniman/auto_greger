@@ -1052,10 +1052,17 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
         error(comms.robot_send("fatal", "failed to craft :("))
     end
 
-    -- TODO make it not use getStackInInternalSlot se we're a bit faster
-    local new_quantity = inventory.getStackInInternalSlot(output_slot).size
+    -- TODO make it not use getStackInInternalSlot se we're a bit faster (it'll require better recipe programming)
+    local stack_rep = inventory.getStackInInternalSlot(output_slot)
+    local new_quantity = stack_rep.size
+
+    local update_name = output.name
+    local update_lable = output.lable
+    if update_name == nil then update_name = stack_rep.name end
+    if update_lable == nil then update_lable = stack_rep.label end
+
     -- Optimistically Update the thingy-majig
-    module.virtual_inventory:forceUpdateSlot(output.lable, output.name, new_quantity, output_slot)
+    module.virtual_inventory:forceUpdateSlot(update_lable, update_name, new_quantity, output_slot)
 
     robot.select(1)
     return true
@@ -1134,7 +1141,7 @@ end
 -- For now this is enough, better interface far in the future
 function module.force_set_slot_as(slot, new_lable, new_name, new_quantity)
     if new_lable == nil then return end
-    if new_name == nil then name = item_bucket.identify(name, lable) end
+    if new_name == nil then new_name = item_bucket.identify(new_name, new_lable) end
 
     local offset = (slot * 3) - 2
     local inv_table = module.virtual_inventory.inv_table
@@ -1158,7 +1165,7 @@ function module.force_add_in_slot(slot) -- ahr ahr
 end
 
 function module.remove_from_slot(what_slot, quantity)
-    if slot == nil or type(slot) == "number" then
+    if what_slot == nil or type(what_slot) ~= "number" then
         print(comms.robot_send("error", "failure to remove_from slot"))
         return false
     end

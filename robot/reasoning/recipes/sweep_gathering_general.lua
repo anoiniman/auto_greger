@@ -9,7 +9,7 @@ local map = require("nav_module.map_obj")
 
 -- depleted_string = "surface_depleted" or "tree_depleted" (it resetes eventually)
 -- if sweep_mode is not a nil AND a number then it represents a specific y-axis to target and to set free-move
-function module.automatic(parent_name, state, depleted_string, check_subset, f_step4, sweep_mode)
+function module.automatic(parent_name, state, depleted_string, gather_string, check_subset, f_step4, sweep_mode)
     if sweep_mode ~= nil and type(sweep_mode) ~= "number" then
         error(comms.robot_send("fatal", "generic automatic sweep: sweep_mode is invalid!"))
     end
@@ -17,10 +17,10 @@ function module.automatic(parent_name, state, depleted_string, check_subset, f_s
     -- (1x) determine what_chunk to sploink
     if state.step == 1 then
         -- Determine if we have a gather area anywhere
-        local area = map.get_area("gather")
+        local area = map.get_area(gather_string)
         if area == nil then -- we'll have to wait :)
             if state.i_id == nil then
-                state.i_id = interactive.add("generic_hold", parent_name .. "is holding for a gather area to be created")
+                state.i_id = interactive.add("generic_hold", parent_name .. "is holding for a \"".. gather_string .. "\" area to be created")
             end
 
             return false, -2
@@ -33,7 +33,7 @@ function module.automatic(parent_name, state, depleted_string, check_subset, f_s
         end
 
     elseif state.step == 11 then
-        local area = map.get_area("gather")
+        local area = map.get_area(gather_string)
         if area == nil then state.step = 1; return false end
 
         local chunk_to_act_upon
@@ -47,7 +47,9 @@ function module.automatic(parent_name, state, depleted_string, check_subset, f_s
 
         if chunk_to_act_upon == nil then -- wait more
             if state.i_id == nil then
-                state.i_id = interactive.add("generic_hold", parent_name .. " is holding for chunks to be assigned to gather area")
+                state.i_id = interactive.add(
+                    "generic_hold", parent_name .. " is holding for chunks to be assigned to \"" .. gather_string .. "\"area"
+                )
             end
 
             return false, -2

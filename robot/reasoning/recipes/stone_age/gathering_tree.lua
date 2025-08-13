@@ -109,9 +109,10 @@ local function work_stroke(state)
 end
 
 local deplete_mark = "tree_depleted"
+local gather_mark = "gather_tree"
 
 local function automatic(state)
-    return generic.automatic("gather_tree", state, deplete_mark, check_subset, work_stroke, nil)
+    return generic.automatic("gather_tree", state, deplete_mark, gather_mark, check_subset, work_stroke, nil)
 end
 
 local function surface_resource_sweep(arguments)
@@ -144,5 +145,5 @@ local function surface_resource_sweep(arguments)
 
 end
 
-local log_recipe = MetaRecipe:newGathering("log", "shovel", 0, surface_resource_sweep, el_state, "name_naive_contains")
+local log_recipe = MetaRecipe:newGathering("log", "axe", 0, surface_resource_sweep, el_state, "name_naive_contains")
 return log_recipe

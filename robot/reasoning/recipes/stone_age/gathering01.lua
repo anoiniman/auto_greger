@@ -67,7 +67,7 @@ end
 
 
 local function automatic(state)
-    return generic.automatic("gather01", state, "surface_depleted", check_subset, work_stroke, nil)
+    return generic.automatic("gather01", state, "surface_depleted", "gather", check_subset, work_stroke, nil)
 end
 
 local function surface_resource_sweep(arguments)

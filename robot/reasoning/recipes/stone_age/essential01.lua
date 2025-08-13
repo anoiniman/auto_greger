@@ -3,6 +3,8 @@ local MetaRecipe = require("reasoning.MetaRecipe")
 local nav_obj = require("nav_module.nav_obj")
 -- local gathering = require("reasoning.recipes.stone_age.gathering01")
 
+-- luacheck: globals HAS_WOOD_FARM
+
 local any_plank = {
     [1] = nil,
     [2] = "any:plank",
@@ -60,14 +62,14 @@ dep = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 1)
 local __r_flint01 = MetaRecipe:newCraftingTable("Flint", __c_flint01, dep, nil)
 
 ---
-dep = MetaDependency:new(__r_log01, 1, "Optional")
-local dep2 = MetaDependency:new(__r_log02, 1, "Optional")
 output = { lable = nil, name = "any:plank" }
-local plank = MetaRecipe:newCraftingTable(output, temp, dep, nil)
+if HAS_WOOD_FARM then dep = MetaDependency:new(__r_log02, 1, "Optional")
+else dep = MetaDependency:new(__r_log01, 1, "Optional") end
+local __r_plank01 = MetaRecipe:newCraftingTable(output, __c_plank01, dep, nil)
 
-
-local plank_dep = MetaDependency:new(plank, 1)
-local stick = MetaRecipe:newCraftingTable("Stick", temp, plank_dep, nil)
+--
+dep = MetaDependency:new(__r_plank01, 1)
+local __r_stick01 = MetaRecipe:newCraftingTable("Stick", __c_stick01, dep, nil)
 
 local stick_dep = MetaDependency:new(stick, 2)
 local flint_dep = MetaDependency:new(flint, 3)
