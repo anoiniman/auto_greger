@@ -657,7 +657,12 @@ function module.force_set_build(nav, what_chunk, what_quad)
     local map_chunk = module.chunk_exists(what_chunk)
     if map_chunk == nil then return false end
 
-    local quad = map_chunk.chunk.meta_quads[what_quad]
+    -- I think that when a chunk has never "experienced" a building in it before, it will not have a meta_quads
+    -- field so we need to check for that in order to avoid unfortunate crashes
+    local meta_quads = map_chunk.chunk.meta_quads
+    if meta_quads == nil then return false end
+
+    local quad = meta_quads[what_quad]
     if quad == nil then return false end
 
     if not quad:isBuilt() then return false end

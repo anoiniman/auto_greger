@@ -35,6 +35,7 @@ function reason_obj.get_data()
     local cur_script_desc = nil
     local script_tbl = {}
     for index, script in ipairs(scripts) do
+        script_tbl[index] = {}
         if script == cur_script then
             cur_script_desc = script.desc
         end
@@ -49,7 +50,7 @@ function reason_obj.get_data()
             table_of_goals[goal.name] = inner_table
         end
 
-        script_tbl[script.desc] = table_of_goals
+        script_tbl[index][script.desc] = table_of_goals
     end
     if cur_script_desc == nil then
         print(comms.robot_send("error", "Saving reas_obj, couldn't find index to cur_script??? defaulting to \"default\""))
@@ -65,6 +66,7 @@ end
 
 local save_table
 local function try_load_script(real_script, desc)
+    -- the fact that we only load the first index is temporary
     local goal_table = save_table[1][desc]
     if goal_table.loaded then
         print(comms.robot_send("debug", "Tried to load a script that was already loaded!"))
@@ -88,6 +90,7 @@ function reason_obj.re_instantiate(big_table)
     save_table = big_table[1]
     local save_script_desc = big_table[2]
 
+    -- useless block?
     local s_index = -1
     for index, script in ipairs(scripts) do
         if script.desc == save_script_desc then
@@ -101,7 +104,10 @@ function reason_obj.re_instantiate(big_table)
         print(comms.robot_send("error", "error in loading script"))
         return
     end
-    try_load_script(cur_script, s_index)
+    ---
+
+    -- try_load_script(cur_script, s_index)
+    try_load_script(cur_script, save_script_desc)
 end
 
 

@@ -88,7 +88,7 @@ function module.robot_send(part1, part2) -- part1 & 2 must be strings
     if part1 == "fatal" and filesystem.exists("/home/robot") then -- le emergency save
         ALREADY_SAVED = true
         post_exit.exit()
-        return part1, part2
+        return part2
     end
 
     if (part1 == "debug" or part1 == "eval") and DO_DEBUG_PRINT ~= nil and not DO_DEBUG_PRINT then

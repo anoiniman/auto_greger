@@ -143,13 +143,13 @@ end
 local function calc_add_to_stack(current, to_add)
     local naive_add = current + to_add
     local div = math.floor(naive_add / 64)
-    if math.floor(div) == 0 then return to_add end -- we can add everything in, because the result is smaller than 1 stack
+    if div == 0 then return to_add end -- we can add everything in, because the result is smaller than 1 stack
 
     local modulo = naive_add % 64
-    if math.floor(modulo) == 0 then return to_add end -- this is just the right ammount to make 1 stack, add everything
+    if div == 1 and modulo == 0 then return to_add end -- this is just the right ammount to make 1 stack, add everything
 
     -- then we should add (64 - modulo) in order to make a full stack
-    return math.max(64 - modulo - 1, 0)
+    return math.max(to_add - modulo, 0)
 end
 
 function Module:addToEmpty(lable, name, to_be_added, forbidden_slots)
