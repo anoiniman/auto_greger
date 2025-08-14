@@ -68,8 +68,10 @@ function MetaScript:findRecipe(lable, name)
     if string.find(s_lable, "Ore") or string.find(s_name, ":raw_ore") then
         for _, recipe in ipairs(self.recipes) do
             if recipe:includesOutputLiteral("_Ore", nil) then
-                recipe.mechanism.output = {["lable"] = lable, ["name"] = name} -- dirty hack
-                return recipe
+                -- for direct dependency recipes we'll be fingering the pie there! Don't forget to deep_copy!
+                local recipe_copy = deep_copy.copy(recipe)
+                recipe_copy.mechanism.output = {["lable"] = lable, ["name"] = name} -- dirty hack
+                return recipe_copy
             end
         end
     end

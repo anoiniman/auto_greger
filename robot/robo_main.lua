@@ -7,6 +7,7 @@ local io = require("io")
 local computer = require("computer")
 --local os = require("os")
 
+local keyboard = require("keyboard")
 local term = require("term")
 local text = require("text")
 local serialize = require("serialization") -- luacheck: ignore
@@ -152,6 +153,9 @@ local function robot_main()
 
     while not do_exit do
         os.sleep(ROBO_MAIN_THREAD_SLEEP) -- luacheck: ignore
+        if keyboard.isKeyDown(keyboard.keys.q) then -- should've done this months ago
+            block_read_bool = true
+        end
 
         local cron_message = cron_jobs()
         process_messages(cron_message)

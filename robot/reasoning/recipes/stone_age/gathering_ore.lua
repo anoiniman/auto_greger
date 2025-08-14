@@ -297,7 +297,7 @@ local function automatic(state, mechanism, up_to_quantity)
     end
 
     -- Sanity Check 01
-    if item_bucket.normalise_ore(state.wanted_ore) == "Unrecognised Ore" then
+    if state.step ~= 0 and item_bucket.normalise_ore(state.wanted_ore) == "Unrecognised Ore" then
         if state.wanted_ore == nil then state.wanted_ore = "Nil" end
         error(comms.robot_send("fatal",
             string.format("We are trying to obtain an un-recognised ore, check you definitions: \"%s\"", state.wanted_ore)
