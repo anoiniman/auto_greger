@@ -125,6 +125,31 @@ local function move_to_road(what_kind, nav_obj, cur_building)
     print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))
 end
 
+-- When we are in road, but, not in a road correctly orientated we just move forwards anyway, which is bad
+local function secondary_road_check(move_dir_x, nav_obj, what_kind) -- move_dir_x -- true for x, false for z
+    local cur_rel = nav_obj.rel
+
+    if move_dir_x then
+        if cur_rel[2] ~= 0 or cur_rel[2] ~= 15 then
+            if chunk_nearest_side[2] < 0 then interface.r_move(what_kind, "south", nav_obj)
+            else interface.r_move(what_kind, "north", nav_obj) end
+
+            update_chunk_nav(nav_obj)
+            return false
+        end
+    else
+        if cur_rel[1] ~= 0 or cur_rel[1] ~= 15 then
+            if chunk_nearest_side[1] < 0 then interface.r_move(what_kind, "east", nav_obj)
+            else interface.r_move(what_kind, "west", nav_obj) end
+
+            update_chunk_nav(nav_obj)
+            return false
+        end
+    end
+
+    return true
+end
+
 
 -- returns true if it is finished
 function module.navigate_chunk(what_kind, nav_obj, cur_building)
@@ -143,12 +168,16 @@ function module.navigate_chunk(what_kind, nav_obj, cur_building)
     -- this means we can use chunk_move cur_chunk in order to move to the nearest road for free
     if (chunk_nearest_side[1] ~= 0) or (chunk_nearest_side[2] ~= 0) then
         if chunk_nearest_side[1] < 0 then -- move right
+            if not secondary_road_check(true, nav_obj, what_kind) then return false end
             interface.r_move(what_kind, "east", nav_obj)
         elseif chunk_nearest_side[1] > 0 then
+            if not secondary_road_check(true, nav_obj, what_kind) then return false end
             interface.r_move(what_kind, "west", nav_obj)
         elseif chunk_nearest_side[2] < 0 then
+            if not secondary_road_check(false, nav_obj, what_kind) then return false end
             interface.r_move(what_kind, "south", nav_obj)
         else
+            if not secondary_road_check(false, nav_obj, what_kind) then return false end
             interface.r_move(what_kind, "north", nav_obj)
         end
 
