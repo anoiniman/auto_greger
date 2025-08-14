@@ -36,7 +36,7 @@ local function update_chunk_nav(nav_obj)
     chunk_nearest_side[1] = chunk[1] - goal_chunk[1]
     chunk_nearest_side[2] = chunk[2] - goal_chunk[2]
 
-    rel_nearest_side[1] = rel[1] - half_chunk_square
+    rel_nearest_side[1] = rel[1] - half_chunk_square -- x - 8
     rel_nearest_side[2] = rel[2] - half_chunk_square
 end
 
@@ -71,7 +71,7 @@ end
 local function move_to_road(what_kind, nav_obj, cur_building)
     local function nearest_side()
         local axis_nearest
-        if math.abs(rel_nearest_side[1]) < math.abs(rel_nearest_side[2]) then
+        if math.abs(rel_nearest_side[1]) > math.abs(rel_nearest_side[2]) then
             axis_nearest = 0
         else
             axis_nearest = 1
@@ -89,7 +89,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
 
         update_chunk_nav(nav_obj)
         local cur_rel = nav_obj.rel
-        return f_cur_in_road()
+        return f_cur_in_road(nav_obj)
     end
 
     -- The move to road part

@@ -200,7 +200,7 @@ function module.setup_navigate_chunk(what_chunk)
 end
 
 function module.navigate_chunk(what_kind)
-    return chunk_move.navigate_chunk(what_kind, nav_obj)
+    return chunk_move.navigate_chunk(what_kind, nav_obj, nav_obj.cur_building)
 end
 
 function module.force_reset_navigate_chunk()

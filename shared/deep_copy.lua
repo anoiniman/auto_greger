@@ -7,7 +7,9 @@ function module.copy(obj, iter_func) -- I'm dumb, I've had to create this functi
     if type(obj) == "table" then
         return module.copy_table(obj, iter_func)
     else
-        error(comms.robot_send("fatal", "What are you doing fr fr, module_copy etc -- this isn't a table bro"))
+        print(comms.robot_send("error", "What are you doing fr fr, module_copy etc -- this isn't a table bro"))
+        print(comms.robot_send("stack-trace", debug.traceback()))
+        return obj
     end
 end
 

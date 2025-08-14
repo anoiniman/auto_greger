@@ -322,7 +322,7 @@ local function automatic(state, mechanism, up_to_quantity)
 
     -- TODO summon logistic storing unneeded stuff (we'll have load outs n' shit)
     if state.step == 0 then -- Basic state loading
-        state.wanted_ore = deep_copy.copy(mechanism.output.lable) -- this is the hackiest shit ever, fuck me
+        state.wanted_ore = mechanism.output.lable -- this is the hackiest shit ever, fuck me
         state.step = 1
         return "All_Good", nil
     elseif state.step == 1 then -- State selector
