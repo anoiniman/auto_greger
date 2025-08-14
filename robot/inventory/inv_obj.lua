@@ -29,7 +29,7 @@ local inventory = component.getPrimary("inventory_controller")
 -- forbiden slots (because of crafting table) = 1,2,3 -- 5,6,7 -- 9,10,11
 -- this means actual internal inventory size while crafing mode is true is == 7
 local inventory_size = 32
-local used_up_capacity = 0
+local used_up_capacity = 0 -- has become useless because of better inventory management schemes, remove in future
 
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 
@@ -516,38 +516,6 @@ local function get_forbidden_table()
     return nil
 end
 
-local function non_craft_slot_iter()
-    local iteration = used_up_capacity
-    return function ()
-        iteration = iteration + 1
-        if iteration > inventory_size then
-            return nil
-        end
-
-        local cur_f = crafting_table_slots[iteration]
-        if (cur_f ~= nil and cur_f ~= -1) or search_table.ione(get_forbidden_table(), iteration) then
-            return -1
-        end
-
-        return iteration
-    end
-end
-
-local function free_slot_iter()
-    local iteration = used_up_capacity + 1 -- spares first slot, meaningless logically
-
-    return function ()
-        iteration = iteration + 1
-        if iteration > inventory_size then
-            return nil
-        end
-        if search_table.ione(get_forbidden_table(), iteration) then
-            return -1
-        end
-
-        return iteration
-    end
-end
 
 local function smaller_than(a,b) return a < b end
 local function bigger_than(a,b) return a > b end
@@ -571,42 +539,6 @@ local function sort_slot_table(tbl, reverse)
     end
 end
 
------->>-- LE CLEAR SLOTS FUNCTIONS --<<-----------
-
-local function clear_any_slot(iter, target_count)
-    if robot.count(target_count) == 0 then return true end -- nothing needs to be done
-
-    local free_slot = nil
-    for slot_num in iter() do
-        if slot_num == -1 then goto continue end
-        if robot.count(slot_num) == 0 then
-            free_slot = slot_num
-            break;
-        end
-
-        ::continue::
-    end
-    if free_slot == nil then -- there is no free_slot
-        crafting_table_clear = false
-        return false
-    end
-
-    robot.select(target_count)
-    robot.transferTo(free_slot)
-    return true
-end
-
-local function clear_first_slot(iter)
-    return clear_any_slot(iter, 1)
-end
-
--- local function force_clear_crafting_table()
--- end
-
------------------------------------------
-
---
----}}}
 
 --->>-- Tool Use --<<-----{{{
 
@@ -1086,22 +1018,21 @@ end
 ---}}}
 
 function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important to keep crafting table clear
-    if used_up_capacity >= inventory_size - 1 then -- stop 1 early, to not over-fill
-        return false
-    end
-
     local result = true
     local quantity = robot.count(1)
     if quantity > 0 then    -- This is a rare occurence when something fell into the inventory that was not
                             -- there before, or if a stack was already full -> aka rare
-        used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(1)
-        local lable = item.label; local name = item.name
-        module.virtual_inventory:addOrCreate(lable, name, quantity, get_forbidden_table())
+        local lable = item.label; local name = item.name; local quantity = item.size
 
         -- Make sure that these clear_functions act in the sameway that addOrCreate does (I think it does but who knows)
-        if use_self_craft then result = clear_first_slot(non_craft_slot_iter)
-        else result = clear_first_slot(free_slot_iter) end
+        local new_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
+        robot.select(1)
+        if robot.transferTo(new_slot) then
+            module.virtual_inventory:forceUpdateSlot(lable, name, quantity, new_slot)
+        else
+            print(comms.robot_send("error", "maybe_something_added, very bad error"))
+        end
 
         -- fallthrough because imagine we input 44 items in, there is 1 stack that already has 32 items, there
         -- will be 12 items that'll got to slot 1 (I think), but now the already present stack has 64 items,
@@ -1156,7 +1087,6 @@ end
 function module.force_add_in_slot(slot) -- ahr ahr
     local quantity = robot.count(slot)
     if quantity > 0 then
-        used_up_capacity = used_up_capacity + 1
         local item = inventory.getStackInInternalSlot(slot)
         local name = item.name; local lable = item.label
         module.virtual_inventory:forceUpdateSlot(lable, name, quantity, slot)

@@ -26,6 +26,7 @@ local MetaRecipe = require("reasoning.MetaRecipe")
 -- other chunks somewhat, but that justs makes the code more complicated and I don't want that
 local el_state = {
     -- i_id = nil,
+    mode = "automatic",
     priority = 0,
 
     surface_height = nil,

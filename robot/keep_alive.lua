@@ -22,7 +22,7 @@ local inv_controller = component.getPrimary("inventory_controller")
 -- grind the fuel
 
 function module.prepare_exit()
-    gen.remove(gen.count())
+    gen.remove(gen.count()) -- removes into selected slot so no need to "maybe_something_added", but still
     inv.maybe_something_added_to_inv()
 end
 
