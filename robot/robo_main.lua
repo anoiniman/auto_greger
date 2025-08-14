@@ -38,6 +38,7 @@ print(comms.robot_send("info", robot_name .. " -- Now Online! " .. msg))
 term.setCursorBlink(false)
 
 if DO_LOAD then post_exit.load_state({}) end
+reasoning.reset_one_locks()
 
 
 --luacheck: globals CRON_TIME DO_REASONING REASON_ONCE

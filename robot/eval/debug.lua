@@ -139,7 +139,7 @@ function module.debug(arguments)
                 new_obj:printPage(false)
 
                 local castrated_object = deep_copy.copy_no_functions(pp_obj)
-                comms.send_command("execute", "ppObj", "printPage", castrated_object, false)
+                comms.send_command("ppObj", "printPage", castrated_object, false)
             elseif arguments[3] == "external" then
                 local name = arguments[5]; local index = tonumber(arguments[6]);
                 if name == "nil" then name = nil end
@@ -195,10 +195,15 @@ function module.debug(arguments)
         else
             print(comms.robot_send("error", "invalid arguments"))
         end
-    elseif arguments[1] == "reas" then
+
+    elseif arguments[1] == "reas" or arguments[1] == "reasoning" then
 
         if arguments[2] == "print_dud" then
             reason.print_dud()
+        elseif arguments[2] == "print_script" then
+            print(comms.robot_send("info", "Not ready yet!"))
+        elseif arguments[2] == "reset_one" or arguments[2] == "r1" then
+            reason.reset_one_locks()  -- Don't run with commands in the queue DANGEROUS
         else
             print(comms.robot_send("error", "invalid arguments"))
         end

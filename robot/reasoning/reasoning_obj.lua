@@ -3,8 +3,8 @@ local reason_obj = {}
 local comms = require("comms")
 local deep_copy = require("deep_copy") -- luacheck: ignore
 
-local MetaScriptTable = require("reasoning.MetaScript")
-local MetaScript = MetaScriptTable[#MetaScriptTable]
+-- local MetaScriptTable = require("reasoning.MetaScript")
+-- local MetaScript = MetaScriptTable[#MetaScriptTable]
 
 -- TODO combing through the wait list
 -- if element.useBuilding ~= nil and element:useBuilding("check")
@@ -46,7 +46,7 @@ function reason_obj.get_data()
         for _, goal in ipairs(script.goals) do
             -- table so that it is expandable in the future
             local lock_value = goal.constraint.const_obj.lock[1]
-            local inner_table = {goal.constraint.const_obj.lock[1]}
+            local inner_table = {lock_value}
             table_of_goals[goal.name] = inner_table
         end
 
@@ -96,7 +96,6 @@ function reason_obj.re_instantiate(big_table)
         if script.desc == save_script_desc then
             cur_script = scripts[index]
             s_index = index
-            success = true
             break
         end
     end
@@ -116,6 +115,19 @@ function reason_obj.list_scripts()
         print(comms.robot_send("info", index .. " -- " .. script.desc))
     end
 end
+
+-- After a crash or an exit locks that in state '1' (being worked on) no longer represent well
+-- their state since the command queue is not saved as well, so you need to reset these
+-- locks (BE CAREFUL IF YOU ARE IN A CAVE/MINE OR SOME OTHER THING)
+function reason_obj.reset_one_locks()
+    for _, script in ipairs(scripts) do
+        for _, goal in ipairs(script.goals) do
+            local lock = goal.constraint.const_obj.lock
+            if lock[1] == 1 then lock[1] = 0 end
+        end
+    end
+end
+
 
 function reason_obj.force_load(index)
     cur_script = scripts[index]

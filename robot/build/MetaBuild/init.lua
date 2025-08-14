@@ -240,11 +240,11 @@ function Module:setupBuild(what_quad, chunk_height)
     else
         for index, table_obj in self.primitive:iter(base_table) do -- it is expected that table object does not include meta-data
             self.s_interface:parseStringArr(table_obj, index)
-            print(comms.robot_send("debug", "MetaBuild:setupBuild() we looped once m8"))
+            -- print(comms.robot_send("debug", "MetaBuild:setupBuild() we looped once m8"))
             --max_index = max_index + 1
         end
     end
-    print(comms.robot_send("debug", "we facking did it m8!"))
+    -- print(comms.robot_send("debug", "we facking did it m8!"))
 
     self.is_nil = false
 
@@ -300,7 +300,7 @@ function Module:finalizeBuild(doors)
     end
 
     self.s_interface = nil -- :)
-    print(comms.robot_send("debug", "finalizedBuild"))
+    -- print(comms.robot_send("debug", "finalizedBuild"))
 end
 
 
