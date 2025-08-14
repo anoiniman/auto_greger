@@ -88,7 +88,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         end
 
         update_chunk_nav(nav_obj)
-        local cur_rel = nav_obj.rel
+        local cur_rel = nav_obj.rel -- unused, why?
         return f_cur_in_road(nav_obj)
     end
 
@@ -98,7 +98,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
     end
 
     -- The move out of building part
-    local doors = cur_building:getDoors()
+    local doors = cur_building.doors
     local cur_rel = nav_obj.rel
 
     local what_door = nil
