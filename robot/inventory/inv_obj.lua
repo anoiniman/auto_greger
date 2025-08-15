@@ -625,8 +625,11 @@ end
 
 local function loop_recurse(dir, identifier, intended_lable_type, side)
     for _, sub_id in ipairs(identifier) do
-        if module.place_block(dir, sub_id, intended_lable_type, side) then break end -- breaks if success
+        if module.place_block(dir, sub_id, intended_lable_type, side) then -- returns early if success
+            return true
+        end
     end
+    return false
 end
 
 -- remember that because we're stupid, our own "lable" is lable, but the lable from
@@ -648,14 +651,11 @@ function module.place_block(dir, block_identifier, lable_type, side)
         elseif lable_type == "lable" then
             b_lable = block_identifier
         elseif lable_type == "table_table" then
-            loop_recurse(dir, block_identifier, "table", side)
-            return
+            return loop_recurse(dir, block_identifier, "table", side)
         elseif lable_type == "name_table" then
-            loop_recurse(dir, block_identifier, "name", side)
-            return
+            return loop_recurse(dir, block_identifier, "name", side)
         elseif lable_type == "lable_table" then
-            loop_recurse(dir, block_identifier, "lable", side)
-            return
+            return loop_recurse(dir, block_identifier, "lable", side)
         elseif lable_type == "table" then
             error(comms.robot_send("fatal", "It was supposed to be a table"))
         else

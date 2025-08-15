@@ -29,7 +29,7 @@ function module.eval_command(command_arguments)
     local arguments = command_arguments
 
     if type(command) == "function" then
-        print(comms.robot_send("eval", "Attempting to Eval Internal Command...."))
+        -- print(comms.robot_send("eval", "Attempting to Eval Internal Command...."))
         return command(arguments)
     end
 

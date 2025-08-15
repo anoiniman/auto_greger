@@ -38,7 +38,7 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool
         end
     end
 
-    local cur_height = nav.get_rel()
+    local cur_height = nav.get_height()
     local diff = target_height - cur_height
 
     local result, err = do_move(diff)

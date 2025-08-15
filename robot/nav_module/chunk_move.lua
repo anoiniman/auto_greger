@@ -136,7 +136,7 @@ local function secondary_road_check(move_dir_x, nav_obj, what_kind) -- move_dir_
     local cur_rel = nav_obj.rel
 
     if move_dir_x then
-        if cur_rel[2] ~= 0 or cur_rel[2] ~= 15 then
+        if cur_rel[2] ~= 0 and cur_rel[2] ~= 15 then
             if chunk_nearest_side[2] < 0 then interface.r_move(what_kind, "south", nav_obj)
             else interface.r_move(what_kind, "north", nav_obj) end
 
@@ -144,7 +144,7 @@ local function secondary_road_check(move_dir_x, nav_obj, what_kind) -- move_dir_
             return false
         end
     else
-        if cur_rel[1] ~= 0 or cur_rel[1] ~= 15 then
+        if cur_rel[1] ~= 0 and cur_rel[1] ~= 15 then
             if chunk_nearest_side[1] < 0 then interface.r_move(what_kind, "east", nav_obj)
             else interface.r_move(what_kind, "west", nav_obj) end
 
