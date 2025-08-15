@@ -69,12 +69,20 @@ end
 
 
 local function move_to_road(what_kind, nav_obj, cur_building)
+    local cur_rel = nav_obj.rel
+
     local function nearest_side()
+        if f_cur_in_road(nav_obj) then return true end
+
         local axis_nearest
-        if math.abs(rel_nearest_side[1]) > math.abs(rel_nearest_side[2]) then
+        if  (math.abs(rel_nearest_side[1]) > math.abs(rel_nearest_side[2]))
+            and cur_rel[1] ~= 0 and cur_rel[1] ~= 15
+        then
             axis_nearest = 0
-        else
+        elseif cur_rel[2] ~= 0 and cur_rel[2] ~= 15 then
             axis_nearest = 1
+        else
+            return true
         end
 
         if axis_nearest == 0 then
@@ -88,7 +96,6 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         end
 
         update_chunk_nav(nav_obj)
-        local cur_rel = nav_obj.rel -- unused, why?
         return f_cur_in_road(nav_obj)
     end
 
@@ -99,7 +106,6 @@ local function move_to_road(what_kind, nav_obj, cur_building)
 
     -- The move out of building part
     local doors = cur_building.doors
-    local cur_rel = nav_obj.rel
 
     local what_door = nil
     local dist = 100
@@ -159,7 +165,7 @@ function module.navigate_chunk(what_kind, nav_obj, cur_building)
     end
 
     -- "move to the road"
-    if not cur_in_road then
+    if not cur_in_road or cur_building ~= nil then
         cur_in_road = move_to_road(what_kind, nav_obj, cur_building)
         if not cur_in_road then return false end
     end
