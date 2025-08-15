@@ -209,15 +209,15 @@ end
 
 -- for now forget argument remais for compatibility, but needs to be refactored in the future
 function to_export.debug_move(dir, distance, forget, nav_obj)
+    local result, err
+
     local all_ok = true
     for i = 1, distance, 1 do
-        local result = inward_facing.real_move("free", dir, nav_obj)
-        if not result then
-            all_ok = false
-        end
+        result, err = inward_facing.real_move("free", dir, nav_obj)
+        if not result then break end
     end
 
-    return all_ok
+    return result, err
 end
 
 function to_export.r_move(a,b,c,d)

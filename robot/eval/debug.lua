@@ -1,4 +1,4 @@
--- luacheck: globals DO_DEBUG_PRINT
+-- luacheck: globals DO_DEBUG_PRINT HOME_CHUNK
 local module = {}
 
 -- import of globals
@@ -15,6 +15,7 @@ local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local reason = require("reasoning.reasoning_obj")
+local _, ore = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
 
 local known_symbols = {
     geolyzer = geolyzer,
@@ -319,6 +320,41 @@ function module.debug(arguments)
 
         inv.get_inv_pos(map, bd_name, bd_index, state_index, inv_index)
         return nil
+    elseif arguments[1] == "ore_manager" or arguments[1] == "om" then
+        local state_list = ore.state_list
+        if arguments[2] == "list_chunks" or arguments[2] == "ls" then
+            local buffer = {"\n"}
+            for index, state in ipairs(state_list) do
+                local chunk = state.chunk
+                table.insert(buffer, string.format("[%03d] (%05d, %05d)\n", index, chunk[1], chunk[2]))
+            end
+            print(comms.robot_send("info", table.concat(buffer)))
+        elseif arguments[2] == "set_chunk_as_explorable" or arguments[2] == "exp" then
+            -- good for forcing a robot to revisit an "unmineable" chunk
+            local x = tonumber(arguments[3])
+            local z = tonumber(arguments[4])
+            if x == nil or z == nil then
+                print(comms.robot_send("error", "bad coordinates @ 'exp'"))
+                return nil
+            end
+            local wanted_chunk = {x, z}
+
+            local found_state = nil
+            for _, state in ipairs(state_list) do
+                if state.chunk[1] == wanted_chunk[1] and state.chunk[2] == wanted_chunk[2] then
+                    found_state = state
+                    break
+                end
+            end
+            if found_state == nil then
+                print(comms.robot_send("error", "such a state with such chunk coordinates does not exist"))
+                return nil
+            end
+
+            found_state.chunk_ore = "explorable"
+        else
+            print(comms.robot_send("error", "non-recogized arguments for ore_manager"))
+        end
     else
         print(comms.robot_send("error", "non-recogized arguments for debug"))
     end

@@ -47,7 +47,12 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool
         return true
     end
 
-    -- This prob can be fixed with auto block placing but I'm too lazy for now TODO
+    if not result and entity_watch > 12 then
+        print(comms.robot_send("warning", "simple elevator - might be stuck on an entity or worse"))
+        entity_watch = 0
+    end
+
+    -- This ("impossible" case) prob can be fixed with auto block placing but I'm too lazy for now TODO
     if err == "impossible" then return false
     elseif err == "block" then
         if force_tool == nil then
@@ -62,6 +67,7 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool
         end
     else
         entity_watch = entity_watch + 1
+        os.sleep(1)
         return true
     end
 end

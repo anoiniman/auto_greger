@@ -56,6 +56,7 @@ local file_meta_info = {}
 local state_list = { -- lists states currently in memory
 
 }
+file_meta_info.state_list = state_list -- makes ref externally accesible
 
 function file_meta_info.get_data()
     return state_list
@@ -164,7 +165,7 @@ local function get_next_ore_chunk(wanted_ore) -- take the last chunk registered
     if virtual_chunk.chunk.parent_area ~= nil and virtual_chunk.chunk.parent_area.name == "home" then
         -- we should not dig holes in our base automatically for reasons that should be obvious
         local fake_state = deep_copy.copy(el_state, pairs)
-        fake_state.wanted_ore = wanted_ore
+        fake_state.chunk_ore = "__home_chunk_do_not_mine"
         fake_state.chunk = selected_chunk
         table.insert(state_list, fake_state)
 
@@ -178,7 +179,9 @@ end
 local function get_ore_chunk(wanted_ore)
     local good_state_list = {}
     for _, state in ipairs(state_list) do
-        if state.wanted_ore == wanted_ore and state.chunk ~= nil and not state.cleared then
+        if  (state.chunk_ore == wanted_ore and state.chunk ~= nil and not state.cleared)
+            or (not state.clear and state.chunk_ore == "explorable")   -- hackish
+        then
             table.insert(good_state_list, state)
         end
     end
@@ -210,9 +213,11 @@ local function maybe_something_added()
     inv.maybe_something_added_to_inv("Gravel", nil)
 end
 
+-- POV: you went back to spleepge
 local function set_state21(state, warn)
     if warn == nil then warn = nil
     else warn = tostring(warn) end
+    state.wanted_ore = nil
 
     state.latest_rel_pos = nav.get_rel()
     state.latest_height = nav.get_height()
@@ -320,9 +325,13 @@ local function automatic(state, mechanism, up_to_quantity)
         end
     end
 
+    -- Setting of wanted ore changed to here, remember to set wanted_ore to nil when you hit the breaks
+    if state.wanted_ore == nil then
+        state.wanted_ore = mechanism.output.lable
+    end
+
     -- TODO summon logistic storing unneeded stuff (we'll have load outs n' shit)
-    if state.step == 0 then -- Basic state loading
-        state.wanted_ore = mechanism.output.lable -- this is the hackiest shit ever, fuck me
+    if state.step == 0 then -- Useless State
         state.step = 1
         return "All_Good", nil
     elseif state.step == 1 then -- State selector
@@ -419,7 +428,7 @@ local function automatic(state, mechanism, up_to_quantity)
             elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
                 local analysis = geolyzer.simple_return(sides_api.bottom)
                 state.needed_tool_level = analysis.harvestLevel
-                state.chunk_ore = "Unmined"
+                state.chunk_ore = "Unmineable" -- Very important!
                 state.step = 11 -- Swap to bad path 1
 
                 return "All_Good", nil
@@ -559,7 +568,7 @@ local function automatic(state, mechanism, up_to_quantity)
     -- things that were above our mining level at the time (It won't matter (mostly, I hope) for the stone-age tho)
     if state.step == 11 then
         -- kind of a useless apendage for now, but we'l rethink later :)
-        state.step = 21
+        set_state21(state)
     end
 
     -- This means "regular" (post step 4) mining interruption (we ran out of pickaxes, or acheived our goal or smthing)
