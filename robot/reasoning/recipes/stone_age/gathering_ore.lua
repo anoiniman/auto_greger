@@ -347,7 +347,7 @@ local function automatic(state, mechanism, up_to_quantity)
         end
 
         if not nav.is_setup_navigate_chunk() then
-            if not nav.is_in_chunk() then
+            if not nav.is_in_chunk(state.chunk) then
                 nav.setup_navigate_chunk(deep_copy.copy(state.chunk))
             else
                 state.step = 3
