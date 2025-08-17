@@ -460,6 +460,8 @@ function Module:equipSomething(tool_type, tool_level)
         end
     end
 
+    if from_slot == nil then return nil end
+
     -- WARNING -- very very dependend on we detecting an equipment break BEFORE we "equipSomething"
     local old_lable = self.equip_tbl.lable
     local old_name = self.equip_tbl.name

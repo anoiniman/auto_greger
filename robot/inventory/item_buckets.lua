@@ -74,6 +74,7 @@ function module.id_equipment(tool_type, tool_level)
         return nil
     end
 
+    print("start")
     local possible_lables = {}
     for level, inner_tbl in ipairs(tm_table) do
         if level < tool_level then goto continue end
@@ -82,6 +83,7 @@ function module.id_equipment(tool_type, tool_level)
             local tool_name = capitalise(tool_type)
             local hopefully_good_name = table.concat({material, " ", tool_name})
             table.insert(possible_lables, hopefully_good_name)
+            print(hopefully_good_name)
         end
         ::continue::
     end
@@ -89,6 +91,7 @@ function module.id_equipment(tool_type, tool_level)
         print(comms.robot_send("error", "Found Nothing in id_equipment?" .. tool_type .. tool_level))
         return nil
     end
+    io.read()
 
     return possible_lables
 end
