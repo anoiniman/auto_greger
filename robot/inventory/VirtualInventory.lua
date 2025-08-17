@@ -132,7 +132,7 @@ end
 function Module:checkEntry(lable, name, at_index)
     local i_lable = self.inv_table[at_index]
     local i_name = self.inv_table[at_index + 1]
-    return lable == i_lable and (name == "generic" or name == i_name or name == nil)
+    return lable == i_lable and (name == "generic" or name == i_name)
 end
 
 function Module:checkEntryPermissive(_, name, at_index)
@@ -468,7 +468,7 @@ function Module:equipSomething(tool_type, tool_level)
 
     self.equip_tbl.lable = from_lable
     self.equip_tbl.tool_type = tool_type
-    self.equip_tbl.name = "any:" .. tool_type
+    self.equip_tbl.name = "tool:" .. tool_type
 
     local offset = (from_slot * 3) - 2
     self.inv_table[offset] = old_lable
