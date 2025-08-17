@@ -80,10 +80,11 @@ local function add_to_state_list(state_to_add)
     end
     if in_list then
         print(comms.robot_send("error", "Ore Mining state already in list owsers!"))
-        return
+        return false
     end
 
     table.insert(state_list, state_to_add)
+    return true
 end
 
 -- Ore center - A chunk that could potentially contain an orevein.
@@ -338,9 +339,9 @@ local function automatic(state, mechanism, up_to_quantity)
         -- no manual mode for this mfo because I see no reason why, so just deal with it
         local result, r_type = get_ore_chunk(state.wanted_ore)
         if r_type == "chunk_coords" then
-            add_to_state_list(state)    -- added to list here
-            state.chunk = result
             state.step = 2
+            state.chunk = result
+            add_to_state_list(state)    -- added to list here
         elseif r_type == "state" then -- Now this is super fun, wow nothing will go wrong
             for k, v in pairs(result) do -- updates fields so that ref doesn't change externaly
                 state[k] = v
