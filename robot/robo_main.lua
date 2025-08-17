@@ -17,7 +17,6 @@ local comms = require("comms")
 local post_exit = require("post_exit")
 
 local keep_alive = require("keep_alive")
-keep_alive.start_check()
 
 local reasoning = require("reasoning.reasoning_obj")
 
@@ -38,7 +37,13 @@ term.clear()
 print(comms.robot_send("info", robot_name .. " -- Now Online! " .. msg))
 term.setCursorBlink(false)
 
-if DO_LOAD then post_exit.load_state({}) end
+if DO_LOAD then
+    post_exit.load_state({})
+else
+    post_exit.do_presets()
+end
+
+keep_alive.start_check() -- you need to have the inventory loaded/preset in order to do this succesefully
 reasoning.reset_one_locks()
 
 

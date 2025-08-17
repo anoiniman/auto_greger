@@ -117,7 +117,7 @@ local function down_stroke()
     local result = true
     while result do
         result, err = nav.debug_move("down", 1)
-        if not result and err == "block" then -- attempt to break a possibly placed block, or check if its dirt/grass
+        if not result and err == "solid" then -- attempt to break a possibly placed block, or check if its dirt/grass
             local analysis = geolyzer.simple_return()
             if analysis.harvestTool ~= "shovel" then -- aka, not dirt/grass
                 result = robot.swingDown()

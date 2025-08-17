@@ -106,9 +106,13 @@ function module.load_state(exclude)
     if not search_table.ione(exclude, "-ore") then load_thing(ore_path, ore) end
 
     if not search_table.ione(exclude, "-auto") then
-        do_presets(map)
-        do_presets(inv, map)
+        module.do_presets()
     end
+end
+
+function module.do_presets()
+    do_presets(map)
+    do_presets(inv, map)
 end
 
 

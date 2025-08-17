@@ -54,7 +54,7 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool
 
     -- This ("impossible" case) prob can be fixed with auto block placing but I'm too lazy for now TODO
     if err == "impossible" then return false
-    elseif err == "block" then
+    elseif err == "solid" then
         if force_tool == nil then
             return inv.blind_swing_down()
         else

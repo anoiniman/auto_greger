@@ -164,7 +164,7 @@ end
 local function go_next()
     for index = 1, 3, 1 do
         local _, what_detected = robot.detect()
-        if what_detected == "block" then break end
+        if what_detected == "solid" then break end
 
         nav.rotate_right()
     end
