@@ -132,7 +132,7 @@ end
 function Module:checkEntry(lable, name, at_index)
     local i_lable = self.inv_table[at_index]
     local i_name = self.inv_table[at_index + 1]
-    return lable == i_lable and (name == "generic" or name == i_name)
+    return lable == i_lable and (name == "generic" or name == i_name or name == nil)
 end
 
 function Module:checkEntryPermissive(_, name, at_index)
@@ -452,7 +452,7 @@ function Module:equipSomething(tool_type, tool_level)
     local from_slot, from_lable
     -- this only works because the tables are already pre-sorted from best to worst
     for _, lable in ipairs(lable_table) do
-        local possible_slot = self:getLargestSlot()
+        local possible_slot = self:getLargestSlot(lable)
         if possible_slot ~= nil then
             from_lable = lable
             from_slot = possible_slot
