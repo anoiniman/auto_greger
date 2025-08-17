@@ -569,7 +569,7 @@ function module.equip_tool(tool_type, tool_level)
     ::fall_through::
 
 
-    local slot = module.virtual_inventory:equipSomething(tool_type, tool_level)
+    local slot = module.virtual_inventory:equipSomething(tool_type, tool_level, get_forbidden_table())
     -- Equip required tool if found else return false
     if slot == nil then return false end
     robot.select(slot)

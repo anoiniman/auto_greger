@@ -444,7 +444,7 @@ end
 
 -- returns slot to actually robot.select && robot.equip() [does not equip by itself! only updates the virtual inventory!]
 -- Note, that if we return nil nothing has been updated in the internal database
-function Module:equipSomething(tool_type, tool_level)
+function Module:equipSomething(tool_type, tool_level, forbidden_slots)
     if self.equip_tbl == nil then print(comms.send_unexpected()) end
     local lable_table = item_bucket.id_equipment(tool_type, tool_level)
     if lable_table == nil then return nil end
@@ -456,20 +456,37 @@ function Module:equipSomething(tool_type, tool_level)
         if possible_slot ~= nil then
             from_lable = lable
             from_slot = possible_slot
-            from_level = level_offset + tool_level - 1
+            from_level = level_offset + tool_level - 1 -- amazing how this works
+            if tool_level == 0 then from_level = from_level + 1 end
             break
         end
     end
 
-    if from_slot == nil then return nil end
+    local do_empty = false
+    if from_slot == nil then
+        if tool_level > 0 then
+            return nil
+        end -- else we just make sure we are holding nothing :) (TODO)
+        from_slot = self:getEmptySlot(forbidden_slots)
+        from_lable = EMPTY_STRING
+
+        do_empty = true
+    end
 
     -- WARNING -- very very dependend on we detecting an equipment break BEFORE we "equipSomething"
     local old_lable = self.equip_tbl.lable
     local old_name = self.equip_tbl.name
 
     self.equip_tbl.lable = from_lable
-    self.equip_tbl.tool_type = tool_type
-    self.equip_tbl.name = "tool:" .. tool_type
+
+    if not do_empty then
+        self.equip_tbl.tool_type = tool_type
+        self.equip_tbl.name = "tool:" .. tool_type
+    else
+        self.equip_tbl.tool_type = EMPTY_STRING
+        self.equip_tbl.name = EMPTY_STRING
+    end
+
     self.equip_tbl.equiped_level = from_level
 
     local offset = (from_slot * 3) - 2

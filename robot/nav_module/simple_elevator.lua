@@ -62,8 +62,13 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool
             if not result then return false end
 
             local result, _ = robot.swingDown()
-            inv.maybe_something_added_to_inv()
-            return result
+
+            if result then
+                inv.maybe_something_added_to_inv()
+                return true
+            end -- else
+
+            return module.be_an_elevator(target_height) -- try again with no force_tool
         end
     else
         entity_watch = entity_watch + 1
