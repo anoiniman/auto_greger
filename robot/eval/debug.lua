@@ -178,6 +178,7 @@ function module.debug(arguments)
                 if lable == nil then
                     print(comms.robot_send("error", "invalid lable for inv force set"))
                 end
+                lable = string.gsub(lable, "_", " ")
 
                 local name = tostring(arguments[6])
                 if name == "nil" then name = nil end

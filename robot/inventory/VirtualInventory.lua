@@ -449,13 +449,14 @@ function Module:equipSomething(tool_type, tool_level)
     local lable_table = item_bucket.id_equipment(tool_type, tool_level)
     if lable_table == nil then return nil end
 
-    local from_slot, from_lable
+    local from_slot, from_lable, from_level
     -- this only works because the tables are already pre-sorted from best to worst
-    for _, lable in ipairs(lable_table) do
+    for level_offset, lable in ipairs(lable_table) do
         local possible_slot = self:getLargestSlot(lable)
         if possible_slot ~= nil then
             from_lable = lable
             from_slot = possible_slot
+            from_level = level_offset + tool_level - 1
             break
         end
     end
@@ -469,6 +470,7 @@ function Module:equipSomething(tool_type, tool_level)
     self.equip_tbl.lable = from_lable
     self.equip_tbl.tool_type = tool_type
     self.equip_tbl.name = "tool:" .. tool_type
+    self.equip_tbl.equiped_level = from_level
 
     local offset = (from_slot * 3) - 2
     self.inv_table[offset] = old_lable
@@ -492,7 +494,7 @@ function Module:reportEquipedBreak()
 end
 
 function Module:getEquipedInfo()
-    return self.equip_tbl.lable, self.equip_tbl.tool_type, self.equiped_level
+    return self.equip_tbl.lable, self.equip_tbl.tool_type, self.equip_tbl.equiped_level
 end
 
 
