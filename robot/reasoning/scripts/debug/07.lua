@@ -5,7 +5,8 @@ local desc = "Debug 07 - Le final-er frontier"
 local builder = MSBuilder:new_w_desc(desc)
 local constraint
 
-constraint = Constraint:newItemConstraint(nil, "Raw Chalcopyrite Ore", 32, 64, nil)
+-- constraint = Constraint:newItemConstraint(nil, "Raw Chalcopyrite Ore", 32, 64, nil)
+constraint = Constraint:newItemConstraint(nil, "Raw Magnetite Ore", 32, 64, nil)
 local raw_c_ore = Goal:new(nil, constraint, 66, "raw_c_ore", false)
 
 builder:setDictionary(dictionary)

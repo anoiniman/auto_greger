@@ -1,6 +1,6 @@
 -- luacheck: globals HOME_CHUNK AUTOMATIC_EXPAND_ORE FORCE_INTERRUPT_ORE
 
-local sides_api = require("sides")
+-- local sides_api = require("sides")
 -- local robot = require("robot")
 
 local comms = require("comms")
@@ -396,6 +396,7 @@ local function automatic(state, mechanism, up_to_quantity)
 
         if not result then -- This means we weren't able to break the block below us, and we need to handle this fact
             local analysis = geolyzer.simple_return()
+            state.chunk_ore = "Unmineable" -- Very important!
             state.needed_tool_level = analysis.harvestLevel
             set_state21(state) -- step 21 will get us out and revert to: 2, cause we'll just have to try again
             return "All_Good", nil
@@ -418,12 +419,11 @@ local function automatic(state, mechanism, up_to_quantity)
 
                 return "All_Good", nil
             elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
-                local analysis = geolyzer.simple_return(sides_api.bottom)
-                state.needed_tool_level = analysis.harvestLevel
-                state.chunk_ore = "Unmineable" -- Very important!
-                state.step = 11 -- Swap to bad path 1
+                state.chunk_ore, state.needed_tool_level = item_bucket.normalise_ore(diff.lable)
+                state.starting_height = nav.get_height()
+                set_state21(state)
 
-                return "All_Good", nil
+                return "All_Good", nil -- save this state for later
             end
         end
 
