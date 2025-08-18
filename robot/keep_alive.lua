@@ -61,6 +61,7 @@ local function refuel()
     gen.insert(to_insert)
     inv.remove_from_slot(fuel_slot, to_insert)
 
+    cur_ammount = gen.count()
     robot.select(1)
 end
 

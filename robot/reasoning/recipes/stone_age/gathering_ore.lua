@@ -406,24 +406,25 @@ local function automatic(state, mechanism, up_to_quantity)
         local diff_tbl = inv_snapshot:compareWithLedger(updated_inv)
 
         for _, diff in ipairs(diff_tbl) do
-            if diff.lable == state.wanted_ore then
+            if diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
                 state.chunk_ore, state.needed_tool_level = item_bucket.normalise_ore(diff.lable)
-                state.step = 5 -- Continue down the "good path"
+                if state.chunk_ore == state.wanted_ore then
+                    state.step = 5 -- Continue down the "good path"
 
-                local result = swing_pickaxe(state, "down")
-                if not result then
-                    state.step = 11
+                    local result = swing_pickaxe(state, "down")
+                    if not result then
+                        state.step = 11
+                        return "All_Good", nil
+                    end -- else
+                    state.starting_height = nav.get_height()
+
                     return "All_Good", nil
-                end -- else
-                state.starting_height = nav.get_height()
+                else -- it's a ore, but not the one we want
+                    state.starting_height = nav.get_height()
+                    set_state21(state)
 
-                return "All_Good", nil
-            elseif diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
-                state.chunk_ore, state.needed_tool_level = item_bucket.normalise_ore(diff.lable)
-                state.starting_height = nav.get_height()
-                set_state21(state)
-
-                return "All_Good", nil -- save this state for later
+                    return "All_Good", nil -- save this state for later
+                end
             end
         end
 
