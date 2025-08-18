@@ -559,8 +559,10 @@ function Module:compareWithLedger(other)
         local own_quantity = self:howMany(o_lable, o_name)
 
         local diff = own_quantity - other_quantity
-        local diff_obj = ComparisonDiff:new(o_lable, o_name, diff)
-        table.insert(diff_table, diff_obj)
+        if diff ~= 0 then
+            local diff_obj = ComparisonDiff:new(o_lable, o_name, diff)
+            table.insert(diff_table, diff_obj)
+        end
 
         ::continue::
     end

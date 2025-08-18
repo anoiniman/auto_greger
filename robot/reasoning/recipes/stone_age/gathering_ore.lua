@@ -408,7 +408,8 @@ local function automatic(state, mechanism, up_to_quantity)
         for _, diff in ipairs(diff_tbl) do
             if diff.name == "gregtech:raw_ore" then -- and it is not the wanted ore
                 state.chunk_ore, state.needed_tool_level = item_bucket.normalise_ore(diff.lable)
-                if state.chunk_ore == state.wanted_ore then
+                local normal_wanted, _ = item_bucket.normalise_ore(state.wanted_ore)
+                if state.chunk_ore == normal_wanted then
                     state.step = 5 -- Continue down the "good path"
 
                     local result = swing_pickaxe(state, "down")
@@ -443,6 +444,7 @@ local function automatic(state, mechanism, up_to_quantity)
         local result, _ = inv.equip_tool("pickaxe", state.needed_tool_level)
         if not result then set_state21(state); return "All_Good", nil end
 
+        local block_watch_dog = 0
         local function s5_move(orient)
             nav.change_orientation(orient)
             result = swing_pickaxe(state, "front")
@@ -451,7 +453,13 @@ local function automatic(state, mechanism, up_to_quantity)
             local err
             result, err = nav.force_forward()
             if not result then
-                if err ~= "impossible" then
+                if err == "solid" then
+                    if block_watch_dog > 10 then
+                        set_state21(state, "err: " .. err)
+                        return false
+                    end -- else just keep trying
+                    block_watch_dog = block_watch_dog + 1
+                elseif err ~= "impossible" then
                     set_state21(state, "err: " .. err)
                     return false
                 end
@@ -465,12 +473,12 @@ local function automatic(state, mechanism, up_to_quantity)
         end
 
         local cur_rel = nav.get_rel()
-        if cur_rel[1] > 0 then
+        if cur_rel[2] > 0 then
             -- local _result = s5_move("north")
             s5_move("north")
             return "All_Good", nil
         end
-        if cur_rel[2] > 0 then
+        if cur_rel[1] > 0 then
             -- local _result = s5_move("west")
             s5_move("west")
             return "All_Good", nil
@@ -569,7 +577,7 @@ local function automatic(state, mechanism, up_to_quantity)
         -- I think we'll be able to avoid most error checking if first navigate to x,0 and then to the "hole",
         -- because of the way we make our way to {0,0} in the first place
         local cur_rel = nav.get_rel()
-        if cur_rel[2] == 0 then
+        if cur_rel[2] ~= 0 then
             nav.sweep(false)
             return "All_Good", nil
         end
@@ -613,7 +621,7 @@ local function automatic(state, mechanism, up_to_quantity)
         return "All_Good", nil
     elseif state.step == 24 then -- yo ho yo ho, up the ladder we go
         local cur_height = nav.get_height()
-        if cur_height < state.surface_height then
+        if cur_height <= state.surface_height then
             elevator.be_an_elevator(state.surface_height)
             return "All_Good", nil
         end -- WE'RE FREEEEEEEE RAAAAAAAAAAAAAAAHHHHHHHHH
