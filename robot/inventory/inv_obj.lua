@@ -569,17 +569,22 @@ function module.equip_tool(tool_type, tool_level)
     ::fall_through::
 
 
-    local slot = module.virtual_inventory:equipSomething(tool_type, tool_level, get_forbidden_table())
+    local slot, skip_equip = module.virtual_inventory:equipSomething(tool_type, tool_level, get_forbidden_table())
     -- Equip required tool if found else return false
     if slot == nil then return false end
-    robot.select(slot)
-    local result = inventory.equip()
+
+    local result = true
+    if not skip_equip then
+        robot.select(slot)
+        result = inventory.equip()
+        robot.select(1)
+    end
 
     return result
 end
 
 function module.smart_swing(tool_name, dir, needed_level, maybe_added_func)
-    if maybe_added_func == nil then maybe_added_func = module.maybe_something_added_to_inv() end
+    if maybe_added_func == nil then maybe_added_func = module.maybe_something_added_to_inv end
     if needed_level == nil or needed_level < 0 then needed_level = 0 end
 
     local swing_func, blind_func, detect_func

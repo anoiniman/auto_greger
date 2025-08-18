@@ -451,26 +451,32 @@ function Module:equipSomething(tool_type, tool_level, forbidden_slots)
 
     local from_slot, from_lable, from_level
     -- this only works because the tables are already pre-sorted from best to worst
-    for level_offset, lable in ipairs(lable_table) do
-        local possible_slot = self:getLargestSlot(lable)
-        if possible_slot ~= nil then
-            from_lable = lable
-            from_slot = possible_slot
-            from_level = level_offset + tool_level - 1 -- amazing how this works
-            if tool_level == 0 then from_level = from_level + 1 end
-            break
+    for level_offset, sub_tbl in ipairs(lable_table) do
+        for _, lable in ipairs(sub_tbl) do
+            local possible_slot = self:getLargestSlot(lable)
+            if possible_slot ~= nil then
+                from_lable = lable
+                from_slot = possible_slot
+                from_level = level_offset + tool_level - 1 -- amazing how this works
+                if tool_level == 0 then from_level = from_level + 1 end
+                break
+            end
         end
     end
 
     local do_empty = false
     if from_slot == nil then
         if tool_level > 0 then
+            print(comms.robot_send("warning", "lable_table was not empty, but even so we failed to get/find tool"))
             return nil
         end -- else we just make sure we are holding nothing :) (TODO)
         from_slot = self:getEmptySlot(forbidden_slots)
         from_lable = EMPTY_STRING
 
         do_empty = true
+        if self.equip_tbl.name == EMPTY_STRING then -- our hand is already empty, we can skip
+            return from_slot, true
+        end
     end
 
     -- WARNING -- very very dependend on we detecting an equipment break BEFORE we "equipSomething"
@@ -498,7 +504,7 @@ function Module:equipSomething(tool_type, tool_level, forbidden_slots)
         self.inv_table[offset + 2] = 0
     end
 
-    return from_slot
+    return from_slot, false
 end
 
 -- basically re-inits the table lol

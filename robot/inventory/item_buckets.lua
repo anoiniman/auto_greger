@@ -83,12 +83,13 @@ function module.id_equipment(tool_type, tool_level)
     -- print("start")
     local possible_lables = {}
     for level, inner_tbl in ipairs(tm_table) do
+        table.insert(possible_lables, {})
         if level < tool_level then goto continue end
         for _, material in ipairs(inner_tbl) do
             local material = capitalise(material) -- luacheck: ignore material
             local tool_name = capitalise(tool_type)
             local hopefully_good_name = table.concat({material, " ", tool_name})
-            table.insert(possible_lables, hopefully_good_name)
+            table.insert(possible_lables[level], hopefully_good_name)
             -- print(hopefully_good_name)
         end
         ::continue::
