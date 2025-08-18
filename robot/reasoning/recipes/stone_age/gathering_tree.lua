@@ -63,29 +63,27 @@ local function come_down()
     end -- if we leave the loop we assume we've hit the ground
 end
 
+local function add_log() inv.maybe_something_added_to_inv(nil, "any:log") end
+
 -- luacheck: push ignore err
 local function climb_loop(state)
     local result, err
-    local block_intersting = true
-    while block_intersting do
-        result = robot.swingUp() -- make sure this returns false on hitting air
+    local block_interesting = true
+    while block_interesting do
+        result = robot.detectUp()
         if not result then break end
-        inv.maybe_something_added_to_inv(nil, "any:log")
+
+        result = inv.smart_swing("axe", "up", 0, add_log)
+        if not result then break end
 
         result, err = nav.debug_move("up", 1, 0)
-        if not result then break end
-        block_intersting  = check_subset(state, true)
+        block_interesting  = check_subset(state, true)
     end
 end
 -- luacheck: pop
 
-
 local function work_stroke(state)
-    -- We don't really care if it fails to equip tool since we can mine the blocks with our "hands" anyway
-    local _ = inv.equip_tool("axe", 0)
-    local break_result, _ = robot.swing() -- yurp
-    inv.maybe_something_added_to_inv(nil, "any:log")
-
+    local break_result = inv.smart_swing("axe", "front", 0, add_log)
     if not break_result then
         print(comms.robot_send("warning", "surface_resource_sweep, I thought the block was a block we \z
                                 wanted, but in the end I was unable to break it, worrying"))
@@ -96,7 +94,6 @@ local function work_stroke(state)
     climb_loop(state)
     come_down()
     os.sleep(16) -- wait for leaves to decay
-    -- assuming all this goes into first slot, otherwise we need to change the inv code
 
     local le_suck = true
     while le_suck do

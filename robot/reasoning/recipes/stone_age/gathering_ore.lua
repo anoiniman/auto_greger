@@ -1,7 +1,7 @@
--- luacheck: globals HOME_CHUNK AUTOMATIC_EXPAND_ORE
+-- luacheck: globals HOME_CHUNK AUTOMATIC_EXPAND_ORE FORCE_INTERRUPT_ORE
 
 local sides_api = require("sides")
-local robot = require("robot")
+-- local robot = require("robot")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")
@@ -234,14 +234,12 @@ local function set_state21(state, warn)
 end
 
 ---- Not Global State -------
+local function swing_pickaxe(state, dir)
+    return inv.smart_swing("pickaxe", dir, state.needed_tool_level, maybe_something_added)
+end
 
 -- move_func will either be a nav.sweep(false), or a nav.force_forward()
 local function deal_with_the_ladder(state, move_func)
-    local result = inv.equip_tool("pickaxe", state.needed_tool_level)
-    if not result then set_state21(state); return "All_Good", nil end
-    robot.swing()
-    maybe_something_added()
-
     local result = move_func(false)
     local watch_dog = 0
     while result == 1 do -- sweep fail state attempt to recover
@@ -290,6 +288,8 @@ local reported_step = -1
 -- because we always need to use special methods to leave the mine,
 -- we can't just suddenly start doing something else
 local function automatic(state, mechanism, up_to_quantity)
+    if FORCE_INTERRUPT_ORE then set_state21(state); FORCE_INTERRUPT_ORE = false end
+
     if state.step ~= reported_step then
         print(comms.robot_send("debug", "Ore Mining, state.step = " .. state.step))
         reported_step = state.step
@@ -409,20 +409,11 @@ local function automatic(state, mechanism, up_to_quantity)
                 state.chunk_ore, state.needed_tool_level = item_bucket.normalise_ore(diff.lable)
                 state.step = 5 -- Continue down the "good path"
 
-                local result, _ = inv.equip_tool("pickaxe", state.needed_tool_level) -- get ourselves 1 block further down
+                local result = swing_pickaxe(state, "down")
                 if not result then
-                    print(comms.robot_send("error", "Failed to equip pickaxe with needed level in mining: " .. state.needed_tool_level))
                     state.step = 11
                     return "All_Good", nil
-                end
-
-                result, _ = robot.swingDown()
-                if not result then
-                    print(comms.robot_send("error", "Failed to mine 01"))
-                    state.step = 11
-                    return "All_Good", nil
-                end
-                maybe_something_added() -- Important
+                end -- else
                 state.starting_height = nav.get_height()
 
                 return "All_Good", nil
@@ -453,10 +444,8 @@ local function automatic(state, mechanism, up_to_quantity)
 
         local function s5_move(orient)
             nav.change_orientation(orient)
-            result, _ = robot.swing()
+            result = swing_pickaxe(state, "front")
             if not result then set_state21(state, "swing failed"); return false end
-
-            maybe_something_added()
 
             local err
             result, err = nav.force_forward()
@@ -506,15 +495,9 @@ local function automatic(state, mechanism, up_to_quantity)
         if not result then set_state21(state); return "All_Good", nil end
 
         -- We swing first
-        robot.swing()
-        maybe_something_added()
-        inv.equip_tool("pickaxe", state.needed_tool_level)
-        robot.swingUp()
-        maybe_something_added()
-        inv.equip_tool("pickaxe", state.needed_tool_level)
-        robot.swingDown()
-        maybe_something_added()
-        ----------------------------------------------------
+        swing_pickaxe(state, "front")
+        swing_pickaxe(state, "up")
+        swing_pickaxe(state, "down")
 
         -- Then we move
         local sweep_result = nav.sweep(false) -- goes forward one block (not surface_move using)
@@ -542,10 +525,8 @@ local function automatic(state, mechanism, up_to_quantity)
             return "All_Good", nil -- just keep goind with no more comments
         elseif sweep_result == 1 then
             -- First we try and mine forward (we might've gotten stuck in a bend)
-            local result = inv.equip_tool("pickaxe", state.needed_tool_level)
+            local result = swing_pickaxe(state, "front")
             if not result then set_state21(state); return "All_Good", nil end
-            robot.swing()
-            maybe_something_added()
 
             local watch_dog = 0
             while true do -- then we try to recover from the stall

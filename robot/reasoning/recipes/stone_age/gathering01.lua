@@ -46,11 +46,16 @@ local function check_subset(state)
     return false
 end
 
+local function something_added()
+    inv.maybe_something_added_to_inv(nil, "any:grass")
+    inv.maybe_something_added_to_inv("Clay", nil)
+    inv.maybe_something_added_to_inv("Sand", nil)
+    inv.maybe_something_added_to_inv("Red Sand", nil)
+    inv.maybe_something_added_to_inv("Gravel", nil)
+end
+
 local function work_stroke(state)
-    -- We don't really care if it fails to equip tool since we can mine the blocks with our "hands" anyway
-    local _ = inv.equip_tool("shovel", 0)
-    local break_result = robot.swingDown()
-    inv.maybe_something_added_to_inv()
+    local break_result = inv.smart_swing("shovel", "down", 0, something_added) 
     if not break_result then
         print(comms.robot_send("warning", "surface_resource_sweep, I thought the block was a block we \z
                                 wanted, but in the end I was unable to break it, worrying"))

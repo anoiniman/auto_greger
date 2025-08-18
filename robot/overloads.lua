@@ -1,8 +1,9 @@
 -- luacheck: globals EMPTY_TABLE
 EMPTY_TABLE = {}
 
--- TODO adding a save file to save this sort of global variables or a way to autocheck them idk
+FORCE_INTERRUPT_ORE = false
 
+-- TODO adding a save file to save this sort of global variables or a way to autocheck them idk
 HAS_WOOD_FARM = false
 
 -- luacheck: globals HOME_CHUNK DO_AUTO_FILL

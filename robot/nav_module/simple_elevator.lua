@@ -58,15 +58,12 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool
         if force_tool == nil then
             return inv.blind_swing_down()
         else
-            local result = inv.equip_tool(force_tool, 0)
+            local dir
+            if diff > 0 then dir = "up"
+            else dir = "down" end
+
+            local result = inv.smart_swing(force_tool, dir, 0)
             if not result then return false end
-
-            local result, _ = robot.swingDown()
-
-            if result then
-                inv.maybe_something_added_to_inv()
-                return true
-            end -- else
 
             return module.be_an_elevator(target_height) -- try again with no force_tool
         end

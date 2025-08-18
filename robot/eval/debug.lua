@@ -1,4 +1,4 @@
--- luacheck: globals DO_DEBUG_PRINT HOME_CHUNK
+-- luacheck: globals DO_DEBUG_PRINT HOME_CHUNK FORCE_INTERRUPT_ORE
 local module = {}
 
 -- import of globals
@@ -353,6 +353,10 @@ function module.debug(arguments)
             end
 
             found_state.chunk_ore = "explorable"
+        elseif arguments[2] == "halt" or arguments[2] == "stop" or arguments[2] == "force_interrupt_ore" then
+            FORCE_INTERRUPT_ORE = true
+        elseif arguments[2] == "unhalt" or arguments[2] == "resume" then
+            FORCE_INTERRUPT_ORE = false
         else
             print(comms.robot_send("error", "non-recogized arguments for ore_manager"))
         end

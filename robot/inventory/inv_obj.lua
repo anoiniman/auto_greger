@@ -578,6 +578,52 @@ function module.equip_tool(tool_type, tool_level)
     return result
 end
 
+function module.smart_swing(tool_name, dir, needed_level, maybe_added_func)
+    if maybe_added_func == nil then maybe_added_func = module.maybe_something_added_to_inv() end
+    if needed_level == nil or needed_level < 0 then needed_level = 0 end
+
+    local swing_func, blind_func, detect_func
+    if dir == "front" then
+        swing_func = robot.swing
+        blind_func = module.blind_swing_front
+        detect_func = robot.detect
+    elseif dir == "up" then
+        swing_func = robot.swingUp
+        blind_func = module.blind_swing_up
+        detect_func = robot.detectUp
+    elseif dir == "down" then
+        swing_func = robot.swingDown
+        blind_func = module.blind_swing_down
+        detect_func = robot.detectDown
+    else
+        if dir == nil then dir = "nil" end
+        print(comms.robot_send("warning", "Bad smart_swing direction: " .. dir))
+        return module.smart_swing("front", needed_level, maybe_added_func)
+    end
+
+
+    local result = module.equip_tool(tool_name, needed_level)
+    if not result then
+        if tool_name == nil then tool_name = "nil" end
+        print(comms.robot_send("error", "Failed to equip " .. tool_name ..  "with needed level in mining: " .. needed_level))
+        return false
+    end
+
+    local detect, _ = detect_func()
+    if not detect then return true end
+
+    local result, _ = swing_func()
+    if not result then
+        result = blind_func()
+        if not result then
+            return false
+        end
+    else
+        maybe_added_func()
+    end
+    return true
+end
+
 -- These blind swing this are pretty much only needed if you don't know what you're swinging at
 local function swing_general(swing_function, dir, pre_analysis)
     local g_info
@@ -587,7 +633,8 @@ local function swing_general(swing_function, dir, pre_analysis)
         g_info = geolyzer.simple_return(dir) -- hopefully this dir is relative to robot, run some tests
     end
 
-    if g_info == nil then return true end -- returning true is more ideomatic, I think.
+    -- TODO: check if we really need to check for air, prob idk
+    if g_info == nil or g_info.name == "minecraft:air" then return true end -- returning true is more ideomatic, I think.
 
     local needed_level = g_info.harvestLevel
     local needed_tool = g_info.harvestTool
@@ -1031,7 +1078,7 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         if robot.transferTo(new_slot) then
             module.virtual_inventory:forceUpdateSlot(lable, name, quantity, new_slot)
         else
-            print(comms.robot_send("error", "maybe_something_added, very bad error"))
+            print(comms.robot_send("error", "maybe_something_added_to_inv, very bad error"))
         end
 
         -- fallthrough because imagine we input 44 items in, there is 1 stack that already has 32 items, there

@@ -103,6 +103,11 @@ Module.state_init = {
     end
 }
 
+local function something_added()
+    inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
+    inv.maybe_something_added_to_inv("Spruce Sapling")
+end
+
 local function up_stroke() -- add resolution to: we couldn't move up, impossible move
     local result
 
@@ -115,7 +120,9 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
             return false, climb_amount
         end
 
-        local something_above = robot.swingUp()
+        inv.smart_swing("axe", "up", 0, something_added)
+        local something_above = robot.detectUp()
+
         if not something_above then break end
         inv.maybe_something_added_to_inv()
 
@@ -141,8 +148,7 @@ local function down_stroke(climbed_amount)
             return false
         end
 
-        robot.swingDown()
-        inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
+        inv.smart_swing("axe", "down", 0, something_added)
         result = nav.debug_move("down", 1)
         if not result then err_watch_dog = err_watch_dog + 1 end
     end
@@ -152,8 +158,7 @@ local function down_stroke(climbed_amount)
         if analysis.harvestTool == "shovel" then break end
         -- else
 
-        robot.swingDown()
-        inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
+        inv.smart_swing("axe", "down", 0, something_added)
         local result = nav.debug_move("down", 1)
         if not result then break end
     end
@@ -168,8 +173,8 @@ local function go_next()
 
         nav.rotate_right()
     end
-    robot.swing()
-    inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
+
+    inv.smart_swing("axe", "front", 0, something_added)
     local result, _ = nav.force_forward()
     if not result then print(comms.robot_send("error", "We entered a strange state in spruce farming!")) end
 end
@@ -189,10 +194,8 @@ Module.hooks = {
         if not geolyzer.sub_compare("log", "naive_contains", analysis) then
             return -- early return
         end
-        inv.equip_tool("axe", 0)
 
-        robot.swing()
-        inv.maybe_something_added_to_inv("Spruce Wood", "any:log")
+        inv.smart_swing("axe", "front", 0, something_added)
         nav.force_forward()
 
         local _

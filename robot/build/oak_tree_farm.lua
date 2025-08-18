@@ -111,6 +111,9 @@ Module.state_init = {
 
 local lable_hint = "Oak Wood"
 local name_hint = "any:log"
+local function something_added()
+    inv.maybe_something_added_to_inv(lable_hint, name_hint)
+end
 
 local function down_stroke()
     local err
@@ -120,8 +123,7 @@ local function down_stroke()
         if not result and err == "solid" then -- attempt to break a possibly placed block, or check if its dirt/grass
             local analysis = geolyzer.simple_return()
             if analysis.harvestTool ~= "shovel" then -- aka, not dirt/grass
-                result = robot.swingDown()
-                inv.maybe_something_added_to_inv(lable_hint, name_hint)
+                inv.smart_swing("axe", "down", 0, something_added)
             end
         end
     end
@@ -131,10 +133,9 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
     local err
     local result = true
     while result do
-        result = robot.swingUp()
+        result = inv.smart_swing("axe", "up", 0, something_added)
         if not result then break end -- if no break it means tree came to an end
 
-        inv.maybe_something_added_to_inv(lable_hint, name_hint)
         result, err = nav.debug_move("up", 1)
         if not result and err == "impossible" then -- atempt to place block below us, hopefully it'll stick to leaves
             local could_place = inv.place_block("down", "Oak Wood", "lable", nil)
@@ -176,10 +177,7 @@ Module.hooks = {
             local analysis = geolyzer.simple_return(sides_api.front)
 
             if geolyzer.sub_compare("log", "naive_contains", analysis) then -- aka ignore if it's still sapling
-                inv.equip_tool("axe", 0)
-
-                robot.swing()
-                inv.maybe_something_added_to_inv(lable_hint, name_hint)
+                inv.smart_swing("axe", "front", 0, something_added)
                 nav.force_forward()
 
                 up_stroke()
