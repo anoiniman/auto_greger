@@ -646,7 +646,7 @@ local function automatic(state, mechanism, up_to_quantity)
         return "All_Good", nil
     elseif state.step == 24 then -- yo ho yo ho, up the ladder we go
         local cur_height = nav.get_height()
-        if cur_height <= state.surface_height then
+        if cur_height < state.surface_height then
             elevator.be_an_elevator(state.surface_height)
             return "All_Good", nil
         end -- WE'RE FREEEEEEEE RAAAAAAAAAAAAAAAHHHHHHHHH
@@ -708,11 +708,11 @@ local function ore_mining(arguments)
             return {command_prio, mechanism.algorithm, table.unpack(arguments)}
         elseif finish_state == "Interrupt" then -- For now this is just the same as finish
             print(comms.robot_send("debug", "interrupted ore_mining routine"))
-            lock[1] = 0 -- Report our lack of success and order the bot to keep looking
+            lock[1] = 0
             return nil
         elseif finish_state == "Clear" then
             print(comms.robot_send("debug", "finished ore_mining routine"))
-            lock[1] = 2 -- "Unlock" the lock (will be unlocked based on "do_once"'s value
+            lock[1] = 0
             return nil
         else
             error(comms.robot_send("fatal", "Bad State in Ore Mining"))
@@ -724,6 +724,5 @@ local function ore_mining(arguments)
     end
 end
 
--- TODO, hook up, and modify MetaRecipies appropriatly to use this correctly
 local ore_gathering = MetaRecipe:newGathering("_Ore", "pickaxe", 0, ore_mining, el_state)
 return {ore_gathering, file_meta_info}

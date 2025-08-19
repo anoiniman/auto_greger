@@ -195,6 +195,7 @@ function module.reverse_sweep()
     return true
 end
 
+local where_x = -1
 -- 1 for fail, -1 for end, 0 for continue
 function module.sweep(nav_obj, is_surface)
     local move_func = attempt_surface_move
@@ -227,10 +228,17 @@ function module.sweep(nav_obj, is_surface)
         return -1 -- finished sweeping
     end
 
+    local get_x_axis_bool = function() return (nav_obj.rel[2] > 15 and not sweep_reverse) or (nav_obj.rel[2] <= 0 and sweep_reverse) end
     local result = nil; local data = nil -- luacheck: ignore
-    if (nav_obj.rel[2] > 15 and not sweep_reverse) or (nav_obj.rel[2] <= 0 and sweep_reverse) then
+    if get_x_axis_bool() then
+        if where_x == -1 then where_x = nav_obj.rel[1] end
+
+        -- ok, now the bug should be gone
         result, data = sweep_x_axis(nav_obj, move_func)
-        sweep_reverse = not sweep_reverse
+        if where_x ~= nav_obj.rel[1] then
+            sweep_reverse = not sweep_reverse
+            where_x = -1
+        end
     else
         local dir
         if not sweep_reverse then dir = "south"
