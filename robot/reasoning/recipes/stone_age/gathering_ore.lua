@@ -227,7 +227,7 @@ local function set_state21(state, warn)
         _, state.latest_reverse = nav.interrupt_sweep()
         -- this bullshit is needed cause we're going to need to reverse out maybe, and
         -- we need the sweep to still be set up, but we need to "get" the latest_reverse state
-        nav.resume_sweep(state.latest_rel_pos, state.latest_reverse)
+        nav.resume_sweep({0, 0}, state.latest_reverse)
     end
     state.step = 21
 
@@ -500,7 +500,17 @@ local function automatic(state, mechanism, up_to_quantity)
             if state.latest_rel_pos == nil then
                 nav.setup_sweep()
             else
-                nav.resume_sweep(state.latest_rel_pos, state.latest_reverse)
+                local cur_rel = nav.get_rel()
+                if cur_rel[1] < state.latest_rel_pos[1] then
+                    nav.debug_move("east", 1)
+                    return "All_Good", nil
+                end
+                if cur_rel[2] < state.latest_rel_pos[2] then
+                    nav.debug_move("south", 1)
+                    return "All_Good", nil
+                end
+
+                nav.resume_sweep({0, 0}, state.latest_reverse)
             end
         end
 
@@ -542,11 +552,13 @@ local function automatic(state, mechanism, up_to_quantity)
             if not result then set_state21(state); return "All_Good", nil end
 
             local watch_dog = 0
-            while true do -- then we try to recover from the stall
+            while true do -- then we try to recover from the stall (you forgot to account for gravel again)
                 watch_dog = watch_dog + 1
                 os.sleep(2)
                 local s_result = nav.sweep(false)
                 if s_result == 0 then break end
+                swing_pickaxe(state, "front")
+
                 if watch_dog >= 12 then
                     state.step = 31
                     print(comms.robot_send("error", "At the most likely time: Ore Mining, got le stuck :sob:"))
@@ -581,8 +593,12 @@ local function automatic(state, mechanism, up_to_quantity)
         -- I think we'll be able to avoid most error checking if first navigate to x,0 and then to the "hole",
         -- because of the way we make our way to {0,0} in the first place
         local cur_rel = nav.get_rel()
-        if cur_rel[2] ~= 0 then
-            nav.sweep(false)
+        if cur_rel[2] > 0 then
+            if nav.is_sweep_setup() then
+                nav.sweep(false)
+                return "All_Good", nil
+            end -- else
+            nav.debug_move("north", 1)
             return "All_Good", nil
         end
 

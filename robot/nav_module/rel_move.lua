@@ -236,9 +236,10 @@ function module.sweep(nav_obj, is_surface)
         if not sweep_reverse then dir = "south"
         else dir = "north" end
         result, data = move_func(nav_obj, dir)
-
-        if result then return 0 end
     end
+
+    if result then result = 0 end
+    if not result then result = 1 end
 
     return result, data
 end
