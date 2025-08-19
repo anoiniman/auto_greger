@@ -539,6 +539,8 @@ local function sort_slot_table(tbl, reverse)
     end
 end
 
+----}}}
+
 
 --->>-- Tool Use --<<-----{{{
 
@@ -1069,29 +1071,31 @@ end
 
 ---}}}
 
-function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important to keep crafting table clear
-    local result = true
-    local quantity = robot.count(1)
-    if quantity > 0 then    -- This is a rare occurence when something fell into the inventory that was not
+local function simple_slot_check(slot)
+    local quantity = robot.count(slot)
+    if quantity > 0 then    -- this is a rare occurence when something fell into the inventory that was not
                             -- there before, or if a stack was already full -> aka rare
-        local item = inventory.getStackInInternalSlot(1)
+        local item = inventory.getstackininternalslot(slot)
         local lable = item.label; local name = item.name; local quantity = item.size
 
-        -- Make sure that these clear_functions act in the sameway that addOrCreate does (I think it does but who knows)
-        local new_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
-        robot.select(1)
-        if robot.transferTo(new_slot) then
-            module.virtual_inventory:forceUpdateSlot(lable, name, quantity, new_slot)
+        -- make sure that these clear_functions act in the sameway that addorcreate does (i think it does but who knows)
+        local new_slot = module.virtual_inventory:getemptyslot(get_forbidden_table())
+        robot.select(slot)
+        if robot.transferto(new_slot) then
+            module.virtual_inventory:forceupdateslot(lable, name, quantity, new_slot)
         else
             print(comms.robot_send("error", "maybe_something_added_to_inv, very bad error"))
         end
+    end
+    robot.select(1)
+end
 
-        -- fallthrough because imagine we input 44 items in, there is 1 stack that already has 32 items, there
-        -- will be 12 items that'll got to slot 1 (I think), but now the already present stack has 64 items,
-        -- if we return immediatly the update will only account for the 12 items, not the whole 44
-
-        -- return result
-    end -- else it means it either didn't fall into the first slot or it didn't fall in the first place
+function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important to keep crafting table clear
+    local result = true
+    -- added some bullshit to deal with multiple drops
+    simple_slot_check(1)
+    simple_slot_check(2)
+    simple_slot_check(3)
 
     local slot_table
     -- [1] - Strict Matching, find this lable, [2] - Name Matching, find all that matches this "bucket"

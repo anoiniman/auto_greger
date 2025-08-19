@@ -242,7 +242,10 @@ local function swing_pickaxe(state, dir)
 end
 
 -- move_func will either be a nav.sweep(false), or a nav.force_forward()
-local function deal_with_the_ladder(state, move_func)
+local function deal_with_the_ladder(state, move_func) -- DEAL WITH GRAVEL PROBLEMS
+    -- I'm going to pray that no gravel intrusion will be big enough such that it stops us from climbing back up
+    swing_pickaxe(state, "front")
+
     local result = move_func(false)
     local watch_dog = 0
     while result == 1 do -- sweep fail state attempt to recover
@@ -250,6 +253,8 @@ local function deal_with_the_ladder(state, move_func)
         os.sleep(2)
         local s_result = move_func(false)
         if s_result == 0 then break end
+        swing_pickaxe(state, "front")
+
         if watch_dog >= 12 then
             state.step = 31
             print(comms.robot_send("error", "Ore Mining, got le stuck during le critical moment :sob:"))
@@ -267,7 +272,7 @@ local function deal_with_the_ladder(state, move_func)
 end
 
 local function check_fuel(state)
-    local block_move_potential = keep_alive.possible_round_trip_distance(0, true)
+    local block_move_potential = keep_alive.possible_round_trip_distance(0, false)
     local chunk_move_potential = math.floor(block_move_potential / 16.0)
 
     local cur_chunk = nav.get_chunk(); local home_chunk = HOME_CHUNK
