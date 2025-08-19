@@ -139,7 +139,7 @@ function module.interrupt_sweep(nav_obj)
     -- I think all we need to return is sweep_reverse and current position
     is_sweep = false
     move_to_start = true
-    return nav_obj.get_rel(), sweep_reverse
+    return deep_copy.copy(nav_obj.rel), sweep_reverse
 end
 
 -- TODO: turns out the z sweep_end is not equal to sweep_start, but rather in the other end, se if it's ok to do as such

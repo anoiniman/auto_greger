@@ -225,6 +225,9 @@ local function set_state21(state, warn)
     if nav.is_sweep_setup() then
         local _
         _, state.latest_reverse = nav.interrupt_sweep()
+        -- this bullshit is needed cause we're going to need to reverse out maybe, and
+        -- we need the sweep to still be set up, but we need to "get" the latest_reverse state
+        nav.resume_sweep(state.latest_rel_pos, state.latest_reverse)
     end
     state.step = 21
 
@@ -459,6 +462,7 @@ local function automatic(state, mechanism, up_to_quantity)
                         return false
                     end -- else just keep trying
                     block_watch_dog = block_watch_dog + 1
+                    return true
                 elseif err ~= "impossible" then
                     set_state21(state, "err: " .. err)
                     return false
@@ -565,7 +569,7 @@ local function automatic(state, mechanism, up_to_quantity)
     -- This means "regular" (post step 4) mining interruption (we ran out of pickaxes, or acheived our goal or smthing)
     if state.step == 21 then
         local cur_rel = nav.get_rel()
-        if cur_rel[1] ~= 7 or cur_rel[2] ~= 7 then
+        if (cur_rel[1] ~= 7 or cur_rel[2] ~= 7) and nav.is_sweep_setup() then
             nav.reverse_sweep()
             state.step = 22
         else
