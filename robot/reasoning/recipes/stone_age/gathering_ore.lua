@@ -267,6 +267,7 @@ local function deal_with_the_ladder(state, move_func) -- DEAL WITH GRAVEL PROBLE
     if not result then
         error(comms.robot_send("fatal", "I really don't know how to recover from this, sorry"))
     end
+    nav.change_orientation(nav.get_opposite_orientation()) -- you need to swap back lmao
 
     return "All_Good", nil
 end
@@ -556,13 +557,15 @@ local function automatic(state, mechanism, up_to_quantity)
             local result = swing_pickaxe(state, "front")
             if not result then set_state21(state); return "All_Good", nil end
 
-            local watch_dog = 0
+            local watch_dog = -1
             while true do -- then we try to recover from the stall (you forgot to account for gravel again)
                 watch_dog = watch_dog + 1
-                os.sleep(2)
                 local s_result = nav.sweep(false)
                 if s_result == 0 then break end
-                swing_pickaxe(state, "front")
+
+                local p_result = swing_pickaxe(state, "front")
+                if not p_result then os.sleep(1.8) end
+                os.sleep(0.2)
 
                 if watch_dog >= 12 then
                     state.step = 31
@@ -604,6 +607,10 @@ local function automatic(state, mechanism, up_to_quantity)
                 return "All_Good", nil
             end -- else
             nav.debug_move("north", 1)
+            if cur_rel[1] == state.latest_rel_pos[1] or cur_rel[1] == 7 then -- dumb, but simple fix
+                nav.debug_move("west")
+            end
+
             return "All_Good", nil
         end
 
