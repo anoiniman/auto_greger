@@ -442,6 +442,15 @@ function Module:forceUpdateGeneral(is_internal)
     self.inv_table = temp.inv_table
 end
 
+function Module:getNumOfEmptySlots()
+    local counter = 0
+    for slot = 1, self.inv_size, 1 do
+        local offset = (slot * 3) - 2
+        if self.inv_table[offset] == EMPTY_STRING then counter = counter + 1 end
+    end
+    return counter
+end
+
 -- returns slot to actually robot.select && robot.equip() [does not equip by itself! only updates the virtual inventory!]
 -- Note, that if we return nil nothing has been updated in the internal database
 function Module:equipSomething(tool_type, tool_level, forbidden_slots)

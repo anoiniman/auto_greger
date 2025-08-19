@@ -1,7 +1,7 @@
 -- luacheck: globals HOME_CHUNK AUTOMATIC_EXPAND_ORE FORCE_INTERRUPT_ORE
 
 -- local sides_api = require("sides")
--- local robot = require("robot")
+local robot = require("robot")
 
 local comms = require("comms")
 local deep_copy = require("deep_copy")
@@ -292,6 +292,36 @@ local function check_fuel(state)
     return true
 end
 
+local function slot_drop(slot)
+    robot.select(slot)
+    local result = robot.drop()
+    if result then
+        inv.virtual_inventory:removeFromSlot(slot, 65)
+    end
+    robot.select(1)
+end
+
+local function dump_waste(state)
+    -- we currently assume that we'll always keep an empty crafting grid (TODO - change)
+    local empty_slots = inv.virtual_inventory:getNumOfEmptySlots() - inv.virtual_inventory.inv_size - 9
+    if empty_slots < 5 then -- do some clean up
+        local slot = inv.virtual_inventory:getSmallestSlot("Stone Dust")
+        if slot ~= nil then slot_drop(slot); return end
+
+        slot = inv.virtual_inventory:getSmallestSlot(nil, "gregtech:impure_dust")
+        if slot ~= nil then slot_drop(slot); return end
+
+        slot = inv.virtual_inventory:getSmallestSlot(nil, "gregtech:crushed_ore")
+        if slot ~= nil then slot_drop(slot); return end
+
+        if empty_slots < 2 then
+            print(comms.robot_send("warning", "ran out of inventory space while mining"))
+            set_state21(state)
+        end
+    end
+end
+
+
 local reported_step = -1
 -- WARNING: priority better be locked to 100, (exceptions may apply)
 -- because we always need to use special methods to leave the mine,
@@ -339,6 +369,9 @@ local function automatic(state, mechanism, up_to_quantity)
     if state.wanted_ore == nil then
         state.wanted_ore = mechanism.output.lable
     end
+
+    -- Nice
+    dump_waste(state)
 
     -- TODO summon logistic storing unneeded stuff (we'll have load outs n' shit)
     if state.step == 0 then -- Useless State

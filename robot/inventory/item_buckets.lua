@@ -43,13 +43,25 @@ function module.identify(name, lable)
     if fname ("^any:building$")     then return     "any:building"      end
 
 
+
     if fname("^minecraft:") then
         if flabl("^Dirt$") or flabl("^Cobblestone$") then return "any:building" end
         return "minecraft:generic"
     end
 
     if fname("^gregtech:") then
-        if flabl("^Raw") and flabl("Ore$") then return "gregtech:raw_ore" end -- excludes dusts and shit
+        if flabl ("^Raw") and flabl("Ore$") then return "gregtech:raw_ore" end -- excludes dusts and shit
+        if fname (":raw_ore") then return "gregtech:raw_ore" end
+
+        if flabl ("^Crushed") and flabl ("Ore$") then return "gregtech:crushed_ore" end
+        if fname (":crushed_ore") then return "gregtech:crushed_ore" end
+
+        if flabl ("^Impure Pile") and flabl ("Dust$") then return "gregtech:impure_dust" end
+        if fname ("gregtech:impure_dust") then return "gregtech:impure_dust" end
+
+        if flabl ("Dust$") then return "gregtech:done_dust" end
+        if fname ("gregtech:done_dust") then return "gregtech:done_dust" end
+
         return "gregtech:generic"
     end
 
