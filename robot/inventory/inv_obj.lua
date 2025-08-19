@@ -1075,14 +1075,14 @@ local function simple_slot_check(slot)
     local quantity = robot.count(slot)
     if quantity > 0 then    -- this is a rare occurence when something fell into the inventory that was not
                             -- there before, or if a stack was already full -> aka rare
-        local item = inventory.getstackininternalslot(slot)
+        local item = inventory.getStackInInternalSlot(slot)
         local lable = item.label; local name = item.name; local quantity = item.size
 
         -- make sure that these clear_functions act in the sameway that addorcreate does (i think it does but who knows)
-        local new_slot = module.virtual_inventory:getemptyslot(get_forbidden_table())
+        local new_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
         robot.select(slot)
-        if robot.transferto(new_slot) then
-            module.virtual_inventory:forceupdateslot(lable, name, quantity, new_slot)
+        if robot.transferTo(new_slot) then
+            module.virtual_inventory:forceUpdateSlot(lable, name, quantity, new_slot)
         else
             print(comms.robot_send("error", "maybe_something_added_to_inv, very bad error"))
         end
