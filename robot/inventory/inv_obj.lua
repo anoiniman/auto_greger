@@ -6,6 +6,7 @@ local module = {}
 local component = require("component")
 local sides_api = require("sides")
 local robot = require("robot")
+local computer = require("computer")
 local text = require("text")
 local serialize = require("serialization")
 local filesystem = require("filesystem")
@@ -504,8 +505,178 @@ end
 
 ---}}}
 
--- ->>-- Load Outs --<<--------- {{{
--- TODO :)
+-- ->>-- LoadOuts --<<--------- {{{
+
+-- luacheck: globals FIRST_LOAD_OUT
+
+
+-- aka, pickaxe and fuel, hopefully recipe management/crafting is well syncronized with this
+local __l_very_first = {
+    {"nil", "tool:pickaxe", 2}, -- we need special rules to handle tools
+    {"nil", "any:plank", 128},
+}
+
+local cur_loadout = {}
+local loadouts = {
+    {
+        data = __l_very_first,
+        condition = function()
+            return FIRST_LOAD_OUT
+        end,
+    },
+}
+
+local __l_has_warned = false
+local loadout_clock = computer.uptime()
+function module.do_loadout(priority) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
+    local selected_loadout = nil
+    for index = #loadouts, 1, -1 do
+        local loadout = loadouts[index]
+        if loadout.condition() then
+            selected_loadout = loadout.data
+            break
+        end
+    end
+
+    if selected_loadout == nil then
+        if not __l_has_warned then
+            print(comms.robot_send("warning", "Attempted to select load_out, yet none is valid"))
+            __l_has_warned = true
+        end
+        return false
+    end
+    __l_has_warned = false
+    loadout_clock = computer.uptime()
+
+    local logistic_transfer = "nil"
+    return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, 1, 1, priority}
+end
+
+function module.check_loadouts()
+    local empty_slots = module.virtual_inventory:getNumOfEmptySlots() - 9 + math.floor((#cur_loadout / 3))
+    local clock_diff = computer.uptime() - loadout_clock -- seconds
+    local diff_m = clock_diff * 60
+
+    local priority
+    if empty_slots > 16 then
+        return
+    elseif empty_slots > 10 then
+        if diff_m < 60 then -- aka 1 hour
+            return
+        end
+        priority = 40
+    elseif empty_slots > 5 then
+        if diff_m < 12 then
+            return nil
+        end
+        priority = 60
+    else
+        priority = 90
+    end
+
+    return module.do_loadout(priority)
+end
+
+-- in the case of a loadout in the excess table, we'll need to find out what slots can be excluded from the "keep" table
+-- in case of "lack" it doesn't really matter, it gets handled naturally without further processing
+local function get_good_slots(excess_loadout, lack_loadout)
+    local good_slots = {}
+
+    -- We cannot simple use getAllSlots(lable, name, needed_quantity), because the "up_to" is inclusive,
+    -- and we want it to be exclusive here
+    for _, def in ipairs(excess_loadout) do
+        local lable = def[1]
+        local name = def[2]
+        local needed_quantity = def[3]
+        def[3] = 0 -- Pass by reference trick, this signals how much we want to dump
+
+        local matching_slots = module.virtual_inventory:getAllSlots(lable, name)
+
+        local real_quantity = 0
+        if matching_slots ~= nil then
+            for _, slot_entry in ipairs(matching_slots) do
+                local slot_num = slot_entry[1]
+                local slot_quantity = slot_entry[2]
+
+                real_quantity = real_quantity + slot_quantity
+                if real_quantity > needed_quantity then -- magic happens here
+                    -- We do a little pass by reference hack here, dangerous
+                    -- this gets us the exact to_dump_quantity we need to give to LogisticTransfer in order to dump what
+                    -- we want to dump
+                    def[3] = real_quantity - needed_quantity
+                end
+
+                if not search_table.ione(good_slots, slot_num) then -- paranoid check
+                    table.insert(good_slots, slot_num)
+                end
+            end
+        end
+    end
+
+    for _, def in ipairs(lack_loadout) do
+        local lable = def[1]
+        local name = def[2]
+
+        local matching_slots = module.virtual_inventory:getAllSlots(lable, name)
+        if matching_slots ~= nil then
+            for _, slot_entry in ipairs(matching_slots) do
+                local slot_num = slot_entry[1]
+                local slot_quantity = slot_entry[2]
+
+                if not search_table.ione(good_slots, slot_num) then -- paranoid check
+                    table.insert(good_slots, slot_num)
+                end
+            end
+        end
+    end
+
+    return good_slots
+end
+
+local function process_loadout(selected_loadout)
+    local excess_loadout = {}
+    local lack_loadout = {}
+    for _, def in ipairs(selected_loadout) do
+        local lable = def[1]
+        local name = def[2]
+        local needed_quantity = def[3]
+        -- local matching_slots = module.virtual_inventory:getAllSlots(lable, name)
+        local how_many = module.virtual_inventory:howMany(lable, name)
+
+        if how_many < needed_quantity then
+            table.insert(lack_loadout, def)
+        elseif how_many > needed_quantity then
+            table.insert(excess_loadout, def)
+        end
+    end -- for loop
+
+    return excess_loadout, lack_loadout
+end
+
+function module.do_loadout_logistics(arguments)
+    local selected_loadout = arguments[1]
+    local logistic_transfer = arguments[2]
+    local item_index = arguments[3]
+    local phase = arguments[4]
+    local priority = arguments[5]
+
+    if phase == 1 then -- aka, the dump fase
+        -- here item_index is re_interpreted as slot index, and we'll keep going until we run out of slots
+        -- we could cache de result of the calculations, but idk
+        local excess_loadout, lack_loadout = process_loadout(selected_loadout)
+
+        ::try_again::
+        -- if cur index matches an already good slot (don't dump), or we aren't over the wanted ammount
+        if search_table.ione(already_good_slots, item_index) then
+        end
+    end
+
+    if type(logistic_transfer) == "string" then
+        logistic_transfer = LogisticTransfer:new()
+    end
+
+    return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
+end
 
 ---}}}
 
@@ -765,7 +936,6 @@ end
 ---}}}
 
 --->>-- External Inventories --<<-------{{{
---TODO interaction with external inventories and storage inventories
 
 -- if matching_slots is nil, return early and falsy, for sucking all use suck all, dummy
 function module.suck_vinventory(external_inventory, left_to_suck, matching_slots)
@@ -875,23 +1045,28 @@ function module.dump_all_possible(external_inventory) -- respect "special slots"
 end
 
 function module.dump_only_named(lable, name, external_inventory, how_much_to_dump)
-    local matching_slots = external_inventory:getAllSlotsUpTo(lable, name, how_much_to_dump)
+    local matching_slots = external_inventory:getAllSlots(lable, name, how_much_to_dump)
     return module.dump_only_matching(external_inventory, matching_slots)
 end
 
--- if no "left_to_dump" provided dump everything
-function module.dump_only_matching(external_inventory, matching_slots)
+-- if no "up_to" provided dump everything
+function module.dump_only_matching(external_inventory, up_to, matching_slots)
+    if up_to == nil then up_to = 100000 end
+
     local inv_type = external_inventory.inv_type
     if inv_type == "ledger" then error(comms.robot_send("fatal", "This is not supported right now")) end
     if matching_slots == nil then return false end
 
     for _, entry in ipairs(matching_slots) do
         local slot = entry[1]
-        local quantity = entry[2]
+        local slot_quantity = entry[2]
+
+        local quantity = math.min(up_to, slot_quantity)
 
         robot.select(slot)
         if not robot.drop(quantity) then goto continue end
         module.virtual_inventory:subtract(slot, quantity)
+        up_to = up_to - quantity
 
         local index = (slot * 3) - 2
         local lable = module.virtual_inventory.inv_table[index]

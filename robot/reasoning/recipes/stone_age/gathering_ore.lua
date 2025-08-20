@@ -303,7 +303,7 @@ end
 
 local function dump_waste(state)
     -- we currently assume that we'll always keep an empty crafting grid (TODO - change)
-    local empty_slots = inv.virtual_inventory:getNumOfEmptySlots() - inv.virtual_inventory.inv_size - 9
+    local empty_slots = inv.virtual_inventory:getNumOfEmptySlots() - 9
     if empty_slots < 5 then -- do some clean up
         local slot = inv.virtual_inventory:getSmallestSlot("Stone Dust")
         if slot ~= nil then slot_drop(slot); return end

@@ -144,7 +144,7 @@ function Goal:new(dependencies, constraint, priority, name, do_once)
         print(comms.robot_send("error", debug.traceback()))
     end
 
-    new.name = name or "None"
+    new.name = name
     new.do_once = do_once or false
     if dependencies == nil then
         new.dependencies = nil
