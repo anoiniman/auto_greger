@@ -304,6 +304,19 @@ function module.how_many_total(lable, name)
     return quantity
 end
 
+
+-- The ammount of free space in the inventory should also be determinant
+-- TODO
+function module.get_nearest_inv_by_definition(lable, name)
+    for _, fat_inv in iter_external_inv() do
+        if fat_inv.item_defs == nil or not fat_inv.long_term_storage or not fat_inv.storage then
+            goto continue
+        end
+
+        ::continue::
+    end
+end
+
 -- No, I'm not going to solve the travelling salesman problem
 local max_combined_travel = 512 + 128
 function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
@@ -577,81 +590,6 @@ function module.check_loadouts()
     return module.do_loadout(priority)
 end
 
--- in the case of a loadout in the excess table, we'll need to find out what slots can be excluded from the "keep" table
--- in case of "lack" it doesn't really matter, it gets handled naturally without further processing
-local function get_good_slots(excess_loadout, lack_loadout)
-    local good_slots = {}
-
-    -- We cannot simple use getAllSlots(lable, name, needed_quantity), because the "up_to" is inclusive,
-    -- and we want it to be exclusive here
-    for _, def in ipairs(excess_loadout) do
-        local lable = def[1]
-        local name = def[2]
-        local needed_quantity = def[3]
-        def[3] = 0 -- Pass by reference trick, this signals how much we want to dump
-
-        local matching_slots = module.virtual_inventory:getAllSlots(lable, name)
-
-        local real_quantity = 0
-        if matching_slots ~= nil then
-            for _, slot_entry in ipairs(matching_slots) do
-                local slot_num = slot_entry[1]
-                local slot_quantity = slot_entry[2]
-
-                real_quantity = real_quantity + slot_quantity
-                if real_quantity > needed_quantity then -- magic happens here
-                    -- We do a little pass by reference hack here, dangerous
-                    -- this gets us the exact to_dump_quantity we need to give to LogisticTransfer in order to dump what
-                    -- we want to dump
-                    def[3] = real_quantity - needed_quantity
-                end
-
-                if not search_table.ione(good_slots, slot_num) then -- paranoid check
-                    table.insert(good_slots, slot_num)
-                end
-            end
-        end
-    end
-
-    for _, def in ipairs(lack_loadout) do
-        local lable = def[1]
-        local name = def[2]
-
-        local matching_slots = module.virtual_inventory:getAllSlots(lable, name)
-        if matching_slots ~= nil then
-            for _, slot_entry in ipairs(matching_slots) do
-                local slot_num = slot_entry[1]
-                local slot_quantity = slot_entry[2]
-
-                if not search_table.ione(good_slots, slot_num) then -- paranoid check
-                    table.insert(good_slots, slot_num)
-                end
-            end
-        end
-    end
-
-    return good_slots
-end
-
-local function process_loadout(selected_loadout)
-    local excess_loadout = {}
-    local lack_loadout = {}
-    for _, def in ipairs(selected_loadout) do
-        local lable = def[1]
-        local name = def[2]
-        local needed_quantity = def[3]
-        -- local matching_slots = module.virtual_inventory:getAllSlots(lable, name)
-        local how_many = module.virtual_inventory:howMany(lable, name)
-
-        if how_many < needed_quantity then
-            table.insert(lack_loadout, def)
-        elseif how_many > needed_quantity then
-            table.insert(excess_loadout, def)
-        end
-    end -- for loop
-
-    return excess_loadout, lack_loadout
-end
 
 function module.do_loadout_logistics(arguments)
     local selected_loadout = arguments[1]
@@ -660,22 +598,52 @@ function module.do_loadout_logistics(arguments)
     local phase = arguments[4]
     local priority = arguments[5]
 
-    if phase == 1 then -- aka, the dump fase
-        -- here item_index is re_interpreted as slot index, and we'll keep going until we run out of slots
-        -- we could cache de result of the calculations, but idk
-        local excess_loadout, lack_loadout = process_loadout(selected_loadout)
-
-        ::try_again::
-        -- if cur index matches an already good slot (don't dump), or we aren't over the wanted ammount
-        if search_table.ione(already_good_slots, item_index) then
-        end
+    local function do_return() 
+        return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
     end
 
-    if type(logistic_transfer) == "string" then
+    if type(logistic_transfer) ~= "string" then
+        local le_return = logistic_transfer.doTheThing({logistic_transfer, {}, priority})
+        if le_return == nil then logistic_transfer = "nil" end
+
+        return do_return()
+    end
+
+    if phase == 1 then -- aka, the dump fase
+        -- here item_index is re_interpreted as slot index, and we'll keep going until we run out of slots
+        ::try_again::
+        if item_index > inventory_size then
+            item_index = 1
+            phase = 2
+            return do_return()
+        end
+
+        local lable, name, size = module.virtual_inventory:getSlotInfo(item_index)
+        if lable == EMPTY_STRING then
+            item_index = item_index + 1
+            goto try_again
+        end
+
+        for _, def in ipairs(selected_loadout) do
+            if (def[1] == lable and def[2] == name) or (def[1] == "nil" and def[2] == name) then
+                local real_quantity = module.virtual_inventory:howMany(lable, name)
+
+                if real_quantity <= def[3] then -- don't dump
+                    item_index = item_index + 1
+                    goto try_again
+                end -- else
+
+                -- TODO -> this is wrong function, we don't need to know where there is the thing, but rather where
+                -- can we store the thing at
+                local nearest_inv = module.get_nearest_external_inv()
+                logistic_transfer = LogisticTransfer:new()
+            end
+        end
+
         logistic_transfer = LogisticTransfer:new()
     end
 
-    return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
+    return do_return()
 end
 
 ---}}}
