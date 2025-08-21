@@ -250,7 +250,6 @@ local function robot_inventory()
        filesystem.makeDirectory("/home/robot/inventory")
     end
 
-    download("/robot/inventory/external_inv_obj.lua", "self")
     download("/robot/inventory/inv_obj.lua", "self")
     download("/robot/inventory/item_buckets.lua", "self")
 

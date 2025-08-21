@@ -1,3 +1,4 @@
+-- luacheck: globlas EMPTY_TABLE
 local module = {}
 
 local sides_api = require("sides")
@@ -36,7 +37,7 @@ local function do_move_down(parent, nav_obj, extra_sauce)
     if table_contains(extra_sauce, "smart_fall") then
         if result then -- else let it fall through, the caller will deal with it
             local orient = nav_obj.orientation
-            if orient ~= smart_move_down_backwards then parent.change_orientation(new_orient, nav_obj) end
+            if orient ~= smart_move_down_backwards then parent.change_orientation(smart_move_down_backwards, nav_obj) end
 
             local result = inv.place_block("front", {"any:building_block", "any:grass"}, "name_table")
             if not result then

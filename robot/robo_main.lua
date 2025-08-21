@@ -15,10 +15,10 @@ local serialize = require("serialization") -- luacheck: ignore
 -- local imports
 local comms = require("comms")
 local post_exit = require("post_exit")
-
 local keep_alive = require("keep_alive")
-
 local reasoning = require("reasoning.reasoning_obj")
+
+local inv = require("inventory.inv_obj")
 
 local robot_routine = require("robo_routine")
 
@@ -62,6 +62,9 @@ local function cron_jobs()
     if cron_time_delta > CRON_TIME then
         cron_time_interval = computer.uptime()
         keep_alive.keep_alive()
+
+        message_type, cron_message = inv.check_loadouts()
+        if cron_message ~= nil then return cron_message end
 
         -- Deep Thoughts
         if DO_REASONING then

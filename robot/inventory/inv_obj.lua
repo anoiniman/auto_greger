@@ -614,7 +614,9 @@ function module.do_loadout(priority) -- useful for when you are leaving on a pre
     loadout_clock = computer.uptime()
 
     local logistic_transfer = "nil"
-    return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, 1, 1, priority}
+    local item_index = 1
+    local phase = 1
+    return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
 end
 
 function module.check_loadouts()
@@ -639,7 +641,7 @@ function module.check_loadouts()
         priority = 90
     end
 
-    return module.do_loadout(priority)
+    return "loadout", module.do_loadout(priority)
 end
 
 

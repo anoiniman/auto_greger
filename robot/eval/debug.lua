@@ -159,6 +159,7 @@ function module.debug(arguments)
                     inv.force_update_vinv()
                 else
                     print(comms.robot_send("error", "invalid arguments for inv force add_all"))
+                    return nil
                 end
             elseif arguments[3] == "add_to" or arguments[3] == "at" then
                 local table_name = arguments[4]
@@ -172,11 +173,13 @@ function module.debug(arguments)
                 local slot = tonumber(arguments[4])
                 if slot == nil then
                     print(comms.robot_send("error", "invalid slot for inv force set"))
+                    return nil
                 end
 
                 local lable = tostring(arguments[5])
                 if lable == nil then
                     print(comms.robot_send("error", "invalid lable for inv force set"))
+                    return nil
                 end
                 lable = string.gsub(lable, "_", " ")
 
@@ -193,6 +196,16 @@ function module.debug(arguments)
                 local to_remove = tonumber(arguments[7])
 
                 inv.remove_stack_from_external(table_name, index, slot, to_remove)
+            elseif arguments[3] == "reload_loadout" or arguments[3] == "rl" then
+                local priority = tonumber(arguments[4])
+                if priority == nil then
+                    print(comms.robot_send("error", "priority is invalid"))
+                    return nil
+                end
+
+                inv.do_loadout(priority) -- forces robot to try and handle it's loadout
+            else
+                print(comms.robot_send("error", "invalid arguments for inv force"))
             end
         else
             print(comms.robot_send("error", "invalid arguments"))
