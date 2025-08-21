@@ -7,21 +7,22 @@ local component = require("component")
 local sides_api = require("sides")
 local robot = require("robot")
 local computer = require("computer")
+-- luacheck: push ignore
 local text = require("text")
 local serialize = require("serialization")
 local filesystem = require("filesystem")
+-- luacheck: pop
 
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 local search_table = require("search_table")
-local PPObj = require("common_pp_format")
+-- local PPObj = require("common_pp_format")
 
 local item_bucket = require("inventory.item_buckets")
 --local MetaLedger = require("inventory.MetaLedger")
 local VirtualInventory = require("inventory.VirtualInventory")
-local SpecialDefinition = require("inventory.SpecialDefinition")
---local external_iobj = require("inventory.external_inv_obj")
+local LogisticTransfer = require("complex_algorithms.LogisticTransfer")
 
 local crafting_component = component.getPrimary("crafting")
 local inventory = component.getPrimary("inventory_controller")
@@ -190,18 +191,18 @@ local function iter_external_inv(build_name)
     if build_name == nil then
         local inner, next_index
         local iteration = math.max
-        local function real_next(_tbl)
+        local function real_next(tbl)
             if inner ~= nil and iteration <= #inner then
                 iteration = iteration + 1
                 local value = inner[iteration]
-                if value == nil then inner = nil; return real_next(_tbl) end
+                if value == nil then inner = nil; return real_next(tbl) end
                 return iteration, inner[iteration]
             else
-                next_index, inner = next(_tbl, next_index)
+                next_index, inner = next(tbl, next_index)
                 if inner == nil then return nil end
 
                 iteration = 0
-                return real_next(_tbl)
+                return real_next(tbl)
             end
         end
         return real_next, external_inventories
@@ -234,13 +235,13 @@ local function prepare_pp_print(uncompressed, fat_ledger, index, size, large_pp)
     large_pp:addPagesToSelf(pp_obj)
 end
 
+local interactive_print = true
 local function do_pp_print(large_pp)
     large_pp:printPage(false)
     local castrated_object = deep_copy.copy_no_functions(large_pp)
-    comms.send_command("ppObj", "printPage", castrated_object, true) -- this is ok to do because they'll simple be queued
+    comms.send_command("ppObj", "printPage", castrated_object, interactive_print) -- this is ok to do because they'll simple be queued
 end
 
-local interactive_print = true
 function module.print_external_inv(name, index, uncompressed)
     comms.cls_nself()
     local le_next, tbl, num = iter_external_inv(name)
@@ -258,11 +259,11 @@ function module.print_external_inv(name, index, uncompressed)
     end
     if tbl == nil then return end
 
-    local real_tbl_size = #tbl
+    --[[local real_tbl_size = #tbl
     if num == nil then -- aka, we're iterating over multiple sub tables through our custom iteratior
         real_tbl_size = 0
         for _, _ in le_next, tbl, nil do real_tbl_size = real_tbl_size + 1 end
-    end
+    end--]]
 
     local pp_obj = {}
     local iterated = false
@@ -384,7 +385,7 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
         local distance = fat_inv:getDistance()
 
         for index, entry in ipairs(ref_quant_table) do
-            local i_quantity = entry[1]
+            -- local i_quantity = entry[1]
             local i_inv = entry[2]
 
             local i_distance = i_inv:getDistance()
@@ -642,6 +643,7 @@ function module.check_loadouts()
 end
 
 
+-- If this doesn't work, f'it do some stochastic static analysis as a first try
 function module.do_loadout_logistics(arguments)
     local selected_loadout = arguments[1]
     local logistic_transfer = arguments[2]
@@ -649,9 +651,55 @@ function module.do_loadout_logistics(arguments)
     local phase = arguments[4]
     local priority = arguments[5]
 
-    local function do_return() 
+    local function do_return() -- using do_return() instead of just recursing allows the programme to block, which is important
         return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
     end
+    local function n_inv_warning(lable, name, up_to, dump)
+        local variable_str
+        if dump then variable_str = "external inv space (dump)"
+        else variable_str = "items in external invs (suck)" end
+
+        print(comms.robot_send("warning",
+            string.format("\z
+            The robot (tm) ran out %s to fulfil the following definition:\n\z
+            lable: %s, name:%s, to_dump:%s", variable_str, lable, name, up_to)
+        ))
+    end
+
+    local function new_dump_transfer(lable, name, to_dump)
+        if to_dump == nil then
+            to_dump = module.virtual_inventory:howMany(lable, name)
+        end
+
+        local nearest_inv = module.get_nearest_inv_by_definition(lable, name, to_dump)
+        if nearest_inv == nil then
+            n_inv_warning(lable, name, to_dump, true)
+            return false
+        end
+
+        local item_table = {{lable, name, to_dump}}
+        logistic_transfer = LogisticTransfer:new("self", nearest_inv, item_table)
+        return true
+    end
+
+    local function new_suck_transfer(lable, name, to_suck)
+        if to_suck == nil then
+            print(comms.robot_send("warning", "Attempted to order a suckage with no wanted suckage ammount:\n" .. debug.traceback()))
+            return false
+        end
+
+        local min_quant = math.min(to_suck / 3, 8)
+        local nearest_inv = module.get_nearest_external_inv(lable, name, min_quant, to_suck)
+        if nearest_inv == nil then
+            n_inv_warning(lable, name, to_suck, false)
+            return false
+        end
+
+        local item_table = {{lable, name, to_suck}}
+        logistic_transfer = LogisticTransfer:new(nearest_inv, "self", item_table)
+        return true
+    end
+
 
     if type(logistic_transfer) ~= "string" then
         local le_return = logistic_transfer.doTheThing({logistic_transfer, {}, priority})
@@ -662,38 +710,64 @@ function module.do_loadout_logistics(arguments)
 
     if phase == 1 then -- aka, the dump fase
         -- here item_index is re_interpreted as slot index, and we'll keep going until we run out of slots
-        ::try_again::
         if item_index > inventory_size then
             item_index = 1
             phase = 2
             return do_return()
         end
 
-        local lable, name, size = module.virtual_inventory:getSlotInfo(item_index)
+        local lable, name, _ = module.virtual_inventory:getSlotInfo(item_index)
+        item_index = item_index + 1 -- increases item_index no matter what, no matter if we succed or fail,
+                                    -- we just need to make sure we don't increment when we already are working
+                                    -- on a transfer
+
         if lable == EMPTY_STRING then
-            item_index = item_index + 1
-            goto try_again
+            return module.do_loadout_logistics(arguments) -- go again
         end
 
         for _, def in ipairs(selected_loadout) do
+            -- In the case that something IS in the definition, but in too much of an ammount we DO want to dump it
             if (def[1] == lable and def[2] == name) or (def[1] == "nil" and def[2] == name) then
                 local real_quantity = module.virtual_inventory:howMany(lable, name)
 
-                if real_quantity <= def[3] then -- don't dump
+                if real_quantity <= def[3] then -- don't dump, if we don't have too much of it
                     item_index = item_index + 1
-                    goto try_again
+                    return module.do_loadout_logistics(arguments)
                 end -- else
 
-                -- TODO -> this is wrong function, we don't need to know where there is the thing, but rather where
-                -- can we store the thing at
-                local nearest_inv = module.get_nearest_external_inv()
-                logistic_transfer = LogisticTransfer:new()
-            end
-        end
+                local to_dump = real_quantity - def[3]
 
-        logistic_transfer = LogisticTransfer:new()
+                new_dump_transfer(lable, name, to_dump)
+                return do_return()
+            end -- if
+        end -- for
+        -- Now, if the thing was NOT in any loadout definition, then it MUST be dumped no matter what
+
+        new_dump_transfer(lable, name)
+        return do_return()
+    end
+    if phase ~= 2 then
+        error(comms.robot_send("fatal", "How does this happen?"))
     end
 
+    -- Now we are in the sucking phase, when we run out of items to fetch we terminate ourselves
+    if item_index > #selected_loadout then
+        item_index = 1
+        phase = 1
+        return nil
+    end
+    local cur_def = selected_loadout[item_index]
+
+    local lable = cur_def[1]
+    local name = cur_def[2]
+    local wanted_num = cur_def[3]
+    -- Now we run some checks
+
+    local inv_num = module.virtual_inventory:howMany(lable, name)
+    local to_suck = wanted_num - inv_num
+    if to_suck <= 0 then return module.do_loadout_logistics(arguments) end
+
+    new_suck_transfer(lable, name, to_suck)
     return do_return()
 end
 

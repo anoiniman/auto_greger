@@ -26,6 +26,7 @@ local Module = {
     mode_func = nil
 }
 
+-- inventories are fat inventories, item_tbl is of the following format table of: {[1] = lable, [2] = name, [3] = how_much} elements
 function Module:new(from_inventory, to_inventory, item_tbl)
     if item_tbl == nil or item_tbl[1] == nil
     then

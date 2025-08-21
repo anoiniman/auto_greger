@@ -33,7 +33,7 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
 
         -- if there is enough in external storage return "execute" + with a command to do logistics
         -- else recurse into our dependency tree by ways of searching inside ti for this output
-        local min_quant = math.min(dep_needed_quantity / 2, 24) -- might need to be optimised in the future
+        local min_quant = math.min(dep_needed_quantity / 2, 12) -- might need to be optimised in the future
         local pinv = inv.get_nearest_external_inv(
             inner.output.lable, inner.output.name, min_quant, dep_needed_quantity
         )
