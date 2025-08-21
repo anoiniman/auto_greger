@@ -3,6 +3,7 @@ local module = {}
 
 -- import of globals
 local serialize = require("serialization")
+local robot = require("robot")
 
 -- local imports
 local deep_copy = require("deep_copy")
@@ -74,7 +75,7 @@ function module.debug(arguments)
 
         print("attempting to move")
         nav.debug_move(move, how_much, forget)
-    elseif arguments[1] == "surface_move" then
+    elseif arguments[1] == "surface_chunk_move" then
         local x = arguments[2]
         local z = arguments[3]
 
@@ -111,6 +112,58 @@ function module.debug(arguments)
         if z == nil then print(comms.robot_send("error", "set_pos: invalid z")) end
 
         nav.set_pos_auto(x, z, y)
+
+    elseif arguments[1] == "swing" then
+        local dir = arguments[2]
+        if dir == nil then dir = "front" end
+
+        local be_blind = arguments[3]
+        if be_blind == nil then be_blind = false
+        elseif  (type(be_blind) == "string" and be_blind == "true")
+                or (type(be_blind) == "number" and be_blind == 1)
+        then
+            be_blind = true
+        else be_blind = false end
+
+
+        if be_blind then
+            if dir == "front" then inv.blind_swing_front()
+            elseif dir == "down" then inv.blind_swing_down()
+            elseif dir == "up" then inv.blind_swing_up()
+            else
+                print(comms.robot_send("error", string.format("dir is invalid: \"%s\"", dir)))
+                return nil
+            end
+        else
+            if dir == "front" then robot.swing()
+            elseif dir == "down" then robot.swingDown()
+            elseif dir == "up" then robot.swingUp()
+            else
+                print(comms.robot_send("error", string.format("dir is invalid: \"%s\"", dir)))
+                return nil
+            end
+            inv.maybe_something_added_to_inv()
+        end
+
+    elseif arguments[1] == "equip" then
+        local tool_type = arguments[2]
+        local tool_level = tonumber(arguments[3])
+
+        if tool_type == nil then
+            print(comms.robot_send("error", "tool_type is nil"))
+            return nil
+        end
+
+        if tool_level == nil then
+            --[[print(comms.robot_send("error", "tool_level is nil, or invalid"))
+            return nil--]]
+            tool_level = 0
+        end
+
+        local result = inv.equip_tool(tool_type, tool_level)
+        if not result then
+            print(comms.robot_send("error", "failed to equip tool"))
+        end
 
     elseif arguments[1] == "print" then
         if arguments[2] == "nav" then

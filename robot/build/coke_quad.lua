@@ -20,7 +20,7 @@ Module.name = "coke_quad"
 
 Module.dictionary = {
     ["c"] = {"Coke Oven Brick", "Railcraft:machine.alpha" }, -- if this doesn't work then ouch
-    ["d"] = {"Chest", "minecraft:chest"}
+    -- ["d"] = {"Chest", "minecraft:chest"}
 }
 
 -- Orientation is assumed for sector 3 (x:-1,z:-1)
@@ -41,7 +41,7 @@ Module.base_table = { def = Module.human_readable, [1] = Module.human_readable }
 local one_seven = {1, 7}
 local two_six = {2, 6}
 Module.segments = { -- This nil assignment schtick makes it so for 99% of the cases 'ipairs' no longer works :) btw
-    [1] = {{"-ccc*--", two_six}, {"-ccc-+d", one_seven}},   -- for height 1 change this
+    [1] = {{"-ccc*--", two_six}, {"-ccc---", one_seven}},   -- for height 1 change this
     [2] = {{"-c-c---", two_six}},   -- for height 2 change this
     [3] = nil                       -- ..
 }
@@ -87,23 +87,17 @@ Module.state_init = {
         -- new_machine["state_type"] = "inventory"
         return nil
     end,
-    function(parent)
-        local output_items = {
-            MetaItem:new("Chracoal", nil, true, nil),
-            MetaItem:new(nil, "Coal Coke", false, nil),
-            MetaItem:new(nil, "Block of Coal Coke", false, nil)
-        }
-
-        local storage_table = {
-            -- MetaInventory:newStorage(item_defs=, parent, symbol_index),
-            MetaInventory:newStorage(input_items, parent, '+', 1),
-            MetaInventory:newStorage(output_items, parent, '+', 2)
-        }
-        return {storage_table, 1}
+    function(parent) -- removed local chest definition, git blame if you want it back :P
+        return nil
     end
 }
 
 -- TODO (low priority) add auto-clear creosote oil when abcd
+-- Hopefully the game won't run long enough for we needing to clear creosote oil, but idk, we'll see
+-- very good furnace fuel as always, usually you only start having too much creosote when you start
+-- doing steel, because you start burning lots of charcoal that you cannot offset with creosote,
+-- anyway, I'll just order the robot arround manually if I need to
+
 -- time calculation assuming that each log takes 1800 ticks (90 seconds) to turn into charcoal
 Module.hooks = { -- TODO this
     function(state, parent, flag, quantity_goal, state_table)
