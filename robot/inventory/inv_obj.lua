@@ -304,21 +304,72 @@ function module.how_many_total(lable, name)
     return quantity
 end
 
+local function smaller_than(a,b) return a < b end
+local function bigger_than(a,b) return a > b end
 
+-- In place (insertion?) sort, smallest to biggest!
+local function sort_table_indexed(tbl, reverse, cmp_index)
+    -- reverse == false then smallest to biggest
+    -- reverse == true then biggest to smallest
+
+    local cmp
+    if reverse == nil or reverse == false then cmp = bigger_than
+    else cmp = smaller_than end
+
+    for head = 2, #tbl do
+        local key = tbl[head]
+
+        local t_index = head - 1
+        while t_index >= 1 and cmp(tbl[t_index][cmp_index], key[cmp_index]) do
+            tbl[t_index + 1] = tbl[t_index]
+            t_index = t_index - 1
+        end
+
+        tbl[t_index + 1] = key
+    end
+end
+
+local max_combined_travel = 512 + 128
 -- The ammount of free space in the inventory should also be determinant
--- TODO
-function module.get_nearest_inv_by_definition(lable, name)
+function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
+    if empty_slots_needed == nil then empty_slots_needed = 1 end
+
+    local unsorted_inv_table = {}
     for _, fat_inv in iter_external_inv() do
         if fat_inv.item_defs == nil or not fat_inv.long_term_storage or not fat_inv.storage then
             goto continue
         end
 
+        for _, item_def in ipairs(fat_inv.item_defs) do
+            if  (item_def.lable == lable and item_def.name == name)
+                or ((lable == nil or lable == "nil" or lable == "nil_lable") and item_def.name == name)
+            then
+                local v_distance = fat_inv:getDistance() / max_combined_travel
+                if v_distance > 1 then break end
+
+                --[[local v_inv_space = fat_inv.ledger:getNumOfEmptySlots() / fat_inv.ledger.inv_size
+
+                local cmp_value = d_distance * 0.80 + v_inv_space * 0.20
+                if cmp_value > 1 then cmp_value = 1.0 end--]]
+                if empty_slots_needed > fat_inv.ledger:getNumOfEmptySlots() then break end
+
+                local cmp_value = v_distance
+                local cmp_pair = {fat_inv, cmp_value}
+                table.insert(unsorted_inv_table, cmp_pair)
+                break
+            end
+        end -- for (item_def)
+
         ::continue::
     end
+
+    -- Now we sort by the cmp value, a scaled value of distance and inventory space
+    sort_table_indexed(unsorted_inv_table, false, 2)
+    local sorted_inv_table = unsorted_inv_table
+    return sorted_inv_table[1]
 end
 
 -- No, I'm not going to solve the travelling salesman problem
-local max_combined_travel = 512 + 128
 function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
     -- ordered with biggest in the top position (#size - 1)
     local ref_quant_table = {}
@@ -653,29 +704,6 @@ end
 local function get_forbidden_table()
     if use_self_craft then return crafting_table_slots end
     return nil
-end
-
-
-local function smaller_than(a,b) return a < b end
-local function bigger_than(a,b) return a > b end
-
--- In place (insertion?) sort, smallest to biggest!
-local function sort_slot_table(tbl, reverse)
-    local cmp
-    if reverse == nil or reverse == false then cmp = bigger_than
-    else cmp = smaller_than end
-
-    for head = 2, #tbl do
-        local key = tbl[head]
-
-        local t_index = head - 1
-        while t_index >= 1 and cmp(tbl[t_index][2], key[2]) do
-            tbl[t_index + 1] = tbl[t_index]
-            t_index = t_index - 1
-        end
-
-        tbl[t_index + 1] = key
-    end
 end
 
 ----}}}
@@ -1123,7 +1151,7 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
             local ingredient_slots = {}
             local accumulator = 0
             local i_slot_tbl = module.virtual_inventory:getAllSlots(lable, name)
-            local i_slot_tbl = sort_slot_table(i_slot_tbl)
+            local i_slot_tbl = sort_table_indexed(i_slot_tbl, false, 2)
             for _, inner_slot in ipairs(i_slot_tbl) do
                 local slot_size = module.virtual_inventory:howManySlot(inner_slot)
                 accumulator = accumulator + slot_size
