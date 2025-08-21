@@ -684,7 +684,7 @@ function module.do_loadout_logistics(arguments)
         return true
     end
 
-    local function new_suck_transfer(lable, name, to_suck)
+    local function new_suck_transfer(lable, name, to_suck) -- to_suck == how much to suck
         if to_suck == nil then
             print(comms.robot_send("warning", "Attempted to order a suckage with no wanted suckage ammount:\n" .. debug.traceback()))
             return false
@@ -1087,6 +1087,11 @@ function module.suck_all(external_inventory) -- runs no checks what-so-ever (ass
     else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
 end
 
+function module.suck_only_named(lable, name, external_inventory, how_much_to_dump)
+    local matching_slots = external_inventory:getAllSlots(lable, name, how_much_to_dump)
+    return module.suck_only_matching(external_inventory, how_much_to_dump, matching_slots)
+end
+
 -- Selects only the sub-selected MetaItems to be sucked
 function module.suck_only_matching(external_inventory, quantity, matching)
     local inv_type = external_inventory.inv_type
@@ -1117,7 +1122,7 @@ function module.dump_all_possible(external_inventory) -- respect "special slots"
 end
 
 function module.dump_only_named(lable, name, external_inventory, how_much_to_dump)
-    local matching_slots = external_inventory:getAllSlots(lable, name, how_much_to_dump)
+    local matching_slots = module.virtual_inventory:getAllSlots(lable, name, how_much_to_dump)
     return module.dump_only_matching(external_inventory, matching_slots)
 end
 
