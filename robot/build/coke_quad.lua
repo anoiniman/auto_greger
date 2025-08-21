@@ -66,30 +66,37 @@ local input_items = {
     MetaItem:new(nil, "Block of Coal", false, "Block of Coal Coke")
 }
 
+-- as long as we're doing things right there should be no problem with this, well just stay on the
+-- lookout for bugs, if we're not deep_copying the state everytime we create a new building object
+-- this can have problems, but as of right now we always deep_copy the primitive, so it's
+-- ok to do this
+Module.shared_state = {
+    last_checked = computer.uptime(),
+
+    fsm = 1,
+    in_what_asterisk = 1,
+    temp_reg = nil,
+
+    in_building = false,
+    ---
+    coke_oven_tbl = nil
+}
 
 -- First element of the hook array == special_symbol "*", etc.
 Module.state_init = {
     function()
-        return {
-            last_checked = computer.uptime(),
-            -- last_checked = computer.uptime() - 1000, -- temp (s)-
-
-            fsm = 1,
-            in_what_asterisk = 1,
-            temp_reg = nil,
-
-            in_building = false
-        }
+        return Module.shared_state -- takes a ref
     end,
     function(parent)
-        local new_machine = MetaInventory:newMachine(input_items, parent, '*', 1)
-        local new_machine = MetaInventory:newMachine(input_items, parent, '*', 2)
-        -- new_machine["state_type"] = "inventory"
-        return nil
+        local coke_tbl = {}
+
+        table.insert(coke_tbl, MetaInventory:newMachine(input_items, parent, '*', 1))
+        table.insert(coke_tbl, MetaInventory:newMachine(input_items, parent, '*', 2))
+
+        Module.coke_oven_tbl = coke_tbl -- modifies shared state table
+        return Module.shared_state -- takes the same ref
     end,
-    function(parent) -- removed local chest definition, git blame if you want it back :P
-        return nil
-    end
+    -- removed local chest definition, git blame if you want it back :P
 }
 
 -- TODO (low priority) add auto-clear creosote oil when abcd
@@ -99,7 +106,7 @@ Module.state_init = {
 -- anyway, I'll just order the robot arround manually if I need to
 
 -- time calculation assuming that each log takes 1800 ticks (90 seconds) to turn into charcoal
-Module.hooks = { -- TODO this
+Module.hooks = {
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             if computer.uptime() - state.last_checked < 920 then return "wait" end
@@ -114,15 +121,16 @@ Module.hooks = { -- TODO this
             end -- else
 
             return "all_good"
-        elseif flag ~= "raw_usage" and flag ~= "no_store" then
-            error(comms.robot_send("fatal", "coke_quad -- todo (3)"))
+        elseif flag ~= "raw_usage" then
+            if flag == nil then flag = "nil" end
+            error(comms.robot_send("fatal", string.format("coke_quad, bad_flag: %s", flag)))
         end
         local serial = serialize.serialize(state, true)
         print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
 
         return generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "coke_quad")
     end,
-    function()
+    function(state)
         nav.change_orientation("east")
         local check, _ = robot.detect()
         if check then goto after_turn end
@@ -132,11 +140,19 @@ Module.hooks = { -- TODO this
         if check then goto after_turn end
 
         ::after_turn::
-        -- let us hope this is good enough:
-        inv.dump_only_named(nil, "any:log", 0) -- TODO -> things like: dump_half named, or prepare half_and_half and so on idk
+        local cur_inv = state.coke_oven_tbl[state.in_what_asterisk]
+
+        if state.in_what_asterisk == 1 then
+            local how_many = inv.virtual_inventory:howMany(nil, "any:log")
+            inv.dump_only_named(nil, "any:log", cur_inv, how_many / 2)
+        else
+            inv.dump_only_named(nil, "any:log", cur_inv, 65)
+        end
+
+        inv.suck_only_named(nil, "any:log", cur_inv, 65)
         return 1
     end,
-    function(state)
+    --[[function(state)
         local storage_table = state[1]; local index = state[2]
         local cur_storage = storage_table[index]
 
@@ -146,7 +162,7 @@ Module.hooks = { -- TODO this
 
         state[2] = state[2] + 1
         return 1
-    end
+    end--]]
 }
 
 return Module

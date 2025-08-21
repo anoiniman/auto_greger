@@ -185,7 +185,21 @@ local BuildingUser = { -- This sort of recipe passes all the implementation over
 }
 function BuildingUser:new(bd_name, usage_flag)
     local new = deep_copy.copy(self, pairs)
+    if bd_name == nil then
+        bd_name = "nil"
+        print(comms.robot_send("warning", "bd_name was nil in:\n" .. debug.traceback()))
+    end
+
     new.bd_name = bd_name
+
+    if usage_flag == nil then
+        print(comms.robot_send(
+            "warning",
+            string.format("usage flag for building has been set to nil for bd_name: \"%s\"\n%s", bd_name, debug.traceback())
+        ))
+        usage_flag = "raw_usage"
+    end
+
     new.usage_flag = usage_flag
 
     return new

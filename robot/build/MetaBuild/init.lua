@@ -256,7 +256,7 @@ end
 
 function Module:require(name, what_chunk)
     if primitive_cache[name] ~= nil then
-        self.primitive = primitive_cache[name]:new()
+        self.primitive = primitive_cache[name]:new() -- very important
         self:initPrimitive()
         return true
     end
@@ -270,7 +270,7 @@ function Module:require(name, what_chunk)
         return false
     end
 
-    self.primitive = build_table:new()
+    self.primitive = build_table:new() -- very important
     self.name = self.primitive.name
     self.extra_sauce = self.primitive.extra_sauce -- effective change of ownership
     self.post_build_s_init = self.primitive.state_init
