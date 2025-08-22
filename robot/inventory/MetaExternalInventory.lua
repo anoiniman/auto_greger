@@ -31,6 +31,8 @@ local function get_storage_size(storage_type)
         return 27
     elseif storage_type == "double_chest" then
         return 54
+    elseif storage_type == "coke_oven" then
+        return 2
     elseif storage_type == "iron_chest" then
         error(comms.robot_send("fatal", "unimplemented"))
     else

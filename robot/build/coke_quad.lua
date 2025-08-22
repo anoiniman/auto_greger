@@ -88,10 +88,10 @@ Module.state_init = {
         return Module.shared_state -- takes a ref
     end,
     function(parent)
-        local coke_tbl = {}
-
-        table.insert(coke_tbl, MetaInventory:newMachine(input_items, parent, '*', 1))
-        table.insert(coke_tbl, MetaInventory:newMachine(input_items, parent, '*', 2))
+        local coke_tbl = {
+            MetaInventory:newMachine(input_items, parent, '*', 1, "coke_oven"),
+            MetaInventory:newMachine(input_items, parent, '*', 2, "coke_oven"),
+        }
 
         Module.coke_oven_tbl = coke_tbl -- modifies shared state table
         return Module.shared_state -- takes the same ref
@@ -105,11 +105,14 @@ Module.state_init = {
 -- doing steel, because you start burning lots of charcoal that you cannot offset with creosote,
 -- anyway, I'll just order the robot arround manually if I need to
 
+-- This can be implemented by adding different usage_flags to the definition, and having a debug
+-- command that allows us to forcefully use a given known building with a given flag
+
 -- time calculation assuming that each log takes 1800 ticks (90 seconds) to turn into charcoal
 Module.hooks = {
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            if computer.uptime() - state.last_checked < 920 then return "wait" end
+            if computer.uptime() - state.last_checked < 60 * 12 then return "wait" end -- 12 minutes of waiting :)
 
             local storage_table = state_table[3][1]
             local input_storage = storage_table[1]
@@ -123,7 +126,8 @@ Module.hooks = {
             return "all_good"
         elseif flag ~= "raw_usage" then
             if flag == nil then flag = "nil" end
-            error(comms.robot_send("fatal", string.format("coke_quad, bad_flag: %s", flag)))
+            print(comms.robot_send("error", string.format("coke_quad, bad_flag: %s", flag)))
+            return nil
         end
         local serial = serialize.serialize(state, true)
         print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
@@ -141,6 +145,7 @@ Module.hooks = {
 
         ::after_turn::
         local cur_inv = state.coke_oven_tbl[state.in_what_asterisk]
+        inv.force_update_einv(cur_inv) -- force updates contents of storage, since they are not tracked
 
         if state.in_what_asterisk == 1 then
             local how_many = inv.virtual_inventory:howMany(nil, "any:log")
@@ -150,6 +155,8 @@ Module.hooks = {
         end
 
         inv.suck_only_named(nil, "any:log", cur_inv, 65)
+        -- TODO dealing with creosote goes here:
+
         return 1
     end,
     --[[function(state)

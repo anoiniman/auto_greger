@@ -26,7 +26,7 @@ Module.name = "oak_tree_farm"
 Module.dictionary = {
     ["s"] = {"Oak Sapling", "minecraft:sapling"},
     ["c"] = {"Chest", "minecraft:chest"},
-    ["d"] = {"nil", "any:grass", "name"} -- TODO add code for this
+    ["d"] = {"nil", "any:grass", "name"}
 }
 
 -- No torches (so that it can be built in le early game)
@@ -51,9 +51,9 @@ Module.human_readable = {
     "s*s-s*s",
     "-------",
     "s*s-s*s",
-    "c+---+c",
+    "-------",
     "s*s-s*s",
-    "-----?c",
+    "-------",
     },
 }
 --[[Module.human_readable = {
@@ -96,7 +96,7 @@ Module.state_init = {
         -- return { state_type = "action" } -- le chop trees
         return nil
     end,
-    function(parent)
+    --[[function(parent)
         local storage_table = {
             MetaInventory:newStorage(MetaItem:new(nil, "Oak Wood", true, nil), parent, '+', 1),
             MetaInventory:newStorage(MetaItem:new(nil, "Oak Sapling", true, nil), parent, '+', 2)
@@ -106,7 +106,7 @@ Module.state_init = {
     function()
         local new_cache = MetaInventory:newSelfCache()
         return new_cache
-    end,
+    end,--]]
 }
 
 local lable_hint = "Oak Wood"
@@ -145,7 +145,6 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
 end
 
 
--- TODO: write code that when the chests in the farm get to full transfers things into long-term storage
 -- This is: 22 minutes for oak (1x1) farms -- and 11 minutes for spruce (2x2) farms
 Module.hooks = {
     -- flag determines if we are running a check or a determinate logistic action
@@ -154,7 +153,7 @@ Module.hooks = {
     -- luacheck: no unused args
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            if computer.uptime() - state.last_checked < 60 * 22 then return "wait" end
+            if computer.uptime() - state.last_checked < 60 * 16 then return "wait" end -- prev was 60 * 22
 
             return "all_good"
         elseif flag ~=  "raw_usage" and flag ~= "no_store" then
@@ -209,8 +208,8 @@ Module.hooks = {
 
         return 1
     end,
-    -- TODO some minor branches
-    function(state) -- Simple dump what matches function [I think the chests are determinitstic?]
+    -- TODO deal with minor branches
+    --[[function(state) -- Simple dump what matches function [I think the chests are determinitstic?]
         local storage_table = state[1]; local cur_index = state[2]
         local cur_storage = storage_table[cur_index]
 
@@ -228,7 +227,7 @@ Module.hooks = {
 
         if not inv.dump_all_possible(ledger) then print(comms.robot_send("error", "oak_tree_farm, failed to empty inventory")) end
         return 1
-    end
+    end--]]
 }
 
 return Module

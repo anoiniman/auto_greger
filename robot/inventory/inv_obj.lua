@@ -1413,7 +1413,11 @@ function module.remove_from_slot(what_slot, quantity)
 end
 
 function module.force_update_vinv()
-    module.virtual_inventory:forceUpdateInternal()
+    return module.virtual_inventory:forceUpdateInternal()
+end
+
+function module.force_update_einv(external_inventory)
+    return external_inventory:forceUpdateAsForeign()
 end
 
 local function press_enter()
