@@ -57,7 +57,7 @@ end
 function SchematicInterface:advanceY(top_down)
     local b_stack = self.build_stack
     if top_down then
-        return b_stack.logical_y > 1
+        return b_stack.logical_y > 0
     end
     return b_stack.logical_y <= #self.schematic
 end
@@ -71,7 +71,12 @@ function SchematicInterface:forceAdvanceHead(top_down)
     elseif self:advanceY(top_down) then -- only then move-up in height
         b_stack.logical_x = 1
         b_stack.logical_z = 1
-        b_stack.logical_y = b_stack.logical_y + 1
+
+        if not top_down then
+            b_stack.logical_y = b_stack.logical_y + 1
+        else
+            b_stack.logical_y = b_stack.logical_y - 1
+        end
     else -- we can only assume there is nothing left to process, let's mark ourself as built
         return true
     end

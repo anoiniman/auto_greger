@@ -1,13 +1,19 @@
+------- /usr/lib/ ----------
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
+-------- Open OS ------------
 local computer = require("computer")
 local os = require("os")
+local keyboard = require("keyboard")
+
 local robot = require("robot")
 local sides_api = require("sides")
 local component = require("component")
+
 local serialize = require("serialization")
 
+-------- Other ------------
 local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 
@@ -17,6 +23,8 @@ local generic_hooks = require("build.generic_hooks")
 
 local inv = require("inventory.inv_obj")
 
+
+---------------
 local suck = component.getPrimary("tractor_beam")
 local inv_component = component.getPrimary("inventory_controller")
 
@@ -119,6 +127,12 @@ local function down_stroke()
     local err
     local result = true
     while result do
+        if keyboard.isKeyDown(keyboard.keys.q) then
+            print("force_stoped downstroke")
+            break
+        end
+
+
         result, err = nav.debug_move("down", 1)
         if not result and err == "solid" then -- attempt to break a possibly placed block, or check if its dirt/grass
             local analysis = geolyzer.simple_return()
@@ -133,6 +147,12 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
     local err
     local result = true
     while result do
+        if keyboard.isKeyDown(keyboard.keys.q) then
+            print("force_stoped upstroke")
+            break
+        end
+
+
         result = inv.smart_swing("axe", "up", 0, something_added)
         if not result then break end -- if no break it means tree came to an end
 
@@ -156,7 +176,7 @@ Module.hooks = {
             if computer.uptime() - state.last_checked < 60 * 16 then return "wait" end -- prev was 60 * 22
 
             return "all_good"
-        elseif flag ~=  "raw_usage" and flag ~= "no_store" then
+        elseif flag ~= "raw_usage" then
             error(comms.robot_send("fatal", "oak_farm -- todo (3)"))
         end
         -- small debug thing for me :) to do le testing

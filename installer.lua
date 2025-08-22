@@ -152,6 +152,8 @@ local function robot_build_primitives()
     end
     download("/robot/build/coke_quad.lua", "self")
     download("/robot/build/hole_home.lua", "self")
+    download("/robot/build/small_home.lua", "self")
+
     download("/robot/build/oak_tree_farm.lua", "self")
     download("/robot/build/spruce_tree_farm.lua", "self")
     download("/robot/build/sp_storeroom.lua", "self")

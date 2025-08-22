@@ -42,10 +42,16 @@ function module.identify(name, lable)
     if fname ("sapling")            then return     "any:sapling"       end
     if fname ("^any:building$")     then return     "any:building"      end
 
+    if flabl("Coke Oven Brick") then
+        if fname("Railcraft:machine.alpha") then return name end
+        return name
+    end
+    if flabl("air") or flabl("Air") then return name end
 
+    if flabl("^Dirt$") or flabl("^Cobblestone$") then return "any:building" end
 
     if fname("^minecraft:") then
-        if flabl("^Dirt$") or flabl("^Cobblestone$") then return "any:building" end
+        if flabl("chest") then return "minecraft:chest" end
         return "minecraft:generic"
     end
 

@@ -16,52 +16,68 @@ local general_functions = require("build.general_functions")
 local generic_hooks = require("build.generic_hooks")
 
 local Module = {parent = nil}
-Module.name = "coke_quad"
+Module.name = "small_home"
 
 Module.dictionary = {
-    ["c"] = {"Coke Oven Brick", "Railcraft:machine.alpha" }, -- if this doesn't work then ouch
-    -- ["d"] = {"Chest", "minecraft:chest"}
+    ["f"] = {"Furnace", "minecraft:furnace" }, -- if this doesn't work then ouch
+    ["1"] = {"Chest", "minecraft:chest" },
+
+    ["c"] = {"Cobblestone", "any:building" },
+    ["l"] = {"nil", "any:plank"},
+    ["d"] = {"nil", "any:grass"},
 }
 
--- Orientation is assumed for sector 3 (x:-1,z:-1)
--- create rotation function somewhere
 Module.human_readable = {
-    "-ccc---",
-    "-ccc---",
-    "-ccc---",
+    {
+    "dddddd-",
+    "dddddd-",
+    "dddddd-",
+    "dddddd-",
+    "dddddd-",
+    "dddddd-",
     "-------",
-    "-ccc---",
-    "-ccc---",
-    "-ccc---",
+    },
+    {
+    "cccc-c-",
+    "c11+-c-",
+    "c----c-",
+    "c**-+c-",
+    "cff11c-",
+    "cccccc-",
+    "-------",
+    },
+    {
+    "llllll-",
+    "llllll-",
+    "l-l-ll-",
+    "l-l-ll-",
+    "llllll-",
+    "llllll-",
+    "-------",
+    },
+    {
+    "-------",
+    "-------",
+    "--l----",
+    "--l----",
+    "-------",
+    "-------",
+    "-------",
+    },
 }
 
 Module.origin_block = {0,0,0} -- x, z, y
-Module.base_table = { def = Module.human_readable } -- def == default
-
-local one_seven = {1, 7}
-local two_six = {2, 6}
-Module.segments = { -- This nil assignment schtick makes it so for 99% of the cases 'ipairs' no longer works :) btw
-    [1] = {{"-ccc*--", two_six}, {"-ccc---", one_seven}},   -- for height 1 change this
-    [2] = {{"-c-c---", two_six}},   -- for height 2 change this
-    [3] = nil                       -- ..
-}
 
 Module.doors = {}
 Module.doors[1] = MetaDoor:new()
 Module.doors[1]:doorX(5, 1)
-
--- consuming what function is to be executed
--- "Which Iteration" <-> "Which Height/Level"
-function Module:iter()
-    return general_functions.iter(self.base_table, 3, self.segments)
-end
 
 function Module:new()
     return deep_copy.copy(self, pairs)
 end
 
 local input_items = {
-    MetaItem:new("any:log", nil, true, "Charcoal" ),
+    MetaItem:new("log", nil, true, "Charcoal" ),
     MetaItem:new(nil, "Coal", false, "Coal Coke"),
     MetaItem:new(nil, "Block of Coal", false, "Block of Coal Coke")
 }

@@ -13,22 +13,60 @@ Module.name = "sp_storeroom"
 
 Module.dictionary = {
     c = {"Chest", "minecraft:chest"},
+    p = {"nil", "any:plank"},
     l = {"nil", "any:log"} 
 }
 
 -- (*) stand for permanent storage
-Module.human_readable = {
-    "lc+*ccl",
-    "-------",
-    "cc**cc-",
-    "-------",
-    "cc**cc-",
-    "l-----l",
+Module.base_table = {
+    {
+    "ppppppp",
+    "ppppppp",
+    "ppppppp",
+    "ppppppp",
+    "ppppppp",
+    "ppppppp",
+    "ppppppp",
+    },
+    {
     "--l-l--",
+    "l-----l",
+    "cc*-*cc", -- 1,2
+    "pp---pp",
+    "cc*-*cc", -- 3,4
+    "pp*-*pp", -- 5,6 (small)
+    "l-c-c-l",
+    },
+    {
+    "--l-l--",
+    "l-----l",
+    "-------",
+    "cc*-*cc", -- 7,8
+    "-------",
+    "cc*-*cc", -- 9,10
+    "l-----l",
+    },
+    {
+    "--l-l--",
+    "l-----l",
+    "l-----l",
+    "-------",
+    "l-----l",
+    "-------",
+    "l-----l",
+    },
+    {
+    "--l-l--",
+    "lllllll",
+    "--l-l--",
+    "l-l-l-l",
+    "--l-l--",
+    "l-l-l-l",
+    "lllllll",
+    },
 }
 
-Module.origin_block = {0,0,0} -- x, z, y
-Module.base_table = {[1] = Module.human_readable}
+Module.origin_block = {0,0,-1} -- x, z, y
 
 Module.doors = {}
 Module.doors[1] = MetaDoor:new()
@@ -46,6 +84,7 @@ Module.state_init = {
         }
     end,
     function(parent)
+        -- TODO change definitions
         local misc_chest = MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 1, "double_chest")
 
         local bd_table = {

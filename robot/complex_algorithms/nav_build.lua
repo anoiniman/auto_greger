@@ -61,7 +61,8 @@ function module.nav_and_build(instructions, post_run)
         if not instructions:includes("top_to_bottom") then
             rel_coords[3] = rel_coords[3] + 1
         else
-            rel_coords[3] = rel_coords[3] - 1
+            rel_coords[3] = rel_coords[3] + 1
+            -- rel_coords[3] = rel_coords[3] - 1
         end
 
         nav.setup_navigate_rel(rel_coords)
@@ -90,8 +91,10 @@ function module.nav_and_build(instructions, post_run)
         local place_dir
         local swing_func
         if instructions:includes("top_to_bottom") then
-            place_dir = "up"
-            swing_func = inv.blind_swing_up
+            --[[place_dir = "up"
+            swing_func = inv.blind_swing_up--]]
+            place_dir = "down"
+            swing_func = inv.blind_swing_down
         else
             place_dir = "down"
             swing_func = inv.blind_swing_down

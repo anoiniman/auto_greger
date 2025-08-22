@@ -335,38 +335,53 @@ local max_combined_travel = 512 + 128
 function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
     if empty_slots_needed == nil then empty_slots_needed = 1 end
 
+    local function check_and_add_to_tbl(tbl, fat_inv)
+        local v_distance = fat_inv:getDistance() / max_combined_travel
+        if v_distance > 1 then return end
+
+        --[[local v_inv_space = fat_inv.ledger:getNumOfEmptySlots() / fat_inv.ledger.inv_size
+
+        local cmp_value = d_distance * 0.80 + v_inv_space * 0.20
+        if cmp_value > 1 then cmp_value = 1.0 end--]]
+        if empty_slots_needed > fat_inv.ledger:getNumOfEmptySlots() then return end
+
+        local cmp_value = v_distance
+        local cmp_pair = {fat_inv, cmp_value}
+        table.insert(tbl, cmp_pair)
+    end
+
+
+    local unsorted_inv_table_misc = {}
     local unsorted_inv_table = {}
     for _, fat_inv in iter_external_inv() do
         if fat_inv.item_defs == nil or not fat_inv.long_term_storage or not fat_inv.storage then
             goto continue
         end
 
-        for _, item_def in ipairs(fat_inv.item_defs) do
-            if  (item_def.lable == lable and item_def.name == name)
-                or ((lable == nil or lable == "nil" or lable == "nil_lable") and item_def.name == name)
-            then
-                local v_distance = fat_inv:getDistance() / max_combined_travel
-                if v_distance > 1 then break end
-
-                --[[local v_inv_space = fat_inv.ledger:getNumOfEmptySlots() / fat_inv.ledger.inv_size
-
-                local cmp_value = d_distance * 0.80 + v_inv_space * 0.20
-                if cmp_value > 1 then cmp_value = 1.0 end--]]
-                if empty_slots_needed > fat_inv.ledger:getNumOfEmptySlots() then break end
-
-                local cmp_value = v_distance
-                local cmp_pair = {fat_inv, cmp_value}
-                table.insert(unsorted_inv_table, cmp_pair)
-                break
-            end
-        end -- for (item_def)
+        if fat_inv:canAdd(lable, name) then
+            check_and_add_to_tbl(unsorted_inv_table, fat_inv)
+            goto continue
+        end
+        if fat_inv:canAny() then
+            check_and_add_to_tbl(unsorted_inv_table_misc, fat_inv)
+            goto continue
+        end
 
         ::continue::
     end
 
     -- Now we sort by the cmp value, a scaled value of distance and inventory space
-    sort_table_indexed(unsorted_inv_table, false, 2)
-    local sorted_inv_table = unsorted_inv_table
+    local sorted_inv_table
+    if #unsorted_inv_table ~= 0 then
+        sort_table_indexed(unsorted_inv_table, false, 2)
+        sorted_inv_table = unsorted_inv_table
+    elseif #unsorted_inv_table_misc ~= 0 then
+        sort_table_indexed(unsorted_inv_table_misc, false, 2)
+        sorted_inv_table = unsorted_inv_table_misc
+    else
+        return nil
+    end
+
     return sorted_inv_table[1]
 end
 
@@ -500,6 +515,7 @@ function module.add_to_inventory(map, build_name, index, lable, name, quantity, 
             print(comms.robot_send("error", "There is no valid inventory in this building for this item: " .. name .. ", " .. lable))
             return false
         end -- listen, this is all very kludgy because I don't care rn
+
         can_add_inv = misc_list[1]
     end
 
@@ -960,12 +976,20 @@ function module.place_block(dir, block_identifier, lable_type, side)
         end
     end
 
-    if block_identifier == "air" then
+    if b_lable == "air" or b_lable == "Air" then
         local swing_result
         if dir == "up" then
-            swing_result = module.blind_swing_up()
+            if b_name ~= nil and b_name ~= "generic" and b_name ~= "nil" then
+                swing_result = module.smart_swing(b_name, dir, 0, nil)
+            else
+                swing_result = module.blind_swing_up()
+            end
         elseif dir == "down" then
-            swing_result = module.blind_swing_down()
+            if b_name ~= nil and b_name ~= "generic" and b_name ~= "nil" then
+                swing_result = module.smart_swing(b_name, dir, 0, nil)
+            else
+                swing_result = module.blind_swing_down()
+            end
         else print(comms.robot_send("warning", "place_block, punching air in: invalid dir for now")) end
         return swing_result
     end
