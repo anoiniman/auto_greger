@@ -81,7 +81,7 @@ local max_energy = computer.maxEnergy() / 64.0
 
 -- Power Unit (PU) = (MJ * 4) / 10
 -- Coal Unit (cU) = 1280 MJ = 512 PU
--- Standard Unit (sU) = 1/8 cU
+-- Standard Unit (sU) = 1/8 cU (64 PU)
 -- 1 Move = 15 PU = 1/34 cU = 4/17 (~0.25) sU, Moving 1 chunk = 240 PU = 1/2 cU = 4 sU = 1.5 logs
 local u_coal = 8.0; local u_wood = 1.5
 local u_creosote = 32.0
@@ -114,6 +114,7 @@ function module.possible_round_trip_distance(reserve, high_margin)
     if high_margin then margin = max_energy
     else margin = max_energy / 3.0 end
 
+    -- divided by two, because of round-trip chenanigans
     local cur_energy = module.calculate_cur_energy(reserve) / 2
     -- take away some of it away to give us some margin (1/3)
     cur_energy = cur_energy - margin

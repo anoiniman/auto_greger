@@ -1,12 +1,12 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
-local serialize = require("serialization")
+-- local serialize = require("serialization")
 
 local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 
-local general_functions = require("build.general_functions")
+-- local general_functions = require("build.general_functions")
 
 local Module = {parent = nil}
 Module.name = "sp_storeroom"
@@ -14,7 +14,7 @@ Module.name = "sp_storeroom"
 Module.dictionary = {
     c = {"Chest", "minecraft:chest"},
     p = {"nil", "any:plank"},
-    l = {"nil", "any:log"} 
+    l = {"nil", "any:log"},
 }
 
 -- (*) stand for permanent storage
@@ -34,8 +34,8 @@ Module.base_table = {
     "cc*-*cc", -- 1,2
     "pp---pp",
     "cc*-*cc", -- 3,4
-    "pp*-*pp", -- 5,6 (small)
-    "l-c-c-l",
+    "pp*-*pp",
+    "l-c-c-l", -- 5,6 (small)
     },
     {
     "--l-l--",
@@ -84,31 +84,52 @@ Module.state_init = {
         }
     end,
     function(parent)
-        -- TODO change definitions
-        local misc_chest = MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 1, "double_chest")
-
         local bd_table = {
+            -- Building Material
             MetaItem:new("any:log", nil),
             MetaItem:new("any:building"),
             MetaItem:new("any:plank"),
             MetaItem:new("any:pretty_build"),
+            MetaItem:new("any:grass"),
+            -- Tools
+            MetaItem:new("tool:sword", nil),
+            MetaItem:new("tool:pickaxe", nil),
+            MetaItem:new("tool:axe", nil),
+            MetaItem:new("tool:shovel", nil),
         }
-        local st_table = {misc_chest}
+        local ore_table = {
+            MetaItem:new("gregtech:raw_ore", nil),
+            MetaItem:new("gregtech:crushed_ore", nil),
+            MetaItem:new("gregtech:impure_dust", nil),
+            MetaItem:new("gregtech:done_dust", nil),
+        }
 
-        table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 2, "double_chest"))
-        table.insert(st_table, MetaInventory:newLongTermStorage(bd_table, parent, "*", 3, "double_chest"))
+        local ingots_n_shit_table = {
+            MetaItem:new("any:ingot", nil),
+        }
 
-        local ore_table = { MetaItem:new("gregtech:raw_ore", nil) }
-        table.insert(st_table, MetaInventory:newLongTermStorage(ore_table, parent, "*", 4, "double_chest"))
+        local material_b_crafting_table = {
+            MetaItem:new("any:intermediate_material"),
+            MetaItem:new("any:basic_crafting"),
+        }
 
-        local material_b_crafting_table = {MetaItem:new("any:intermediate_material"), MetaItem:new("any:basic_crafting")}
-        table.insert(st_table, MetaInventory:newLongTermStorage(material_b_crafting_table, parent, "*", 5, "double_chest"))
+        local st_table = {
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 1, "double_chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 2, "double_chest"),
+            MetaInventory:newLongTermStorage(bd_table, parent, "*", 3, "double_chest"),
+            MetaInventory:newLongTermStorage(bd_table, parent, "*", 4, "double_chest"),
+
+            MetaInventory:newLongTermStorage(material_b_crafting_table, parent, "*", 5, "double_chest"),
+            MetaInventory:newLongTermStorage(material_b_crafting_table, parent, "*", 6, "double_chest"),
+
+            MetaInventory:newLongTermStorage(ore_table, parent, "*", 7, "double_chest"),
+            MetaInventory:newLongTermStorage(ore_table, parent, "*", 8, "double_chest"),
+
+            MetaInventory:newLongTermStorage(ingots_n_shit_table, parent, "*", 9, "double_chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("gregtech:generic")}, parent, "*", 10, "double_chest"),
+        }
 
         return {st_table, 1}
-    end,
-    function(parent)
-        local dump_chest = MetaInventory:newSelfCache()
-        return dump_chest
     end,
 }
 
@@ -117,11 +138,10 @@ Module.hooks = {
         print(comms.send_unexpected())
         return nil
     end,
-    function(state)
+    function()
         print(comms.send_unexpected())
         return nil
     end,
-    general_functions.use_cache
 }
 
 return Module

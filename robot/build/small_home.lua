@@ -115,16 +115,6 @@ Module.state_init = {
     -- removed local chest definition, git blame if you want it back :P
 }
 
--- TODO (low priority) add auto-clear creosote oil when abcd
--- Hopefully the game won't run long enough for we needing to clear creosote oil, but idk, we'll see
--- very good furnace fuel as always, usually you only start having too much creosote when you start
--- doing steel, because you start burning lots of charcoal that you cannot offset with creosote,
--- anyway, I'll just order the robot arround manually if I need to
-
--- This can be implemented by adding different usage_flags to the definition, and having a debug
--- command that allows us to forcefully use a given known building with a given flag
-
--- time calculation assuming that each log takes 1800 ticks (90 seconds) to turn into charcoal
 Module.hooks = {
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
@@ -175,17 +165,6 @@ Module.hooks = {
 
         return 1
     end,
-    --[[function(state)
-        local storage_table = state[1]; local index = state[2]
-        local cur_storage = storage_table[index]
-
-        for _, item_def in cur_storage:itemDefIter() do
-            inv.dump_only_named(item_def.lable, item_def.name, cur_storage.ledger)
-        end
-
-        state[2] = state[2] + 1
-        return 1
-    end--]]
 }
 
 return Module

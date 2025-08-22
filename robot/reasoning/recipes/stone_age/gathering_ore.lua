@@ -79,7 +79,7 @@ local function add_to_state_list(state_to_add)
         end
     end
     if in_list then
-        print(comms.robot_send("error", "Ore Mining state already in list owsers!"))
+        print(comms.robot_send("error", "Ore Mining state already in list wowsers!"))
         return false
     end
 
@@ -272,7 +272,10 @@ local function deal_with_the_ladder(state, move_func) -- DEAL WITH GRAVEL PROBLE
     return "All_Good", nil
 end
 
+-- luacheck: globals IGNORE_ORE_FUEL_CHECK
 local function check_fuel(state)
+    if IGNORE_ORE_FUEL_CHECK then return true end
+
     local block_move_potential = keep_alive.possible_round_trip_distance(0, false)
     local chunk_move_potential = math.floor(block_move_potential / 16.0)
 
