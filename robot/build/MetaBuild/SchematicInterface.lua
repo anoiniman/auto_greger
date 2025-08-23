@@ -57,7 +57,7 @@ end
 function SchematicInterface:advanceY(top_down)
     local b_stack = self.build_stack
     if top_down then
-        return b_stack.logical_y > 0
+        return b_stack.logical_y > 1
     end
     return b_stack.logical_y <= #self.schematic
 end
