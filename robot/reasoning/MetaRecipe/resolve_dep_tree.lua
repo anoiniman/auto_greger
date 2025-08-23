@@ -135,13 +135,19 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
         if buildings == nil or #buildings == 0 then return "non_fatal_error", "building" end
 
 
-        local mode, dep_found = solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
-        if mode ~= "all_good" then return mode, dep_found end
-
         for _, build in ipairs(buildings) do
-            local result, b_check_extra = build:runBuildCheck(needed_quantity)
+            -- I will assume that the smelting goals only have 1 dependency
+            local one_dep = parent_recipe.dependencies[1]
+            local one_recipe = one_dep.inlying_recipe
+
+            local dep_quantity = math.ceil(one_dep.input_multiplier * needed_quantity)
+            local check_table = {one_recipe.output, dep_quantity}
+            local result, b_check_extra = build:runBuildCheck(check_table)
 
             if result == "all_good" then
+                local mode, dep_found = solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
+                if mode ~= "all_good" then return mode, dep_found end
+
                 return "all_good", build
 
             elseif result == "wait" then
@@ -163,7 +169,8 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
            ::continue::
         end -- forloop end
 
-        return "breath" -- At last, least priority, we look into the other branches if possible
+        return "wait" -- for now, since breath doesn't work
+        -- return "breath" -- At last, least priority, we look into the other branches if possible
                         -- AKA: This is blocked right now, please go down another sister branch
                         -- But if you Optional into a breath and you run out of things, you are supposed to report fail
     else

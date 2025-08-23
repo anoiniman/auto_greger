@@ -1,4 +1,4 @@
--- luacheck: globals DO_LOAD
+-- luacheck: globals DO_LOAD ALREADY_SAVED
 local robot_name = "sumire-chan"
 require("overloads")
 
@@ -155,6 +155,14 @@ local function process_messages(cron_message)
     end
 end
 
+local function handler()
+    if not ALREADY_SAVED then
+        print(comms.robot_send("unchecked", "\n" .. debug.traceback()))
+        post_exit.exit()
+    end
+    error("", 0)
+end
+
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP
 ROBO_MAIN_THREAD_SLEEP = 0.2
 local function robot_main()
@@ -168,7 +176,7 @@ local function robot_main()
         end
 
         local cron_message = cron_jobs()
-        process_messages(cron_message)
+        xpcall(process_messages(cron_message), handler)
     end -- While
 
     print(comms.robot_send("info", "exiting!"))

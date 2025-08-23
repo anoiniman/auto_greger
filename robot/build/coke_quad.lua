@@ -110,7 +110,7 @@ Module.state_init = {
 
 -- time calculation assuming that each log takes 1800 ticks (90 seconds) to turn into charcoal
 Module.hooks = {
-    function(state, parent, flag, quantity_goal, state_table)
+    function(state, parent, flag, _quantity_goal, _state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             if computer.uptime() - state.last_checked < 60 * 12 then return "wait" end -- 12 minutes of waiting :)
             return "all_good"
@@ -126,12 +126,12 @@ Module.hooks = {
     end,
     function(state)
         nav.change_orientation("east")
-        local check, _ = robot.detect()
-        if check then goto after_turn end
+        local _, c_type = robot.detect()
+        if c_type == "solid" then goto after_turn end
 
         nav.change_orientation("west")
-        check, _ = robot.detect()
-        if check then goto after_turn end
+        local _, c_type = robot.detect()
+        if c_type == "solid" then goto after_turn end
 
         ::after_turn::
         local cur_inv = state.coke_oven_tbl[state.in_what_asterisk]

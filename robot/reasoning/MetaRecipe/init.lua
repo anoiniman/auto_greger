@@ -269,9 +269,15 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
         local usage_flag = self.mechanism.usage_flag
         local hook_exec_index = 1
 
+        local one_dep = self.dependencies[1]
+        local one_recipe = one_dep.inlying_recipe
+
+        local dep_quantity = math.ceil(one_dep.input_multiplier * up_to_quantity)
+        local check_table = {one_recipe.output, dep_quantity}
+
         -- callee then determins how many inputs are needed and does all the inventory management
         -- reasoning should not be doing any invenotry management fr fr
-        local r_table = {priority, build_eval.use_build, build, usage_flag, hook_exec_index, up_to_quantity, priority, lock_ref}
+        local r_table = {priority, build_eval.use_build, build, usage_flag, hook_exec_index, check_table, priority, lock_ref}
         --[[for k, v in pairs(r_table) do
             if v == nil then v = "nil"
             elseif type(v) == "table" then v = "table"

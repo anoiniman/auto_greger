@@ -588,7 +588,7 @@ end
 
 -- ->>-- LoadOuts --<<--------- {{{
 
--- luacheck: globals FIRST_LOAD_OUT
+-- luacheck: globals WHAT_LOADOUT
 
 
 -- aka, pickaxe and fuel, hopefully recipe management/crafting is well syncronized with this
@@ -608,6 +608,7 @@ local loadouts = {
     },
 }
 
+local __l_has_warned = false
 local function select_loadout()
     local selected_loadout = nil
     for index = #loadouts, 1, -1 do
@@ -629,7 +630,6 @@ local function select_loadout()
 end
 
 
-local __l_has_warned = false
 local loadout_clock = computer.uptime()
 function module.do_loadout(priority) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
     select_loadout()
@@ -649,6 +649,7 @@ function module.check_loadouts()
     select_loadout()
 
     ----------- Using min items --------------
+    -- TODO --> this loadout things TODO TODO TODO TODO
     for _, def in ipairs(cur_loadout) do
         if def[4] < real_quantity then
             return
@@ -1090,7 +1091,7 @@ function module.suck_vinventory(external_inventory, left_to_suck, matching_slots
         robot.select(internal_slot)
 
         if not inventory.suckFromSlot(sides_api.front, external_slot, cur_suck_quantity) then
-            print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to suck"))
+            print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to suck, slot: " .. external_slot))
             goto continue
         end
 
@@ -1167,13 +1168,13 @@ function module.dump_all_possible(external_inventory) -- respect "special slots"
     return true
 end
 
-function module.dump_only_named(lable, name, external_inventory, how_much_to_dump)
-    local matching_slots = module.virtual_inventory:getAllSlots(lable, name, how_much_to_dump)
-    return module.dump_only_matching(external_inventory, matching_slots)
+function module.dump_only_named(lable, name, external_inventory, how_much_to_dump, external_slot)
+    local matching_slots = module.virtual_inventory:getAllSlots(lable, name)
+    return module.dump_only_matching(external_inventory, how_much_to_dump, matching_slots, external_slot)
 end
 
 -- if no "up_to" provided dump everything
-function module.dump_only_matching(external_inventory, up_to, matching_slots)
+function module.dump_only_matching(external_inventory, up_to, matching_slots, external_slot)
     if up_to == nil then up_to = 100000 end
 
     local inv_type = external_inventory.inv_type
@@ -1187,7 +1188,12 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots)
         local quantity = math.min(up_to, slot_quantity)
 
         robot.select(slot)
-        if not robot.drop(quantity) then goto continue end
+        if external_slot == nil then
+            if not robot.drop(quantity, side) then goto continue end
+        else
+            if not inventory.dropIntoSlot(quantity, external_slot) then goto continue end -- I hope side will not be needed
+        end
+
         module.virtual_inventory:subtract(slot, quantity)
         up_to = up_to - quantity
 

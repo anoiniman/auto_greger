@@ -325,7 +325,7 @@ function Module:getInventories()
 end
 
 
-function Module:runBuildCheck(quantity_goal)
+function Module:runBuildCheck(quantity_goal) -- quantity goal = {input (lable name), quantity}
     -- self:useBuilding(nil, "only_check", nil, quantity_goal, nil, nil)
     return self.post_build_hooks[1](self.post_build_state[1], self, "only_check", quantity_goal, self.post_build_state)
 end
