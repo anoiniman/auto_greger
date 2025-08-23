@@ -11,13 +11,14 @@ local prio_insert = require("prio_insert")
 
 ---- Other ----
 --local MetaRecipe = require("reasoning.MetaRecipe")
-local command_helper = require("command_helper")
+-- local command_helper = require("command_helper")
 local solve_tree = require("reasoning.MetaRecipe.resolve_dep_tree")
 
 local MetaContext = require("reasoning.MetaScript.RecipeTreeContext")
 local Constraint = require("reasoning.MetaScript.Constraint")
 local StructureDeclaration, _ = table.unpack(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
 
+local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 
 -- Have name param as well?
 -- Add to unlocking behaviour automatic unloading behaviour for scripts that deprecate
@@ -31,6 +32,29 @@ function MetaScript:addGoal(goal)
     end
     prio_insert.named_insert(self.goals, goal)
 end
+
+function MetaScript:createTempDependency(wanted_output, recipe_mult)
+    for _, recipe in ipairs(self.recipe) do
+        local output = recipe.output
+        if  (output.lable == wanted_output.lable and output.name == wanted_output.name)
+            or (wanted_output.lable == nil and output.name == wanted_output.name)
+        then
+            local new_dependency = MetaDependency:new(recipe, recipe_mult)
+            return new_dependency
+        end
+    end
+
+    print(comms.robot_send("error", "Failed to produce a temp_dependency\n" .. debug.traceback()))
+
+    local n_lable = wanted_output.lable
+    local n_name = wanted_output.name
+    if n_lable == nil then n_lable = "nil" end
+    if n_name == nil then n_name = "nil" end
+
+    print(comms.robot_send("error", string.format("lable: %s, name %s", n_lable, n_name)))
+    return nil
+end
+
 
 MetaScript.latest_dud = {"Nothing", computer.uptime()}
 function MetaScript:printLatestDud()
@@ -194,9 +218,10 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, ctx)
     elseif check == "all_good" then
 
         return_info = extra_info
-    elseif check == "no_resources" then
-
-        error(comms.robot_send("fatal", "recurse_recipe_tree, not implemented"))
+    elseif check == "replace" then
+        recurse = false
+        recipe_to_execute = extra_info.inlying_recipe
+        needed_quantity = math.ceil(needed_quantity * extra_info.input_multiplier)
     elseif check == "non_fatal_error" then
 
         print(comms.robot_send("warning", "recurse_recipe_tree non_fatal_error, check your ils for more information"))
@@ -209,7 +234,8 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, ctx)
         recurse = false
         recipe_to_execute = extra_info
     else
-        error(comms.robot_send("fatal", "recurse_recipe_tree, unknown"))
+        if check == nil then check = "nil" end
+        error(comms.robot_send("fatal", "recurse_recipe_tree, unknown: " .. check))
     end
 
     if not recurse then return recipe_to_execute, return_info, needed_quantity end

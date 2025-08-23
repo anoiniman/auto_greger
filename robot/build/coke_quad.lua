@@ -113,16 +113,6 @@ Module.hooks = {
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             if computer.uptime() - state.last_checked < 60 * 12 then return "wait" end -- 12 minutes of waiting :)
-
-            local storage_table = state_table[3][1]
-            local input_storage = storage_table[1]
-            local how_many_log = input_storage.ledger:howMany(nil, "any:log")
-            if how_many_log < quantity_goal then
-                --comms.robot_send("debug", "no_resources coke_quad: how many log is:" .. how_many_log)
-                --comms.robot_send("debug", "no_resources coke_quad: needed is:" .. quantity_goal)
-                return "no_resources"
-            end -- else
-
             return "all_good"
         elseif flag ~= "raw_usage" then
             if flag == nil then flag = "nil" end

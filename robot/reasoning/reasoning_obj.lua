@@ -151,4 +151,8 @@ function reason_obj.print_print_dud()
     cur_script:printLatestDud()
 end
 
+function reason_obj.create_temp_dependency(recipe_name, recipe_mult)
+    return cur_script:createTempDependency(recipe_name, recipe_mult)
+end
+
 return reason_obj

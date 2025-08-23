@@ -10,6 +10,8 @@ HAS_WOOD_FARM = false
 HOME_CHUNK = {0, 0}     -- coords
 DO_AUTO_FILL = false
 
+WHAT_LOADOUT = "zero"
+
 -- luacheck: globals DO_FUEL_GRIND FUEL_TYPE IGNORE_ORE_FUEL_CHECK
 DO_FUEL_GRIND = false
 -- FUEL_TYPE = "wood"

@@ -63,6 +63,8 @@ local function cron_jobs()
         cron_time_interval = computer.uptime()
         keep_alive.keep_alive()
 
+        -- TODO in check_loadouts we should'nt just check for time-since-last and how much free space,
+        -- we should also check if we have the items over a min
         message_type, cron_message = inv.check_loadouts()
         if cron_message ~= nil then return cron_message end
 

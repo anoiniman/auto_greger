@@ -592,24 +592,23 @@ end
 
 
 -- aka, pickaxe and fuel, hopefully recipe management/crafting is well syncronized with this
-local __l_very_first = {
-    {"nil", "tool:pickaxe", 2}, -- we need special rules to handle tools
-    {"nil", "any:plank", 128},
+local __l_second = {
+    {"Flint Pickaxe", "tool:pickaxe", 2, 1},
+    {"nil", "any:plank", 128, 48},
+    {"nil", "any:log", 64, 16},
 }
 
-local cur_loadout = {}
+local cur_loadout = {} -- is only the data field of a loadout
 local loadouts = {
     {
-        data = __l_very_first,
+        data = __l_second,
         condition = function()
-            return FIRST_LOAD_OUT
+            return WHAT_LOADOUT == "second"
         end,
     },
 }
 
-local __l_has_warned = false
-local loadout_clock = computer.uptime()
-function module.do_loadout(priority) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
+local function select_loadout()
     local selected_loadout = nil
     for index = #loadouts, 1, -1 do
         local loadout = loadouts[index]
@@ -626,6 +625,17 @@ function module.do_loadout(priority) -- useful for when you are leaving on a pre
         end
         return false
     end
+    cur_loadout = selected_loadout
+end
+
+
+local __l_has_warned = false
+local loadout_clock = computer.uptime()
+function module.do_loadout(priority) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
+    select_loadout()
+    local selected_loadout = cur_loadout
+    if #selected_loadout == 0 then return nil end
+
     __l_has_warned = false
     loadout_clock = computer.uptime()
 
@@ -636,26 +646,38 @@ function module.do_loadout(priority) -- useful for when you are leaving on a pre
 end
 
 function module.check_loadouts()
+    select_loadout()
+
+    ----------- Using min items --------------
+    for _, def in ipairs(cur_loadout) do
+        if def[4] < real_quantity then
+            return
+        end
+    end
+
+    ------------ Using empty Slots ------------
     local empty_slots = module.virtual_inventory:getNumOfEmptySlots() - 9 + math.floor((#cur_loadout / 3))
     local clock_diff = computer.uptime() - loadout_clock -- seconds
     local diff_m = clock_diff * 60
 
+    local do_it = true
     local priority
     if empty_slots > 16 then
-        return
+        do_it = false
     elseif empty_slots > 10 then
         if diff_m < 60 then -- aka 1 hour
-            return
+            do_it = false
         end
         priority = 40
     elseif empty_slots > 5 then
         if diff_m < 12 then
-            return nil
+            do_it = false
         end
         priority = 60
     else
         priority = 90
     end
+    -------------------------------------------
 
     return "loadout", module.do_loadout(priority)
 end

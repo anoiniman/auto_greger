@@ -28,20 +28,22 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
         local inner = dep.inlying_recipe
         local dep_needed_quantity = needed_quantity * dep.input_multiplier
 
-        local count = inv.how_many_internal(inner.output.lable, inner.output.name)
-        if count >= dep_needed_quantity then goto continue end
+        local current_int_count = inv.how_many_internal(inner.output.lable, inner.output.name)
+        if current_int_count >= dep_needed_quantity then goto continue end
 
         -- if there is enough in external storage return "execute" + with a command to do logistics
         -- else recurse into our dependency tree by ways of searching inside ti for this output
-        local min_quant = math.min(dep_needed_quantity / 2, 12) -- might need to be optimised in the future
+
+        local needed_to_transfer = dep_needed_quantity - current_int_count
+        local min_quant = math.min(needed_to_transfer / 2, 12) -- might need to be optimised in the future
         local pinv = inv.get_nearest_external_inv(
-            inner.output.lable, inner.output.name, min_quant, dep_needed_quantity
+            inner.output.lable, inner.output.name, min_quant, needed_to_transfer
         )
 
         -- It is complicated to chain these things together without assembling complicated algorithms,
         -- so we'll go with the simpler and least efficient route of going to the first thing we're missing
         if pinv ~= nil then
-            local item_table = {inner.output.lable, inner.output.name, dep_needed_quantity}
+            local item_table = {inner.output.lable, inner.output.name, needed_to_transfer}
             local to_transfer = {item_table} -- table of items
             local inner = LogisticTransfer:new(pinv, "self", to_transfer)
             local logistic_nav = {inner.doTheThing, inner} -- command gets "completed" by caller
@@ -133,8 +135,11 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
         if buildings == nil or #buildings == 0 then return "non_fatal_error", "building" end
 
 
+        local mode, dep_found = solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
+        if mode ~= "all_good" then return mode, dep_found end
+
         for _, build in ipairs(buildings) do
-            local result = build:runBuildCheck(needed_quantity)
+            local result, b_check_extra = build:runBuildCheck(needed_quantity)
 
             if result == "all_good" then
                 return "all_good", build
@@ -144,23 +149,18 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
                 -- REASON_WAIT_LIST:checkAndAdd(build) -- building was sent to waiting list, cron will the re-rerun checks
                                                     -- if we still need to use the building and it becomes avaliable use it
                                                     -- otherwise remove it form list (TODO)
+                goto continue
 
-            elseif result == "no_resources" then
-                if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "MetaScript no dependencies when we should have some")) end
-
-                -- For example if we fail: No resources -> Oak Log, or No resources -> any:log etc. we should have a gathering or
-                -- farming (building) dependency that provides such log etc.
-                -- But, for example: if the thing that causes us to fail is something like: lack of flint, yet in the dependency
-                -- resolution we come to understand first that there is lack of sticks, it's ok if the stick branch is chosen to
-                -- performe a "depth" operation, because eventually, no matter de order, the deps will be solved
-
-                local mode, dep_found = parent_recipe:selectDependency(needed_quantity, "building_thing")
-                return mode, dep_found
-
+           elseif result == "execute" then
+                return result, b_check_extra
+           elseif result == "replace" then
+                return result, b_check_extra
            else
-                error(comms.robot_send("error", "bad result in building_thing search"))
+                if result == nil then result = "nil" end
+                error(comms.robot_send("error", "bad result in building_thing search: " .. result))
            end
 
+           ::continue::
         end -- forloop end
 
         return "breath" -- At last, least priority, we look into the other branches if possible
