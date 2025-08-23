@@ -766,13 +766,14 @@ function module.start_auto_build(ab_metainfo)
         -- old return
     elseif what_step == 4 then
         local chunk_ref = module.chunk_exists(what_chunk)
-        if chunk_ref.chunk.roads_cleared == false then
+        -- TODO, we don't really need to build roads right now, do we?
+        --[[if chunk_ref.chunk.roads_cleared == false then
             local self_table = {prio, "start_auto_build", ab_metainfo}
             local build_height = module.get_height(what_chunk)
             local local_instructions = BuildInstruction:roadBuild(what_chunk, build_height)
 
             return {80, "navigate_rel", "road_build", local_instructions, self_table}
-        end
+        end--]]
 
         local result = module.add_quad(what_chunk, what_quad, primitive_name)
         if not result then
