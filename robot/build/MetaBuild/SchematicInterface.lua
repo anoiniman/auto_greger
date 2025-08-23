@@ -84,9 +84,24 @@ function SchematicInterface:forceAdvanceHead(top_down)
     return false -- aka continue
 end
 
+local function is_special_symbol(symbol)
+    return symbol == '*' or symbol == '+' or symbol == '?'
+end
+
 -- chunk.dist && chunk.symbol
 function SchematicInterface:doBuild(top_down)
     local b_stack = self.build_stack
+
+    local function get_instruction(chunk)
+        b_stack.logical_x = b_stack.logical_x + 1 -- prepare the advance to next column element
+
+        local rel = {0, 0, 0}
+        rel[3] = self.origin_block[3] + (b_stack.logical_y - 1) -- (-1) compensates for array access being on 1
+        rel[2] = self.origin_block[2] + (b_stack.logical_z - 1)
+        rel[1] = self.origin_block[1] + chunk.x
+
+        return self:InstructionConstruction(chunk, rel)
+    end
 
     --[[local print_a = serialize.serialize(b_stack, true)
     print(comms.robot_send("debug", "b_stack is: \n" .. print_a))
@@ -115,20 +130,8 @@ function SchematicInterface:doBuild(top_down)
         end
         return self:doBuild(top_down)
     end
-    if chunk.symbol == '*' or chunk.symbol == '+' or chunk.symbol == '?' then -- or other such special characters
-        b_stack.logical_x = b_stack.logical_x + 1
-        return self:doBuild(top_down)
-    end
 
-    b_stack.logical_x = b_stack.logical_x + 1 -- prepare the advance to next column element
-
-    local rel = {0, 0, 0}
-    rel[3] = self.origin_block[3] + (b_stack.logical_y - 1) -- (-1) compensates for array access being on 1
-    rel[2] = self.origin_block[2] + (b_stack.logical_z - 1)
-    rel[1] = self.origin_block[1] + chunk.x
-
-    local instruction = self:InstructionConstruction(chunk, rel)
-
+    local instruction = get_instruction(chunk)
     return true, "continue", instruction
 end
 
@@ -157,16 +160,25 @@ end
 function SchematicInterface:InstructionConstruction(chunk, rel)
     local translated_symbol = self.dictionary[chunk.symbol]
     if translated_symbol == nil then
+        if is_special_symbol(chunk.symbol) then
+            translated_symbol = {"air", "shovel"}
+            goto skip01
+        end
+
         print(comms.robot_send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
         return false
     end
+    ::skip01::
+
     --print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
     if type(translated_symbol) ~= "table" then
         --print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
     else -- if it IS a table
         translated_symbol = deep_copy.copy(translated_symbol, ipairs) -- Yes I should do this in place, no I don't care for now
 
+        -- luacheck: push ignore serial
         local serial = serialize.serialize(translated_symbol, true)
+        -- luacheck: pop
         --print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))
     end
 
