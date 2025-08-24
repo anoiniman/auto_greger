@@ -8,7 +8,6 @@ local sides_api = require("sides")
 local component = require("component")
 
 local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
-local MetaLedger = require("inventory.MetaLedger")
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 
 local geolyzer = require("geolyzer_wrapper")
@@ -81,7 +80,15 @@ end
 -- First element of the hook array == special_symbol "*", etc.
 Module.state_init = {
     function() -- general state
-        return {ledger = MetaLedger:new(), last_checked = computer.uptime()}
+        return {
+            last_checked = computer.uptime(),
+
+            fsm = 1,
+            in_what_asterisk = 1,
+            temp_reg = nil,
+
+            in_building = false
+        }
     end,
     function(index)
         local item

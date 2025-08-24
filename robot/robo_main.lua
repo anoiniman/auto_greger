@@ -157,10 +157,9 @@ end
 
 local function handler()
     if not ALREADY_SAVED then
-        print(comms.robot_send("unchecked", "\n" .. debug.traceback()))
         post_exit.exit()
     end
-    error("", 0)
+    error("Unchecked")
 end
 
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP

@@ -70,17 +70,22 @@ local input_items = {
 -- lookout for bugs, if we're not deep_copying the state everytime we create a new building object
 -- this can have problems, but as of right now we always deep_copy the primitive, so it's
 -- ok to do this
-Module.shared_state = {
-    last_checked = computer.uptime(),
 
-    fsm = 1,
-    in_what_asterisk = 1,
-    temp_reg = nil,
+function Module.og_state()
+    return {
+        last_checked = computer.uptime(),
 
-    in_building = false,
-    ---
-    coke_oven_tbl = nil
-}
+        fsm = 1,
+        in_what_asterisk = 1,
+        temp_reg = nil,
+
+        in_building = false,
+        ---
+        coke_oven_tbl = nil
+    }
+end
+
+Module.shared_state = Module.og_state()
 
 -- First element of the hook array == special_symbol "*", etc.
 Module.state_init = {
@@ -122,7 +127,7 @@ Module.hooks = {
         local serial = serialize.serialize(state, true)
         print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
 
-        return generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "coke_quad")
+        return generic_hooks.std_hook1(state, parent, flag, Module.og_state, "coke_quad")
     end,
     function(state)
         nav.change_orientation("east")

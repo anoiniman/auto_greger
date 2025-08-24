@@ -37,7 +37,7 @@ end
 local count_occurence_of_symbol = general_functions.count_occurence_of_symbol
 
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis
-function module.std_hook1(state, parent, flag, state_init_func, name)
+function module.std_hook1(state, parent, _flag, state_init_func, name)
     --[[for _, inner_table in ipairs(parent.special_blocks) do
         for k, v in ipairs(inner_table) do
             print(comms.robot_send("debug", k .. ", " .. v))
@@ -47,7 +47,8 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     local cur_chunk = nav.get_chunk()
     if not state.in_building or (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[2] ~= parent.what_chunk[2]) then
         if nav_to_build.do_move(parent.what_chunk, parent.doors) then
-            state.in_building = true -- make it so when we leave building this becomes false
+            state.in_building = true    -- remeber when using this std_hook to make it so when we leave building this becomes
+                                        -- false (usually done by the state_init_func)
         end
         return 1
     end
@@ -109,13 +110,6 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
         return jmp_to_func
 
     elseif state.fsm == 3 then
-        if flag == "no_store" then -- skip over this part of the fsm, keeping everything in the robot inventory
-            state.in_what_asterisk = 1 -- prob useless
-            state.tmp_reg = nil
-            state.fsm = 4
-            return 1
-        end
-
         local what_plus = state.in_what_asterisk -- le reuse of registry
         local success, new_what_plus = count_occurence_of_symbol('+', what_plus, parent.special_blocks)
 
@@ -131,60 +125,43 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
         state.fsm = 31
         return 1
     elseif state.fsm == 31 then
+
         local target_coords = state.temp_reg
-        local target_func = 3
-
-        local jmp_to_func, new_fsm = navigate_to_rel(target_coords, state.fsm, target_func, 3)
-
-        if jmp_to_func == target_func then
-            nav.change_orientation("east")
-            local check, _ = robot.detect()
-            if check then goto a_after_turn end
-
-            nav.change_orientation("west")
-            check, _ = robot.detect()
-            if not check then error(comms.robot_send("fatal", "Couldn't face chest (+) " .. name)) end
-            goto a_after_turn
-        end
-        ::a_after_turn::
+        local jmp_to_func, new_fsm = navigate_to_rel(target_coords, state.fsm, 3, 3)
 
         state.fsm = new_fsm
         return jmp_to_func
+
     elseif state.fsm == 4 then
-        if not nav.is_setup_navigate_rel() then
-            local target_coords, _ = count_occurence_of_symbol('?', 1, parent.special_blocks)
-            if target_coords == nil then
-                 -- error(comms.robot_send("fatal", "There is no '?' symbol, " .. name))
-                 -- its actually ok for there not to be a '?', its verymuch optional
-                 state.fsm = 5
-                 return 1
-            end
-            nav.setup_navigate_rel(target_coords)
-        end
 
-        local result = nav.navigate_rel()
-        if result == 1 then 
-            --error(comms.robot_send("fatal", "Couldn't rel_move, are we stupid: "  .. name))
-            os.sleep(1)
+        local what_plus = state.in_what_asterisk -- le reuse of registry
+        local success, new_what_plus = count_occurence_of_symbol('?', what_plus, parent.special_blocks)
+
+        if success == nil then -- this means we've run out of +'s (go back to '?' and retrieve our items)
+            state.in_what_asterisk = 1 -- prob useless
+            state.tmp_reg = nil
+            state.fsm = 5
             return 1
-        elseif result == 0 then return 1
-        elseif result == -1 then -- we've arrived (face towards the chest and return)
-            state.fsm = 5 -- aka, after function no.4 returns, function no.1 will be exiting
-
-            nav.change_orientation("east")
-            local check, _ = robot.detect()
-            if check then return 4 end
-
-            nav.change_orientation("west")
-            check, _ = robot.detect()
-            if not check then error(comms.robot_send("fatal", "Couldn't face chest" .. name)) end
-            return 4
         end
+
+        state.in_what_asterisk = new_what_plus
+        state.temp_reg = success
+        state.fsm = 41
+        return 1
+
+    elseif state.fsm == 41 then
+
+        local target_coords = state.temp_reg
+        local jmp_to_func, new_fsm = navigate_to_rel(target_coords, state.fsm, 4, 4)
+
+        state.fsm = new_fsm
+        return jmp_to_func
+
     elseif state.fsm == 5 then -- we done, let us reset ourselves
         print(comms.robot_send("debug", "FSM finished " .. name))
          -- reset state
         local new_state = state_init_func()
-        for key, value in pairs(new_state) do
+        for key, value in pairs(new_state) do -- it handles shared refs properly, I hope
             state[key] = new_state[key]
         end
 
@@ -195,11 +172,5 @@ function module.std_hook1(state, parent, flag, state_init_func, name)
     error("fall-through")
 end
 ---------------
-
--- TODO properly integrate this sort of function
-function module.use_cache(state)
-
-end
-
 
 return module

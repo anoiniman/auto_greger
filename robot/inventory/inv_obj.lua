@@ -651,6 +651,10 @@ function module.do_loadout(priority, pre_selected) -- useful for when you are le
         end
     end
 
+    if lock == nil then
+        lock = {0} -- dummy lock
+    end
+
     local selected_loadout
     if pre_selected == nil then
         select_loadout()
@@ -670,7 +674,7 @@ function module.do_loadout(priority, pre_selected) -- useful for when you are le
     local item_index = 1
     local phase = 1
 
-    local command_tbl = {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
+    local command_tbl = {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, lock, priority}
     doing_loadout = command_tbl
 
     return command_tbl
@@ -720,10 +724,11 @@ function module.do_loadout_logistics(arguments)
     local logistic_transfer = arguments[2]
     local item_index = arguments[3]
     local phase = arguments[4]
-    local priority = arguments[5]
+    local lock = arguments[5]
+    local priority = arguments[6]
 
     local function do_return() -- using do_return() instead of just recursing allows the programme to block, which is important
-        return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
+        return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, lock, priority}
     end
     local function n_inv_warning(lable, name, up_to, dump)
         local variable_str
@@ -773,7 +778,7 @@ function module.do_loadout_logistics(arguments)
 
 
     if type(logistic_transfer) ~= "string" then
-        local le_return = logistic_transfer.doTheThing({logistic_transfer, {}, priority})
+        local le_return = logistic_transfer.doTheThing({logistic_transfer, lock, priority})
         if le_return == nil then logistic_transfer = "nil" end
 
         return do_return()

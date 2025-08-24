@@ -10,6 +10,10 @@ local deep_copy = require("deep_copy")
 local prio_insert = require("prio_insert")
 
 ---- Other ----
+local build_eval = require("eval.build")
+local inv = require("inventory.inv_obj")
+local map = require("nav_module.map_obj")
+
 --local MetaRecipe = require("reasoning.MetaRecipe")
 -- local command_helper = require("command_helper")
 local solve_tree = require("reasoning.MetaRecipe.resolve_dep_tree")
@@ -257,6 +261,20 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         return self.constraint:step(index, name, self.priority)
     end
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
+
+    if name.c_type ~= nil then
+        if name.c_type == "OosLogisticTransfer" then
+            return inv.do_loadout(98, name.loadout, self.constraint.const_obj.lock)
+        elseif name.c_type == "OosFinish" then
+            local build = map.get_buildings("hole_home")
+            if build ~= nil then build = build[1] end -- get the first instance of "hole_home"
+            local prio = 98
+            return {prio, build_eval.use_build, build, "doesnt_matter", 1, {}, prio, self.constraint.const_obj.lock}
+        else
+            error(comms.robot_send("fatal", "No Bueno hermano"))
+        end
+    end
+
     local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
     if needed_recipe == nil then
         -- self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input (TODO)

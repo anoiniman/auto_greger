@@ -78,12 +78,13 @@ function OosConstraint:check() -- so this was easy?
 
         ::continue::
     end
+    local new_loadout = cur_loadout
 
     local all_ready = true
     for _, def in ipairs(self.quest_item_tbl) do -- check the cur in inv
         local real_quantity = inv.how_many_internal(def.lable, def.name)
         if real_quantity < def.count then
-            return 1, {c_type = "OosLogisticTransfer" , name = def.name, lable = def.lable, count = def.count - real_quantity}
+            return 1, {c_type = "OosLogisticTransfer" , loadout = new_loadout}
         end
     end
 

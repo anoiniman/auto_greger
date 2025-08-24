@@ -85,22 +85,26 @@ end
 -- lookout for bugs, if we're not deep_copying the state everytime we create a new building object
 -- this can have problems, but as of right now we always deep_copy the primitive, so it's
 -- ok to do this
-Module.shared_state = {
-    -- needed for the generic hook VVV
-    ---
-    fsm = 1,
-    in_what_asterisk = 1,
-    temp_reg = nil,
+function Module.og_state()
+    return {
+        -- needed for the generic hook VVV
+        ---
+        fsm = 1,
+        in_what_asterisk = 1,
+        temp_reg = nil,
 
-    in_building = false,
-    ---
-    furnace_tbl = nil,
-    to_cook_def = nil,
-    how_much_to_cook_total = 0,
+        in_building = false,
+        ---
+        furnace_tbl = nil,
+        to_cook_def = nil,
+        how_much_to_cook_total = 0,
 
-    cooking_time = 0,
-    last_item_def = nil,
-}
+        cooking_time = 0,
+        last_item_def = nil,
+    }
+end
+
+Module.shared_state = Module.og_state()
 
 -- First element of the hook array == special_symbol "*", etc.
 Module.state_init = {
@@ -187,7 +191,7 @@ Module.hooks = {
             state.cooking_time = computer.uptime() + (state.how_much_to_cook_total * 10) -- 10 seconds per item
         end
 
-        local next_func = generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "simple_home(furnace)")
+        local next_func = generic_hooks.std_hook1(state, parent, flag, Module.og_state, "simple_home(furnace)")
         if next_func == nil then
             state.to_cook_def = nil
             state.how_much_to_cook_total = 0

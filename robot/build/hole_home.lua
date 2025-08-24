@@ -83,13 +83,17 @@ function Module:new()
     return deep_copy.copy(self, pairs)
 end
 
-Module.shared_state = {
-    fsm = 1,
-    in_what_asterisk = 1,
-    temp_reg = nil,
+function Module.og_state()
+    return {
+        fsm = 1,
+        in_what_asterisk = 1,
+        temp_reg = nil,
 
-    in_building = false,
-}
+        in_building = false,
+    }
+end
+
+Module.shared_state = Module.og_state()
 
 Module.state_init = {
     function()
@@ -102,7 +106,7 @@ Module.state_init = {
 
 Module.hooks = {
     function(state, parent, flag, _quantity_goal, _state_table)
-        return generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "hole_home")
+        return generic_hooks.std_hook1(state, parent, flag, Module.og_state, "hole_home")
     end,
     function() -- empty, because all we need to do is move to the *
         return nil
