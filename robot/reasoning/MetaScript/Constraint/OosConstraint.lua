@@ -11,7 +11,11 @@ function RawQuestItem:new(lable, name, count)
     local new = deep_copy.copy(self, pairs)
     new.lable = lable or "nil"
     new.name = name or "nil"
-    new.count = count
+
+    if count == nil then
+        print(comms.robot_send("warning", "count warning:\n" .. debug.traceback()))
+    end
+    new.count = count or -1
     return new
 end
 

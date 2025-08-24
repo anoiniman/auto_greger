@@ -12,8 +12,7 @@ DO_AUTO_FILL = false
 
 WHAT_LOADOUT = "zero"
 
--- luacheck: globals DO_FUEL_GRIND FUEL_TYPE IGNORE_ORE_FUEL_CHECK
-DO_FUEL_GRIND = false
+-- luacheck: globals FUEL_TYPE IGNORE_ORE_FUEL_CHECK
 -- FUEL_TYPE = "wood"
 FUEL_TYPE = "loose_coal" -- temporary
 IGNORE_ORE_FUEL_CHECK  = false

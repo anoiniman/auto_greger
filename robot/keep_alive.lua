@@ -1,4 +1,4 @@
--- luacheck: globals FUEL_TYPE DO_FUEL_GRIND
+-- luacheck: globals FUEL_TYPE
 
 -- For now, (but we'll need to improve this for the stone age to even work, as is obvious)
 -- we simply take wood from a predefined slot and shovel it into the generator, but hey
@@ -139,15 +139,6 @@ local function basic_energy_management(_cur_energy, percentage)
     local raw_percentage = ((computer.energy() / 64.0) / max_energy) * 100
     if raw_percentage < 15.0 then os.sleep(3) end
 end
-
--- Maybe this is not necessary if we make it so the energy management things have the highest priority idk in rasoning
---[[local function advanced_energy_management(cur_energy, percentage)
-    if not DO_FUEL_GRIND then return nil end
-    local coke_quads = map.get_buildings("coke_quad")   -- hehehhe if we le coke quad etc.
-
-
-    return command
-end--]]
 
 function module.keep_alive()
     refuel() -- The cool thing

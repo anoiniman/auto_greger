@@ -3,10 +3,11 @@ local comms = require("comms")
 
 local ItemConstraint = require("reasoning.MetaScript.Constraint.ItemConstraint")
 local _, BuildingConstraint = table.unpack(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
+local OosConstraint, _ = table.unpack(require("reasoning.MetaScript.Constraint.OosConstraint"))
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met
 -- the force or the constraint is slackened, might be unimplemented for now
-local Slacking = {}
+-- local Slacking = {}
 
 -- Constraints define what a goal should try and do to achieve it self,
 -- they are recursable, so if you ask for item "x", and it needs building "y",
@@ -34,6 +35,23 @@ function Constraint:newBuildingConstraint(structures, centre, slacking)
     new.const_type = "building"
     new.const_obj = BuildingConstraint:new(structures, centre)
     new.slacking = slacking or nil
+    return new
+end
+
+function Constraint:newQuestConstraint(quest_table)
+    if quest_table == nil then
+        error(comms.robot_send("fatal", "quest_table nil"))
+    end
+    if quest_table[1] == nil then
+        error(comms.robot_send("fatal", "quest_table inner nil"))
+    end
+    if quest_table[1].count == nil then
+        error(comms.robot_send("fatal", "quest_table wrong type"))
+    end
+
+    local new = self:new()
+    new.const_type = "quest"
+    new.const_obj = OosConstraint:new(quest_table)
     return new
 end
 
