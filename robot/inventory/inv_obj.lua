@@ -608,6 +608,10 @@ local loadouts = {
     },
 }
 
+function module.get_cur_loadout() -- gives copy
+    return deep_copy.copy(cur_loadout, pairs)
+end
+
 local __l_has_warned = false
 local function select_loadout()
     local selected_loadout = nil
@@ -629,12 +633,35 @@ local function select_loadout()
     cur_loadout = selected_loadout
 end
 
-
+-- pointer to loadout being done
+local doing_loadout = nil
+local was_preselected = false
 local loadout_clock = computer.uptime()
-function module.do_loadout(priority) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
-    select_loadout()
-    local selected_loadout = cur_loadout
+function module.do_loadout(priority, pre_selected) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
+    if doing_loadout ~= nil then -- just update the priority (or "delete")
+        if pre_selected == nil then
+            if not was_preselected then
+                doing_loadout[1] = priority
+                doing_loadout[#doing_loadout] = priority
+            end
+            return nil
+        else
+            doing_loadout[1] = -3 -- aka delete (back in the event-loop)
+            doing_loadout = nil -- and set the ref as clear here
+        end
+    end
+
+    local selected_loadout
+    if pre_selected == nil then
+        select_loadout()
+        selected_loadout = cur_loadout
+    else
+        selected_loadout = pre_selected
+        was_preselected = true
+    end
+
     if #selected_loadout == 0 then return nil end
+
 
     __l_has_warned = false
     loadout_clock = computer.uptime()
@@ -642,17 +669,21 @@ function module.do_loadout(priority) -- useful for when you are leaving on a pre
     local logistic_transfer = "nil"
     local item_index = 1
     local phase = 1
-    return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
+
+    local command_tbl = {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, priority}
+    doing_loadout = command_tbl
+
+    return command_tbl
 end
 
 function module.check_loadouts()
     select_loadout()
 
     ----------- Using min items --------------
-    -- TODO --> this loadout things TODO TODO TODO TODO
     for _, def in ipairs(cur_loadout) do
+        local real_quantity = module.virtual_inventory:howMany(def[1], def[2])
         if def[4] < real_quantity then
-            return
+            return "loadout", module.do_loadout(92)
         end
     end
 
@@ -661,18 +692,17 @@ function module.check_loadouts()
     local clock_diff = computer.uptime() - loadout_clock -- seconds
     local diff_m = clock_diff * 60
 
-    local do_it = true
     local priority
     if empty_slots > 16 then
-        do_it = false
+        return nil
     elseif empty_slots > 10 then
         if diff_m < 60 then -- aka 1 hour
-            do_it = false
+            return nil
         end
         priority = 40
     elseif empty_slots > 5 then
         if diff_m < 12 then
-            do_it = false
+            return nil
         end
         priority = 60
     else
@@ -795,6 +825,9 @@ function module.do_loadout_logistics(arguments)
     if item_index > #selected_loadout then
         item_index = 1
         phase = 1
+        doing_loadout = nil
+        was_preselected = false
+        loadout_clock = computer.uptime()
         return nil
     end
     local cur_def = selected_loadout[item_index]
@@ -1189,7 +1222,7 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
 
         robot.select(slot)
         if external_slot == nil then
-            if not robot.drop(quantity, side) then goto continue end
+            if not robot.drop(quantity) then goto continue end
         else
             if not inventory.dropIntoSlot(quantity, external_slot) then goto continue end -- I hope side will not be needed
         end

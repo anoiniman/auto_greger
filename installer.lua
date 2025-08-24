@@ -215,6 +215,7 @@ local function robot_reasoning()
     download("/robot/reasoning/MetaScript/Constraint/init.lua", "self")
     download("/robot/reasoning/MetaScript/Constraint/BuildingConstraint.lua", "self")
     download("/robot/reasoning/MetaScript/Constraint/ItemConstraint.lua", "self")
+    download("/robot/reasoning/MetaScript/Constraint/OosConstraint.lua", "self")
 
     if not filesystem.isDirectory("/home/robot/reasoning/recipes") then
        filesystem.makeDirectory("/home/robot/reasoning/recipes")

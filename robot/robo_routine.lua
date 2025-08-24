@@ -82,6 +82,8 @@ function module.robot_routine(message)
                 else
                     where = where - 1
                 end
+            elseif cur_task[1] == -3 then
+                table.remove(task_list, where) -- no break
             else
                 local maybe_extend = eval.eval_command(cur_task)
                 if maybe_extend ~= nil then table.insert(extend_queue, maybe_extend) end
