@@ -92,6 +92,8 @@ function module.automatic(parent_name, state, depleted_string, gather_string, ch
         local do_surface = true
         if sweep_mode ~= nil then do_surface = false end
 
+        -- tree detection n'shiet (?) if needed do it one day
+
         local sweep_result = nav.sweep(do_surface) -- goes forward one block
 
         if sweep_result == -1 then

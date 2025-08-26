@@ -30,6 +30,7 @@ Module.dictionary = {
     ["c"] = {"Cobblestone", "any:building" },
     ["l"] = {"nil", "any:plank"},
     ["d"] = {"nil", "any:grass"},
+    ["a"] = {"air", "shovel"},
 }
 
 Module.human_readable = {
@@ -53,7 +54,7 @@ Module.human_readable = {
     },
     {
     "llllll-",
-    "llllll-",
+    "laalll-",
     "l-l-ll-",
     "l-l-ll-",
     "llllll-",

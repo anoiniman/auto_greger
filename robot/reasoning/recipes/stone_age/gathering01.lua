@@ -38,7 +38,8 @@ local function check_subset(state)
     for _, block_name in ipairs(state.sub_set) do
         if geolyzer.sub_compare(block_name, "naive_contains", block_below) 
             and not geolyzer.sub_compare("stone", "naive_contains", block_below) -- temporrary additions, I guess
-            and not geolyzer.sub_compare("Hard", "naive_contains", block_below)
+            and not geolyzer.sub_compare("hard", "naive_contains", block_below)
+            and not geolyzer.sub_compare("GravelOre", "naive_contains", block_below) -- thats the name TC tec.
         then
             return true
         end

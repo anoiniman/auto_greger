@@ -686,8 +686,8 @@ function module.start_auto_build(ab_metainfo)
     if what_step <= 0 then
         -- if this crashes add the to_string's
         local hr_table = {
-            "offset_chunk:", what_chunk[1], ", ", what_chunk[2], " || ", "quad: ", what_quad, " || \n",
-            "name: ", primitive_name, " || ", "waiting for origin_chunk_coords"
+            "offset_chunk:", what_chunk[1], ", ", what_chunk[2], " ||", "name: ", primitive_name, " || \n",
+            "waiting for origin_chunk_coords, and quad"
         }
         local human_readable = table.concat(hr_table)
         local id = interactive.add("auto_build0", human_readable) -- luacheck: ignore
@@ -707,7 +707,8 @@ function module.start_auto_build(ab_metainfo)
         end
         what_chunk[1] = what_chunk[1] + data[1]
         what_chunk[2] = what_chunk[2] + data[2] -- no need to alter ab_metainfo since what_chunk is a ref
-        -- ab_metainfo[1] = what_chunk -> &a = &a -> useless operation
+        -- ab_metainfo.what_chunk = what_chunk -> &a = &a -> useless operation
+        ab_metainfo.what_quad = data[3]
 
         interactive.del_element(id) -- remove current interactive "task", in a real language data would now be a null ptr
 
@@ -847,7 +848,7 @@ function module.load_preset()
     local chunk = {-2, 0}
     module.pretend_build("home", "coke_quad", chunk, 1)
     module.pretend_build("home", "oak_tree_farm", chunk, 3)
-    module.pretend_build("home", "sp_storeroom", what_chunk, 1)
+    -- module.pretend_build("home", "sp_storeroom", what_chunk, 1)
 end
 
 -- more temp

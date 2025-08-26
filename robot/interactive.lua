@@ -99,7 +99,9 @@ function module.set_data_table(add_data, id)
     local t = element.interactive_type
     if t == "auto_build0" then
         -- since we don't have the request systme implemented, just add an eval to throw data in
-        if add_data == nil or #add_data ~= 2 or tonumber(add_data[1]) == nil or tonumber(add_data[2]) == nil then
+        if  add_data == nil or #add_data ~= 3 or tonumber(add_data[1]) == nil
+            or tonumber(add_data[2]) == nil or tonumber(add_data[3]) == nil or add_data[4] > 4 or add_data[4] < 1
+        then
             print(comms.robot_send("error", "invalid data"))
             return false
         end

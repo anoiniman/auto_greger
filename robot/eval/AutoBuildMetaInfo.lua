@@ -42,7 +42,7 @@ function ABMetaInfo:new(
 )
     local new = deep_copy.copy(self, pairs)
     new.what_chunk = what_chunk
-    new.what_quad = what_quad
+    -- new.what_quad = what_quad
     new.name = name
     new.step = step
 
