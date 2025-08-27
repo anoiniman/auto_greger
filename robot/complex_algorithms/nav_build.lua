@@ -124,7 +124,7 @@ function module.nav_and_build(instructions, post_run)
         if not inv.place_block(place_dir, block_info, "table", place_side) then
             -- I've tried to bandaid this with an "or"
             local s_down_prev = robot.detectDown()
-            local swing_result = inv.smart_swing("shovel", "down" 0, maybe_added)
+            local swing_result = inv.smart_swing("shovel", "down", 0, maybe_added)
             if not swing_result or not s_down_prev then
                 -- TODO in an ideal world we'll simply interrupt the task and allow manual override instead of continueing
                 if not swing_result then

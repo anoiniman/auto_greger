@@ -240,7 +240,7 @@ function MetaRecipe:includesOutput(other)
 end
 
 function MetaRecipe:includesName(name)
-    return self.output.name == other.output.name
+    return self.output.name == name
 end
 
 function MetaRecipe:includesOutputLiteral(lable, name)
