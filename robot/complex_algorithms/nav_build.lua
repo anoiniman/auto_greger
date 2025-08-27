@@ -37,6 +37,12 @@ local function block_already_valid(rel_coords, block_info) -- luacheck: ignore
     return false
 end
 
+local function maybe_added()
+    if inv.maybe_something_added_to_inv(nil, "any:grass") then return true end
+    if inv.maybe_something_added_to_inv(nil, "any:building") then return true end
+    return inv.maybe_something_added_to_inv()
+end
+
 -- In order to support different levels, this is to say, buildings in different heights in the same chunk/quad
 -- we'll need to improve our navigation algorithms and the data we pass into them
 -- but for now this is enough, we'll not need different levels until at-most HV, and at-least IV
@@ -116,10 +122,14 @@ function module.nav_and_build(instructions, post_run)
 
         local place_side = instructions:getArg("place")
         if not inv.place_block(place_dir, block_info, "table", place_side) then
-            -- Real error handling will come some other time
-            if not swing_func() then -- just break the damn block and try again
+            -- I've tried to bandaid this with an "or"
+            local s_down_prev = robot.detectDown()
+            local swing_result = inv.smart_swing("shovel", "down" 0, maybe_added)
+            if not swing_result or not s_down_prev then
                 -- TODO in an ideal world we'll simply interrupt the task and allow manual override instead of continueing
-                print(comms.robot_send("error", "Could not break block: \"" .. place_dir .. "\"during move and build smart_cleanup"))
+                if not swing_result then
+                    print(comms.robot_send("error", "Could not break block: \"" .. place_dir .. "\"during move and build smart_cleanup"))
+                end
 
                 local something_down, _ = robot.detectDown()
                 if  not ab_meta_info.foundation_filled and not ab_meta_info.do_foundation_fill
@@ -132,6 +142,7 @@ function module.nav_and_build(instructions, post_run)
                     return self_return
                 end
 
+                print(comms.robot_send("error", "We had to pretend we've placed the block succesefully, plz look at the code"))
                 return post_run -- continue as if the block had been placed
                 --return nil
             end

@@ -52,8 +52,13 @@ CRON_TIME = 3.3
 DO_REASONING = false
 REASON_ONCE = false
 
+local finv_scan_interval = computer.uptime()
+
 local cron_time_interval = computer.uptime()
 local function cron_jobs()
+    -- every 10 minutes for now
+    if computer.uptime() - finv_scan_interval > 600 then inv.force_update_vinv() end
+
     -- luacheck: ignore message_type
     local cron_message
     local message_type

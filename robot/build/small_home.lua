@@ -33,7 +33,7 @@ Module.dictionary = {
     ["a"] = {"air", "shovel"},
 }
 
-Module.human_readable = {
+Module.base_table = {
     {
     "dddddd-",
     "dddddd-",

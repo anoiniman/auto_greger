@@ -2,6 +2,7 @@
 local module = {}
 
 local comms = require("comms")
+local inv = require("inventory.inv_obj")
 
 -- After moving to the correct x,z, move 1 inside the building
 local goal_rel = {0, 0, -1}
@@ -148,8 +149,31 @@ function module.do_move(nav_func)
         -- calc_new_cur_goal(cur_position)
         return 0
     end
+    -- Surely this won't bite us in the ass, (attempting to recover from failure)
 
-    return 1, data -- couldn't move
+    local function something_added()
+        if not inv.maybe_something_added_to_inv(nil, "any:grass") then
+            return inv.maybe_something_added_to_inv()
+        end
+        return true
+    end
+
+    local watch_dog = 0
+    while true do
+        if watch_dog > 8 then
+            error(comms.robot_send("fatal", "Wowzers, le watch_dog in le door_move :("))
+        end
+
+        inv.smart_swing("shovel", "front", 0, something_added)
+        dir, data = nav_func.navigate_rel_opaque(cur_goal_rel)
+        if dir == nil or dir == 0 then
+            return 0
+        end
+        watch_dog = watch_dog + 1
+        os.sleep(2)
+    end
+
+    -- return 1, data -- couldn't move
 end
 
 return module

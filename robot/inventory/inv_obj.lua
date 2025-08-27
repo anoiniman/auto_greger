@@ -1166,7 +1166,6 @@ local function simple_slot_check(slot)
 end
 
 function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important to keep crafting table clear
-    local result = true
     -- added some bullshit to deal with multiple drops
     simple_slot_check(1)
     simple_slot_check(2)
@@ -1182,7 +1181,7 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         return true
     end
 
-    if slot_table == nil then return true end -- ideomatic?
+    if slot_table == nil then return false end -- now it is ideomatic
 
     for _, element in ipairs(slot_table) do
         local slot = element[1]
@@ -1197,7 +1196,7 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         end -- else all good, keep checking
     end
 
-    return result
+    return true
 end
 
 -- For now this is enough, better interface far in the future
