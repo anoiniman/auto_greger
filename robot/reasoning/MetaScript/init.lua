@@ -13,6 +13,7 @@ local prio_insert = require("prio_insert")
 local build_eval = require("eval.build")
 local inv = require("inventory.inv_obj")
 local map = require("nav_module.map_obj")
+local loadouts = require("inventory.loadouts")
 
 --local MetaRecipe = require("reasoning.MetaRecipe")
 -- local command_helper = require("command_helper")
@@ -264,7 +265,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
 
     if name.c_type ~= nil then
         if name.c_type == "OosLogisticTransfer" then
-            return inv.do_loadout(98, name.loadout, self.constraint.const_obj.lock)
+            return loadouts.do_loadout(98, name.loadout, self.constraint.const_obj.lock)
         elseif name.c_type == "OosFinish" then
             local build = map.get_buildings("hole_home")
             if build ~= nil then build = build[1] end -- get the first instance of "hole_home"

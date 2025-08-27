@@ -15,6 +15,8 @@ local geolyzer = require("geolyzer_wrapper")
 local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
+local loadouts = require("inventory.loadouts")
+
 local reason = require("reasoning.reasoning_obj")
 local _, ore = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
 
@@ -256,7 +258,7 @@ function module.debug(arguments)
                     return nil
                 end
 
-                inv.do_loadout(priority) -- forces robot to try and handle it's loadout
+                loadouts.do_loadout(priority) -- forces robot to try and handle it's loadout
             else
                 print(comms.robot_send("error", "invalid arguments for inv force"))
             end

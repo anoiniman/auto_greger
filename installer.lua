@@ -255,6 +255,7 @@ local function robot_inventory()
     end
 
     download("/robot/inventory/inv_obj.lua", "self")
+    download("/robot/inventory/loadouts.lua", "self")
     download("/robot/inventory/item_buckets.lua", "self")
 
     download("/robot/inventory/VirtualInventory.lua", "self")
