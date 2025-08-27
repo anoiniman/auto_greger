@@ -16,54 +16,56 @@ end
 -- somehow we're going towards the diametrically opposed side :P
 local function calc_new_cur_goal(cur_position)
    -- if this is the case we can move naivly (it means one of the end points is in our place)
-   if cur_position[1] - goal_rel[1] == 0  or cur_position[2] - goal_rel[2] == 0 then
+
+    if  (cur_position[1] == goal_rel[1] and cur_position[1] % 15== 0 )
+        or (cur_position[2] == goal_rel[2] and cur_position[2] % 15 == 0)
+    then
+      --  print("immediate")
         cur_goal_rel[1] = goal_rel[1]
         cur_goal_rel[2] = goal_rel[2]
         return
-   end
-   -- Cases remaining, it is in the opposite side OR it is either to the right or the left, OR we are on an corner
+    end
 
-   -- This checks if we're on an edge, and naive move is not possible (as per the previous check)
-   if cur_position[1] % 15 == 0 and cur_position[2] % 15 == 0 then
-        -- check which coord is directly opposite to us and move towards it
-        if math.abs(cur_position[1] - goal_rel[1]) == 15 then
-            cur_goal_rel[1] = goal_rel[1]
-            cur_goal_rel[2] = cur_position[2]
-            return
-        end
+    -- Naive move is not possible, let's check if we are however, capable of moving
+    -- to be inline with the goal directly
+    if goal_rel[1] % 15 == 0 and cur_position[2] % 15 == 0 then
+        -- print("a1")
+        cur_goal_rel[1] = goal_rel[1]
+        cur_goal_rel[2] = cur_position[2]
+        return
+    end
 
-        if math.abs(cur_position[2] - goal_rel[2]) == 15 then
-            cur_goal_rel[2] = goal_rel[2]
-            cur_goal_rel[1] = cur_position[1]
-            return
-        end
-
-        error(comms.robot_send("fatal", "Unexpected! Corner navigation of door_move case"))
-   end
-
-   -- This checks if we're opposite to something and in which way are we opposite
-   -- find closest side, move to corner, using road, and then the corner thing mabob might be able to fix it
-   if goal_rel[1] % 15 == 0 then -- door is in an x-aligned edge
+    if goal_rel[2] % 15 == 0 and cur_position[1] % 15 == 0 then
+        -- print("a2")
+        cur_goal_rel[2] = goal_rel[2]
         cur_goal_rel[1] = cur_position[1]
+        return
+    end
 
-        if goal_rel[2] <= 8 then
+     -- The thing now must be on an opposite edge, lets move to a corner
+    if math.abs(cur_position[1] - goal_rel[1]) == 15 then
+        -- print("b1")
+        cur_goal_rel[1] = cur_position[1]
+        if cur_position[2] < 8 then
             cur_goal_rel[2] = 0
         else
             cur_goal_rel[2] = 15
         end
 
         return
-   elseif goal_rel[2] % 15 == 0 then -- door is in a z aligned edge
-        cur_goal_rel[2] = cur_position[2]
+    end
 
-        if goal_rel[1] <= 8 then
+    if math.abs(cur_position[2] - goal_rel[2]) == 15 then
+       -- print("b2")
+        cur_goal_rel[2] = cur_position[2]
+        if cur_position[1] < 8 then
             cur_goal_rel[1] = 0
         else
             cur_goal_rel[1] = 15
         end
 
         return
-   end
+    end
 
    error(comms.robot_send("fatal", "Unexpected"))
 end
@@ -143,7 +145,7 @@ function module.do_move(nav_func)
             return -1
         end -- else generate new move position
 
-        calc_new_cur_goal(cur_position)
+        -- calc_new_cur_goal(cur_position)
         return 0
     end
 

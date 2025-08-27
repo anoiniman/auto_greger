@@ -105,7 +105,7 @@ function module.set_data_table(add_data, id)
             print(comms.robot_send("error", "invalid data"))
             return false
         end
-        for i, #add_data, 1 do
+        for i = 1, #add_data, 1 do
             add_data[i] = tonumber(add_data[i])
         end
 

@@ -45,7 +45,7 @@ function module.do_move(what_chunk, door_info)
 
         if result == 1 then
             if err == nil then err = "nil" end
-            if err ~= "swong" then error(comms.robot_send("fatal", "nav_to_build: this is unexpected!")) end
+            if err ~= "swong" then print(comms.robot_send("error", "nav_to_build: this is unexpected!: " .. err)); os.sleep(2) end
             return false
         elseif result == -1 then
             --instructions:delete("door_info") -- necessary for code to advance to rel_move section
