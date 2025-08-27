@@ -215,6 +215,7 @@ end
 
 -- checks if there is ANY intersection betwen the sets
 function MetaRecipe:includesOutput(other)
+    -- TODO - support multiple outputs, but not in this way!
     if type(self.output.lable) == "table" then
         for self_index = 1, #self.output.lable, 1 do
             local s_lable = self.output.lable[self_index]
@@ -236,6 +237,10 @@ function MetaRecipe:includesOutput(other)
     end
 
     return self.output.lable == other.output.lable and self.output.name == other.output.name
+end
+
+function MetaRecipe:includesName(name)
+    return self.output.name == other.output.name
 end
 
 function MetaRecipe:includesOutputLiteral(lable, name)

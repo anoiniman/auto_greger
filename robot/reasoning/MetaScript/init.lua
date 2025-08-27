@@ -80,15 +80,20 @@ function MetaScript:findRecipe(lable, name)
     if self.recipes == nil then
         error(comms.robot_send("fatal", "MetaScript: \"" .. self.desc .. "\"NO RECIPES!"))
     end
-    if lable == nil then
-        error(comms.robot_send("fatal", "MetaScript -- can't find a recipe when no lable provided dummy dumb dumb"))
-    end
 
-    for _, recipe in ipairs(self.recipes) do
-        if recipe:includesOutputLiteral(lable, name) then
-            return recipe
+    if lable ~= nil then
+        for _, recipe in ipairs(self.recipes) do
+            if recipe:includesOutputLiteral(lable, name) then
+                return recipe
+            end
         end
-    end -- fallthrough
+    else
+        for _, recipe in ipairs(self.recipes) do
+            if recipe:includesName(name) then
+                return recipe
+            end
+        end
+    end
 
     -- Time for a hack!
     local s_name = name; local s_lable = lable

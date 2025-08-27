@@ -206,7 +206,7 @@ Module.hooks = {
         if c_type == "solid" then goto after_turn end
 
         nav.change_orientation("north")
-        local _, c_type = robot.detect()
+        _, c_type = robot.detect()
         if c_type == "solid" then goto after_turn end
 
         ::after_turn::

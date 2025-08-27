@@ -92,8 +92,8 @@ function OosConstraint:check() -- so this was easy?
         end
     end
 
-    return 1, {c_type = "OosFinish"} -- it is impossible for the robot to know that the game has accepts its attempt, so.... don't fail
     self.lock[1] = 5
+    return 1, {c_type = "OosFinish"} -- it is impossible for the robot to know that the game has accepts its attempt, so.... don't fail
     -- error(comms.send_unexpected(true))
 end
 
