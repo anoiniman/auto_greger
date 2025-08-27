@@ -80,8 +80,8 @@ function MetaScript:findRecipe(lable, name)
     if self.recipes == nil then
         error(comms.robot_send("fatal", "MetaScript: \"" .. self.desc .. "\"NO RECIPES!"))
     end
-
     if lable ~= nil then
+        if lable == "air" then return "skip" end
         for _, recipe in ipairs(self.recipes) do
             if recipe:includesOutputLiteral(lable, name) then
                 return recipe
@@ -288,6 +288,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
         return nil
     end
+    if needed_recipe == "skip" then return nil end
 
     local needed_quantity
     if quantity_override == nil then

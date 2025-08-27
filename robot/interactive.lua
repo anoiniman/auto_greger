@@ -100,11 +100,15 @@ function module.set_data_table(add_data, id)
     if t == "auto_build0" then
         -- since we don't have the request systme implemented, just add an eval to throw data in
         if  add_data == nil or #add_data ~= 3 or tonumber(add_data[1]) == nil
-            or tonumber(add_data[2]) == nil or tonumber(add_data[3]) == nil or add_data[4] > 4 or add_data[4] < 1
+            or tonumber(add_data[2]) == nil or tonumber(add_data[3]) == nil or tonumber(add_data[3]) > 4 or tonumber(add_data[3]) < 1
         then
             print(comms.robot_send("error", "invalid data"))
             return false
         end
+        for i, #add_data, 1 do
+            add_data[i] = tonumber(add_data[i])
+        end
+
         wait_list[id].data_table = add_data
         return true
     elseif t == "auto_build1" then
@@ -112,6 +116,7 @@ function module.set_data_table(add_data, id)
             print(comms.robot_send("error", "invalid data"))
             return false
         end
+        add_data[2] = tonumber(add_data[2])
         wait_list[id].data_table = add_data
         return true
     elseif t == "generic_hold" then

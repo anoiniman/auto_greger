@@ -100,7 +100,7 @@ function BuildingConstraint:decideToBuild(to_build)
 
     -- element.lable, element.name
     for _, element in ipairs(diff) do
-        if element.diff < 0 then
+        if element.diff < 0 and element.lable ~= "air" then
             return 1, element, math.abs(element.diff)
         end
     end
