@@ -239,13 +239,14 @@ local function robot_reasoning()
     if not filesystem.isDirectory("/home/robot/reasoning/scripts/debug") then
        filesystem.makeDirectory("/home/robot/reasoning/scripts/debug")
     end
-    download("/robot/reasoning/scripts/debug/01.lua", "self")
+    --download("/robot/reasoning/scripts/debug/01.lua", "self")
     --download("/robot/reasoning/scripts/debug/02.lua", "self")
     --download("/robot/reasoning/scripts/debug/03.lua", "self")
     --download("/robot/reasoning/scripts/debug/04.lua", "self")
     download("/robot/reasoning/scripts/debug/05.lua", "self")
     download("/robot/reasoning/scripts/debug/06.lua", "self")
     download("/robot/reasoning/scripts/debug/07.lua", "self")
+    download("/robot/reasoning/scripts/debug/08.lua", "self")
 end
 
 local function robot_inventory()
