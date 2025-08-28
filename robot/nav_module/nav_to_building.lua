@@ -23,7 +23,7 @@ local chunk_moved = false
 -- false == continue, true == over
 function module.do_move(what_chunk, door_info)
     --------- CHUNK MOVE -----------
-    if not chunk_moved and not nav.is_in_chunk(what_chunk) then
+    if not chunk_moved then
         -- print("debug", "move_chunk")
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(what_chunk)

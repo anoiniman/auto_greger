@@ -30,7 +30,7 @@ Module.dictionary = {
     ["c"] = {"Cobblestone", "any:building" },
     ["l"] = {"nil", "any:plank"},
     ["d"] = {"nil", "any:grass"},
-    ["a"] = {"air", "shovel"},
+    ["~"] = {"air", "shovel"},
 }
 
 Module.base_table = {
@@ -44,30 +44,39 @@ Module.base_table = {
     "-------",
     },
     {
-    "cccc-c-",
-    "c11+-c-",
-    "c----c-",
-    "c**-+c-",
+    "cc~~cc-",
+    "c1++1c-",
+    "c~~~~c-",
+    "c**~+c-",
     "cff11c-",
     "cccccc-",
     "-------",
     },
     {
     "llllll-",
-    "laalll-",
-    "l-l-ll-",
-    "l-l-ll-",
-    "llllll-",
+    "l~~~~l-",
+    "l~~~~l-",
+    "l~~~~l-",
+    "l~~~~l-",
     "llllll-",
     "-------",
     },
     {
+    "-l~~l--",
+    "l~~~~l-",
+    "~~~~~~-",
+    "~~~~~~-",
+    "l~~~~l-",
+    "-l~~l--",
     "-------",
-    "-------",
-    "--l----",
-    "--l----",
-    "-------",
-    "-------",
+    },
+    {
+    "llllll-",
+    "l~ll~l-",
+    "ll~~ll-",
+    "ll~~ll-",
+    "l~ll~l-",
+    "llllll-",
     "-------",
     },
 }
@@ -76,7 +85,7 @@ Module.origin_block = {0,0,-1} -- x, z, y
 
 Module.doors = {}
 Module.doors[1] = MetaDoor:new()
-Module.doors[1]:doorX(5, 1)
+Module.doors[1]:doorX(4, 1)
 
 function Module:new()
     return deep_copy.copy(self, pairs)
@@ -123,8 +132,9 @@ Module.state_init = {
     end,
     function(parent)
         local st_table = {
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 1, "double_chest"),
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 2, "double_chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 1, "chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 2, "chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 3, "double_chest"),
         }
 
         return {st_table, 1}

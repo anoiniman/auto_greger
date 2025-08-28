@@ -15,6 +15,13 @@ constraint = Constraint:newBuildingConstraint(small_home, nil)
 local home_goal = Goal:new(storage_goal, constraint, 40, "s_home_const", true)
 builder:addGoal(home_goal)
 
+-- TIME TO TEST LOADOUTS (1st)
+-- AND THEN TEST THE FURNACES,
+-- AND THEN TEST OOS
+--
+-- AND THEN FINISH lava algorithm, and quarry algorithm
+-- AND THEN.... DIE!
+
 builder:setDictionary(dictionary)
 builder:addMultipleRecipes(main_line_recipes)
 
