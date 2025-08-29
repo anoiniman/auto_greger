@@ -2,20 +2,45 @@ local reason_obj = {}
 
 local comms = require("comms")
 local deep_copy = require("deep_copy") -- luacheck: ignore
+local computer = require("computer")
 
 -- local MetaScriptTable = require("reasoning.MetaScript")
 -- local MetaScript = MetaScriptTable[#MetaScriptTable]
 
 -- TODO combing through the wait list
--- if element.useBuilding ~= nil and element:useBuilding("check")
+-- wait list of goals, force check / step them?
 
 -- luacheck: globals REASON_WAIT_LIST
 REASON_WAIT_LIST = {}
-function REASON_WAIT_LIST:checkAndAdd(build)
+function REASON_WAIT_LIST:checkAndAdd(goal)
     for _, element in ipairs(self) do
-        if element == build then return end
+        if element[1] == goal then return end
     end
-    table.insert(self, build)
+    local old_lock_value = self.constraint.const_obj.lock[1]
+    self.constraint.const_obj.lock[1] = 4
+
+    local time_stamp = computer.uptime()
+    local inner_table = {goal.name, time_stamp, old_lock_value}
+    table.insert(self, #self, inner_table)
+end
+function REASON_WAIT_LIST:checkAndStep()
+    if #REASON_WAIT_LIST == 0 then return nil end
+
+    local selected_index = -1
+    for index, element in ipairs(self) do
+        if element[2] - computer.uptime() > 12 then -- wait 12 seconds and try again
+            selected_index = index
+            break
+        end
+    end
+    if selected_index == -1 then return nil end
+
+    local selected_element = table.remove(REASON_WAIT_LIST, selected_index)
+    -- Now it is out of the table
+
+    local goal_name = element[1]
+    local old_lock = element[3]
+    return cur_script:step(goal_name, old_lock)
 end
 
 
@@ -144,6 +169,10 @@ function reason_obj.step_script()
         reason_obj.force_load(1)
         loaded = true
     end
+
+    local command_table = REASON_WAIT_LIST:checkAndStep()
+    if command_table ~= nil then return command_table end
+
     return cur_script:step()
 end
 

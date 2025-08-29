@@ -1,3 +1,5 @@
+-- luacheck: globals REASON_WAIT_LIST
+
 ---- Global Objects ----
 -- luacheck: push ignore
 local serialize = require("serialization")
@@ -127,9 +129,30 @@ function MetaScript:findBestGoal()
     return nil, nil, nil
 end
 
-function MetaScript:step() -- most important function does everything, I think
+function MetaScript:step(preselected_goal_name, change_lock) -- most important function does everything, I think
     self:unlockPosterior()
-    local best_goal, index, name = self:findBestGoal()
+    local best_goal, index, name
+    if preselected_goal_name == nil then
+        best_goal, index, name = self:findBestGoal()
+    else -- yay
+        local preselected_goal
+        for _, goal in ipairs(self.goals) do
+            if goal.name == preselected_goal_name then
+                preselected_goal = goal
+                break
+            end
+        end
+
+        if preselected_goal == nil then
+            print(comms.robot_send("error", "Preselected goal name is invalid"))
+            goto skip_over
+        end
+
+        best_goal = preselected_goal
+        index, name = preselected_goal:selfSatisfied()
+    end
+    ::skip_over::
+
     if best_goal == nil then
         print(comms.robot_send("debug", "MetaScript:step() -- couldn't find best goal"))
         return "fail", nil
@@ -243,6 +266,10 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, ctx)
     elseif check == "force_recipe" then
         recurse = false
         recipe_to_execute = extra_info
+    elseif check == "force_wait" then -- here we'd usually go for breadth or wtver
+        recurse = false
+        recipe_to_execute = "wait"
+        return_info = "wait"
     else
         if check == nil then check = "nil" end
         error(comms.robot_send("fatal", "recurse_recipe_tree, unknown: " .. check))
@@ -306,6 +333,9 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         -- eh, for now fuck it, just return nil and wait?
         -- self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input
         parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
+        return nil
+    elseif needed_recipe == "wait" then
+        REASON_WAIT_LIST:checkAndAdd(self)
         return nil
     elseif needed_recipe == "breadth" then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))
