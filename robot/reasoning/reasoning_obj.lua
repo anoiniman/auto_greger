@@ -10,6 +10,14 @@ local computer = require("computer")
 -- TODO combing through the wait list
 -- wait list of goals, force check / step them?
 
+local scripts = {}
+scripts[1] = dofile("/home/robot/reasoning/scripts/debug/08.lua")
+-- local recipes = {}
+
+-- TEMPORARY TODO, update cur_script programatically
+local cur_script = scripts[1]
+
+
 -- luacheck: globals REASON_WAIT_LIST
 REASON_WAIT_LIST = {}
 function REASON_WAIT_LIST:checkAndAdd(goal)
@@ -17,18 +25,18 @@ function REASON_WAIT_LIST:checkAndAdd(goal)
         if element[1] == goal then return end
     end
     local old_lock_value = goal.constraint.const_obj.lock[1]
-    self.constraint.const_obj.lock[1] = 4
+    goal.constraint.const_obj.lock[1] = 4
 
     local time_stamp = computer.uptime()
     local inner_table = {goal.name, time_stamp, old_lock_value}
-    table.insert(self, #self, inner_table)
+    table.insert(self, #self + 1, inner_table)
 end
 function REASON_WAIT_LIST:checkAndStep()
     if #REASON_WAIT_LIST == 0 then return nil end
 
     local selected_index = -1
     for index, element in ipairs(self) do
-        if element[2] - computer.uptime() > 12 then -- wait 12 seconds and try again
+        if computer.uptime() - element[2] > 12 then -- wait 12 seconds and try again
             selected_index = index
             break
         end
@@ -38,8 +46,8 @@ function REASON_WAIT_LIST:checkAndStep()
     local selected_element = table.remove(REASON_WAIT_LIST, selected_index)
     -- Now it is out of the table
 
-    local goal_name = element[1]
-    local old_lock = element[3]
+    local goal_name = selected_element[1]
+    local old_lock = selected_element[3]
     return cur_script:step(goal_name, old_lock)
 end
 
@@ -48,12 +56,6 @@ end
 -- because, you, know there are a lot of recipes, do the same for scripts
 -- But we can auto_doFile some debug shits, because we're nice I guess
 
-local scripts = {}
-scripts[1] = dofile("/home/robot/reasoning/scripts/debug/08.lua")
--- local recipes = {}
-
--- TEMPORARY TODO, update cur_script programatically
-local cur_script = scripts[1]
 
 -- the only thing we need to save is the locks of the goals lol
 function reason_obj.get_data()

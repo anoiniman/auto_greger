@@ -8,7 +8,7 @@ local inv = require("inventory.inv_obj")
 -- 2 == Working on It (Please Recheck)
 
 -- 3 == Done It once  (Could retriger == false)
--- 4 == Blocked until user input
+-- 4 == Blocked for waiting
 
 
 

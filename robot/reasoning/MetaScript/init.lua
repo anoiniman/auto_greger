@@ -157,11 +157,11 @@ function MetaScript:step(preselected_goal_name, change_lock) -- most important f
         print(comms.robot_send("debug", "MetaScript:step() -- couldn't find best goal"))
         return "fail", nil
     end
-    print(comms.robot_send("info", "MetaScript:step() -- selected a command to to execute: " .. best_goal.name))
+    print(comms.robot_send("debug", "MetaScript:step() -- selected a command to to execute: " .. best_goal.name))
 
     local result, extra = best_goal:step(index, name, self, false)
     if result == nil and index >= 1 then -- activate power saving, or change active scripts
-        print(comms.robot_send("warning", "MetaScript:step() -- ran out of goals!"))
+        print(comms.robot_send("debug", "MetaScript:step() -- ran out of goals!"))
         return "end", nil
     end
 
