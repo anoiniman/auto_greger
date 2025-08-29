@@ -950,7 +950,10 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
 
     local inv_type = external_inventory.ledger.inv_type
     if inv_type == "ledger" then error(comms.robot_send("fatal", "This is not supported right now")) end
-    if matching_slots == nil then return false end
+    if matching_slots == nil or #matching_slots == 0 then
+        print(comms.robot_send("warning", "dump_only_matching, matching_slots was nil or 0"))
+        return false
+    end
 
     for _, entry in ipairs(matching_slots) do
         local slot = entry[1]
@@ -960,9 +963,18 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
 
         robot.select(slot)
         if external_slot == nil then
-            if not robot.drop(quantity) then goto continue end
+            if not robot.drop(quantity) then
+                print(comms.robot_send("warning", string.format("Failed to drop into extern inv. int_slot: %s", slot)))
+                goto continue
+            end
         else
-            if not inventory.dropIntoSlot(quantity, external_slot) then goto continue end -- I hope side will not be needed
+            local result, err = inventory.dropIntoSlot(quantity, external_slot)
+            if not result then
+                print(comms.robot_send("warning",
+                    string.format("Failed to drop into extern slot: %s, int_slot: %s || err: %s", external_slot, slot, err)
+                ))
+                goto continue
+            end
         end
 
         module.virtual_inventory:subtract(slot, quantity)
