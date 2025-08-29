@@ -900,9 +900,9 @@ function module.suck_all(external_inventory) -- runs no checks what-so-ever (ass
     local inv_type = external_inventory.inv_type
     if inv_type == nil then inv_type = "nil" end
 
-    if inv_type == "ledger" then module.suck_ledger(external_inventory)
+    if inv_type == "ledger" then module.ledger.suck_ledger(external_inventory)
     elseif inv_type == "virtual_inventory" then module.suck_vinventory(external_inventory, nil)
-    else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
+    else error(comms.robot_send("fatal", "(suck_all) this a non-existent ledger/inv type!: " .. inv_type)) end
 end
 
 function module.suck_only_named(lable, name, external_inventory, how_much_to_dump)
@@ -912,12 +912,12 @@ end
 
 -- Selects only the sub-selected MetaItems to be sucked
 function module.suck_only_matching(external_inventory, quantity, matching)
-    local inv_type = external_inventory.inv_type
+    local inv_type = external_inventory.ledger.inv_type
     if inv_type == nil then inv_type = "nil" end
 
     if inv_type == "ledger" then module.suck_ledger(external_inventory, quantity, matching)
     elseif inv_type == "virtual_inventory" then module.suck_vinventory(external_inventory, quantity, matching)
-    else error(comms.robot_send("this a non-existent ledger/inv type!: " .. inv_type)) end
+    else error(comms.robot_send("fatal", "(suck_only_matching) this a non-existent ledger/inv type!: " .. inv_type)) end
 end
 
 -- add the ability not to dump certain things, or don't, might not make sense
@@ -948,7 +948,7 @@ end
 function module.dump_only_matching(external_inventory, up_to, matching_slots, external_slot)
     if up_to == nil then up_to = 100000 end
 
-    local inv_type = external_inventory.inv_type
+    local inv_type = external_inventory.ledger.inv_type
     if inv_type == "ledger" then error(comms.robot_send("fatal", "This is not supported right now")) end
     if matching_slots == nil then return false end
 

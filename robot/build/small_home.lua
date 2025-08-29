@@ -255,7 +255,10 @@ Module.hooks = {
             error(comms.robot_send("fatal", "What the hell are you doing idiot"))
         end
 
-        state.last_item_def = state.to_cook_def
+        if state.in_what_asterisk == 2 then
+            state.last_item_def = state.to_cook_def
+        end
+
         return 1
     end,
     function()
