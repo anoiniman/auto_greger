@@ -127,7 +127,7 @@ Module.state_init = {
             MetaInventory:newMachine(nil, parent, '*', 2, "furnace"),
         }
 
-        Module.furnace_tbl = furnace_tbl -- modifies shared state table
+        Module.shared_state.furnace_tbl = furnace_tbl -- modifies shared state table
         return Module.shared_state -- takes the same ref
     end,
     function(parent)
