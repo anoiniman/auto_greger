@@ -225,18 +225,18 @@ Module.hooks = {
         -- if it doesn't work (likely) we'll have to change the function interface to try and suck the "first" output slot
 
 
-        print("a")
+        -- print("a")
         local cur_inv = state.furnace_tbl[state.in_what_asterisk]
         inv.suck_only_matching(cur_inv, nil, {1,2,3})
         inv.force_update_einv(cur_inv) -- force updates contents of storage, since they are not tracked
-        print("b")
+        -- print("b")
 
         if  state.last_item_def ~= nil
             and state.to_cook_def.lable == state.last_item_def.lable and state.to_cook_def == state.last_item_def.name
         then
             -- early return, we've only come to pickup what we wanted in the first place
             -- print(comms.robot_send("info", "furnace, early returned"))
-            print("b1")
+            -- print("b1")
             state.last_item_def = nil
             return 1
         end

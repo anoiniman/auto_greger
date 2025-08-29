@@ -184,14 +184,14 @@ local function robot_main()
         end
 
         local cron_message = cron_jobs()
-        local result, err = xpcall(process_messages, handler, cron_message)
+        --[[local result, err = xpcall(process_messages, handler, cron_message)
         if not result then
             do_exit = true
             if not_yet_printed then
                 print(comms.robot_send("unchecked", tostring(err)))
             end
-        end
-        -- process_messages(cron_message)
+        end--]]
+        process_messages(cron_message)
     end -- While
 
     print(comms.robot_send("info", "exiting!"))

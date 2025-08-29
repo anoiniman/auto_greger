@@ -862,7 +862,7 @@ function module.suck_vinventory(external_inventory, left_to_suck, matching_slots
         robot.select(internal_slot)
 
         if not inventory.suckFromSlot(sides_api.front, external_slot, cur_suck_quantity) then
-            print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to suck, slot: " .. external_slot))
+            -- print(comms.robot_send("error", "An error occuring sucking all vinventory: unable to suck, slot: " .. external_slot))
             goto continue
         end
 
@@ -968,7 +968,7 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
                 goto continue
             end
         else
-            local result, err = inventory.dropIntoSlot(quantity, external_slot)
+            local result, err = inventory.dropIntoSlot(sides_api.front, external_slot, quantity)
             if not result then
                 print(comms.robot_send("warning",
                     string.format("Failed to drop into extern slot: %s, int_slot: %s || err: %s", external_slot, slot, err)
@@ -1256,7 +1256,7 @@ function module.force_update_vinv()
 end
 
 function module.force_update_einv(external_inventory)
-    return external_inventory:forceUpdateAsForeign()
+    return external_inventory.ledger:forceUpdateAsForeign()
 end
 
 local function press_enter()
