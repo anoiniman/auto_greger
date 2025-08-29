@@ -20,11 +20,14 @@ local cur_script = scripts[1]
 
 -- luacheck: globals REASON_WAIT_LIST
 REASON_WAIT_LIST = {}
-function REASON_WAIT_LIST:checkAndAdd(goal)
+function REASON_WAIT_LIST:checkAndAdd(goal, old_lock_value)
     for _, element in ipairs(self) do
         if element[1] == goal then return end
     end
-    local old_lock_value = goal.constraint.const_obj.lock[1]
+    if old_lock_value == nil then old_lock_value = 1 end
+
+    -- recording lock_value like this doesn't work, because it gets made in-operable before anything else,
+    -- so I don't know, where I can perserve it correctly TODO
     goal.constraint.const_obj.lock[1] = 4
 
     local time_stamp = computer.uptime()

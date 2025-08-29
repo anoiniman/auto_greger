@@ -300,6 +300,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     if self.constraint:returnType() == "building" and not force_recipe then -- aka, is this a building constraint?
         return self.constraint:step(index, name, self.priority)
     end
+    local old_lock_value = self.constraint.const_obj.lock[1]
     self.constraint.const_obj.lock[1] = 1 -- Say that now we're processing the request and to not accept more
 
     if name.c_type ~= nil then
@@ -342,7 +343,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
         return nil
     elseif needed_recipe == "wait" then
-        REASON_WAIT_LIST:checkAndAdd(self)
+        REASON_WAIT_LIST:checkAndAdd(self, old_lock_value)
         return nil
     elseif needed_recipe == "breadth" then -- TODO
         error(comms.robot_send("fatal", "MetaScript todo! breath search"))
