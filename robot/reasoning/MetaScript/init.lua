@@ -151,7 +151,7 @@ function MetaScript:step(preselected_goal_name, change_lock) -- most important f
             error(comms.robot_send("fatal", "This shouldn't be happening, change lock"))
         end
 
-        preselected_goal.contraint.const_obj.lock[1] = change_lock
+        preselected_goal.constraint.const_obj.lock[1] = change_lock
 
         index, name = preselected_goal:selfSatisfied()
         if index ~= nil and index ~= 0 then
@@ -293,7 +293,7 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, ctx)
 end
 
 -- Some day please fix the idiotic polymorphism of this whole code section
--- (Some-times we try to find a recipe from something that is not an item contraint goal and we'll need
+-- (Some-times we try to find a recipe from something that is not an item constraint goal and we'll need
 -- to override the quantity from outside (for example when a building constraint doesn't have building
 -- materials)
 function Goal:step(index, name, parent_script, force_recipe, quantity_override)

@@ -839,7 +839,7 @@ function module.suck_vinventory(external_inventory, left_to_suck, matching_slots
         local name = inv_table[index + 1]
         local quantity = inv_table[index + 2]
 
-        if lable == EMPTY_STRING then
+        if lable == EMPTY_STRING and name == EMPTY_STRING then
             print(comms.robot_send("warning", "lable is empty string in suck inventory, you prob don't want that:\n" .. debug.traceback()))
         end
 
