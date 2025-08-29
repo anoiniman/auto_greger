@@ -160,11 +160,15 @@ local function process_messages(cron_message)
     end
 end
 
-local function handler()
+local not_yet_printed = false
+local function handler(err)
     if not ALREADY_SAVED then
+        not_yet_printed = true
+        ALREADY_SAVED = true
         post_exit.exit()
     end
-    error("Unchecked")
+    return err
+    -- error("Unchecked")
 end
 
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP
@@ -180,8 +184,14 @@ local function robot_main()
         end
 
         local cron_message = cron_jobs()
-        -- xpcall(process_messages, handler, cron_message)
-        process_messages(cron_message)
+        local result, err = xpcall(process_messages, handler, cron_message)
+        if not result then
+            do_exit = true
+            if not_yet_printed then
+                print(comms.robot_send("unchecked", tostring(err)))
+            end
+        end
+        -- process_messages(cron_message)
     end -- While
 
     print(comms.robot_send("info", "exiting!"))

@@ -330,7 +330,7 @@ function Module:runBuildCheck(quantity_goal) -- quantity goal = {input (lable na
     return self.post_build_hooks[1](self.post_build_state[1], self, "only_check", quantity_goal, self.post_build_state)
 end
 
-local max_depth = 10
+local max_depth = 3
 local function recursive_append(tbl, buffer, depth)
     if depth >= max_depth then return end
     depth = depth + 1
@@ -366,11 +366,11 @@ function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
     end -- else
 
     local return_table = {prio, f_caller, self, flag, index, quantity_goal, prio, lock}
-    local buffer = {"\n"}
-    recursive_append(return_table, buffer, 0)
-    table.insert(buffer, "press enter")
-    print(comms.robot_send("info", table.concat(buffer)))
-    io.read()
+        --[[local buffer = {"\n"}
+        recursive_append(return_table, buffer, 0)
+        table.insert(buffer, "press enter")
+        print(comms.robot_send("info", table.concat(buffer)))
+        io.read()--]]
     return return_table
 end
 

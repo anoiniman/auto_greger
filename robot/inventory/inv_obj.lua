@@ -829,7 +829,7 @@ end
 
 -- if matching_slots is nil, return early and falsy, for sucking all use suck all, dummy
 function module.suck_vinventory(external_inventory, left_to_suck, matching_slots)
-    local inv_table = external_inventory.inv_table
+    local inv_table = external_inventory.ledger.inv_table
     for index = 1, #inv_table, 3 do
         local external_slot = (index + 2) / 3
         if matching_slots ~= nil and not search_table.ione(matching_slots, external_slot) then goto continue end
