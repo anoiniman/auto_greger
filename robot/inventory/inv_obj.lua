@@ -869,7 +869,7 @@ function module.suck_vinventory(external_inventory, left_to_suck, matching_slots
         local how_much_sucked = math.min(cur_suck_quantity, quantity)
         -- Change the addOrCreate to a forceUpdateInternal if you start running into problems :P, this should be fine tho
         module.virtual_inventory:addOrCreate(lable, name, how_much_sucked, get_forbidden_table())
-        external_inventory:removeFromSlot(external_slot, how_much_sucked)
+        external_inventory.ledger:removeFromSlot(external_slot, how_much_sucked)
         if left_to_suck ~= nil then
             left_to_suck = left_to_suck - how_much_sucked
         end

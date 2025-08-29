@@ -226,7 +226,7 @@ Module.hooks = {
 
 
         -- print("a")
-        local cur_inv = state.furnace_tbl[state.in_what_asterisk]
+        local cur_inv = state.furnace_tbl[state.in_what_asterisk - 1]
         inv.suck_only_matching(cur_inv, nil, {1,2,3})
         inv.force_update_einv(cur_inv) -- force updates contents of storage, since they are not tracked
         -- print("b")
@@ -248,7 +248,7 @@ Module.hooks = {
         local how_much = state.how_much_to_cook_total
         inv.dump_only_named(input.lable, input.name, cur_inv, how_much / 2, 1)
 
-        print("c")
+        -- print("c")
         local fuel_slot = 2
         if FUEL_TYPE == "wood" then
             local needed_fuel = math.ceil((how_much * 2) / 3)
@@ -259,9 +259,9 @@ Module.hooks = {
         else
             error(comms.robot_send("fatal", "What the hell are you doing idiot"))
         end
-        print("d")
+        -- print("d")
 
-        if state.in_what_asterisk == 2 then
+        if state.in_what_asterisk - 1 == 2 then
             state.last_item_def = state.to_cook_def
         end
 

@@ -139,10 +139,10 @@ Module.hooks = {
         if c_type == "solid" then goto after_turn end
 
         ::after_turn::
-        local cur_inv = state.coke_oven_tbl[state.in_what_asterisk]
+        local cur_inv = state.coke_oven_tbl[state.in_what_asterisk - 1]
         inv.force_update_einv(cur_inv) -- force updates contents of storage, since they are not tracked
 
-        if state.in_what_asterisk == 1 then
+        if state.in_what_asterisk - 1 == 1 then
             local how_many = inv.virtual_inventory:howMany(nil, "any:log")
             inv.dump_only_named(nil, "any:log", cur_inv, how_many / 2)
         else
