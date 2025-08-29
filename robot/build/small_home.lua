@@ -233,6 +233,7 @@ Module.hooks = {
             and state.to_cook_def.lable == state.last_item_def.lable and state.to_cook_def == state.last_item_def.name
         then
             -- early return, we've only come to pickup what we wanted in the first place
+            -- print(comms.robot_send("info", "furnace, early returned"))
             state.last_item_def = nil
             return 1
         end

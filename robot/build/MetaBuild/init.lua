@@ -330,6 +330,26 @@ function Module:runBuildCheck(quantity_goal) -- quantity goal = {input (lable na
     return self.post_build_hooks[1](self.post_build_state[1], self, "only_check", quantity_goal, self.post_build_state)
 end
 
+local max_depth = 10
+local function recursive_append(tbl, buffer, depth)
+    if depth >= max_depth then return end
+    depth = depth + 1
+    table.insert(buffer, "{\n")
+    for key, value in pairs(tbl) do
+        table.insert(buffer, string.format("%s = ", tostring(key)))
+
+        if type(value) == "table" then recursive_append(value, buffer, depth); goto skip_comma
+        elseif type(value) == "function" then table.insert(buffer, "function")
+        elseif type(value) == "boolean" or type(value) == "string" or type(value) == "number" then
+            table.insert(buffer, tostring(value))
+        else table.insert(buffer, "other") end
+
+        table.insert(buffer, ", ")
+        ::skip_comma::
+    end
+    table.insert(buffer, "}\n")
+end
+
 -- flag determines if we are running a check or a determinate logistic action
 -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
 function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
@@ -345,7 +365,13 @@ function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
         return nil
     end -- else
 
-    return {prio, f_caller, self, flag, index, quantity_goal, prio, lock}
+    local return_table = {prio, f_caller, self, flag, index, quantity_goal, prio, lock}
+    local buffer = {"\n"}
+    recursive_append(return_table, buffer, 0)
+    table.insert(buffer, "press enter")
+    print(comms.robot_send("info", table.concat(buffer)))
+    io.read()
+    return return_table
 end
 
 

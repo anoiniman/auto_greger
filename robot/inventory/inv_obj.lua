@@ -985,7 +985,12 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
         local name = module.virtual_inventory.inv_table[index + 1]
 
         if external_inventory == nil or type(external_inventory) ~= "table" then goto continue end
-        external_inventory:addOrCreate(lable, name, quantity, nil)
+        if external_slot == nil then
+            external_inventory.ledger:addOrCreate(lable, name, quantity, nil)
+        else
+            local _, _, cur_quantity = external_inventory.ledger:getSlotInfo(external_slot)
+            external_inventory.ledger:forceUpdateSlot(lable, name, cur_quantity + quantity, external_slot)
+        end
 
         ::continue::
     end
