@@ -46,10 +46,15 @@ function module.std_hook1(state, parent, _flag, state_init_func, name)
 
     local cur_chunk = nav.get_chunk()
     if not state.in_building or (cur_chunk[1] ~= parent.what_chunk[1] or cur_chunk[2] ~= parent.what_chunk[2]) then
-        if nav_to_build.do_move(parent.what_chunk, parent.doors) then
-            state.in_building = true    -- remeber when using this std_hook to make it so when we leave building this becomes
-                                        -- false (usually done by the state_init_func)
+        if nav_to_build.need_move(parent.what_chunk, parent.doors) then
+            if nav_to_build.do_move(parent.what_chunk, parent.doors) then
+                state.in_building = true    -- remeber when using this std_hook to make it so when we leave building this becomes
+                                            -- false (usually done by the state_init_func)
+            end
+        else
+            state.in_building = true
         end
+
         return 1
     end
 

@@ -180,7 +180,8 @@ local function robot_main()
         end
 
         local cron_message = cron_jobs()
-        xpcall(process_messages, handler, cron_message)
+        -- xpcall(process_messages, handler, cron_message)
+        process_messages(cron_message)
     end -- While
 
     print(comms.robot_send("info", "exiting!"))
