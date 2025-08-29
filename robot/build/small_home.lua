@@ -227,8 +227,8 @@ Module.hooks = {
 
         -- print("a")
         local cur_inv = state.furnace_tbl[state.in_what_asterisk - 1]
-        inv.suck_only_matching(cur_inv, nil, {1,2,3})
         inv.force_update_einv(cur_inv) -- force updates contents of storage, since they are not tracked
+        inv.suck_only_matching(cur_inv, nil, {1,2,3})
         -- print("b")
 
         if  state.last_item_def ~= nil

@@ -834,9 +834,14 @@ function module.suck_vinventory(external_inventory, left_to_suck, matching_slots
         local external_slot = (index + 2) / 3
         if matching_slots ~= nil and not search_table.ione(matching_slots, external_slot) then goto continue end
 
+        -- isto devia ter tido o EMPTY_STRING check há que tempos chavlo fds
         local lable = inv_table[index]
         local name = inv_table[index + 1]
         local quantity = inv_table[index + 2]
+
+        if lable == EMPTY_STRING then
+            print(comms.robot_send("warning", "lable is empty string in suck inventory, you prob don't want that:\n" .. debug.traceback()))
+        end
 
         local cur_suck_quantity
         -- I'm going to trust it is this simple, because the way the api's "suck into slot" and our

@@ -171,11 +171,8 @@ function module.debug(arguments)
         if arguments[2] == "nav" then
             nav.print_nav_obj()
         elseif arguments[2] == "inv" then
-            print_obj(inv)
         elseif arguments[2] == "map" then
-            print_obj(map)
         elseif arguments[2] == "reason" then
-            print_obj(reason)
         else
             print(comms.robot_send("error", "invalid object provided"))
         end
