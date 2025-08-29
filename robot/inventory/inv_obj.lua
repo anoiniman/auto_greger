@@ -969,11 +969,11 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
             end
         else
             local result, err = inventory.dropIntoSlot(sides_api.front, external_slot, quantity)
-            if not result then
-                print(comms.robot_send("warning",
+            if not result then -- API is return error when we succed :(
+                --[[print(comms.robot_send("warning",
                     string.format("Failed to drop into extern slot: %s, int_slot: %s || err: %s", external_slot, slot, err)
                 ))
-                goto continue
+                goto continue--]]
             end
         end
 

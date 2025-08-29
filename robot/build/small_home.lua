@@ -263,12 +263,13 @@ Module.hooks = {
 
         if state.in_what_asterisk - 1 == 2 then
             local temp = state.to_cook_def
-            local n_state = Module.og_state
+            local n_state = Module.og_state()
             for k, v in pairs(n_state) do
                 state[k] = v
             end
 
             state.last_item_def = temp
+            return nil
         end
 
         return 1
