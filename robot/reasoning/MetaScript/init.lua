@@ -147,9 +147,16 @@ function MetaScript:step(preselected_goal_name, change_lock) -- most important f
             print(comms.robot_send("error", "Preselected goal name is invalid"))
             goto skip_over
         end
+        if change_lock == nil then
+            error(comms.robot_send("fatal", "This shouldn't be happening, change lock"))
+        end
 
-        best_goal = preselected_goal
+        preselected_goal.contraint.const_obj.lock[1] = change_lock
+
         index, name = preselected_goal:selfSatisfied()
+        if index ~= nil and index ~= 0 then
+            best_goal = preselected_goal
+        end
     end
     ::skip_over::
 
