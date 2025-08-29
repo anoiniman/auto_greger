@@ -95,8 +95,8 @@ local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint01, 
 -- But this is memory inneficient, when we'll need to gather more ore-types this is simple too inneficient!
 local __r_iron_ore_gather = deep_copy.copy(__r_ore_gather)
 local ore_dep = MetaDependency:new(__r_iron_ore_gather, 1)
-ore_dep.inlying_recipe.output = { lable = "Brown Limonite", name = "gregtech:raw_ore"}
-ore_dep.inlying_recipe.mechanism.output = { lable = "Brown Limonite", name = "gregtech:raw_ore"}
+ore_dep.inlying_recipe.output = { lable = "Raw Brown Limonite Ore", name = "gregtech:raw_ore"}
+ore_dep.inlying_recipe.mechanism.output = { lable = "Raw Brown Limonite Ore", name = "gregtech:raw_ore"}
 
 output = { lable = "Iron Ingot", name = "any:ingot" }
 local __r_iron01 = MetaRecipe:newBuildingUser(output, "small_home", "raw_usage", ore_dep, nil)
