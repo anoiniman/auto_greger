@@ -64,7 +64,6 @@ function module.inspect_raw(prio, command, arguments)
     if command == nil then command = "nil" end
     local buffer = {"\n"}
     table.insert(buffer, string.format("(p%d) Command: \"%s\" is invalid!\n", prio, command))
-
     local max_depth = 10; local depth = 0;
     local function recursive_append(tbl)
         if depth >= max_depth then return end
@@ -73,16 +72,23 @@ function module.inspect_raw(prio, command, arguments)
         for key, value in pairs(tbl) do
             table.insert(buffer, string.format("%s = ", tostring(key)))
 
-            if type(value) == "table" then recursive_append(value)
+            if type(value) == "table" then recursive_append(value); goto skip_comma
             elseif type(value) == "function" then table.insert(buffer, "function")
             elseif type(value) == "boolean" or type(value) == "string" or type(value) == "number" then
                 table.insert(buffer, tostring(value))
             else table.insert(buffer, "other") end
 
             table.insert(buffer, ", ")
+            ::skip_comma::
         end
         table.insert(buffer, "}\n")
     end
+    if type(command) == "table" then
+        table.insert(buffer, "<command>\n")
+        recursive_append(command)
+    end
+
+    table.insert(buffer, "<arguments>\n")
     recursive_append(arguments)
 
     print(comms.robot_send("error", table.concat(buffer)))
