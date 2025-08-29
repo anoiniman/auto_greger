@@ -262,13 +262,10 @@ Module.hooks = {
         -- print("d")
 
         if state.in_what_asterisk - 1 == 2 then
-            local temp = state.to_cook_def
-            local n_state = Module.og_state()
-            for k, v in pairs(n_state) do
-                state[k] = v
-            end
-
-            state.last_item_def = temp
+            state.fsm = 1
+            state.in_what_asterisk = 1
+            state.temp_reg = nil
+            state.in_building = false
             return nil
         end
 

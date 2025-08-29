@@ -37,7 +37,7 @@ end
 local count_occurence_of_symbol = general_functions.count_occurence_of_symbol
 
 -- assumes that symbol's (?) and (+) relation with storage is always in the x-axis
-function module.std_hook1(state, parent, _flag, state_init_func, name)
+function module.std_hook1(state, parent, _flag, _state_init_func, name)
     --[[for _, inner_table in ipairs(parent.special_blocks) do
         for k, v in ipairs(inner_table) do
             print(comms.robot_send("debug", k .. ", " .. v))
@@ -165,10 +165,10 @@ function module.std_hook1(state, parent, _flag, state_init_func, name)
     elseif state.fsm == 5 then -- we done, let us reset ourselves
         print(comms.robot_send("debug", "FSM finished " .. name))
          -- reset state
-        local new_state = state_init_func()
-        for key, value in pairs(new_state) do -- it handles shared refs properly, I hope
-            state[key] = new_state[key]
-        end
+        state.fsm = 1
+        state.in_what_asterisk = 1
+        state.temp_reg = nil
+        state.in_building = false
 
         return nil
     else
