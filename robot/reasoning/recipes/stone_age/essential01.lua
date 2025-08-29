@@ -1,3 +1,5 @@
+local deep_copy = require("deep_copy")
+
 local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 local MetaRecipe = require("reasoning.MetaRecipe")
 local nav_obj = require("nav_module.nav_obj")
@@ -58,7 +60,7 @@ local dep
 
 -- As you can see the dependencies of a building user are implicit
 output = {lable = nil, name = "any:log"}
-local __r_log02 = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "no_store", nil, nil)
+local __r_log02 = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "raw_usage", nil, nil)
 
 ---
 dep = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 1)
@@ -83,10 +85,29 @@ local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint01, 
 -- return {{flint, flint_pickaxe, stick}, dictionary}  -- this means that the only "public dependencies" are: flint, flint_pickaxe and stick
                                                        -- we won't be directly crafting anything else
 
+
+-- thank god we don't have to deal with ore-processing lines and multipliers n shit
+
+-- TODO, FOR NOW, and for now only it is fine to simple deep_copy __r_ore_gather to define different
+-- gatherings for different ore subtypes, since we'll only care about 3:
+-- cassiterite sand, iron_ore, and copper_ore.
+--
+-- But this is memory inneficient, when we'll need to gather more ore-types this is simple too inneficient!
+local __r_iron_ore_gather = deep_copy.copy(__r_ore_gather)
+local ore_dep = MetaDependency:new(__r_iron_ore_gather, 1)
+ore_dep.inlying_dependency.output = { lable = "Brown Limonite", name = "gregtech:raw_ore"}
+
+output = { lable = "Iron Ingot", name = "any_ingot" }
+local __r_iron01 = MetaRecipe:newBuildingUser(output, "small_home", "raw_usage", ore_dep, nil)
+--local iron_ingot_dep
+
+
 local recipe_table = {
     __r_log02,
     __r_flint01,
     __r_plank01,
     __r_ore_gather,
+
+    __r_iron01,
 }
 return {recipe_table, dictionary}

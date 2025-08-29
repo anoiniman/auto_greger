@@ -205,7 +205,7 @@ function BuildingUser:new(bd_name, usage_flag)
     return new
 end
 
-function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, strict, dependencies)
+function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, dependencies, strict)
     local new = self:new(output, nil, strict, dependencies)
 
     new.meta_type = "building_user"

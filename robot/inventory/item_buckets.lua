@@ -136,7 +136,11 @@ function module.normalise_ore(lable)
         return "Raw Gold Ore", 2
     end
     if flabl("Cassiterite Sand") or flabl("Garnerite Sand") or flabl("Dolomite") or flabl("Asbestos") then
-        return "Raw Tin Sand Ore", 1
+        return "Raw Tin Sand Ore", 2
+    end
+
+    if flabl("Yellow Limonite") or flabl("Brown Limonite") or flabl("Banded Iron") or flabl("Malachite") then
+        return "Raw Iron Ore", 2
     end
 
     if flabl("Cassiterite Ore") or flabl("Tin Ore") then
