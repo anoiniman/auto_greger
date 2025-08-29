@@ -977,7 +977,7 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
             end
         end
 
-        module.virtual_inventory:subtract(slot, quantity)
+        module.virtual_inventory:removeFromSlot(slot, quantity)
         up_to = up_to - quantity
 
         local index = (slot * 3) - 2
@@ -1207,7 +1207,7 @@ function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important
         -- haha, something did get added (assume only 1 stack at the time so return)
         local diff = expected_quantity - stack_info.size
         if diff > 0 then
-            module.virtual_inventory:subtract(slot, diff)
+            module.virtual_inventory:removeFromSlot(slot, diff)
         elseif diff < 0 then
             module.virtual_inventory:addOrCreate(stack_info.label, stack_info.name, math.abs(diff), get_forbidden_table())
         end -- else all good, keep checking
