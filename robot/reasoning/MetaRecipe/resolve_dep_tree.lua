@@ -169,7 +169,7 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
            ::continue::
         end -- forloop end
 
-        return "wait" -- for now, since breath doesn't work
+        return "force_wait" -- for now, since breath doesn't work
         -- return "breath" -- At last, least priority, we look into the other branches if possible
                         -- AKA: This is blocked right now, please go down another sister branch
                         -- But if you Optional into a breath and you run out of things, you are supposed to report fail

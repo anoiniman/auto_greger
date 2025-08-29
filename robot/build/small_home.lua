@@ -262,12 +262,19 @@ Module.hooks = {
         -- print("d")
 
         if state.in_what_asterisk - 1 == 2 then
-            state.last_item_def = state.to_cook_def
+            local temp = state.to_cook_def
+            local n_state = Module.og_state
+            for k, v in pairs(n_state) do
+                state[k] = v
+            end
+
+            state.last_item_def = temp
         end
 
         return 1
     end,
     function()
+        print(comms.robot_send("error", "(small_home) What the hell are you doing idiot"))
         return nil
     end,
 }

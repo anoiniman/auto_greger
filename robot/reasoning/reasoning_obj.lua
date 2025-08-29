@@ -16,7 +16,7 @@ function REASON_WAIT_LIST:checkAndAdd(goal)
     for _, element in ipairs(self) do
         if element[1] == goal then return end
     end
-    local old_lock_value = self.constraint.const_obj.lock[1]
+    local old_lock_value = goal.constraint.const_obj.lock[1]
     self.constraint.const_obj.lock[1] = 4
 
     local time_stamp = computer.uptime()
