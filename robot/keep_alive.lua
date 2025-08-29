@@ -36,9 +36,9 @@ local function refuel()
 
     local fuel_slot
     if FUEL_TYPE == "loose_coal" then
-        fuel_slot = inv.find_largest_slot(nil, "any:fuel") -- bucket name will probabily need to change
+        fuel_slot = inv.virtual_inventory:getSmallestSlot(nil, "any:fuel") -- bucket name will probabily need to change
     elseif FUEL_TYPE == "wood" then
-        fuel_slot = inv.find_largest_slot(nil, "any:plank")
+        fuel_slot = inv.virtual_inventory:getSmallestSlot(nil, "any:plank")
     else
         print(comms.robot_send("error", "Unexpected fuel type"))
         return false

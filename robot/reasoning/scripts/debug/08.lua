@@ -25,8 +25,8 @@ builder:addGoal(home_goal)
 builder:setDictionary(dictionary)
 builder:addMultipleRecipes(main_line_recipes)
 
-constraint = Constraint:newItemConstraint(nil, "Iron Ingot", 16, 64, nil)
-local iron_goal = Goal_new(home_goal, constraint, 50, "iron_const", false)
+constraint = Constraint:newItemConstraint("any:ingot", "Iron Ingot", 16, 64, nil)
+local iron_goal = Goal:new(home_goal, constraint, 50, "iron_const", false)
 builder:addGoal(iron_goal)
 
 
