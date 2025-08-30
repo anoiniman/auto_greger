@@ -147,8 +147,11 @@ local function reset_movement(state)
     state.temp_reg = nil
     state.in_building = false
 
-    state.last_item_def = state.to_cook_def,
+    state.last_item_def = state.to_cook_def
     state.to_cook_def = nil
+
+    print("reseted movement")
+    io.read()
 end
 
 -- Btw, remember that this state is not saved on re-load, because we simple pretend build the buildings into
@@ -156,6 +159,7 @@ end
 -- jobs, oh well
 Module.hooks = {
     function(state, parent, flag, check_table, _state_table)
+        print("executed main")
         local quantity_goal = check_table[2]
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             if computer.uptime() < state.cooking_time then return "wait" end
@@ -216,6 +220,7 @@ Module.hooks = {
         return generic_hooks.std_hook1(state, parent, flag, Module.og_state, "simple_home(furnace)")
     end,
     function(state) -- Interact with furnace
+        print("executed 1")
         nav.change_orientation("south")
         local _, c_type = robot.detect()
         if c_type == "solid" then goto after_turn end

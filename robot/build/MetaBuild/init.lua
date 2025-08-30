@@ -353,6 +353,9 @@ end
 -- flag determines if we are running a check or a determinate logistic action
 -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
 function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
+    print("used_building")
+    io.read()
+
     if index == 1 then
         -- first hook must correspond to this pattern
         index = self.post_build_hooks[1](self.post_build_state[1], self, flag, quantity_goal, self.post_build_state)
