@@ -343,6 +343,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
         return nil
     elseif needed_recipe == "wait" then
+        print(comms.robot_send("debug", "Waited on: " .. self.name))
         REASON_WAIT_LIST:checkAndAdd(self, old_lock_value)
         return nil
     elseif needed_recipe == "breadth" then -- TODO

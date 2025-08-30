@@ -59,11 +59,11 @@ function BuildingConstraint:check(do_once)
     local heap = {}
     for index, structure in ipairs(self.structures) do
         local name = structure.name
-        print(comms.robot_send("debug", "BuildingConstraint:check(), name: " .. name))
-        print(comms.robot_send("debug", "BuildingConstraint:check(), index: " .. index))
+        -- print(comms.robot_send("debug", "BuildingConstraint:check(), name: " .. name))
+        -- print(comms.robot_send("debug", "BuildingConstraint:check(), index: " .. index))
         if heap[name] == nil then
             --local cur_buildings = map_obj.get_buildings(name) -- table
-            print(comms.robot_send("debug", "BuildingConstraint:check(), heap[name] is nil"))
+            -- print(comms.robot_send("debug", "BuildingConstraint:check(), heap[name] is nil"))
             local cur_buildings = map_obj.get_buildings_num(name) -- num
             if cur_buildings == 0 then return index, name end
             heap[name] = cur_buildings

@@ -141,6 +141,16 @@ Module.state_init = {
     end
 }
 
+local function reset_movement(state)
+    state.fsm = 1
+    state.in_what_asterisk = 1
+    state.temp_reg = nil
+    state.in_building = false
+
+    state.last_item_def = state.to_cook_def,
+    state.to_cook_def = nil
+end
+
 -- Btw, remember that this state is not saved on re-load, because we simple pretend build the buildings into
 -- existance, we store no state, so... yeah, expect weirdness to happen if yeah we crash in between these
 -- jobs, oh well
@@ -199,16 +209,11 @@ Module.hooks = {
         if state.to_cook_def == nil then
             state.to_cook_def = deep_copy.copy(check_table[1])
             state.how_much_to_cook_total = check_table[2]
-            state.cooking_time = computer.uptime() + (state.how_much_to_cook_total * 10) -- 10 seconds per item
+            state.cooking_time = computer.uptime() + ((state.how_much_to_cook_total / 2) * 10) -- 10 seconds per item
+            print("cooking_time: " .. tostring(state.cooking_time))
         end
 
-        local next_func = generic_hooks.std_hook1(state, parent, flag, Module.og_state, "simple_home(furnace)")
-        if next_func == nil then
-            state.to_cook_def = nil
-            state.how_much_to_cook_total = 0
-            state.cooking_time = 0
-        end
-        return next_func
+        return generic_hooks.std_hook1(state, parent, flag, Module.og_state, "simple_home(furnace)")
     end,
     function(state) -- Interact with furnace
         nav.change_orientation("south")
@@ -238,6 +243,11 @@ Module.hooks = {
             -- print(comms.robot_send("info", "furnace, early returned"))
             -- print("b1")
             state.last_item_def = nil
+            if state.in_what_asterisk - 1 == 2 then
+                reset_movement(state)
+                return nil
+            end
+
             return 1
         end
 
@@ -262,10 +272,7 @@ Module.hooks = {
         -- print("d")
 
         if state.in_what_asterisk - 1 == 2 then
-            state.fsm = 1
-            state.in_what_asterisk = 1
-            state.temp_reg = nil
-            state.in_building = false
+            reset_movement(state)
             return nil
         end
 
