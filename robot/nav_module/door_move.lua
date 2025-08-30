@@ -4,6 +4,9 @@ local module = {}
 local comms = require("comms")
 local inv = require("inventory.inv_obj")
 
+local robot = require("robot")
+
+
 -- After moving to the correct x,z, move 1 inside the building
 local goal_rel = {0, 0, -1}
 local move_setup = false
@@ -115,13 +118,21 @@ function module.setup_move(door_info_table, cur_position)
 end
 
 local function last_move(nav_func) -- changed to 2, but could be 1 idk
-    if goal_rel[1] == 0 then nav_func.debug_move("east", 2, 0)
-    elseif goal_rel[1] == 15 then nav_func.debug_move("west", 2, 0)
-    elseif goal_rel[2] == 15 then nav_func.debug_move("north", 2, 0)
-    elseif goal_rel[2] == 0 then nav_func.debug_move("south", 2, 0)
-    else
+    local dir
+    if goal_rel[1] == 0 then dir = "east"
+    elseif goal_rel[1] == 15 then dir = "west"
+    elseif goal_rel[2] == 15 then dir = "north"
+    elseif goal_rel[2] == 0 then dir = "south"
         print(comms.robot_send("warning", "door_move.last_move() -- couldn't last move!"))
     end
+
+    while true do
+        local detect, _ = robot.detect()
+        if detect then nav_func.debug_move("up", 1, 0)
+        else break end
+    end
+
+    nav_func.debug_move(dir, 2, 0)
 end
 
 

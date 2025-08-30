@@ -58,14 +58,18 @@ function Module:doLogistics()
         return "go_on"
     end
 
-    local inv_action
-    local target_inv
+    local cur_item = self.item_tbl[self.item_tbl_index]
+    local lable = cur_item[1]; local name = cur_item[2]; local up_to = cur_item[3]
+
+    local inv_action, target_inv, matching_slots
     if self.where == 1 then
         target_inv = self.from_inventory
         inv_action = inv.suck_only_matching
+        matching_slots = target_inv.ledger:getAllSlots(lable, name, up_to)
     elseif self.where == 2 then
         target_inv = self.to_inventory
         inv_action = inv.dump_only_matching
+        matching_slots = target_inv.ledger:getAllEmptySlots()
     elseif self.where == 3 then
         return "done"
     else error(comms.robot_send("fatal", "invalid state")) end
@@ -82,8 +86,6 @@ function Module:doLogistics()
         end
     end
 
-    local cur_item = self.item_tbl[self.item_tbl_index]
-    local lable = cur_item[1]; local name = cur_item[2]; local up_to = cur_item[3]
 
     -- Another important thing I forgot, if target is "self", then it doesn't make sense to "dump" to self, or "suck" to self,
     -- so we skip
@@ -92,8 +94,7 @@ function Module:doLogistics()
         return "go_on"
     end
 
-    local matching_slots = target_inv.ledger:getAllSlots(lable, name, up_to)
-    inv_action(target_inv.ledger, up_to, matching_slots)
+    inv_action(target_inv, up_to, matching_slots)
 
     self.item_tbl_index = self.item_tbl_index + 1
     dbg_call = 0
@@ -110,9 +111,10 @@ function Module:goTo()
     elseif self.where == 3 then return "done"
     else error(comms.robot_send("fatal", "invalid state")) end
 
-    -- Very Important thing I forgot, if the target is self, well, we're already there right?
+    -- [Very Important thing I forgot, if the target is self, well, we're already there right?]
+    -- NO WE AREN'T YOU STUPID GIT, we need to move to wehre we want to dump eviedently, we want to skip something different
     if target == "self" then
-        self.mode_func = self.doLogistics
+        self.where = self.where + 1
         dbg_call = 0
         return "go_on"
     end
@@ -120,7 +122,7 @@ function Module:goTo()
     local target_chunk = target:getChunk()
     local cur_coords = nav.get_rel()
 
-    if nav.get_cur_building() == target.parent_build then
+    if nav.get_cur_building() ~= nil and nav.get_cur_building() == target.parent_build then
         self.has_door_moved = true
         goto skip_door_move
     end
@@ -142,6 +144,7 @@ function Module:goTo()
         if result == 0 then return "go_on"
         elseif result == -1 then
             self.has_door_moved = true
+            nav.set_cur_building(target.parent_build)
         else os.sleep(1) --[[ :) --]] end
     end
     ::skip_door_move::

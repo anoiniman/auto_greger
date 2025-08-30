@@ -273,6 +273,24 @@ function Module:getEmptySlot(forbidden_slots)
     return nil
 end
 
+function Module:getAllEmptySlots(forbidden_slots)
+    local matching_slots = {}
+    for index = 1, #self.inv_table, 3 do
+        local empty = self.inv_table[index] == EMPTY_STRING
+        if not empty then goto continue end
+
+        local slot = (index + 2) / 3
+        if search_table.ione(forbidden_slots, slot) then goto continue end
+
+        local new_entry = {slot, 0}
+        if true then table.insert(matching_slots, new_entry) end
+        ::continue::
+    end
+
+    if #matching_slots == 0 then return nil end
+    return matching_slots
+end
+
 function Module:howMany(lable, name)
     local slot_table = self:getAllSlots(lable, name)
     if slot_table == nil then return 0 end
