@@ -126,6 +126,7 @@ local function last_move(nav_func) -- changed to 2, but could be 1 idk
         print(comms.robot_send("warning", "door_move.last_move() -- couldn't last move!"))
     end
 
+    nav_func.change_orientation(dir)
     while true do
         local detect, _ = robot.detect()
         if detect then nav_func.debug_move("up", 1, 0)

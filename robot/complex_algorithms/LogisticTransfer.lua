@@ -61,6 +61,7 @@ function Module:doLogistics()
     local cur_item = self.item_tbl[self.item_tbl_index]
     local lable = cur_item[1]; local name = cur_item[2]; local up_to = cur_item[3]
 
+    local extern_slot = nil
     local inv_action, target_inv, matching_slots
     if self.where == 1 then
         target_inv = self.from_inventory
@@ -69,7 +70,8 @@ function Module:doLogistics()
     elseif self.where == 2 then
         target_inv = self.to_inventory
         inv_action = inv.dump_only_matching
-        matching_slots = target_inv.ledger:getAllEmptySlots()
+        extern_slot = target_inv.ledger:getEmptySlot()
+        matching_slots = inv.virtual_inventory:getAllSlots(lable, name, up_to)
     elseif self.where == 3 then
         return "done"
     else error(comms.robot_send("fatal", "invalid state")) end
@@ -94,7 +96,7 @@ function Module:doLogistics()
         return "go_on"
     end
 
-    inv_action(target_inv, up_to, matching_slots)
+    inv_action(target_inv, up_to, matching_slots, extern_slot)
 
     self.item_tbl_index = self.item_tbl_index + 1
     dbg_call = 0
