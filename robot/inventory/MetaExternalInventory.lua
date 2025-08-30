@@ -257,8 +257,11 @@ function Module:newStorage(item_defs, parent_build, symbol, index, storage_type)
     return new
 end
 
-function Module:newMachine(item_defs, parent_build, symbol, index, storage_type)
-    local new = self:new(item_defs, parent_build, false, symbol, index, storage_type)
+function Module:newMachine(item_defs, parent_build, symbol, index, storage_type, extern)
+    local is_cache = false
+    if extern == nil or extern == false then is_cache = true end
+
+    local new = self:new(item_defs, parent_build, is_cache, symbol, index, storage_type)
     new.storage = false
     return new
 end
