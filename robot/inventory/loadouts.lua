@@ -8,6 +8,9 @@ local LogisticTransfer = require("complex_algorithms.LogisticTransfer")
 local inv = require("inventory.inv_obj")
 
 local inventory_size = 32
+local module = {}
+
+
 -- aka, pickaxe and fuel, hopefully recipe management/crafting is well syncronized with this
 local __l_test = {
     {"Stone Bricks", "minecraft:", 48, 12},
@@ -37,7 +40,7 @@ local loadouts = {
     },
 }
 
-function inv.get_cur_loadout() -- gives copy
+function module.get_cur_loadout() -- gives copy
     return deep_copy.copy(cur_loadout, pairs)
 end
 
@@ -66,7 +69,7 @@ end
 local doing_loadout = nil
 local was_preselected = false
 local loadout_clock = computer.uptime()
-function inv.do_loadout(priority, pre_selected, lock) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
+function module.do_loadout(priority, pre_selected, lock) -- useful for when you are leaving on a predictable expedition (e.g - gathering ore)
     if doing_loadout ~= nil then -- just update the priority (or "delete")
         if pre_selected == nil then
             if not was_preselected then
@@ -103,20 +106,20 @@ function inv.do_loadout(priority, pre_selected, lock) -- useful for when you are
     local item_index = 1
     local phase = 1
 
-    local command_tbl = {priority, inv.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, lock, priority}
+    local command_tbl = {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, lock, priority}
     doing_loadout = command_tbl
 
     return command_tbl
 end
 
-function inv.check_loadouts()
+function module.check_loadouts()
     select_loadout()
 
     ----------- Using min items --------------
     for _, def in ipairs(cur_loadout) do
         local real_quantity = inv.virtual_inventory:howMany(def[1], def[2])
         if def[4] < real_quantity then
-            return "loadout", inv.do_loadout(92)
+            return "loadout", module.do_loadout(92)
         end
     end
 
@@ -143,12 +146,13 @@ function inv.check_loadouts()
     end
     -------------------------------------------
 
-    return "loadout", inv.do_loadout(priority)
+    return "loadout", module.do_loadout(priority)
 end
 
 
 -- If this doesn't work, f'it do some stochastic static analysis as a first try
-function inv.do_loadout_logistics(arguments)
+-- This goes into infinite loop :(
+function module.do_loadout_logistics(arguments)
     local selected_loadout = arguments[1]
     local logistic_transfer = arguments[2]
     local item_index = arguments[3]
@@ -157,7 +161,7 @@ function inv.do_loadout_logistics(arguments)
     local priority = arguments[6]
 
     local function do_return() -- using do_return() instead of just recursing allows the programme to block, which is important
-        return {priority, inv.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, lock, priority}
+        return {priority, module.do_loadout_logistics, selected_loadout, logistic_transfer, item_index, phase, lock, priority}
     end
     local function n_inv_warning(lable, name, up_to, dump)
         local variable_str
@@ -227,7 +231,7 @@ function inv.do_loadout_logistics(arguments)
                                     -- on a transfer
 
         if lable == EMPTY_STRING then
-            return inv.do_loadout_logistics(arguments) -- go again
+            return do_return() -- go again
         end
 
         for _, def in ipairs(selected_loadout) do
@@ -237,7 +241,7 @@ function inv.do_loadout_logistics(arguments)
 
                 if real_quantity <= def[3] then -- don't dump, if we don't have too much of it
                     item_index = item_index + 1
-                    return inv.do_loadout_logistics(arguments)
+                    return do_return()
                 end -- else
 
                 local to_dump = real_quantity - def[3]
@@ -273,8 +277,10 @@ function inv.do_loadout_logistics(arguments)
 
     local inv_num = inv.virtual_inventory:howMany(lable, name)
     local to_suck = wanted_num - inv_num
-    if to_suck <= 0 then return inv.do_loadout_logistics(arguments) end
+    if to_suck <= 0 then return do_return() end
 
     new_suck_transfer(lable, name, to_suck)
     return do_return()
 end
+
+return module

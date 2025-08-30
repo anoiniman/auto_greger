@@ -79,10 +79,10 @@ function PPObj:build()
 
     local index = 1
     while true do
-        local str = self.lines[index]
+        local str = temp.lines[index]
         if str == nil then break end
 
-        index = self:splitLineIf(str, index)
+        index = temp:splitLineIf(str, index)
         index = index + 1
     end
 

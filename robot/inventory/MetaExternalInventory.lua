@@ -8,7 +8,8 @@ local VirtualInventory = require("inventory.VirtualInventory")
 local inv = require("inventory.inv_obj")
 
 -- as obvious, if it is an item inside a static storage it has no output
--- permissive matters no more, because to be permissive we simple have to have a "name with no lable" association, but I guess it is important right now because some checks depend on this :tf:
+-- permissive matters no more, because to be permissive we simple have to have a "name with no lable" association,
+-- but I guess it is important right now because some checks depend on this :tf:
 local MetaItem = {
     name = nil,
     lable = nil,

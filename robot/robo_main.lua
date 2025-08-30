@@ -19,6 +19,7 @@ local keep_alive = require("keep_alive")
 local reasoning = require("reasoning.reasoning_obj")
 
 local inv = require("inventory.inv_obj")
+local loadouts = require("inventory.loadouts")
 
 local robot_routine = require("robo_routine")
 
@@ -72,7 +73,7 @@ local function cron_jobs()
 
         -- TODO in check_loadouts we should'nt just check for time-since-last and how much free space,
         -- we should also check if we have the items over a min
-        message_type, cron_message = inv.check_loadouts()
+        message_type, cron_message = loadouts.check_loadouts()
         if cron_message ~= nil then return cron_message end
 
         -- Deep Thoughts
@@ -173,7 +174,7 @@ local function handler(err)
     -- error("Unchecked")
 end
 
-local zot_clock = 60
+local zot_clock = 30
 local zot_interval = computer.uptime()
 
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP

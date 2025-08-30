@@ -204,6 +204,7 @@ function module.debug(arguments)
                 else uncompressed = false end
 
                 inv.print_external_inv(name, index, uncompressed)
+                return nil
             end
         elseif arguments[2] == "force" then
             if arguments[3] == "add_all" then
@@ -339,6 +340,7 @@ function module.debug(arguments)
         else uncompressed = false end
 
         inv.print_build_inventory(map, uncompressed, name, index)
+        return nil
     elseif arguments[1] == "add_to_inventory" or arguments[1] == "ati" then
         local build_name = arguments[2]
         local index = tonumber(arguments[3])

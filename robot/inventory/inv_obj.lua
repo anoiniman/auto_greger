@@ -241,8 +241,6 @@ local function do_pp_print(large_pp)
     comms.send_command("ppObj", "printPage", castrated_object, interactive_print) -- this is ok to do because they'll simple be queued
 end
 
--- This function does so much work in preparing the data and so on, that it can trigger
--- "too long without yielding" errors in opencomputers, so I increased timeout to 60 seconds
 function module.print_external_inv(name, index, uncompressed)
     comms.cls_nself()
     local le_next, tbl, num = iter_external_inv(name)
