@@ -1271,6 +1271,13 @@ function module.load_preset(map)
     module.force_update_vinv()
     -- if not module.add_to_inventory(map, "sp_storeroom", 1, "Flint", "minecraft:generic", 31, 1) then press_enter() end
     -- if not module.add_to_inventory(map, "sp_storeroom", 1, "Oak Wood", "any:log", 31, 1) then press_enter() end
+
+    -- Loadout test --
+    if not module.add_to_inventory(map, "small_home", 1, "Oak Wood", "any:log", 32, 1) then press_enter() end
+    if not module.add_to_inventory(map, "small_home", 1, "Stone Bricks", "any:log", 64, 2) then press_enter() end
+    if not module.add_to_inventory(map, "small_home", 1, "Gravel", "minecraft:", 32, 3) then press_enter() end
+    WHAT_LOADOUT = "test"
+    ---- ----- ----
 end
 
 return module

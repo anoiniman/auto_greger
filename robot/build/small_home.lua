@@ -213,7 +213,7 @@ Module.hooks = {
             state.to_cook_def = deep_copy.copy(check_table[1])
             state.how_much_to_cook_total = check_table[2]
             state.cooking_time = computer.uptime() + ((state.how_much_to_cook_total / 2) * 10) -- 10 seconds per item
-            print("cooking_time: " .. tostring(state.cooking_time))
+            -- print("cooking_time: " .. tostring(state.cooking_time))
         end
 
         return generic_hooks.std_hook1(state, parent, flag, Module.og_state, "simple_home(furnace)")

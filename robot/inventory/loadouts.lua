@@ -9,6 +9,12 @@ local inv = require("inventory.inv_obj")
 
 local inventory_size = 32
 -- aka, pickaxe and fuel, hopefully recipe management/crafting is well syncronized with this
+local __l_test = {
+    {"Stone Bricks", "minecraft:", 48, 12},
+    {"Gravel", "minecraft:", 32, 8},
+    {"nil", "any:log", 32, 8},
+}
+
 local __l_second = {
     {"Flint Pickaxe", "tool:pickaxe", 2, 1},
     {"nil", "any:plank", 128, 48},
@@ -21,6 +27,12 @@ local loadouts = {
         data = __l_second,
         condition = function()
             return WHAT_LOADOUT == "second"
+        end,
+    },
+    {
+        data = __l_test,
+        condition = function()
+            return WHAT_LOADOUT == "test"
         end,
     },
 }

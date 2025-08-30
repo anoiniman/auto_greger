@@ -29,6 +29,12 @@ end
 local cur_ammount
 local cur_lable, cur_name
 local function refuel()
+    if computer.energy() > 19400 then
+        gen.remove(gen.count())
+        inv.maybe_something_added_to_inv()
+        return
+    end
+
     cur_ammount = gen.count()
     if cur_ammount > 24 then
         return
