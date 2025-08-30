@@ -23,6 +23,7 @@ local Module = {
 
     where = 1, -- if we are in from or in to
     has_door_moved = false,
+    has_chunk_moved = false,
     mode_func = nil
 }
 
@@ -53,6 +54,7 @@ function Module:doLogistics()
         self.where = self.where + 1
         self.mode_func = self.goTo
         self.has_door_moved = false
+        self.has_chunk_moved = false
         return "go_on"
     end
 
@@ -116,24 +118,24 @@ function Module:goTo()
     end
 
     local target_chunk = target:getChunk()
+    local cur_coords = nav.get_rel()
+
+    if nav.get_cur_building() == target.parent_build then
+        self.has_door_moved = true
+        goto skip_door_move
+    end
+
     -- Chunk Move
-    if not nav.is_in_chunk(target_chunk) then
+    if not self.has_chunk_moved then
         if not nav.is_setup_navigate_chunk() then
             nav.setup_navigate_chunk(target_chunk)
         end
-        nav.navigate_chunk("surface") -- I think we don't need to check return?
+        self.has_chunk_moved = nav.navigate_chunk("surface") -- I think we don't need to check return?
         return "go_on"
     end
 
-    local cur_coords = nav.get_rel()
-
     -- Door Move
     if not self.has_door_moved then
-        if nav.get_cur_building() == target.parent_build then
-            self.has_door_moved = true
-            goto skip_door_move
-        end
-
         local door_info = target.parent_build.doors
         if not door_move.is_setup() then door_move.setup_move(door_info, cur_coords) end
         local result, _ = door_move.do_move(nav)

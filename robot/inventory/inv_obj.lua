@@ -381,7 +381,8 @@ function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
         return nil
     end
 
-    return sorted_inv_table[1]
+    local first_entry = sorted_inv_table[1]
+    return first_entry[1]
 end
 
 -- No, I'm not going to solve the travelling salesman problem
