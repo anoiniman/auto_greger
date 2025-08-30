@@ -173,6 +173,9 @@ local function handler(err)
     -- error("Unchecked")
 end
 
+local zot_clock = 60
+local zot_interval = computer.uptime()
+
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP
 ROBO_MAIN_THREAD_SLEEP = 0.2
 local function robot_main()
@@ -180,7 +183,11 @@ local function robot_main()
     comms.setup_listener()
 
     while not do_exit do
-        os.sleep(ROBO_MAIN_THREAD_SLEEP) -- luacheck: ignore
+        if computer.uptime() - zot_interval > (23 * zot_clock) / 36 then -- / a bit less than 2/3d's
+            os.sleep(ROBO_MAIN_THREAD_SLEEP) -- luacheck: ignore
+            zot_interval = computer.uptime()
+        end
+
         if keyboard.isKeyDown(keyboard.keys.q) then -- should've done this months ago
             block_read_bool = true
         end
