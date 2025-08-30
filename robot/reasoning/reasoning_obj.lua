@@ -175,8 +175,8 @@ function reason_obj.step_script()
         loaded = true
     end
 
-    local command_table = REASON_WAIT_LIST:checkAndStep()
-    if command_table ~= nil then return command_table end
+    local return_type, command_table = REASON_WAIT_LIST:checkAndStep()
+    if command_table ~= nil then return return_type, command_table end
 
     return cur_script:step()
 end
