@@ -132,9 +132,9 @@ Module.state_init = {
     end,
     function(parent)
         local st_table = {
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 1, "chest"),
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 2, "chest"),
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "*", 3, "double_chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", 1, "chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", 2, "chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", 3, "double_chest"),
         }
 
         return {st_table, 1}
