@@ -354,6 +354,10 @@ end
 -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
 function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
     -- print("used_building")
+    if index == nil then
+        print(comms.robot_send("warning", "this shouldn't happen under any circunstance, useBuilding"))
+        return nil
+    end
 
     if index == 1 then
         -- first hook must correspond to this pattern
