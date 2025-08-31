@@ -33,7 +33,7 @@ function module.identify(name, lable)
 
     -- prob will catch the blocks as well
     if flabl ("Coal")               then return     "any:fuel"          end
-    if flabl ("Coke")               then return     "any:fuel"          end
+    if flabl ("^Coal Coke$")        then return     "any:fuel"          end
     if flabl ("Charcoal")           then return     "any:fuel"          end
     if fname ("^any:fuel$")         then return     "any:fuel"          end
 

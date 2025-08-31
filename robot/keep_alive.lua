@@ -128,7 +128,9 @@ function module.possible_round_trip_distance(reserve, high_margin)
     return cur_energy * (17.0 / 4.0) -- converts sU into blocks
 end
 
-local function basic_energy_management(_cur_energy, percentage)
+local function basic_energy_management()
+    local percentage = ((computer.energy() / 64.0) / max_energy) * 100
+
     -- Determine if we have to emergency shut-off or something like that
     if percentage < 12.0 then
         print(comms.robot_send("warning", "Energy Dropped below 12%, shutting down"))
@@ -142,8 +144,7 @@ local function basic_energy_management(_cur_energy, percentage)
     if percentage > 50.0 and issued_warning then issued_warning = false end
 
     -- Determine if we need to take a break
-    local raw_percentage = ((computer.energy() / 64.0) / max_energy) * 100
-    if raw_percentage < 15.0 then os.sleep(3) end
+    if percentage < 15.0 then os.sleep(3) end
 end
 
 function module.keep_alive()
