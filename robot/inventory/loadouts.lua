@@ -183,7 +183,7 @@ function module.do_loadout_logistics(arguments)
             to_dump = inv.virtual_inventory:howMany(lable, name)
         end
 
-        local nearest_inv = inv.get_nearest_inv_by_definition(lable, name, to_dump)
+        local nearest_inv = inv.get_nearest_inv_by_definition(lable, name, math.ceil(to_dump / 64))
         if nearest_inv == nil then
             n_inv_warning(lable, name, to_dump, true)
             return false
@@ -243,7 +243,7 @@ function module.do_loadout_logistics(arguments)
                 local real_quantity = inv.virtual_inventory:howMany(lable, name)
 
                 if real_quantity <= def[3] then -- don't dump, if we don't have too much of it
-                    item_index = item_index + 1
+                    -- item_index = item_index + 1
                     return do_return()
                 end -- else
 

@@ -371,10 +371,10 @@ function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
 
     -- Now we sort by the cmp value, a scaled value of distance and inventory space
     local sorted_inv_table
-    if #unsorted_inv_table ~= 0 then
+    if #unsorted_inv_table > 0 then
         sort_table_indexed(unsorted_inv_table, false, 2)
         sorted_inv_table = unsorted_inv_table
-    elseif #unsorted_inv_table_misc ~= 0 then
+    elseif #unsorted_inv_table_misc > 0 then
         sort_table_indexed(unsorted_inv_table_misc, false, 2)
         sorted_inv_table = unsorted_inv_table_misc
     else
