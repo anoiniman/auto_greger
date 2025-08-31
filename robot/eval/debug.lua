@@ -256,7 +256,8 @@ function module.debug(arguments)
                     return nil
                 end
 
-                loadouts.do_loadout(priority) -- forces robot to try and handle it's loadout
+                local name, command_table = loadouts.do_loadout(priority) -- forces robot to try and handle it's loadout
+                return command_table
             else
                 print(comms.robot_send("error", "invalid arguments for inv force"))
             end

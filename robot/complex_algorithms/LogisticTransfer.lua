@@ -45,16 +45,20 @@ function Module:new(from_inventory, to_inventory, item_tbl)
     return new
 end
 
+function Module:doReset() -- increments where by one and sets mode to goTo
+    self.item_tbl_index = 1
+
+    self.where = self.where + 1
+    self.mode_func = self.goTo
+    self.has_door_moved = false
+    self.has_chunk_moved = false
+end
+
 function Module:doLogistics()
     if dbg_call < 4 then print(comms.robot_send("debug", "doLogistics")) end
 
     if self.item_tbl_index > #self.item_tbl then -- go to next where if applicable
-        self.item_tbl_index = 1
-
-        self.where = self.where + 1
-        self.mode_func = self.goTo
-        self.has_door_moved = false
-        self.has_chunk_moved = false
+        self:doReset()
         return "go_on"
     end
 
@@ -116,7 +120,7 @@ function Module:goTo()
     -- [Very Important thing I forgot, if the target is self, well, we're already there right?]
     -- NO WE AREN'T YOU STUPID GIT, we need to move to wehre we want to dump eviedently, we want to skip something different
     if target == "self" then
-        self.where = self.where + 1
+        self:doReset()
         dbg_call = 0
         return "go_on"
     end

@@ -993,6 +993,8 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
         else
             local _, _, cur_quantity = external_inventory.ledger:getSlotInfo(external_slot)
             external_inventory.ledger:forceUpdateSlot(lable, name, cur_quantity + quantity, external_slot)
+            -- then we need to get the next free external slot, duh
+            external_slot = external_inventory.ledger:getEmptySlot()
         end
 
         ::continue::
