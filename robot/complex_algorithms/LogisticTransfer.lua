@@ -24,6 +24,7 @@ local Module = {
     where = 1, -- if we are in from or in to
     has_door_moved = false,
     has_chunk_moved = false,
+    has_rel_moved = false,
     mode_func = nil
 }
 
@@ -52,6 +53,7 @@ function Module:doReset() -- increments where by one and sets mode to goTo
     self.mode_func = self.goTo
     self.has_door_moved = false
     self.has_chunk_moved = false
+    self.has_rel_moved = false
 end
 
 function Module:doLogistics()
@@ -157,15 +159,16 @@ function Module:goTo()
 
 
     -- Rel Move to Special Block
-    local height = nav.get_height()
     local target_coords = target:getCoords()
-    if cur_coords[1] ~= target_coords[1] or cur_coords[2] ~= target_coords[2] or height ~= target_coords[3] then
+    if not self.has_rel_moved then
         if not nav.is_setup_navigate_rel() then
             nav.setup_navigate_rel(target_coords)
         end
         local result = nav.navigate_rel()
         if result == 1 then
             os.sleep(1) -- not very smart
+        elseif result == -1 then
+            self.has_rel_moved = true
         end
         return "go_on"
     end
