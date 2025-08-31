@@ -120,8 +120,9 @@ function module.check_loadouts()
 
     ----------- Using min items --------------
     for _, def in ipairs(cur_loadout) do
-        local real_quantity = inv.virtual_inventory:howMany(def[1], def[2])
-        if def[4] > real_quantity then
+        local internal_quantity = inv.virtual_inventory:howMany(def[1], def[2])
+        local external_quantity = inv.how_many_total(def[1], def[2]) - internal_quantity
+        if def[4] > internal_quantity and external_quantity > (def[3] / 2) then
             return "loadout", module.do_loadout(92)
         end
     end
