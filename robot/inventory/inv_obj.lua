@@ -353,7 +353,7 @@ function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
     local unsorted_inv_table_misc = {}
     local unsorted_inv_table = {}
     for _, fat_inv in iter_external_inv() do
-        if fat_inv.long_term_storage or not fat_inv.storage then
+        if not fat_inv.long_term_storage or not fat_inv.storage then
             goto continue
         end
 

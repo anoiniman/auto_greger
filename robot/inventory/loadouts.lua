@@ -112,7 +112,10 @@ function module.do_loadout(priority, pre_selected, lock) -- useful for when you 
     return command_tbl
 end
 
+local holdout_clock = computer.uptime()
 function module.check_loadouts()
+    if computer.uptime() - holdout_clock < 33 then return nil end
+
     select_loadout()
 
     ----------- Using min items --------------
@@ -126,7 +129,7 @@ function module.check_loadouts()
     ------------ Using empty Slots ------------
     local empty_slots = inv.virtual_inventory:getNumOfEmptySlots() - 9 + math.floor((#cur_loadout / 3))
     local clock_diff = computer.uptime() - loadout_clock -- seconds
-    local diff_m = clock_diff * 60
+    local diff_m = clock_diff / 60
 
     local priority
     if empty_slots > 16 then
@@ -267,6 +270,7 @@ function module.do_loadout_logistics(arguments)
         doing_loadout = nil
         was_preselected = false
         loadout_clock = computer.uptime()
+        holdout_clock = computer.uptime()
         return nil
     end
     local cur_def = selected_loadout[item_index]
