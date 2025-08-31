@@ -101,8 +101,7 @@ Module.state_init = {
         } -- we only wait 1 minute now
     end,
     function()
-        -- return { state_type = "action" } -- le chop trees
-        return nil
+        return { state_type = "action" } -- le chop trees
     end,
     --[[function(parent)
         local storage_table = {

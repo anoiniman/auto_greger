@@ -104,7 +104,7 @@ local __r_iron01 = MetaRecipe:newBuildingUser(output, "small_home", "raw_usage",
 
 
 local recipe_table = {
-    __r_log02,
+    __r_log02,  -- On the real one we'll need to change this based on flags TODO
     __r_flint01,
     __r_plank01,
     __r_ore_gather,
