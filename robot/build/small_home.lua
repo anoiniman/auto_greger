@@ -116,6 +116,13 @@ end
 
 Module.shared_state = Module.og_state()
 
+local function determine_quad(door)
+    if door.x > 8 and door.z < 8 then return 1 end
+    if door.x < 8 and door.z < 8 then return 2 end
+    if door.x < 8 and door.z > 8 then return 3 end
+    if door.x > 8 and door.z > 8 then return 4 end
+end
+
 -- First element of the hook array == special_symbol "*", etc.
 Module.state_init = {
     function()
@@ -131,10 +138,25 @@ Module.state_init = {
         return Module.shared_state -- takes the same ref
     end,
     function(parent)
+        local one = 1; local two = 2; local three = 3
+        local quad = determine_quad(parent.doors[1])
+        if quad == 1 then
+            one = 2
+            two = 1
+        elseif quad == 3 then
+            one = 2
+            two = 3
+            three = 1
+        elseif quad == 4 then
+            one = 3
+            two = 2
+            three = 1
+        end
+
         local st_table = {
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", 1, "chest"),
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", 2, "chest"),
-            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", 3, "double_chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", one, "chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", two, "chest"),
+            MetaInventory:newLongTermStorage({MetaItem:new("any:any", nil, false, nil)}, parent, "+", three, "double_chest"),
         }
 
         return {st_table, 1}

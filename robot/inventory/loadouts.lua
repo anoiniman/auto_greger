@@ -259,6 +259,7 @@ function module.do_loadout_logistics(arguments)
         error(comms.robot_send("fatal", "How does this happen?"))
     end
 
+    print("item_index")
     -- Now we are in the sucking phase, when we run out of items to fetch we terminate ourselves
     if item_index > #selected_loadout then
         item_index = 1
@@ -269,6 +270,7 @@ function module.do_loadout_logistics(arguments)
         return nil
     end
     local cur_def = selected_loadout[item_index]
+    item_index = item_index + 1
 
     local lable = cur_def[1]
     local name = cur_def[2]
