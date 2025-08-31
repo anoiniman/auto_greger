@@ -121,7 +121,7 @@ function module.check_loadouts()
     ----------- Using min items --------------
     for _, def in ipairs(cur_loadout) do
         local real_quantity = inv.virtual_inventory:howMany(def[1], def[2])
-        if def[4] < real_quantity then
+        if def[4] > real_quantity then
             return "loadout", module.do_loadout(92)
         end
     end
@@ -262,7 +262,7 @@ function module.do_loadout_logistics(arguments)
         error(comms.robot_send("fatal", "How does this happen?"))
     end
 
-    print("item_index")
+    -- print("item_index")
     -- Now we are in the sucking phase, when we run out of items to fetch we terminate ourselves
     if item_index > #selected_loadout then
         item_index = 1

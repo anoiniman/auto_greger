@@ -123,6 +123,7 @@ local function last_move(nav_func) -- changed to 2, but could be 1 idk
     elseif goal_rel[1] == 15 then dir = "west"
     elseif goal_rel[2] == 15 then dir = "north"
     elseif goal_rel[2] == 0 then dir = "south"
+    else
         print(comms.robot_send("warning", "door_move.last_move() -- couldn't last move!"))
     end
 
