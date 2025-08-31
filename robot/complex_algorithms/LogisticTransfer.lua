@@ -116,10 +116,6 @@ function Module:goTo()
     -- [Very Important thing I forgot, if the target is self, well, we're already there right?]
     -- NO WE AREN'T YOU STUPID GIT, we need to move to wehre we want to dump eviedently, we want to skip something different
     if target == "self" then
-        -- I GET IT NOW, THE PREVIOUS SKIP MODE WORKS WHEN WE'RE TRYING TO DO SOME THINGS, (sucking)
-        -- AND THE CURRENT SKIP MODE WORKS FOR WHEN WE TRY TO DO OTHER THINGS (dumping)
-        -- TODO - WE NEED TO COMBINE THEM
-
         self.where = self.where + 1
         dbg_call = 0
         return "go_on"

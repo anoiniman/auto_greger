@@ -13,8 +13,8 @@ local module = {}
 
 -- aka, pickaxe and fuel, hopefully recipe management/crafting is well syncronized with this
 local __l_test = {
-    {"Stone Bricks", "minecraft:", 48, 12},
-    {"Gravel", "minecraft:", 32, 8},
+    {"Stone Bricks", "minecraft:generic", 48, 12},
+    {"Gravel", "minecraft:generic", 32, 8},
     {"nil", "any:log", 32, 8},
 }
 
@@ -171,7 +171,7 @@ function module.do_loadout_logistics(arguments)
         print(comms.robot_send("warning",
             string.format("\z
             The robot (tm) ran out %s to fulfil the following definition:\n\z
-            lable: %s, name:%s, to_dump:%s", variable_str, lable, name, up_to)
+            lable: %s, name:%s, quantity:%s", variable_str, lable, name, up_to)
         ))
     end
 
