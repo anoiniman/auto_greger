@@ -41,7 +41,7 @@ function MetaScript:addGoal(goal)
 end
 
 function MetaScript:createTempDependency(wanted_output, recipe_mult)
-    for _, recipe in ipairs(self.recipe) do
+    for _, recipe in ipairs(self.recipes) do
         local output = recipe.output
         if  (output.lable == wanted_output.lable and output.name == wanted_output.name)
             or (wanted_output.lable == nil and output.name == wanted_output.name)
@@ -260,8 +260,12 @@ local function recurse_recipe_tree(head_recipe, needed_quantity, ctx)
         return_info = extra_info
     elseif check == "replace" then
         recurse = false
-        recipe_to_execute = extra_info.inlying_recipe
-        needed_quantity = math.ceil(needed_quantity * extra_info.input_multiplier)
+        if extra_info ~= nil then
+            recipe_to_execute = extra_info.inlying_recipe
+            needed_quantity = math.ceil(needed_quantity * extra_info.input_multiplier)
+        else
+            return nil
+        end
     elseif check == "non_fatal_error" then
 
         print(comms.robot_send("warning", "recurse_recipe_tree non_fatal_error, check your ils for more information"))

@@ -196,7 +196,7 @@ function module.navigate_chunk(what_kind, nav_obj, cur_building)
 end
 
 function module.reset()
-    print(comms.robot_send("info", "We've arrived at the target chunk"))
+    print(comms.robot_send("debug", "We've arrived at the target chunk"))
     is_setup = false
 end
 
