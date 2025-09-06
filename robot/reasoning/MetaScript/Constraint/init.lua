@@ -3,7 +3,7 @@ local comms = require("comms")
 
 local ItemConstraint = require("reasoning.MetaScript.Constraint.ItemConstraint")
 local _, BuildingConstraint = table.unpack(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
-local OosConstraint, _ = table.unpack(require("reasoning.MetaScript.Constraint.OosConstraint"))
+local OosConstraint, QuestObj = table.unpack(require("reasoning.MetaScript.Constraint.OosConstraint"))
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met
 -- the force or the constraint is slackened, might be unimplemented for now
@@ -52,6 +52,11 @@ function Constraint:newQuestConstraint(quest_table)
     local new = self:new()
     new.const_type = "quest"
     new.const_obj = OosConstraint:new(quest_table)
+    return new
+end
+
+function Constraint:newQuestObj(lable, name, count)
+    local new = QuestObj:new(lable, name, count)
     return new
 end
 

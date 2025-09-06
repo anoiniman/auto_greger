@@ -238,7 +238,16 @@ Module.hooks = {
             -- print("cooking_time: " .. tostring(state.cooking_time))
         end
 
-        return generic_hooks.std_hook1(state, parent, flag, Module.og_state, "simple_home(furnace)")
+        local go_next = generic_hooks.std_hook1(state, parent, flag, Module.og_state, "simple_home(furnace)")
+        if go_next > 2 then
+            state.fsm = 1
+            state.in_what_asterisk = 1
+            state.temp_reg = nil
+            state.in_building = false
+
+            return nil
+        end
+        return go_next
     end,
     function(state) -- Interact with furnace
         -- print("executed 1")

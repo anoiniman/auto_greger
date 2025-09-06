@@ -182,7 +182,16 @@ Module.hooks = {
         local serial = serialize.serialize(state, true)
         print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
 
-        return generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "oak_tree_farm")
+        local go_next = generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "oak_tree_farm")
+        if go_next > 2 then
+            state.fsm = 1
+            state.in_what_asterisk = 1
+            state.temp_reg = nil
+            state.in_building = false
+
+            return nil
+        end
+        return go_next
     end,
     function() -- only call this once the last_check is x minutes after uptime
         -- I think the orientation doesn't change as we mirror, so it's ok to define it in east-west

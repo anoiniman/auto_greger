@@ -25,8 +25,22 @@ builder:addGoal(home_goal)
 builder:setDictionary(dictionary)
 builder:addMultipleRecipes(main_line_recipes)
 
+constraint = Constraint:newBuildingConstraint("hole_home", 0, 0, 1)
+local hole_goal = Goal:new(home_goal, constraint, 40, "h_home_const", true)
+builder:addGoal(hole_goal)
+
+local quest01_table = {
+    -- Constraint:newQuestObj("any:ingot", "Iron Ingot", 32),
+    Constraint:newQuestObj("minecraft:generic", "Dirt", 8),
+}
+
+constraint = Constraint:newQuestConstraint(quest01_table)
+local quest_goal = Goal:new(hole_goal, constraint, 50, "quest_const", true)
+builder:addGoal(quest_goal)
+
+
 constraint = Constraint:newItemConstraint("any:ingot", "Iron Ingot", 16, 64, nil)
-local iron_goal = Goal:new(home_goal, constraint, 50, "iron_const", false)
+local iron_goal = Goal:new(quest_goal, constraint, 50, "iron_const", false)
 builder:addGoal(iron_goal)
 
 

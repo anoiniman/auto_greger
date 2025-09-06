@@ -4,12 +4,13 @@ local module = {}
 -- import of globals
 local serialize = require("serialization")
 local robot = require("robot")
+local keyboard = require("keyboard")
+local sides_api = require("sides")
 
 -- local imports
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local post_exit = require("post_exit")
-
 
 local geolyzer = require("geolyzer_wrapper")
 local nav = require("nav_module.nav_obj")
@@ -19,6 +20,10 @@ local loadouts = require("inventory.loadouts")
 
 local reason = require("reasoning.reasoning_obj")
 local _, ore = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
+
+local component = require("component")
+local inv_controller = component.getPrimary("inventory_controller")
+
 
 local known_symbols = {
     geolyzer = geolyzer,
@@ -60,9 +65,43 @@ function module.debug(arguments)
         HOME_CHUNK[1] = x
         HOME_CHUNK[2] = z
         print(comms.robot_send("info", string.format("HOME_CHUNK = (%s, %s)", HOME_CHUNK[1], HOME_CHUNK[2])))
+    elseif arguments[1] == "dig_move" then
+        local dir = arguments[2]
+        local to_move = tonumber(arguments[3])
+        local use_tool = arguments[3]
+
+        if dir == nil then
+            print(comms.robot_send("error", "nil direction in debug move"))
+            return nil
+        end
+        if to_move == nil then to_move = 1 end
+
+        for i = 1, to_move, 1 do
+            os.sleep(0.1)
+            if keyboard.isKeyDown(keyboard.keys.q) then break end
+            local result, err = nav.debug_move(dir, 1)
+            if err == "impossible" then
+                print(comms.robot_send("error", "impossible move reached"))
+                break
+            elseif err == "solid" then
+                local s_result
+                if use_tool ~= nil then s_result = inv.smart_swing(use_tool, "front", 0)
+                else s_result = inv.blind_swing_front() end
+
+                if not s_result then
+                    print(comms.robot_send("error", "it was unbreakable desu"))
+                    break
+                end
+
+                nav.debug_move(dir, 1)
+            elseif err ~= nil then
+                print(comms.robot_send("error", string.format("err: %s move reached", err)))
+                break
+            end
+        end
     elseif arguments[1] == "move" then
         local move = arguments[2]
-        local how_much = arguments[3]
+        local how_much = tonumber(arguments[3])
         local forget = arguments[4]
         if move == nil then
             print(comms.robot_send("error", "nil direction in debug move"))
@@ -206,6 +245,34 @@ function module.debug(arguments)
                 inv.print_external_inv(name, index, uncompressed)
                 return nil
             end
+        elseif arguments[2] == "drop_into_slot" then -- doesn't update internal/external inventory :P, remember to force update
+            local internal_slot = tonumber(arguments[3])
+            local external_slot = tonumber(arguments[4])
+            local count = tonumber(arguments[5])
+
+            if internal_slot == nil or external_slot == nil then
+                print(comms.robot_send("error", "Bad internal/external slot"))
+                return nil
+            end
+
+            robot.select(internal_slot)
+            inv_controller.drop_into_slot(sides_api.front, external_slot, count)
+            robot.select(1)
+
+        elseif arguments[2] == "suck_from_slot" then
+            local internal_slot = tonumber(arguments[3])
+            local external_slot = tonumber(arguments[4])
+            local count = tonumber(arguments[5])
+
+            if internal_slot == nil or external_slot == nil then
+                print(comms.robot_send("error", "Bad internal/external slot"))
+                return nil
+            end
+
+            robot.select(internal_slot)
+            inv_controller.suck_from_slot(sides_api.front, external_slot, count)
+            robot.select(1)
+
         elseif arguments[2] == "force" then
             if arguments[3] == "add_all" then
                 if arguments[4] == "internal" or arguments[4] == nil then

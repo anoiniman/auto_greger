@@ -200,8 +200,8 @@ end
 -- the requires schematic, so it is much more a case of extracting the required
 -- user interaction from the user -- this is to say, the recipes are the buildings
 -- themselves which are self-explaining, unlike items which require explanations
-local Goal = {name = "None", dependencies = nil, constraint = nil, priority = 0, do_once = false}
-function Goal:new(dependencies, constraint, priority, name, do_once)
+local Goal = {name = "None", dependencies = nil, constraint = nil, priority = 0, do_once = false, post_exec = nil, pe_executed = nil}
+function Goal:new(dependencies, constraint, priority, name, do_once, post_exec)
     local new = deep_copy.copy(self, pairs)
     if name == nil then
         print(comms.robot_send("error", "Failed to create goal because no name sent"))
@@ -219,10 +219,22 @@ function Goal:new(dependencies, constraint, priority, name, do_once)
     end
     new.constraint = constraint or nil -- may resolve to nil or nil and that is hilarious
     new.priority = priority or 0
+
+    if post_exec ~= nil then
+        new.post_exec = post_exec
+        new.pe_executed = false
+    end
+
     return new
 end
 
+-- {name = "None", dependencies = nil, constraint = nil, priority = 0, do_once = false, post_exec = nil, pe_executed = nil}
 function Goal:selfSatisfied()
+    if self.constraint.const_obj.lock[1] == 3 and self.post_exec ~= nil and self.pe_executed == false then
+        self.post_exec()
+        self.pe_executed = true
+    end
+
     return self.constraint:check(self.do_once)
 end
 

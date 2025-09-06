@@ -21,7 +21,6 @@ Module.name = "spruce_tree_farm"
 
 Module.dictionary = {
     ["s"] = {"Spruce Sapling", "minecraft:sapling"},
-    ["c"] = {"Chest", "minecraft:chest"},
     ["d"] = {"Dirt", "minecraft:dirt"},
     ["y"] = {"Stone Bricks Slab", "minecraft:", "down"},
     ["l"] = {"Cobblestone Slab", "minecraft:", "down"},
@@ -48,12 +47,12 @@ Module.human_readable = {
     },
     {
     "t-----t",
-    "-dd--+c",
-    "-dd--+c",
+    "-dd----",
+    "-dd----",
     "---t---",
-    "c+--dd-",
-    "c+--dd-",
-    "tc+---t",
+    "----dd-",
+    "----dd-",
+    "t-----t",
     },
     {
     "-------",
@@ -91,23 +90,8 @@ Module.state_init = {
         }
     end,
     function(index)
-        local item
-        if index == 1 or index == 3 then
-            item = MetaItem:new(nil, "Spruce Wood", true, nil)
-        elseif index == 2 or index == 4 then
-            item = MetaItem:new(nil, "Spruce Sapling", true, nil)
-        elseif index == 5 then
-            item = MetaItem:new("any:cache", nil, true, nil)
-        end
-
-        local item_list = {item}
-        local new_machine = MetaInventory:newMachine(item_list)
-        new_machine["state_type"] = "inventory"
-        return new_machine
-    end,
-    function()
         return { state_type = "action" }
-    end
+    end,
 }
 
 local function something_added()

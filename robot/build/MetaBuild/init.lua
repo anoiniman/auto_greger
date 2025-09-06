@@ -354,6 +354,8 @@ end
 -- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
 function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
     -- print("used_building")
+    -- print(comms.robot_send("info", string.format("bd activated: %s, index: %s", self.name, index)))
+
     if index == nil then
         print(comms.robot_send("warning", "this shouldn't happen under any circunstance, useBuilding"))
         return nil
