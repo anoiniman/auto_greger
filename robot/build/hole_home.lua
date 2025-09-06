@@ -106,7 +106,16 @@ Module.state_init = {
 
 Module.hooks = {
     function(state, parent, flag, _quantity_goal, _state_table)
-        return generic_hooks.std_hook1(state, parent, flag, Module.og_state, "hole_home")
+        local go_next = generic_hooks.std_hook1(state, parent, flag, Module.og_state, "hole_home")
+        if go_next > 2 then
+            state.fsm = 1
+            state.in_what_asterisk = 1
+            state.temp_reg = nil
+            state.in_building = false
+
+            return nil
+        end
+        return go_next
     end,
     function() -- empty, because all we need to do is move to the *
         return nil
