@@ -864,6 +864,7 @@ function module.load_preset()
     module.pretend_build("home", "coke_quad", chunk, 1)
     module.pretend_build("home", "oak_tree_farm", chunk, 3)
     module.pretend_build("home", "sp_storeroom", what_chunk, 1)
+    module.pretend_build("home", "small_home", what_chunk, 4)
 end
 
 -- more temp

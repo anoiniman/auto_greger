@@ -59,8 +59,14 @@ local finv_scan_interval = computer.uptime()
 local cron_time_interval = computer.uptime()
 local function cron_jobs()
     -- every 10 minutes for now
-    if computer.uptime() - finv_scan_interval > 600 then inv.force_update_vinv() end
-    if computer.uptime() - auto_save_interval > 60 * 20 then post_exit.save_state() end
+    if computer.uptime() - finv_scan_interval > 600 then
+        inv.force_update_vinv()
+        finv_scan_interval = computer.uptime()
+    end
+    if computer.uptime() - auto_save_interval > 60 * 20 then
+        post_exit.save_state()
+        auto_save_interval = computer.uptime()
+    end
 
     -- luacheck: ignore message_type
     local cron_message
@@ -178,7 +184,7 @@ local zot_clock = 30
 local zot_interval = computer.uptime()
 
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP
-ROBO_MAIN_THREAD_SLEEP = 0.1
+ROBO_MAIN_THREAD_SLEEP = 0.2
 local function robot_main()
     -- START
     comms.setup_listener()
