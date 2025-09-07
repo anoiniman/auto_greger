@@ -154,6 +154,17 @@ function module.debug(arguments)
 
         nav.set_pos_auto(x, z, y)
 
+    elseif arguments[1] == "place" then
+        local dir = tostring(arguments[2])
+        local lable = tostring(arguments[3])
+        local name = tostring(arguments[4])
+
+        if dir == nil or lable == nil or name == nil then
+            print(comms.robot_send("error", "Try again"))
+            return nil
+        end
+
+        inv.place_block(dir, {lable = lable, name = name}, "table")
     elseif arguments[1] == "swing" then
         local dir = arguments[2]
         if dir == nil then dir = "front" end
