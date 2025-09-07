@@ -219,6 +219,7 @@ function Module:setupBuild(what_quad, chunk_height)
     -- its ok to retain this after dumping the primitive because of GC, I think
     self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
     if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
+        print("top_bottomed")
         self.s_interface.build_stack.logical_y = #self.s_interface.schematic
     end
     self.special_blocks = self.s_interface:getSpecialBlocks()

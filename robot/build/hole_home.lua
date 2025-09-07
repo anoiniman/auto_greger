@@ -15,13 +15,12 @@ Module.dictionary = {
     --["t"] = "Torch",
     ["d"] = {"nil", "any:grass"},
     ["a"] = {"air", "shovel"},
-    ["s"] = {"air", "shovel"},
+    ["|"] = {"air", "shovel"},
     ["o"] = "Object Observation Station (OOS)",
     ["r"] = "Radioisotope Thermoelectric Generator",
 }
 
--- Orientation is assumed for sector 3 (x:-1,z:-1)
--- create rotation function somewhere
+-- Reverse ordering is not producing the right thing wtf, its starting from the top???
 Module.base_table = {
     {
     "-------",

@@ -30,6 +30,7 @@ constraint = Constraint:newBuildingConstraint(hole_home)
 local hole_goal = Goal:new(home_goal, constraint, 40, "h_home_const", true)
 builder:addGoal(hole_goal)
 
+-- WARNING (TODO) we're getting a cant find recipe "nil", "nil" from this point onwards so yeah
 local quest01_table = {
     -- Constraint:newQuestObj("any:ingot", "Iron Ingot", 32),
     Constraint:newQuestObj("minecraft:generic", "Dirt", 8),
