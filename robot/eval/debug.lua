@@ -277,7 +277,7 @@ function module.debug(arguments)
             end
 
             robot.select(internal_slot)
-            inv_controller.drop_into_slot(sides_api.front, external_slot, count)
+            inv_controller.dropIntoSlot(sides_api.front, external_slot, count)
             robot.select(1)
 
         elseif arguments[2] == "suck_from_slot" then
@@ -291,7 +291,7 @@ function module.debug(arguments)
             end
 
             robot.select(internal_slot)
-            inv_controller.suck_from_slot(sides_api.front, external_slot, count)
+            inv_controller.suckFromSlot(sides_api.front, external_slot, count)
             robot.select(1)
 
         elseif arguments[2] == "force" then

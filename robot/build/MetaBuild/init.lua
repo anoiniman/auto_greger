@@ -260,6 +260,7 @@ function Module:require(name, what_chunk)
         self:initPrimitive()
         return true
     end
+    if name == nil then name = "nil" end
 
     local path = "/home/robot/build/" .. name .. ".lua"
     local build_table = nil -- luacheck: ignore

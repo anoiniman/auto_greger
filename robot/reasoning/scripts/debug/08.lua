@@ -25,7 +25,8 @@ builder:addGoal(home_goal)
 builder:setDictionary(dictionary)
 builder:addMultipleRecipes(main_line_recipes)
 
-constraint = Constraint:newBuildingConstraint("hole_home", 0, 0, 1)
+local hole_home = StructureDeclaration:new("hole_home", 0, 0, 1)
+constraint = Constraint:newBuildingConstraint(hole_home)
 local hole_goal = Goal:new(home_goal, constraint, 40, "h_home_const", true)
 builder:addGoal(hole_goal)
 
