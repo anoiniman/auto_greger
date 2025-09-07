@@ -61,6 +61,7 @@ end
 
 
 -- the only thing we need to save is the locks of the goals lol
+-- TODO, save the pe_executed value if needed, prob not needed
 function reason_obj.get_data()
     local cur_script_desc = nil
     local script_tbl = {}

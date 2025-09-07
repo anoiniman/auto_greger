@@ -1276,9 +1276,10 @@ function module.load_preset(map)
     -- if not module.add_to_inventory(map, "sp_storeroom", 1, "Oak Wood", "any:log", 31, 1) then press_enter() end
 
     -- Loadout test --
-    if not module.add_to_inventory(map, "small_home", 1, "Oak Wood", "any:log", 32, 1) then press_enter() end
-    if not module.add_to_inventory(map, "small_home", 1, "Stone Bricks", "minecraft:generic", 64, 2) then press_enter() end
-    if not module.add_to_inventory(map, "small_home", 1, "Gravel", "minecraft:generic", 32, 3) then press_enter() end
+    if not module.add_to_inventory(map, "small_home", 1, "Dirt", "minecraft:generic", 32, 1) then press_enter() end
+    if not module.add_to_inventory(map, "small_home", 1, "Iron Ingot", "any:ingot", 32, 1) then press_enter() end
+--    if not module.add_to_inventory(map, "small_home", 1, "Stone Bricks", "minecraft:generic", 64, 2) then press_enter() end
+  --  if not module.add_to_inventory(map, "small_home", 1, "Gravel", "minecraft:generic", 32, 3) then press_enter() end
     WHAT_LOADOUT = "test"
     ---- ----- ----
 end

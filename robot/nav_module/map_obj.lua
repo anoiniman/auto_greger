@@ -299,13 +299,24 @@ if default_map_size % 2 == 0 then
     error(comms.robot_send("fatal", "default_map_size is divisble by 2"))
 end
 
+-- x = rx + offset <=> rx = x - offset; simplest algebra (?) in the market
+
+-- keep in mind that offset is inversed, a positive offset manifests itself by mapping logical offsets
+-- to lower "real coordinates",
+-- for example: when off = {1, 1} lx = 1, rx = 0;
+-- but when off = {2, 2} lx = 1, rx = -1 [example written without taking into account negative offset],
+-- so lx = 1 may be thought of the center, rather than leftmost edge
 function module.gen_map_obj(offset)
     if map_obj[1] ~= nil then
-        print(comms.robot_send("error", "map_obj already generated"))
-        return false
+        print(comms.robot_send("warning", "map_obj was already generated"))
+        map_obj = {}
     end
 
-    map_obj_offsets = offset
+    if offset ~= nil then
+        offset[1] = offset[1] + 1
+        offset[2] = offset[2] + 1
+        map_obj_offsets = offset
+    end
 
     -- (necessary offset so that we can load negative numbers)
     local negative_offset = math.floor(current_map_size / 2)
@@ -314,6 +325,8 @@ function module.gen_map_obj(offset)
 
     local size = default_map_size
     for x = 1, size, 1 do
+        -- when we derive logical from real, rx + offset, when real from logical x - offset
+
         map_obj[x] = {}
         local real_x = x - map_obj_offsets[1];
         for z = 1, size, 1 do
@@ -487,7 +500,9 @@ function module.chunk_exists(what_chunk)
     local z = what_chunk[2] + map_obj_offsets[2];
 
     if map_obj[x] == nil or map_obj[x][z] == nil then
-        print(comms.robot_send("error", "ungenerated chunk"))
+        local rx = what_chunk[1]
+        local rz = what_chunk[2]
+        print(comms.robot_send("error", string.format("ungenerated chunk: lxz: {%d, %d} || rxz: {%d, %d}", x, z, rx, rz)))
         return nil
     end
     return MetaChunk:new(map_obj[x][z])
@@ -828,7 +843,7 @@ function module.start_auto_build(ab_metainfo)
     return {prio, "start_auto_build", ab_metainfo}
 end
 
-module.gen_map_obj({1,1})
+module.gen_map_obj(nil)
 
 -- temp
 function module.load_preset()

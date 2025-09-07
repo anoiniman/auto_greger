@@ -113,8 +113,12 @@ function module.do_loadout(priority, pre_selected, lock) -- useful for when you 
 end
 
 local holdout_clock = computer.uptime()
-function module.check_loadouts()
+function module.check_loadouts(force)
     if computer.uptime() - holdout_clock < 33 then return nil end
+    if force == nil then force = false end
+
+    if force then return "loadout", module.do_loadout(92) end
+
 
     select_loadout()
 

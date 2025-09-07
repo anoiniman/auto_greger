@@ -1,3 +1,5 @@
+-- luacheck: globals HOME_CHUNK
+
 -- Things to do after exit is called
 local comms = require("comms")
 local deep_copy = require("deep_copy")
@@ -14,6 +16,18 @@ local _, ore = table.unpack(require("reasoning.recipes.stone_age.gathering_ore")
 local serialize = require("serialization")
 local io = require("io")
 local filesystem = require("filesystem")
+
+local misc = {}
+function misc.re_instantiate(big_table)
+    HOME_CHUNK = big_table[1]
+end
+
+function misc.get_data()
+    return {
+       HOME_CHUNK,
+    }
+end
+
 
 local module = {}
 
@@ -61,6 +75,8 @@ local nav_path = save_home .. "/nav.save"
 local reas_path = save_home .. "/reas.save"
 local ore_path = save_home .. "/ore.save"
 
+local misc_path = save_home .. "/misc.save"
+
 
 function module.save_state(options)
     if not filesystem.isDirectory(save_home) then
@@ -71,6 +87,7 @@ function module.save_state(options)
     save_thing(nav_path, nav, map)
     save_thing(reas_path, reas)
     save_thing(ore_path, ore)
+    save_thing(misc_path, misc)
 end
 
 local function load_thing(path, obj, extra)

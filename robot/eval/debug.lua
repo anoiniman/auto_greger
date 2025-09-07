@@ -65,6 +65,16 @@ function module.debug(arguments)
         HOME_CHUNK[1] = x
         HOME_CHUNK[2] = z
         print(comms.robot_send("info", string.format("HOME_CHUNK = (%s, %s)", HOME_CHUNK[1], HOME_CHUNK[2])))
+    elseif arguments[1] == "regen_chunks" then -- ALSO NEVER FORGET TO DO THIS!
+        local x = tonumber(arguments[2])
+        local z = tonumber(arguments[3])
+        if x == nil or z == nil then
+            print(comms.robot_send("error", "Invalid argument(s)"))
+            return nil
+        end
+
+        local offset = {-x, -z}
+        map.gen_map_obj(offset)
     elseif arguments[1] == "dig_move" then
         local dir = arguments[2]
         local to_move = tonumber(arguments[3])

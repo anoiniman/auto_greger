@@ -98,11 +98,13 @@ local function get_next_ore_chunk(wanted_ore) -- take the last chunk registered
     end
 
     -- this will not be the mathematically cleanest (or most efficient) algorithm, but I don't care
+    -- WARNING: negative coordinates need to be pushed back by -1, proof by fucking around and finding out
+    -- so insted of x1 = 1; x2 = -1; it's x1 = 1; x2 = -2;
     local selected_chunk
     local x1, x2, z1, z2
-    x1 = 1; x2 = -1;
+    x1 = 1; x2 = -2;
     while true do -- x level
-        z1 = 1; z2 = -1;
+        z1 = 1; z2 = -2;
         while true do -- z level
             local positive_fail = false; local negative_fail = false
             local pn_fail = false; local np_fail = false
@@ -376,12 +378,16 @@ local function automatic(state, mechanism, up_to_quantity)
     -- Nice
     dump_waste(state)
 
-    -- TODO summon logistic storing unneeded stuff (we'll have load outs n' shit)
-    if state.step == 0 then -- Useless State
+    if state.step == 0 then
+        -- By setting priority to 0 we make sure we only get going once loadouts is fulfilled, and there are no other jobs to do
+        -- **ish
+        state.priority = 0
+        loadouts.check_loadouts(true)
         state.step = 1
         return "All_Good", nil
     elseif state.step == 1 then -- State selector
         -- no manual mode for this mfo because I see no reason why, so just deal with it
+        state.priority = 100
         local result, r_type = get_ore_chunk(state.wanted_ore)
         if r_type == "chunk_coords" then
             state.step = 2
