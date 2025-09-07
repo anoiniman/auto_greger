@@ -101,6 +101,7 @@ function MetaScript:findRecipe(lable, name)
     local s_name = name; local s_lable = lable
     if name == nil then s_name = "nil" end
     if lable == nil then s_lable = "nil" end
+
     if string.find(s_lable, "Ore") or string.find(s_name, ":raw_ore") then
         for _, recipe in ipairs(self.recipes) do
             if recipe:includesOutputLiteral("_Ore", nil) then
@@ -112,7 +113,7 @@ function MetaScript:findRecipe(lable, name)
         end
     end
 
-    print(comms.robot_send("error", "No recipe for: \"" .. lable .. "\" found!"))
+    print(comms.robot_send("error", string.format("No recipe for: \"%s\", %s found!", s_lable, s_name)))
     return nil
 end
 
