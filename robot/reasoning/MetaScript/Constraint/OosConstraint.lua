@@ -52,7 +52,7 @@ function OosConstraint:check() -- so this was easy?
     for _, def in ipairs(self.quest_item_tbl) do
         local real_quantity = inv.how_many_total(def.lable, def.name)
         if real_quantity < def.count then
-            return 1, {name = self.name, lable = self.lable}
+            return 1, {name = def.name, lable = def.lable}
         end
     end
 

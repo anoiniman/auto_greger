@@ -177,17 +177,18 @@ function module.nav_and_build(instructions, post_run)
             if le_detect then
                 swing_front_success = true
                 if not inv.blind_swing_front() then -- try and destory the block
-                    --print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
+                    print(comms.robot_send("error", "Could not break block in front during move and build smart_cleanup"))
                     swing_front_success = false
                 end
             end
 
             if not swing_front_success and height_diff > 0 and not inv.blind_swing_down() then -- just break the damn block te-he
                 print(comms.robot_send("error", "Could not break nor block in front, nor block down during move and build smart_cleanup"))
-                return nil -- this breaks out of the "job"
+                -- return nil -- this breaks out of the "job"
+                return post_run
             elseif not swing_front_success and height_diff < 0 and not inv.blind_swing_up() then -- just break the damn block te-he
                 print(comms.robot_send("error", "Could not break nor block in front, nor block up during move and build smart_cleanup"))
-                return nil
+                return post_run
             end
         end
     elseif result ~= 0 then -- elseif 0 then no problem
