@@ -86,29 +86,14 @@ local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint01, 
                                                        -- we won't be directly crafting anything else
 
 
--- thank god we don't have to deal with ore-processing lines and multipliers n shit
-
--- TODO, FOR NOW, and for now only it is fine to simple deep_copy __r_ore_gather to define different
--- gatherings for different ore subtypes, since we'll only care about 3:
--- cassiterite sand, iron_ore, and copper_ore.
---
--- But this is memory inneficient, when we'll need to gather more ore-types this is simple too inneficient!
-local __r_iron_ore_gather = deep_copy.copy(__r_ore_gather)
-local ore_dep = MetaDependency:new(__r_iron_ore_gather, 1)
-ore_dep.inlying_recipe.output = { lable = "Raw Brown Limonite Ore", name = "gregtech:raw_ore"}
-ore_dep.inlying_recipe.mechanism.output = { lable = "Raw Brown Limonite Ore", name = "gregtech:raw_ore"}
-
-output = { lable = "Iron Ingot", name = "any:ingot" }
-local __r_iron01 = MetaRecipe:newBuildingUser(output, "small_home", "raw_usage", ore_dep, nil)
---local iron_ingot_dep
-
+local log_recipe
+if HAS_WOOD_FARM then log_recipe = __r_log02
+else log_recipe = __r_log01 end
 
 local recipe_table = {
-    __r_log02,  -- On the real one we'll need to change this based on flags TODO
+    log_recipe,
     __r_flint01,
     __r_plank01,
     __r_ore_gather,
-
-    __r_iron01,
 }
 return {recipe_table, dictionary}

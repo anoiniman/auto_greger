@@ -7,6 +7,8 @@ local serialize = require("serialization")
 local eval_build = require("eval.build")
 local map_obj = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
+local LogisticTransfer = require("complex_algorithms.LogisticTransfer")
+
 local MetaBuild = require("build.MetaBuild")
 
 local ABMetaInfo = require("eval.AutoBuildMetaInfo")
@@ -96,13 +98,26 @@ function BuildingConstraint:decideToBuild(to_build)
     -- local serial = serialize.serialize(diff, true)
     -- print(comms.robot_send("debug", serial)
 
-    if diff == nil or #diff == 0 then return 1 end -- aka return a no-go-signal by default
-
     -- element.lable, element.name
     for _, element in ipairs(diff) do
-        if element.diff < 0 and element.lable ~= "air" then
-            return 1, element, math.abs(element.diff)
+        if element.diff >= 0 or element.lable == "air" then
+            goto continue
         end
+        local needed_quantity = math.abs(element.diff)
+
+        -- There is something missing, see if a logistic transfer is possible
+        local total_quantity = inv.how_many_total(element.lable, element.name)
+        local int_quantity = inv.how_many_internal(element.lable, element.name)
+
+        local extern_quantity = total_quantity - int_quantity
+        if extern_quantity >= needed_quantity then
+            local extern_inv = inv.get_nearest_external_inv(element.lable, element.name, 1, needed_quantity)
+            return -1, LogisticTransfer:new(extern_inv, "self", {element.lable, element.name, needed_quantity})
+        end -- if it is not possible go get 'em chief
+
+        needed_quantity = needed_quantity - extern_quantity -- will alywas be positive
+        if true then return 1, element, needed_quantity end
+        ::continue::
     end
 
     return 0
@@ -138,6 +153,10 @@ function BuildingConstraint:step(index, name, priority) -- returns command to be
         -- since element already contains fields = "lable" and "name", why not just send it over?
         -- Instead of: \return {lable = element.lable, name = element.name}, "try_recipe"\
         return element, {"try_recipe", missing_quanitty}
+    elseif what_to_do == -1 then
+        local logistic_transfer = element
+        self.lock[1] = 1
+        return {priority, logistic_transfer.doTheThing, logistic_transfer, self.lock, priority}
     end
 end
 

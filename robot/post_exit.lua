@@ -82,12 +82,13 @@ function module.save_state(options)
     if not filesystem.isDirectory(save_home) then
         filesystem.makeDirectory(save_home)
     end
+    save_thing(misc_path, misc)
+
     save_thing(inv_path, inv)
     save_thing(map_path, map)
     save_thing(nav_path, nav, map)
     save_thing(reas_path, reas)
     save_thing(ore_path, ore)
-    save_thing(misc_path, misc)
 end
 
 local function load_thing(path, obj, extra)

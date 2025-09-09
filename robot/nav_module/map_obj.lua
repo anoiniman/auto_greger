@@ -845,8 +845,10 @@ end
 
 module.gen_map_obj(nil)
 
--- temp
 function module.load_preset()
+    module.gen_map_obj(HOME_CHUNK)
+
+    -- temp
     local name = "home"
     if areas_table:getArea("home") == nil then
         module.create_named_area("home", "green", 69, "dirt")

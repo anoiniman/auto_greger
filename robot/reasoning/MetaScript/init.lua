@@ -76,7 +76,6 @@ function MetaScript:unlockPosterior()
     -- TODO
 end
 
--- TODO improve matching to follow the "strict" instruction
 -- It prefers "singular" matches over table matches, table matches are only resolved after the loop
 function MetaScript:findRecipe(lable, name)
     if self.recipes == nil then
@@ -335,8 +334,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
 
     local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
     if needed_recipe == nil then
-        -- self.constraint.const_obj.lock[1] = 4  -- aka -> locked until user input (TODO)
-        self.constraint.const_obj.lock[1] = 0 -- auto-unlock until we implement the waiting list fully
+        self.constraint.const_obj.lock[1] = 4  -- aka -> waiting listed
         parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
         return nil
     end

@@ -61,7 +61,6 @@ end
 
 
 -- the only thing we need to save is the locks of the goals lol
--- TODO, save the pe_executed value if needed, prob not needed
 function reason_obj.get_data()
     local cur_script_desc = nil
     local script_tbl = {}
@@ -77,7 +76,8 @@ function reason_obj.get_data()
         for _, goal in ipairs(script.goals) do
             -- table so that it is expandable in the future
             local lock_value = goal.constraint.const_obj.lock[1]
-            local inner_table = {lock_value}
+            local pe_executed = goal.pe_executed
+            local inner_table = {lock_value, pe_executed}
             table_of_goals[goal.name] = inner_table
         end
 
@@ -112,6 +112,8 @@ local function try_load_script(real_script, desc)
             goto continue
         end
         goal.constraint.const_obj.lock[1] = inner_table[1]
+        -- Uncommented when needed
+        goal.pe_executed = inner_table[2]
 
         ::continue::
     end

@@ -18,6 +18,14 @@ local __l_test = {
     {"nil", "any:log", 32, 8},
 }
 
+-- the usage of loadouts only makes sense AFTER we've built at least one storage building
+
+local __l_first  = {
+    {"Flint Pickaxe", "tool:pickaxe", 2, 1},
+    {"nil", "any:plank", 128, 48},
+    {"nil", "any:log", 64, 16},
+}
+
 local __l_second = {
     {"Flint Pickaxe", "tool:pickaxe", 2, 1},
     {"nil", "any:plank", 128, 48},
