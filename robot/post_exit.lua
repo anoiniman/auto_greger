@@ -24,6 +24,7 @@ function misc.re_instantiate(big_table)
     WHAT_LOADOUT = big_table[3]
     FUEL_TYPE = big_table[4]
     IGNORE_ORE_FUEL_CHECK = big_table[5]
+    HAS_MORTAR = big_table[6]
 end
 
 function misc.get_data()
@@ -33,6 +34,7 @@ function misc.get_data()
        WHAT_LOADOUT, -- 3
        FUEL_TYPE,
        IGNORE_ORE_FUEL_CHECK,
+       HAS_MORTAR
     }
 end
 

@@ -1,4 +1,4 @@
--- luacheck: globals WHAT_LOADOUT FUEL_TYPE HAS_WOOD_FARM
+-- luacheck: globals WHAT_LOADOUT FUEL_TYPE HAS_WOOD_FARM HAS_MORTAR
 local MSBuilder, Goal, Constraint, StructureDeclaration = table.unpack(require("reasoning.MetaScript"))
 local debug_recipes, dictionary = table.unpack(require("reasoning.recipes.stone_age.essential01"))
 
@@ -163,9 +163,16 @@ builder:addGoal(__g_macerator0_1)
 
 
 -- 01
-constraint = Constraint:newItemConstraint(nil, "Flint Mortar", 1, 3)
-local __g_mortar01 = Goal:new(__g_macerator0_1, constraint, 40, "__g_mortar01", false)
+local max_mortar = 3
+local function __f_mortar01 () HAS_MORTAR = true end
+
+constraint = Constraint:newItemConstraint(nil, "Flint Mortar", 1, max_mortar)
+local __g_mortar01 = Goal:new(__g_macerator0_1, constraint, 80, "__g_mortar01", false, __f_mortar01)
 builder:addGoal(__g_mortar01)
+
+constraint = Constraint:newItemConstraint(nil, "Flint", math.floor(max_mortar * 2 * 1.1), math.ceil(max_mortar * 2 * 1.5))
+local __g_flint01 = Goal:new(__g_mortar01, constraint, 64, "__g_flint01", false)
+builder:addGoal(__g_flint01)
 
 
 -- Q5 (Stone-Age Gathering Quests)

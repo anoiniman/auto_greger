@@ -22,6 +22,7 @@ local dictionary = {
     g = "Gravel",
     f = "Flint",
     s = "Stick",
+    M = "Flint Mortar",
 }
 
 ------ GATHER DEF -----------
@@ -29,14 +30,58 @@ local _, __r_ground_gather = dofile("/home/robot/reasoning/recipes/stone_age/gat
 --local __r_ore_gather, _ = table.unpack(dofile("/home/robot/reasoning/recipes/stone_age/gathering_ore.lua"))
 local __r_ore_gather, _ = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
 
+local __r_log
 local __r_log01, _ = dofile("/home/robot/reasoning/recipes/stone_age/gathering_tree.lua")
 -----------------------------
 
+local output
+local dep1, dep2, dep3, dep4
+
+-- <Wood>
+
+-- As you can see the dependencies of a building user are implicit
+output = {lable = nil, name = "any:log"}
+local __r_log02 = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "raw_usage", nil, nil)
+
+if HAS_WOOD_FARM then __r_log = __r_log02
+else __r_log = __r_log01 end
+
+-- </Wood>
+
+
+-- <Flint>
+local __r_flint = nil
 local __c_flint01 = {
 'g', 'g',  0 ,
  0 , 'g',  0 ,
  0 ,  0 ,  0
 }
+dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 1)
+local __r_flint01 = MetaRecipe:newCraftingTable("Flint", __c_flint01, dep)
+
+local __c_flint_mortar = {
+ 0 , 'f',  0 ,
+'s', 'f', 's',
+'s', 's', 's'
+}
+dep1 = MetaDependency:new(__r_flint01, 2)
+dep2 = MetaDependency:new(__r_stone01, 5)
+local __r_flint_mortar = MetaRecipe:newCraftingTable("Flint Mortar", __c_flint_mortar, {dep1, dep2})
+
+local __c_flint02 = {
+'M', 'g',  0 ,
+ 0 ,  0 ,  0 ,
+ 0 ,  0 ,  0
+}
+
+dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 1, nil, 1)
+dep2 = MetaDependency:new(__r_flint_mortar, 1)
+local __r_flint02 = MetaRecipe:newCraftingTable("Flint", __c_flint02, {dep1, dep2})
+
+if HAS_MORTAR then __r_flint = __r_flint02 else __r_flint = __r_flint01 end
+
+-- </Flint>
+
 local __c_plank01 = {
  0,  'l',  0 ,
  0 ,  0 ,  0 ,
@@ -52,15 +97,6 @@ local __c_flint_pickaxe = {
  0 , 's',  0 ,
  0 , 's',  0
 }
-
--- Further refactoring will be necessary
-
-local output
-local dep
-
--- As you can see the dependencies of a building user are implicit
-output = {lable = nil, name = "any:log"}
-local __r_log02 = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "raw_usage", nil, nil)
 
 ---
 dep = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 1)
@@ -86,12 +122,8 @@ local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint01, 
                                                        -- we won't be directly crafting anything else
 
 
-local log_recipe
-if HAS_WOOD_FARM then log_recipe = __r_log02
-else log_recipe = __r_log01 end
-
 local recipe_table = {
-    log_recipe,
+    __r_log,
     __r_flint01,
     __r_plank01,
     __r_ore_gather,

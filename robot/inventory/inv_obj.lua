@@ -1,4 +1,4 @@
--- luacheck: globals EMPTY_STRING
+-- luacheck: globals EMPTY_STRING WHAT_LOADOUT
 local module = {}
 --imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
@@ -1031,6 +1031,7 @@ function module.isCraftActive()
     return use_self_craft
 end
 
+-- WARNING: WILL have some problems with tools breaking and so on, let's just hope it is able of self-cleaning!
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
 local function self_craft(dictionary, recipe, output, how_much_to_craft)
     if not crafting_table_clear then
@@ -1131,7 +1132,11 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
         end
     end -- Then check for errors
     if clean_up then
-        print(comms.robot_send("error", "TODO -> actually clean-up crafting-grid in case of error"))
+        print(comms.robot_send("error", "Error while crafting, cleaning up"))
+        module.force_update_vinv()
+        for index = 1, 12, 1 do
+            if index % 4 ~= 0 then module.simple_slot_check(index) end
+        end
         return false
     end
 
@@ -1150,7 +1155,13 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
                                                     -- this should at least crash hard
 
     if not result then
-        error(comms.robot_send("fatal", "failed to craft :("))
+        print(comms.robot_send("error", "failed to craft :("))
+        module.force_update_vinv() -- last hurah-ass
+        for index = 1, 12, 1 do
+            if index % 4 ~= 0 then module.simple_slot_check(index) end
+        end
+
+        return false
     end
 
     -- TODO make it not use getStackInInternalSlot se we're a bit faster (it'll require better recipe programming)
@@ -1197,6 +1208,7 @@ local function simple_slot_check(slot)
         local new_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
         robot.select(slot)
         if robot.transferTo(new_slot) then
+            module.virtual_inventory:forceUpdateSlot(EMPTY_STRING, EMPTY_STRING, 0, slot) -- force clear origin slot dih
             module.virtual_inventory:forceUpdateSlot(lable, name, quantity, new_slot)
         else
             print(comms.robot_send("error", "maybe_something_added_to_inv, very bad error"))
@@ -1204,6 +1216,8 @@ local function simple_slot_check(slot)
     end
     robot.select(1)
 end
+
+function module.simple_slot_check(slot) simple_slot_check(slot) end
 
 function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important to keep crafting table clear
     -- added some bullshit to deal with multiple drops

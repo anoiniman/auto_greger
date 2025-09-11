@@ -5,6 +5,7 @@ FORCE_INTERRUPT_ORE = false
 
 -- TODO adding a save file to save this sort of global variables or a way to autocheck them idk
 HAS_WOOD_FARM = false
+HAS_MORTAR = false
 
 -- luacheck: globals HOME_CHUNK DO_AUTO_FILL
 HOME_CHUNK = {0, 0}     -- coords

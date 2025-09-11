@@ -50,6 +50,7 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
     else -- complicated set of operations in order to create a valid table arrangement
         if #output == 0 and output.lable == nil and output.name == nil then
             local serial = serialize.serialize(output)
+            if serial == nil then serial = "nil" end
             error(comms.robot_send("fatal", "assertion failed\n" .. serial))
         end
 
@@ -57,19 +58,19 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
             local fmt_output = deep_copy.copy(output, pairs)
             if type(fmt_output.name) == "table" then
                 for index, l_name in ipairs(fmt_output.name) do
-                    if l_name == nil then fmt_output.name[index] = "nil_name" end
+                    if l_name == nil then fmt_output.name[index] = "nil" end
                 end
             else
-                if fmt_output.name == nil then fmt_output.name = "nil_name" end
+                if fmt_output.name == nil then fmt_output.name = "nil" end
             end
             new.output = output
         elseif output.name ~= nil and type(output.name) == "string" then
-            local fmt_output = {lable = "nil_lable", name = output.name}
+            local fmt_output = {lable = "nil", name = output.name}
             new.output = fmt_output
-        elseif output.name == nil then -- It's just a table of lables (or
+        elseif output.name == nil then -- It's just a table of lables
             local fmt_output = {lable = output, name = {}}
             for i = 1, #fmt_output.lable, 1 do
-                fmt_output.name[i] = "nil_name"
+                fmt_output.name[i] = "nil"
             end
             new.output = fmt_output
         else
