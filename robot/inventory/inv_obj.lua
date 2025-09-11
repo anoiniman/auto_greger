@@ -298,15 +298,17 @@ function module.how_many_internal(lable, name)
     local empty_slot = module.virtual_inventory:getEmptySlot()
     if empty_slot == nil then return quantity end
 
-    robot.select(empty_slot)
-    generator.remove(generator.count)
-    local what_is = inventory.getStackInInternalSlot(empty_slot)
-    if what_is.label == lable or (what_is.name == name and (lable == nil or lable == "nil" or lable == "nil_lable")) then
-        quantity = quantity + what_is.count
-    end
+    if name == "any:plank" or name == "any:fuel" or lable == "Charcoal" then
+        robot.select(empty_slot)
+        generator.remove(generator.count)
+        local what_is = inventory.getStackInInternalSlot(empty_slot)
+        if what_is.label == lable or (what_is.name == name and (lable == nil or lable == "nil" or lable == "nil_lable")) then
+            quantity = quantity + what_is.count
+        end
 
-    generator.insert(64)
-    robot.select(1)
+        generator.insert(64)
+        robot.select(1)
+    end
 
     return quantity
 end

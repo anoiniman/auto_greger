@@ -1,3 +1,4 @@
+-- luacheck: globals WHAT_LOADOUT FUEL_TYPE HAS_WOOD_FARM
 local MSBuilder, Goal, Constraint, StructureDeclaration = table.unpack(require("reasoning.MetaScript"))
 local debug_recipes, dictionary = table.unpack(require("reasoning.recipes.stone_age.essential01"))
 
@@ -10,13 +11,13 @@ local __dec_hole_home           =   StructureDeclaration:new("hole_home", 0, 0, 
 local __dec_small_home          =   StructureDeclaration:new("small_home", 0, 0, 1)
 local __dec_coke_quad           =   StructureDeclaration:new("coke_quad", 0, 0, 1)
 local __dec_oak_tree_farm       =   StructureDeclaration:new("oak_tree_farm", 0, 0, 1)
-local __dec_spruce_tree_farm    =   StructureDeclaration:new("spruce_tree_farm", 0, 0, 1) -- TODO, fix the farm itself :)
+-- local __dec_spruce_tree_farm    =   StructureDeclaration:new("spruce_tree_farm", 0, 0, 1) -- TODO, fix the farm itself :)
 local __dec_sp_storeroom        =   StructureDeclaration:new("sp_storeroom", 0, 0, 1)
 local __dec_tk_smeltery         =   StructureDeclaration:new("tk_smeltery", 0, 0, 1)
 
 -- TODO, actually programme in the meta inventories in simplified/storeroom (we're not going to use simplified store-room)
-local __dec_simp_storeroom_n    =   StructureDeclaration:new("simplified/storeroom_north", 0, 0, 1)
-local __dec_simp_storeroom_s    =   StructureDeclaration:new("simplified/storeroom_south", 0, 0, 1)
+-- local __dec_simp_storeroom_n    =   StructureDeclaration:new("simplified/storeroom_north", 0, 0, 1)
+-- local __dec_simp_storeroom_s    =   StructureDeclaration:new("simplified/storeroom_south", 0, 0, 1)
 
 ----------------------------------------
 -- By using a mostly linear approach we make sure that our underdeveloped parallel system isn't
@@ -81,7 +82,7 @@ local __g_gravel01 = Goal:new(__g_logs01, constraint, 60, "__g_gravel01", false)
 builder:addGoal(__g_gravel01)
 
 -- Q2a
-local __q_sticks_n_stones = { Constraint:newQuestOb("Gravel", nil, 9), Constraint:newQuestObj(nil, "any:log", 7)}
+local __q_sticks_n_stones = { Constraint:newQuestObj("Gravel", nil, 9), Constraint:newQuestObj(nil, "any:log", 7)}
 constraint = Constraint:newQuestConstraint(__q_sticks_n_stones)
 local __g_sticks_n_stones = Goal:new(__g_gravel01, constraint, 90, "__g_sticks_n_stones", true)
 builder:addGoal(__g_sticks_n_stones)
@@ -113,7 +114,7 @@ constraint = Constraint:newQuestConstraint(__q_get_that_stone)
 local __g_get_that_stone = Goal:new(__g_cobblestone01, constraint, 60, "__g_get_that_stone", true)
 builder:addGoal(__g_get_that_stone)
 
-local __q_fire_fire = { Constraint:newQestObj("Furnace", nil, 1) }
+local __q_fire_fire = { Constraint:newQuestObj("Furnace", nil, 1) }
 constraint = Constraint:newQuestConstraint(__q_fire_fire)
 local __g_fire_fire = Goal:new(__g_get_that_stone, constraint, 60, "__g_fire_fire", true)
 builder:addGoal(__g_fire_fire)
@@ -123,27 +124,113 @@ local function __f_smallhome01 () WHAT_LOADOUT = "first" end
 
 -- 05 (Should be able to craft the furnaces and chests by herself :))
 constraint = Constraint:newBuildingConstraint(__dec_small_home, nil)
-local __g_smallhome01 = Goal:new({__g_logs02, __g_cobblestone01}, constraint, 40, "__g_smallhome01", false, __f_smallhome01)
+local __g_smallhome01 = Goal:new({__g_logs02, __g_cobblestone01}, constraint, 40, "__g_smallhome01", true, __f_smallhome01)
 builder:addGoal(__g_smallhome01)
 
 -----------------------------------------
 -- Third Era (Charcoal Burning Era) <Aka, Mining Era, etc, and we actually start crafting axes n shit>
 
 -- We finish the pre-stone age quests and early stone-age quests before going on the coke adventure, as obvious
--- Q3 (TODO -> continue from here)
-local __q_soft_mallet_adv = {
-constraint =
+-- Q3
+local __q_soft_mallet_adv = { Constraint:newQuestObj("Wooden Mallet", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_soft_mallet_adv)
+local __g_soft_mallet_adv = Goal:new(__g_smallhome01, constraint, 40, "__g_soft_mallet_adv", true)
+builder:addGoal(__g_soft_mallet_adv)
+
+-- We'll get the robot to slam a door in our house and then we'll give her the wool
+local __q_fluffy_and_red = { Constraint:newQuestObj("Wool", nil, 6) }
+constraint = Constraint:newQuestConstraint(__q_fluffy_and_red)
+local __g_fluffy_and_red = Goal:new(__g_soft_mallet_adv, constraint, 30, "__g_fluffy_and_red", true)
+builder:addGoal(__g_fluffy_and_red)
+
+local __q_so_tired_must_sleep = { Constraint:newQuestObj("Bed", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_so_tired_must_sleep)
+local __g_so_tired_must_sleep = Goal:new(__g_fluffy_and_red, constraint, 90, "__g_so_tired_must_sleep", true)
+builder:addGoal(__g_so_tired_must_sleep)
 
 
--- 01a
+-- Q4 (Stone age starts now)
+local __q_basic_processing = { Constraint:newQuestObj("Stone", nil, 25) }
+constraint = Constraint:newQuestConstraint(__q_basic_processing)
+local __g_basic_processing = Goal:new(__g_so_tired_must_sleep, constraint, 40, "__g_basic_processing", true)
+builder:addGoal(__g_basic_processing)
+
+
+local __q_macerator0_1 = { Constraint:newQuestObj("Flint Mortar", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_macerator0_1)
+local __g_macerator0_1 = Goal:new(__g_basic_processing, constraint, 40, "__g_macerator0_1", true)
+builder:addGoal(__g_macerator0_1)
+
+
+-- 01
+constraint = Constraint:newItemConstraint(nil, "Flint Mortar", 1, 3)
+local __g_mortar01 = Goal:new(__g_macerator0_1, constraint, 40, "__g_mortar01", false)
+builder:addGoal(__g_mortar01)
+
+
+-- Q5 (Stone-Age Gathering Quests)
+local __q_gravel_gathering = { Constraint:newQuestObj("Gravel", nil, 128) }
+constraint = Constraint:newQuestConstraint(__q_gravel_gathering)
+local __g_gravel_gathering = Goal:new(__g_so_tired_must_sleep, constraint, 40, "__g_gravel_gathering", true)
+builder:addGoal(__g_gravel_gathering)
+
+local __q_sand_gathering = { Constraint:newQuestObj("Sand", nil, 128) }
+constraint = Constraint:newQuestConstraint(__q_sand_gathering)
+local __g_sand_gathering = Goal:new(__g_gravel_gathering, constraint, 40, "__g_sand_gathering", true)
+builder:addGoal(__g_sand_gathering)
+
+local __q_clay_gathering = { Constraint:newQuestObj("Clay", nil, 128) }
+constraint = Constraint:newQuestConstraint(__q_clay_gathering)
+local __g_clay_gathering = Goal:new(__g_sand_gathering, constraint, 40, "__g_clay_gathering", true)
+builder:addGoal(__g_clay_gathering)
+
+-- Q6 Building towards the coke oven
+local __q_something_to_carry_l = { Constraint:newQuestObj("Fired Clay Bucket", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_something_to_carry_l)
+local __g_something_to_carry_l = Goal:new(__g_clay_gathering, constraint, 40, "__g_something_to_carry_l", true)
+builder:addGoal(__g_something_to_carry_l)
+
+local __q_book_parts = { Constraint:newQuestObj("Paper", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_book_parts)
+local __g_book_parts = Goal:new(__g_something_to_carry_l, constraint, 40, "__g_book_parts", true)
+builder:addGoal(__g_book_parts)
+
+local __q_tinker_time = {
+    Constraint:newQuestObj("Part Builder", nil, 1),
+    Constraint:newQuestObj("Stencil Table", nil, 1),
+    Constraint:newQuestObj("Tool Station", nil, 1),
+    Constraint:newQuestObj("Pattern Chest", nil, 1),
+}
+constraint = Constraint:newQuestConstraint(__q_tinker_time)
+local __g_tinker_time = Goal:new(__g_book_parts, constraint, 40, "__g_tinker_time", true)
+builder:addGoal(__g_tinker_time)
+
+-- careful not to request more than 1 wooden form at the time because of recipe restrictions
+local __q_forming_press = { Constraint:newQuestObj("Wooden Form (Brick)", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_forming_press)
+local __g_forming_press = Goal:new(__g_tinker_time, constraint, 40, "__g_forming_press", true)
+builder:addGoal(__g_forming_press)
+
+local __q_another_brick = { Constraint:newQuestObj("Coke Oven Brick", "dreamcraft:item.CokeOvenBrick", 104) }
+constraint = Constraint:newQuestConstraint(__q_another_brick)
+local __g_another_brick = Goal:new(__g_forming_press, constraint, 40, "__g_another_brick", true)
+builder:addGoal(__g_another_brick)
+
+
+-- 02a
 constraint = Constraint:newBuildingConstraint(__dec_coke_quad, nil)
-local __g_coke_quad01 = Goal:new(__g_smallhome01, constraint, 60, "__g_coke_quad01", true)
+local __g_coke_quad01 = Goal:new(__g_another_brick, constraint, 60, "__g_coke_quad01", true)
 builder:addGoal(__g_coke_quad01)
 
-local function __f_charcoal01 () FUEL_TYPE = "loose_coal" end
 
+local __q_finally_some = { Constraint:newQuestObj("Charcoal", nil, 4) }
+constraint = Constraint:newQuestConstraint(__q_finally_some)
+local __g_finally_some = Goal:new(__g_coke_quad01, constraint, 40, "__g_finally_some", true)
+builder:addGoal(__g_finally_some)
+
+local function __f_charcoal01 () FUEL_TYPE = "loose_coal" end
 constraint = Constraint:newItemConstraint(nil, "Charcoal", 32, 128, nil)
-local __g_charcoal01 = Goal:new(__g_coke_quad01, constraint, 40, "__g_charcoal01", false, __f_charcoal01)
+local __g_charcoal01 = Goal:new(__g_finally_some, constraint, 40, "__g_charcoal01", false, __f_charcoal01)
 builder:addGoal(__g_charcoal01)
 
 constraint = Constraint:newItemConstraint(nil, "Charcoal", 129, 512, nil)
@@ -181,10 +268,54 @@ local __g_cassit01 = Goal:new(__g_chalco01, constraint, 40, "__g_cassit01", fals
 builder:addGoal(__g_cassit01)
 
 -- 05
-constraint = Constraint:newItemConstraint(nil, "Bronze Ingot", 8, 32, nil)
-local __g_bronze = Goal:new({__g_chalco01, __g_cassit01}, constraint, 40, "__g_bronze", false)
-builder:addGoal(__g_bronze)
+constraint = Constraint:newItemConstraint(nil, "Bronze Ingot", 12, 12, nil)
+local __g_bronze01 = Goal:new({__g_chalco01, __g_cassit01}, constraint, 40, "__g_bronze", true)
+builder:addGoal(__g_bronze01)
 
+
+-- Q5 Aura Farming Quest completions
+local __q_copper = { Constraint:newQuestObj("Copper Ingot", nil, 48) }
+constraint = Constraint:newQuestConstraint(__q_copper)
+local __g_copper = Goal:new(__g_bronze01, constraint, 40, "__g_copper", true)
+builder:addGoal(__g_copper)
+
+local __q_tin = { Constraint:newQuestObj("Tin Ingot", nil, 16) }
+constraint = Constraint:newQuestConstraint(__q_tin)
+local __g_tin = Goal:new(__g_copper, constraint, 40, "__g_tin", true)
+builder:addGoal(__g_tin)
+
+local __q_making_bronze = { Constraint:newQuestObj("Bronze Ingot", nil, 32) }
+constraint = Constraint:newQuestConstraint(__q_making_bronze)
+local __g_making_bronze = Goal:new({__g_tin, __g_copper}, constraint, 40, "__g_making_bronze", true)
+builder:addGoal(__g_making_bronze)
+
+local __q_upgrade_2_0 = { Constraint:newQuestObj("Cobblestone", nil, 256) }
+constraint = Constraint:newQuestConstraint(__q_upgrade_2_0)
+local __g_upgrade_2_0 = Goal:new(__g_making_bronze, constraint, 40, "__g_upgrade_2_0", true)
+builder:addGoal(__g_upgrade_2_0)
+
+local __q_getting_iron = { Constraint:newQuestObj("Iron Ingot", nil, 72) }
+constraint = Constraint:newQuestConstraint(__q_getting_iron)
+local __g_getting_iron = Goal:new(__g_upgrade_2_0, constraint, 40, "__g_getting_iron", true)
+builder:addGoal(__g_getting_iron)
+
+
+local __q_important_tools = {
+    Constraint:newQuestObj("Iron Hammer", nil, 1),
+    Constraint:newQuestObj("Iron Wrench", nil, 1),
+    Constraint:newQuestObj("Iron File", nil, 1),
+    Constraint:newQuestObj("Iron Screwdriver", nil, 1),
+    Constraint:newQuestObj("Iron Saw", nil, 1),
+}
+constraint = Constraint:newQuestConstraint(__q_important_tools)
+local __g_important_tools = Goal:new(__g_getting_iron, constraint, 40, "__g_important_tools", true)
+builder:addGoal(__g_important_tools)
+
+
+local __q_you_shall_proceed = { Constraint:newQuestObj("Small Coal Boiler", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_you_shall_proceed)
+local __g_you_shall_proceed = Goal:new(__g_important_tools, constraint, 40, "__g_you_shall_proceed", true)
+builder:addGoal(__g_you_shall_proceed)
 
 builder:setDictionary(dictionary)
 builder:addMultipleRecipes(debug_recipes)

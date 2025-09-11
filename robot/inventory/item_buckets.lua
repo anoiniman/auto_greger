@@ -21,15 +21,24 @@ function module.identify(name, lable)
     if flabl ("Ingot$")             then return     "any:ingot"         end
     if fname ("any:ingot")          then return     "any:ingot"         end
 
-    if flabl ("Sword")              then return     "tool:sword"         end
-    if flabl ("Pickaxe")            then return     "tool:pickaxe"       end
-    if flabl ("Axe")                then return     "tool:axe"           end
-    if flabl ("Shovel")             then return     "tool:shovel"        end
+    if flabl ("Sword")              then return     "tool:sword"        end
+    if flabl ("Pickaxe")            then return     "tool:pickaxe"      end
+    if flabl ("Axe")                then return     "tool:axe"          end
+    if flabl ("Shovel")             then return     "tool:shovel"       end
 
-    if fname ("sword")              then return     "tool:sword"         end
-    if fname ("pickaxe")            then return     "tool:pickaxe"       end
-    if fname ("axe")                then return     "tool:axe"           end
-    if fname ("shovel")             then return     "tool:shovel"        end
+    if fname ("sword")              then return     "tool:sword"        end
+    if fname ("pickaxe")            then return     "tool:pickaxe"      end
+    if fname ("axe")                then return     "tool:axe"          end
+    if fname ("shovel")             then return     "tool:shovel"       end
+
+    if flabl ("Mallet")
+    or flabl ("Soft Hammer")        then return     "tool:mallet"       end
+
+    if flabl ("Hammer")             then return     "tool:hammer"       end
+    if flabl ("Wrench")             then return     "tool:wrench"       end
+    if flabl ("File")               then return     "tool:file"         end
+    if flabl ("Screwdriver")        then return     "tool:screwdriver"  end
+    if flabl ("Saw")                then return     "tool:saw"          end
 
     -- prob will catch the blocks as well
     if flabl ("Coal")               then return     "any:fuel"          end
@@ -43,12 +52,15 @@ function module.identify(name, lable)
     if fname ("^any:building$")     then return     "any:building"      end
 
     if flabl("Coke Oven Brick") then
-        if fname("Railcraft:machine.alpha") then return name end
+        if fname("Railcraft:machine.alpha") or fname("dreamcraft:item.CokeOvenBrick") then return name end
         return name
     end
     if flabl("air") or flabl("Air") then return name end
 
     if flabl("^Dirt$") or flabl("^Cobblestone$") then return "any:building" end
+
+    -- Remember to be very carefully when setting clay recipes
+    if fname("^minecraft:clay_ball$") or fname("^minecraft:clay$") then return name end
 
     if fname("^minecraft:") then
         if flabl("chest") then return "minecraft:chest" end
