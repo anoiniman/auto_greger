@@ -32,21 +32,20 @@ constraint = Constraint:newBuildingConstraint(__dec_hole_home, nil)
 local __g_hole_home01 = Goal:new(nil, constraint, 100, "__g_hole_home01", true)
 builder:addGoal(__g_hole_home01)
 
-local function __f_firstnight () FUEL_TYPE = "wood" end
-
 -- Q1
 local __q_firstnight = { Constraint:newQuestObj("minecraft:generic", "Dirt", 8) }
 constraint = Constraint:newQuestConstraint(__q_firstnight)
-local __g_firstnight = Goal:new(__g_hole_home01, constraint, 98, "__g_firstnight", true, __f_firstnight)
+local __g_firstnight = Goal:new(__g_hole_home01, constraint, 98, "__g_firstnight", true,)
 builder:addGoal(__g_firstnight)
 
 
 -- We prob need to add a guard that only alows one simultaneous gathering for now
 
+local function __f_planks01 () FUEL_TYPE = "wood" end
+
 -- 02a (small plank goal for fuel reasons)
--- This super small goal is fine since logs can be converted in-place to planks
-constraint = Constraint:newItemConstraint("any:plank", nil, 8, 8, nil)
-local __g_planks01 = Goal:new(__g_hole_home01, constraint, 80, "__g_planks01", false)
+constraint = Constraint:newItemConstraint("any:plank", nil, 16, 64, nil)
+local __g_planks01 = Goal:new(__g_hole_home01, constraint, 80, "__g_planks01", false, __f_planks01)
 builder:addGoal(__g_planks01)
 
 -- 02b

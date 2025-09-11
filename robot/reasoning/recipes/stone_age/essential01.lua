@@ -22,6 +22,7 @@ local dictionary = {
     g = "Gravel",
     f = "Flint",
     s = "Stick",
+    S = "Stone",
     M = "Flint Mortar",
 }
 
@@ -57,12 +58,12 @@ local __c_flint01 = {
  0 ,  0 ,  0
 }
 dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 1)
-local __r_flint01 = MetaRecipe:newCraftingTable("Flint", __c_flint01, dep)
+local __r_flint01 = MetaRecipe:newCraftingTable("Flint", __c_flint01, dep1)
 
 local __c_flint_mortar = {
  0 , 'f',  0 ,
-'s', 'f', 's',
-'s', 's', 's'
+'S', 'f', 'S',
+'S', 'S', 'S'
 }
 dep1 = MetaDependency:new(__r_flint01, 2)
 dep2 = MetaDependency:new(__r_stone01, 5)
@@ -124,7 +125,7 @@ local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint01, 
 
 local recipe_table = {
     __r_log,
-    __r_flint01,
+    __r_flint,
     __r_plank01,
     __r_ore_gather,
 }
