@@ -35,6 +35,7 @@ Module.dictionary = {
     ["s"] = {"Oak Sapling", "minecraft:sapling"},
     ["c"] = {"Chest", "minecraft:chest"},
     ["d"] = {"nil", "any:grass", "name"}
+    ["|"] = {"air", "shovel"},
 }
 
 -- No torches (so that it can be built in le early game)
@@ -50,18 +51,18 @@ Module.human_readable = {
     "d-d-d-d",
     "-------",
     "d-d-d-d",
-    "d-----d",
+    "-------",
     "d-d-d-d",
-    "------d",
+    "-------",
     },
     {
-    "s*s-s*s",
-    "s*s-s*s",
-    "-------",
-    "s*s-s*s",
-    "-------",
-    "s*s-s*s",
-    "-------",
+    "s*s|s*s",
+    "s*s|s*s",
+    "|||||||",
+    "s*s|s*s",
+    "|||||||",
+    "s*s|s*s",
+    "|||||||",
     },
 }
 --[[Module.human_readable = {

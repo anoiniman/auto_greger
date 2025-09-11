@@ -14,7 +14,7 @@ WHAT_LOADOUT = "zero"
 
 -- luacheck: globals FUEL_TYPE IGNORE_ORE_FUEL_CHECK
 -- FUEL_TYPE = "wood"
-FUEL_TYPE = "loose_coal" -- temporary
+FUEL_TYPE = "loose_coal"
 IGNORE_ORE_FUEL_CHECK  = false
 
 -- luacheck: globals AUTOMATIC_EXPAND_ORE AUTOMATIC_EXPAND_G_GATHER

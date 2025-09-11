@@ -1,5 +1,7 @@
 local MSBuilder, Goal, Constraint, StructureDeclaration = table.unpack(require("reasoning.MetaScript"))
 local main_line_recipes, dictionary = table.unpack(require("reasoning.recipes.stone_age.essential01"))
+local comms = require("comms")
+
 
 local desc = "Debug 08 - Might be the most important debg session of our life"
 local builder = MSBuilder:new_w_desc(desc)
@@ -33,7 +35,7 @@ builder:addGoal(hole_goal)
 -- WARNING (TODO) we're getting a cant find recipe "nil", "nil" from this point onwards so yeah
 local quest01_table = {
     -- Constraint:newQuestObj("any:ingot", "Iron Ingot", 32),
-    Constraint:newQuestObj("minecraft:generic", "Dirt", 8),
+    Constraint:newQuestObj("Dirt", "minecraft:generic", 8),
 }
 
 constraint = Constraint:newQuestConstraint(quest01_table)
@@ -41,8 +43,12 @@ local quest_goal = Goal:new(hole_goal, constraint, 50, "quest_const", true)
 builder:addGoal(quest_goal)
 
 
+local function test()
+    print(comms.robot_send("info", "Get in THERE!!!!!!!!!!!!!!!"))
+end
+
 constraint = Constraint:newItemConstraint("any:ingot", "Iron Ingot", 16, 64, nil)
-local iron_goal = Goal:new(quest_goal, constraint, 50, "iron_const", false)
+local iron_goal = Goal:new(quest_goal, constraint, 50, "iron_const", false, test)
 builder:addGoal(iron_goal)
 
 

@@ -19,12 +19,20 @@ local filesystem = require("filesystem")
 
 local misc = {}
 function misc.re_instantiate(big_table)
-    HOME_CHUNK = big_table[1]
+    HAS_WOOD_FARM = big_table[1]
+    HOME_CHUNK = big_table[2]
+    WHAT_LOADOUT = big_table[3]
+    FUEL_TYPE = big_table[4]
+    IGNORE_ORE_FUEL_CHECK = big_table[5]
 end
 
 function misc.get_data()
     return {
+       HAS_WOOD_FARM,
        HOME_CHUNK,
+       WHAT_LOADOUT, -- 3
+       FUEL_TYPE,
+       IGNORE_ORE_FUEL_CHECK,
     }
 end
 

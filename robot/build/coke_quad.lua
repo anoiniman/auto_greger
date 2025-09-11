@@ -19,6 +19,7 @@ local Module = {parent = nil}
 Module.name = "coke_quad"
 
 Module.dictionary = {
+    ["|"] = {"air", "shovel"},
     ["c"] = {"Coke Oven Brick", "Railcraft:machine.alpha" }, -- if this doesn't work then ouch
     -- ["d"] = {"Chest", "minecraft:chest"}
 }
@@ -26,13 +27,13 @@ Module.dictionary = {
 -- Orientation is assumed for sector 3 (x:-1,z:-1)
 -- create rotation function somewhere
 Module.human_readable = {
-    "-ccc---",
-    "-ccc---",
-    "-ccc---",
-    "-------",
-    "-ccc---",
-    "-ccc---",
-    "-ccc---",
+    "-ccc||-",
+    "-ccc||-",
+    "-ccc||-",
+    "----||-",
+    "-ccc||-",
+    "-ccc||-",
+    "-ccc||-",
 }
 
 Module.origin_block = {0,0,0} -- x, z, y

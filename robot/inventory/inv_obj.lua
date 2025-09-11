@@ -25,6 +25,8 @@ local VirtualInventory = require("inventory.VirtualInventory")
 
 local crafting_component = component.getPrimary("crafting")
 local inventory = component.getPrimary("inventory_controller")
+local generator = component.getPrimary("generator")
+
 --}}}
 
 -- forbiden slots (because of crafting table) = 1,2,3 -- 5,6,7 -- 9,10,11
@@ -292,6 +294,20 @@ end
 
 function module.how_many_internal(lable, name)
     local quantity = module.virtual_inventory:howMany(lable, name)
+    -- TODO - mess around with the generator
+    local empty_slot = module.virtual_inventory:getEmptySlot()
+    if empty_slot == nil then return quantity end
+
+    robot.select(empty_slot)
+    generator.remove(generator.count)
+    local what_is = inventory.getStackInInternalSlot(empty_slot)
+    if what_is.label == lable or (what_is.name == name and (lable == nil or lable == "nil" or lable == "nil_lable")) then
+        quantity = quantity + what_is.count
+    end
+
+    generator.insert(64)
+    robot.select(1)
+
     return quantity
 end
 

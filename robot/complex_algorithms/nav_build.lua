@@ -158,7 +158,7 @@ function module.nav_and_build(instructions, post_run)
         if err == "swong" then print("debug", "noop") -- not a big error we keep going
         else
             if err == "impossible" then
-                local result = inv.place_block("down", "any:building_block", "name")
+                local result = inv.place_block("down", {"any:building", "any:grass", "any:plank", "any:log"}, "name_table")
                 ab_meta_info.bridge_mode = true
                 if not result then
                     error(comms.robot_send("fatal", "Wasn't able to place down bridge block in nav_build"))
