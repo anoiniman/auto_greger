@@ -35,7 +35,7 @@ builder:addGoal(__g_hole_home01)
 -- Q1
 local __q_firstnight = { Constraint:newQuestObj("minecraft:generic", "Dirt", 8) }
 constraint = Constraint:newQuestConstraint(__q_firstnight)
-local __g_firstnight = Goal:new(__g_hole_home01, constraint, 98, "__g_firstnight", true,)
+local __g_firstnight = Goal:new(__g_hole_home01, constraint, 98, "__g_firstnight", true)
 builder:addGoal(__g_firstnight)
 
 
@@ -53,8 +53,9 @@ constraint = Constraint:newItemConstraint("any:log", nil, 8, 24, nil)
 local __g_logs01 = Goal:new(__g_hole_home01, constraint, 90, "__g_logs01", false)
 builder:addGoal(__g_logs01)
 
-constraint = Constraint:newItemConstraint("any:sapling", nil, 0, 22, nil)
+--[[constraint = Constraint:newItemConstraint("any:sapling", nil, 0, 22, nil)
 local __g_sapling01 = Goal:new(__g_logs01, constraint, 30, "__g_sapling01", true)
+builder:addGoal(__g_sapling01)--]]
 
 -----------------------------------------
 -- Second Era (Preparing for charcoal)
@@ -62,7 +63,8 @@ local __g_sapling01 = Goal:new(__g_logs01, constraint, 30, "__g_sapling01", true
 -- 01
 local function __f_oak_tree_farm01 () HAS_WOOD_FARM = true end
 constraint = Constraint:newBuildingConstraint(__dec_oak_tree_farm, nil)
-local __g_oak_tree_farm01 = Goal:new(__g_sapling01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
+-- local __g_oak_tree_farm01 = Goal:new(__g_sapling01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
+local __g_oak_tree_farm01 = Goal:new(__g_logs01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
 builder:addGoal(__g_oak_tree_farm01)
 
 -- 02a
@@ -118,12 +120,17 @@ constraint = Constraint:newQuestConstraint(__q_fire_fire)
 local __g_fire_fire = Goal:new(__g_get_that_stone, constraint, 60, "__g_fire_fire", true)
 builder:addGoal(__g_fire_fire)
 
+local __q_storage_for_days = { Constraint:newQuestObj("Chest", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_storage_for_days)
+local __g_storage_for_days = Goal:new(__g_fire_fire, constraint, 45, "__g_storage_for_days", true)
+builder:addGoal(__g_storage_for_days)
+
 
 local function __f_smallhome01 () WHAT_LOADOUT = "first" end
 
 -- 05 (Should be able to craft the furnaces and chests by herself :))
 constraint = Constraint:newBuildingConstraint(__dec_small_home, nil)
-local __g_smallhome01 = Goal:new({__g_logs02, __g_cobblestone01}, constraint, 40, "__g_smallhome01", true, __f_smallhome01)
+local __g_smallhome01 = Goal:new({__g_logs02, __g_cobblestone01, __g_storage_for_days}, constraint, 40, "__g_smallhome01", true, __f_smallhome01)
 builder:addGoal(__g_smallhome01)
 
 -----------------------------------------

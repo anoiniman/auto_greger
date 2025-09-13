@@ -39,6 +39,7 @@ local output
 local dep1, dep2, dep3, dep4
 
 -- <Logs>
+-- Didn't add sapling recipe, because its logs but with a different output, and I hope for the best
 
 -- As you can see the dependencies of a building user are implicit
 output = {lable = nil, name = "any:log"}
@@ -52,7 +53,6 @@ else __r_log = __r_log01 end
 
 -- <Stone>
 
--- TODO: create "empty recipe" for things like cobblestone where we have no direct recipe (because we're lazy and no quarry)
 local __r_cobblestone =  MetaRecipe:newEmptyRecipe("Cobblestone")
 
 dep1 = MetaDependency:new(__r_cobblestone, 1)
@@ -137,9 +137,8 @@ local __c_flint_shovel = {
  0 , 's',  0
 }
 
-
-local dep1 = MetaDependency:new(__r_stick01, 2)
-local dep2 = MetaDependency:new(__r_flint, 3)
+dep1 = MetaDependency:new(__r_stick01, 2)
+dep2 = MetaDependency:new(__r_flint, 3)
 
 local shared = {dep1, dep2}
 local __r_flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint_pickaxe, shared, nil)
@@ -154,8 +153,37 @@ local __r_flint_shovel = MetaRecipe:newCraftingTable("Flint Shovel", __c_flint_s
 
 -- </Flint Tools>
 
+-- <Furnace/Chest>
+local __c_furnace01 = {
+'c', 'c', 'c',
+'f', 'f', 'f',
+'c', 'c', 'c',
+}
+local __c_chest01 = {
+'l', 'p', 'l',
+'p', 'f', 'p',
+'l', 'p', 'l',
+}
+
+
+dep1 = MetaDependency:new(__r_cobblestone, 6)
+dep2 = MetaDependency:new(__r_flint, 3)
+local __r_furnace01 = MetaRecipe:newCraftingTable("Furnace", __c_furnace01, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_flint, 1)
+dep2 = MetaDependency:new(__r_plank01, 4)
+dep3 = MetaDependency:new(__r_log, 4)
+local __r_chest01 = MetaRecipe:newCraftingTable("Chest", __c_chest01, {dep1, dep2, dep3})
+
+-- </Furnace/Chest>
+
+
+
+
+
 local recipe_table = {
     __r_flint,
+    __r_flint_mortar,
 
     __r_log,
     __r_plank01,
@@ -165,6 +193,9 @@ local recipe_table = {
     __r_flint_axe,
     __r_flint_shovel,
     __r_flint_hoe,
+
+    __r_furnace01,
+    __r_chest01,
 
     __r_ore_gather,
     __r_ground_gather,

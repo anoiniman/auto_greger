@@ -62,10 +62,10 @@ function module.identify(name, lable)
     -- Remember to be very carefully when setting clay recipes
     if fname("^minecraft:clay_ball$") or fname("^minecraft:clay$") then return name end
 
-    if fname("^minecraft:") then
+    --[[if fname("^minecraft:") then
         if flabl("chest") then return "minecraft:chest" end
         return "minecraft:generic"
-    end
+    end--]]
 
     if fname("^gregtech:") then
         if flabl ("^Raw") and flabl("Ore$") then return "gregtech:raw_ore" end -- excludes dusts and shit
