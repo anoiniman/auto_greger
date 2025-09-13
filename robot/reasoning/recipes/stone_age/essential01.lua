@@ -15,15 +15,23 @@ local any_log = {
     [1] = nil,
     [2] = "any:log",
 }
+local any_fence = {
+    [1] = nil,
+    [2] = "any:fence",
+}
 
 local dictionary = {
-    p = any_plank,
-    l = any_log,
-    g = "Gravel",
-    f = "Flint",
-    s = "Stick",
-    S = "Stone",
-    M = "Flint Mortar",
+    ["p"] = any_plank,
+    ["l"] = any_log,
+    ["g"] = "Gravel",
+    ["f"] = "Flint",
+    ["s"] = "Stick",
+    ["S"] = "Stone",
+    ["M"] = "Flint Mortar",
+
+    ["¢"] = "Carpet",
+    ["ma"] = "Wooden Mallet",
+    ["F"] = any_fence,
 }
 
 ------ GATHER DEF -----------
@@ -177,7 +185,45 @@ local __r_chest01 = MetaRecipe:newCraftingTable("Chest", __c_chest01, {dep1, dep
 
 -- </Furnace/Chest>
 
+-- <Mallet>
 
+
+
+-- </Mallet>
+
+
+local __c_fence01 = {
+'s', 'p', 's',
+'s', 'p', 's',
+'s', 'p', 's',
+}
+
+local __c_carpet01 = {
+'w', 'w',  0 ,
+ 0 ,  0 ,  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_bed01 = {
+'¢', '¢', '¢',
+'p', 'p', 'p',
+'F', 'ma','F',
+}
+
+def1 = MetaDependency:new(__r_stick01, 6)
+def2 = MetaDependency:new(__r_plank01, 3)
+local __r_fence01 = MetaRecipe:newCraftingTable(any_fence, __c_fence01, {def1, def2})
+
+local __r_wool01 = MetaRecipe:newEmptyRecipe("Wool")
+
+def1 = MetaDependency:new(__r_wool01, 2)
+local __r_carpet01 = MetaRecipe:newCraftingTable("Carpet", __c_carpet01, def1)
+
+def1 = MetaDependency:new(__r_carpet01, 3)
+def2 = MetaDependency:new(__r_plank01, 3)
+def3 = MetaDependency:new(__r_fence01, 2)
+def4 = MetaDependency:new(__r_mallet01, 1)
+local __r_bed01 = MetaRecipe:newCraftingTable("Bed", __c_bed01, {def1, def2, def3, def4})
 
 
 
@@ -196,6 +242,7 @@ local recipe_table = {
 
     __r_furnace01,
     __r_chest01,
+    __r_bed01,
 
     __r_ore_gather,
     __r_ground_gather,

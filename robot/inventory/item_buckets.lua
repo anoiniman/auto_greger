@@ -51,6 +51,9 @@ function module.identify(name, lable)
     if fname ("sapling")            then return     "any:sapling"       end
     if fname ("^any:building$")     then return     "any:building"      end
 
+    if flabl ("Fence")
+    or fname("any:fence")           then return     "any:fence"         end
+
     if flabl("Coke Oven Brick") then
         if fname("Railcraft:machine.alpha") or fname("dreamcraft:item.CokeOvenBrick") then return name end
         return name
