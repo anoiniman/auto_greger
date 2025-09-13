@@ -1,3 +1,4 @@
+-- luacheck: globals HAS_WOOD_FARM HAS_MORTAR
 local deep_copy = require("deep_copy")
 
 local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
@@ -5,7 +6,6 @@ local MetaRecipe = require("reasoning.MetaRecipe")
 local nav_obj = require("nav_module.nav_obj")
 -- local gathering = require("reasoning.recipes.stone_age.gathering01")
 
--- luacheck: globals HAS_WOOD_FARM
 
 local any_plank = {
     [1] = nil,
@@ -38,7 +38,7 @@ local __r_log01, _ = dofile("/home/robot/reasoning/recipes/stone_age/gathering_t
 local output
 local dep1, dep2, dep3, dep4
 
--- <Wood>
+-- <Logs>
 
 -- As you can see the dependencies of a building user are implicit
 output = {lable = nil, name = "any:log"}
@@ -47,11 +47,22 @@ local __r_log02 = MetaRecipe:newBuildingUser(output, "oak_tree_farm", "raw_usage
 if HAS_WOOD_FARM then __r_log = __r_log02
 else __r_log = __r_log01 end
 
--- </Wood>
+-- </Logs>
+
+
+-- <Stone>
+
+-- TODO: create "empty recipe" for things like cobblestone where we have no direct recipe (because we're lazy and no quarry)
+local __r_cobblestone =  MetaRecipe:newEmptyRecipe("Cobblestone")
+
+dep1 = MetaDependency:new(__r_cobblestone, 1)
+local __r_stone01 = MetaRecipe:newBuildingUser("Stone", "small_home", "raw_usage", dep1)
+
+-- </Stone>
 
 
 -- <Flint>
-local __r_flint = nil
+local __r_flint
 local __c_flint01 = {
 'g', 'g',  0 ,
  0 , 'g',  0 ,
@@ -83,6 +94,7 @@ if HAS_MORTAR then __r_flint = __r_flint02 else __r_flint = __r_flint01 end
 
 -- </Flint>
 
+-- <Wood>
 local __c_plank01 = {
  0,  'l',  0 ,
  0 ,  0 ,  0 ,
@@ -93,40 +105,68 @@ local __c_stick01 = {
  0 , 'p',  0 ,
  0 ,  0 ,  0
 }
+
+output = { lable = nil, name = "any:plank" }
+dep1 = MetaDependency:new(__r_log, 1, "Optional")
+local __r_plank01 = MetaRecipe:newCraftingTable(output, __c_plank01, dep1, nil)
+
+dep1 = MetaDependency:new(__r_plank01, 1)
+local __r_stick01 = MetaRecipe:newCraftingTable("Stick", __c_stick01, dep1, nil)
+
+-- </Wood>
+
+-- <Flint Tools>
 local __c_flint_pickaxe = {
 'f', 'f', 'f',
  0 , 's',  0 ,
  0 , 's',  0
 }
+local __c_flint_axe = {
+'f', 'f',  0 ,
+'f', 's',  0 ,
+ 0 , 's',  0
+}
+local __c_flint_hoe = {
+'f', 'f',  0 ,
+ 0 , 's',  0 ,
+ 0 , 's',  0
+}
+local __c_flint_shovel = {
+ 0 , 'f',  0 ,
+ 0 , 's',  0 ,
+ 0 , 's',  0
+}
 
----
-dep = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 1)
-local __r_flint01 = MetaRecipe:newCraftingTable("Flint", __c_flint01, dep, nil)
 
----
-output = { lable = nil, name = "any:plank" }
-if HAS_WOOD_FARM then dep = MetaDependency:new(__r_log02, 1, "Optional")
-else dep = MetaDependency:new(__r_log01, 1, "Optional") end
-local __r_plank01 = MetaRecipe:newCraftingTable(output, __c_plank01, dep, nil)
+local dep1 = MetaDependency:new(__r_stick01, 2)
+local dep2 = MetaDependency:new(__r_flint, 3)
 
---
-dep = MetaDependency:new(__r_plank01, 1)
-local __r_stick01 = MetaRecipe:newCraftingTable("Stick", __c_stick01, dep, nil)
+local shared = {dep1, dep2}
+local __r_flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint_pickaxe, shared, nil)
+local __r_flint_axe = MetaRecipe:newCraftingTable("Flint Axe", __c_flint_axe, shared, nil)
 
-local stick_dep = MetaDependency:new(__r_stick01, 2)
-local flint_dep = MetaDependency:new(__r_flint01, 3)
-local deps = {stick_dep, flint_dep}
+dep2 = MetaDependency:new(__r_flint, 2)
+local __r_flint_hoe = MetaRecipe:newCraftingTable("Flint Hoe", __c_flint_hoe, {dep1, dep2})
+-- local __r_flint_sword = MetaRecipe:newCraftingTable("Flint Sword
 
-local flint_pickaxe = MetaRecipe:newCraftingTable("Flint Pickaxe", __c_flint01, deps, nil)
+dep2 = MetaDependency:new(__r_flint, 1)
+local __r_flint_shovel = MetaRecipe:newCraftingTable("Flint Shovel", __c_flint_shovel, {dep1, dep2}, nil)
 
--- return {{flint, flint_pickaxe, stick}, dictionary}  -- this means that the only "public dependencies" are: flint, flint_pickaxe and stick
-                                                       -- we won't be directly crafting anything else
-
+-- </Flint Tools>
 
 local recipe_table = {
-    __r_log,
     __r_flint,
+
+    __r_log,
     __r_plank01,
+    __r_stick01,
+
+    __r_flint_pickaxe,
+    __r_flint_axe,
+    __r_flint_shovel,
+    __r_flint_hoe,
+
     __r_ore_gather,
+    __r_ground_gather,
 }
 return {recipe_table, dictionary}

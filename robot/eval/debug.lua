@@ -33,6 +33,11 @@ local known_symbols = {
     reason = reason,
 }
 
+local function maybe_added()
+    if inv.maybe_something_added_to_inv("Cobblestone") then return end
+    if inv.maybe_something_added_to_inv("Dirt") then return end
+    inv.maybe_something_added_to_inv()
+end
 
 local function print_obj(obj)
     local copy = deep_copy.copy_no_functions(obj) -- this prob no worky because of how require works :/
@@ -78,7 +83,11 @@ function module.debug(arguments)
     elseif arguments[1] == "dig_move" then
         local dir = arguments[2]
         local to_move = tonumber(arguments[3])
-        local use_tool = arguments[3]
+        local use_tool = arguments[4]
+        local dig_max = arguments[5]
+
+        if dig_max == nil or dig_max == "0" or dig_max ~= "dig_max" then dig_max = false
+        else dig_max = true end
 
         if dir == nil then
             print(comms.robot_send("error", "nil direction in debug move"))
@@ -86,17 +95,27 @@ function module.debug(arguments)
         end
         if to_move == nil then to_move = 1 end
 
+        local reported_unsupport = false
         for i = 1, to_move, 1 do
             os.sleep(0.1)
             if keyboard.isKeyDown(keyboard.keys.q) then break end
             local result, err = nav.debug_move(dir, 1)
+
             if err == "impossible" then
                 print(comms.robot_send("error", "impossible move reached"))
                 break
             elseif err == "solid" then
                 local s_result
-                if use_tool ~= nil then s_result = inv.smart_swing(use_tool, "front", 0)
-                else s_result = inv.blind_swing_front() end
+                if dir ~= "up" and dir ~= "down" then
+                    if use_tool ~= nil then s_result = inv.smart_swing(use_tool, "front", 0, maybe_added)
+                    else s_result = inv.blind_swing_front() end
+                else
+                    if use_tool ~= nil then s_result = inv.smart_swing(use_tool, dir, 0, maybe_added)
+                    else
+                        if dir == "up" then s_result = inv.blind_swing_up()
+                        else s_result = inv.blind_swing_down() end
+                    end
+                end
 
                 if not s_result then
                     print(comms.robot_send("error", "it was unbreakable desu"))
@@ -107,6 +126,18 @@ function module.debug(arguments)
             elseif err ~= nil then
                 print(comms.robot_send("error", string.format("err: %s move reached", err)))
                 break
+            end
+
+            if dig_max and dir ~= "up" and dir ~= "down" then
+                if use_tool == nil then
+                    if not reported_unsupport then
+                        print(comms.robot_send("error", "unsupported"))
+                        reported_unsupport = true
+                    end
+                else
+                    inv.smart_swing(use_tool, "up", 0, maybe_added)
+                    inv.smart_swing(use_tool, "down", 0, maybe_added)
+                end
             end
         end
     elseif arguments[1] == "move" then

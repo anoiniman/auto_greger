@@ -14,7 +14,7 @@ local solve_tree = {}
 
 -- It retrieves things logistacally in an eager manner, I hope we will not run out of inventory space or start
 -- dumping things we need into long-term storage and then spin cycling
-function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
+function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
     local latest_node = ctx:getLatestNode()
 
     local mode, dep_found
@@ -60,7 +60,7 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
             if print_lable == nil then print_lable = "nil" end
             if print_name == nil then print_name = "nil" end
 
-            print(comms.robot_send("debug", "depth_recurse in solve_tree:search -- " .. debug_name
+            print(comms.robot_send("debug", "depth_recurse in solve_tree:search -- " .. meta_type
                                     .. " || not enough: " .. print_lable .. ", " .. print_name))
             mode = "depth"
             dep_found = dep
@@ -70,9 +70,14 @@ function solve_tree.selectDependency(ctx, needed_quantity, debug_name)
         ::continue::
     end
     if mode == nil then
-        print(comms.robot_send("debug", "all_good in solve_tree:search -- " .. debug_name))
+        print(comms.robot_send("debug", "all_good in solve_tree:search -- " .. meta_type))
         mode = "all_good"
         dep_found = nil
+    end
+
+    -- AKA: In the case of a phony recipe, it's ok to look in storage, but not ok to try and recurse further, because we will crash and burn
+    if meta_type == "empty_recipe" and mode == "depth" then
+        return "all_good", nil
     end
 
     return mode, dep_found
@@ -107,7 +112,7 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
         parent_recipe = parent_dependency
     end
 
-    if parent_recipe.meta_type == "crafting_table" then
+    if parent_recipe.meta_type == "crafting_table" or parent_recipe.meta_type == "empty_recipe" then
         if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table")) end
         return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
 
@@ -174,7 +179,9 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
                         -- AKA: This is blocked right now, please go down another sister branch
                         -- But if you Optional into a breath and you run out of things, you are supposed to report fail
     else
-        error(comms.robot_send("fatal", "meta_type was badly set somewhere!"))
+        local p_mtype = parent_recipe.meta_type
+        if p_mtype == nil then p_mtype = "nil" end
+        error(comms.robot_send("fatal", "meta_type was badly set somewhere! " .. p_mtype))
     end
 end
 

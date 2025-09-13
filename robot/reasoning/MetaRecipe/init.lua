@@ -214,6 +214,13 @@ function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, dependencies, s
     return new
 end
 
+function MetaRecipe:newEmptyRecipe(output)
+    local new = self:new(output, nil, nil, nil)
+    new.meta_type = "empty_recipe"
+    new.mechanism = {false} -- use this value in order to generate an alert only once
+    return new
+end
+
 -- checks if there is ANY intersection betwen the sets
 function MetaRecipe:includesOutput(other)
     -- TODO - support multiple outputs, but not in this way!
@@ -295,6 +302,18 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
         -- seems good? All that is missing is a mechanism that limites the batch size for a craft
         -- (so that we don't try and craft 234 things at once for example) -- add this to the mechanism?!
         return {priority, inv.craft, dictionary, self.mechanism.crafting_recipe, self.output, up_to_quantity, lock_ref}
+    elseif self.meta_type == "empty_recipe" then
+        if self.mechanism[1] == false then
+            local r_lable = self.output.lable
+            local r_name = self.output.name
+            if r_lable == nil then r_lable = "nil" end
+            if r_name == nil then r_name = "nil" end
+
+            print(comms.robot_send("warning", string.format("Arrived at empty recipe for: %s, %s", r_lable, r_name)))
+            self.mechanism[1] = true
+        end
+
+        return nil
     else
         error(comms.robot_send("fatal", "Unimplemented meta_type selected for returnCommand in MetaRecipe: \""
             .. self.meta_type .. "\""))

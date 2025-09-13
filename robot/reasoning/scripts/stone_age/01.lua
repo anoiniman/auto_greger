@@ -67,12 +67,12 @@ builder:addGoal(__g_oak_tree_farm01)
 
 -- 02a
 constraint = Constraint:newItemConstraint("any:plank", nil, 32, 124, nil)
-local __g_planks02 = Goal:new(__g_oak_tree_farm01, constraint, 62, "__g_planks02", false)
+local __g_planks02 = Goal:new(__g_oak_tree_farm01, constraint, 82, "__g_planks02", false)
 builder:addGoal(__g_planks02)
 
 -- 02b
 constraint = Constraint:newItemConstraint("any:log", nil, 32, 72, nil)
-local __g_logs02 = Goal:new(__g_oak_tree_farm01, constraint, 60, "__g_logs02", false)
+local __g_logs02 = Goal:new(__g_oak_tree_farm01, constraint, 82, "__g_logs02", false)
 builder:addGoal(__g_logs02)
 
 -- 03a
@@ -236,11 +236,11 @@ builder:addGoal(__g_finally_some)
 
 local function __f_charcoal01 () FUEL_TYPE = "loose_coal" end
 constraint = Constraint:newItemConstraint(nil, "Charcoal", 32, 128, nil)
-local __g_charcoal01 = Goal:new(__g_finally_some, constraint, 40, "__g_charcoal01", false, __f_charcoal01)
+local __g_charcoal01 = Goal:new(__g_finally_some, constraint, 88, "__g_charcoal01", false, __f_charcoal01)
 builder:addGoal(__g_charcoal01)
 
 constraint = Constraint:newItemConstraint(nil, "Charcoal", 129, 512, nil)
-local __g_charcoal02 = Goal:new(__g_charcoal01, constraint, 40, "__g_charcoal01", false)
+local __g_charcoal02 = Goal:new(__g_charcoal01, constraint, 87, "__g_charcoal02", false)
 builder:addGoal(__g_charcoal02)
 
 -----------------------------------------

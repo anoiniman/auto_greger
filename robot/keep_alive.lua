@@ -98,7 +98,7 @@ function module.calculate_cur_energy(reserve) -- reserve, for example, always ha
 
     local unit_mult
     if cur_lable == "Coal" or cur_lable == "Charcoal" then unit_mult = u_coal
-    elseif cur_name == "any:plank" or cur_name == "any:wood" then unit_mult = u_wood
+    elseif cur_name == "any:plank" then unit_mult = u_wood
     elseif cur_lable == "Creosote Bucket" then unit_mult = u_creosote
     elseif cur_lable == nil and cur_name == nil then -- we have nothing in le hole
         return computer.energy() / 64.0
@@ -108,6 +108,10 @@ function module.calculate_cur_energy(reserve) -- reserve, for example, always ha
     end
 
     local total_ammount = cur_ammount + inv.virtual_inventory:howMany(cur_lable, cur_name) - reserve
+    if cur_name == "any:plank" then
+        total_ammount = total_ammount + (inv.virtual_inventory:howMany("nil", "any:log") * 2)
+    end
+
     local fuel_energy = total_ammount * unit_mult -- sU
     local battery_energy = computer.energy() / 64.0 -- PU -> sU
 
