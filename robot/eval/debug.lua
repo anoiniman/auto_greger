@@ -80,6 +80,9 @@ function module.debug(arguments)
 
         local offset = {-x, -z}
         map.gen_map_obj(offset)
+    elseif arguments[2] == "use" then
+        -- TODO make it so I can drink water manually lmao
+
     elseif arguments[1] == "dig_move" then
         local dir = arguments[2]
         local to_move = tonumber(arguments[3])

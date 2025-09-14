@@ -31,6 +31,17 @@ function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
         local current_int_count = inv.how_many_internal(inner.output.lable, inner.output.name)
         if current_int_count >= dep_needed_quantity then goto continue end
 
+        -- TODO: remove this stupid hack by implementing something that achieves this in a less hacky way
+        if inner.output.lable == "Fired Clay Bucket" or inner.output.lable == "Water Clay Bucket" then
+            -- What this achieves is limiting the ammount of clay buckets we have at any given time, because
+            -- crafting 20 of them for the paper quest is obscene as is obvious
+
+            local a = inv.how_many_internal("Fired Clay Bucket", nil)
+            local b = inv.how_many_internal("Water Clay Bucket", nil)
+            local total = a + b
+            if total >= 4 then goto continue end
+        end
+
         -- if there is enough in external storage return "execute" + with a command to do logistics
         -- else recurse into our dependency tree by ways of searching inside ti for this output
 
@@ -76,8 +87,13 @@ function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
     end
 
     -- AKA: In the case of a phony recipe, it's ok to look in storage, but not ok to try and recurse further, because we will crash and burn
-    if meta_type == "empty_recipe" and mode == "depth" then
-        return "all_good", nil
+    if mode == "depth" then
+        if meta_type == "empty_recipe" then
+            return "all_good", nil
+        elseif meta_type == "hold_recipe" then
+            -- this makes sure that a failed "hold_recipe" triggers a wait rather than executing as if complete
+            return "force_wait", nil
+        end
     end
 
     return mode, dep_found

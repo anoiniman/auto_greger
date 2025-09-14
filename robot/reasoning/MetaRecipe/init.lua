@@ -214,9 +214,13 @@ function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, dependencies, s
     return new
 end
 
-function MetaRecipe:newEmptyRecipe(output)
+function MetaRecipe:newEmptyRecipe(output, do_hold)
+    if do_hold == nil then do_hold = false end
+
     local new = self:new(output, nil, nil, nil)
-    new.meta_type = "empty_recipe"
+    if not do_hold then new.meta_type = "empty_recipe"
+    else new.meta_type = "hold_recipe" end
+
     new.mechanism = {false} -- use this value in order to generate an alert only once
     return new
 end
@@ -302,7 +306,7 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
         -- seems good? All that is missing is a mechanism that limites the batch size for a craft
         -- (so that we don't try and craft 234 things at once for example) -- add this to the mechanism?!
         return {priority, inv.craft, dictionary, self.mechanism.crafting_recipe, self.output, up_to_quantity, lock_ref}
-    elseif self.meta_type == "empty_recipe" then
+    elseif self.meta_type == "empty_recipe" or self.meta_type == "hold_recipe" then
         if self.mechanism[1] == false then
             local r_lable = self.output.lable
             local r_name = self.output.name

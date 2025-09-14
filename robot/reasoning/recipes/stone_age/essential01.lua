@@ -73,7 +73,7 @@ else __r_log = __r_log01 end
 
 -- <Stone>
 
-local __r_cobblestone =  MetaRecipe:newEmptyRecipe("Cobblestone")
+local __r_cobblestone =  MetaRecipe:newEmptyRecipe("Cobblestone", true)
 
 dep1 = MetaDependency:new(__r_cobblestone, 1)
 local __r_stone01 = MetaRecipe:newBuildingUser("Stone", "small_home", "raw_usage", dep1)
@@ -248,7 +248,7 @@ local __r_bed01 = MetaRecipe:newCraftingTable("Bed", __c_bed01, {dep1, dep2, dep
 
 -- </Bed>
 
--- <>
+-- <Clay Bucket>
 
 -- correct ratios if necessary!
 local __c_small_clay_dust01 = {
@@ -269,9 +269,12 @@ local __c_unfired_clay_bucket = {
 'cd', 'cd','cd',
 }
 
-dep1 = MetaDependency:new(__r_clay_ball01,  1)
+--[[local __r_clay_ball01 = deep_copy.copy(__r_ground_gather)
+__r_clay_ball01.output = {lable = "Clay", name = "minecraft:clay_ball" }--]]
+
+dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 3)
 dep2 = MetaDependency:new(__r_flint_mortar, 1)
-local __r_small_clay_dust01 = MetaRecipe:newCraftingTable("Clay Dust", __c_small_clay_dust01, {dep1, dep2})
+local __r_small_clay_dust01 = MetaRecipe:newCraftingTable("Small Pile of Clay Dust", __c_small_clay_dust01, {dep1, dep2})
 
 dep1 = MetaDependency:new(__r_small_clay_dust01, 4)
 local __r_clay_dust01 = MetaRecipe:newCraftingTable("Clay Dust", __c_clay_dust01, dep1)
@@ -279,10 +282,19 @@ local __r_clay_dust01 = MetaRecipe:newCraftingTable("Clay Dust", __c_clay_dust01
 dep1 = MetaDependency:new(__r_clay_dust01, 5)
 local __r_unfired_clay_bucket = MetaRecipe:newCraftingTable("Unfired Clay Bucket", __c_unfired_clay_bucket, dep1)
 
--- TODO -> fired clay bucket
+dep1 = MetaDependency:new(__r_unfired_clay_bucket, 1)
+local __r_fired_clay_bucket = MetaRecipe:newBuildingUser("Fired Clay Bucket", "small_home", "raw_usage", dep1)
+
+-- </Clay Bucket>
+
+-- <Paper>
+
+-- f this shit I'll just manually gather the water because f me alright?
+local __r_water_clay_bucket = MetaRecipe:newEmptyRecipe("Water Clay Bucket", true)
 
 
--- </>
+
+-- </Paper>
 
 
 local recipe_table = {
@@ -303,6 +315,8 @@ local recipe_table = {
     __r_bed01,
 
     __r_mallet01,
+    __r_fired_clay_bucket,
+    -- __r_water_clay_bucket,
 
     __r_ore_gather,
     __r_ground_gather,
