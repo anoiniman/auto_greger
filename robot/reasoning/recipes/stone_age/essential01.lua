@@ -1,9 +1,9 @@
 -- luacheck: globals HAS_WOOD_FARM HAS_MORTAR
-local deep_copy = require("deep_copy")
+-- local deep_copy = require("deep_copy")
 
 local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 local MetaRecipe = require("reasoning.MetaRecipe")
-local nav_obj = require("nav_module.nav_obj")
+-- local nav_obj = require("nav_module.nav_obj")
 -- local gathering = require("reasoning.recipes.stone_age.gathering01")
 
 
@@ -19,19 +19,31 @@ local any_fence = {
     [1] = nil,
     [2] = "any:fence",
 }
+local clay_ball = {
+    [1] = "Clay",
+    [2] = "minecraft:clay_ball",
+}
 
 local dictionary = {
     ["p"] = any_plank,
     ["l"] = any_log,
+
+    ["c"] = "Cobblestone",
+    ["S"] = "Stone",
+
     ["g"] = "Gravel",
     ["f"] = "Flint",
+
     ["s"] = "Stick",
-    ["S"] = "Stone",
     ["M"] = "Flint Mortar",
 
     ["¢"] = "Carpet",
     ["ma"] = "Wooden Mallet",
     ["F"] = any_fence,
+
+    ["cb"] = clay_ball,
+    ["cd"] = "Clay Dust",
+    ["scd"] = "Small Pile of Clay Dust",
 }
 
 ------ GATHER DEF -----------
@@ -186,11 +198,20 @@ local __r_chest01 = MetaRecipe:newCraftingTable("Chest", __c_chest01, {dep1, dep
 -- </Furnace/Chest>
 
 -- <Mallet>
+local __c_mallet01 = {
+'p', 'p',  0 ,
+'p', 'p', 's',
+'p', 'p',  0 ,
+}
 
+dep1 = MetaDependency:new(__r_plank01, 6)
+dep2 = MetaDependency:new(__r_stick01, 1)
+local __r_mallet01 = MetaRecipe:newCraftingTable("Wooden Mallet", __c_mallet01, {dep1, dep2})
 
 
 -- </Mallet>
 
+-- <Bed>
 
 local __c_fence01 = {
 's', 'p', 's',
@@ -210,21 +231,58 @@ local __c_bed01 = {
 'F', 'ma','F',
 }
 
-def1 = MetaDependency:new(__r_stick01, 6)
-def2 = MetaDependency:new(__r_plank01, 3)
-local __r_fence01 = MetaRecipe:newCraftingTable(any_fence, __c_fence01, {def1, def2})
+dep1 = MetaDependency:new(__r_stick01, 6)
+dep2 = MetaDependency:new(__r_plank01, 3)
+local __r_fence01 = MetaRecipe:newCraftingTable(any_fence, __c_fence01, {dep1, dep2})
 
 local __r_wool01 = MetaRecipe:newEmptyRecipe("Wool")
 
-def1 = MetaDependency:new(__r_wool01, 2)
-local __r_carpet01 = MetaRecipe:newCraftingTable("Carpet", __c_carpet01, def1)
+dep1 = MetaDependency:new(__r_wool01, 2)
+local __r_carpet01 = MetaRecipe:newCraftingTable("Carpet", __c_carpet01, dep1)
 
-def1 = MetaDependency:new(__r_carpet01, 3)
-def2 = MetaDependency:new(__r_plank01, 3)
-def3 = MetaDependency:new(__r_fence01, 2)
-def4 = MetaDependency:new(__r_mallet01, 1)
-local __r_bed01 = MetaRecipe:newCraftingTable("Bed", __c_bed01, {def1, def2, def3, def4})
+dep1 = MetaDependency:new(__r_carpet01, 3)
+dep2 = MetaDependency:new(__r_plank01, 3)
+dep3 = MetaDependency:new(__r_fence01, 2)
+dep4 = MetaDependency:new(__r_mallet01, 1)
+local __r_bed01 = MetaRecipe:newCraftingTable("Bed", __c_bed01, {dep1, dep2, dep3, dep4})
 
+-- </Bed>
+
+-- <>
+
+-- correct ratios if necessary!
+local __c_small_clay_dust01 = {
+'M', 'cb',  0 ,
+ 0 ,  0 ,  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_clay_dust01 = {
+'scd', 'scd',  0 ,
+'scd', 'scd',  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_unfired_clay_bucket = {
+ 0 ,  0 ,  0 ,
+'cd',  0 , 'cd',
+'cd', 'cd','cd',
+}
+
+dep1 = MetaDependency:new(__r_clay_ball01,  1)
+dep2 = MetaDependency:new(__r_flint_mortar, 1)
+local __r_small_clay_dust01 = MetaRecipe:newCraftingTable("Clay Dust", __c_small_clay_dust01, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_small_clay_dust01, 4)
+local __r_clay_dust01 = MetaRecipe:newCraftingTable("Clay Dust", __c_clay_dust01, dep1)
+
+dep1 = MetaDependency:new(__r_clay_dust01, 5)
+local __r_unfired_clay_bucket = MetaRecipe:newCraftingTable("Unfired Clay Bucket", __c_unfired_clay_bucket, dep1)
+
+-- TODO -> fired clay bucket
+
+
+-- </>
 
 
 local recipe_table = {
@@ -243,6 +301,8 @@ local recipe_table = {
     __r_furnace01,
     __r_chest01,
     __r_bed01,
+
+    __r_mallet01,
 
     __r_ore_gather,
     __r_ground_gather,
