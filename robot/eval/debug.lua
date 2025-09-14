@@ -80,8 +80,20 @@ function module.debug(arguments)
 
         local offset = {-x, -z}
         map.gen_map_obj(offset)
-    elseif arguments[2] == "use" then
+    elseif arguments[1] == "use" then
         -- TODO make it so I can drink water manually lmao
+        local what_slot = tonumber(arguments[2])
+        if what_slot == nil then
+            print(comms.robot_send("error", "Bad what slot"))
+            return nil
+        end
+
+        robot.select(what_slot)
+        inv_controller.equip()
+        robot.useDown()
+        robot.equip()
+        inv.maybe_something_added_to_inv(nil, "any:bucket")
+        robot.select(1)
 
     elseif arguments[1] == "dig_move" then
         local dir = arguments[2]

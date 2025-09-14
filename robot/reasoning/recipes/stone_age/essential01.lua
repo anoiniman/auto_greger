@@ -19,14 +19,34 @@ local any_fence = {
     [1] = nil,
     [2] = "any:fence",
 }
+
 local clay_ball = {
     [1] = "Clay",
     [2] = "minecraft:clay_ball",
 }
+local bad_cotton = {
+    [1] = "Cotton",
+    [2] = "harvestcraft:cottonItem" ,
+}
+local good_cotton = {
+    [1] = "Cotton",
+    [2] = "Natura:barleyFood", -- crazy
+}
+
+local coke_brick_item = {
+    [1] = "Coke Oven Brick",
+    [2] = "dreamcraft:item.CokeOvenBrick",
+}
+local coke_brick_block = {
+    [1] = "Coke Oven Brick",
+    [2] = "Railcraft:machine.alpha",
+}
+
 
 local dictionary = {
     ["p"] = any_plank,
     ["l"] = any_log,
+    ["ol"] = "Oak Wood",
 
     ["c"] = "Cobblestone",
     ["S"] = "Stone",
@@ -37,13 +57,31 @@ local dictionary = {
     ["s"] = "Stick",
     ["M"] = "Flint Mortar",
 
+    ["C"] = "Chest",
+
     ["¢"] = "Carpet",
     ["ma"] = "Wooden Mallet",
+    ["fk"] = "Flint Knife",
     ["F"] = any_fence,
 
     ["cb"] = clay_ball,
     ["cd"] = "Clay Dust",
     ["scd"] = "Small Pile of Clay Dust",
+
+    ["wp"] = "Wood Pulp",
+    ["wcb"] = "Water Clay Bucket",
+
+    ["_co"] = bad_cotton,
+    ["co"] = good_cotton,
+    ["P"] = "Paper",
+    ["bp"] = "Blank Pattern",
+    ["Ob"] = "Oak Barricade",
+
+    ["str"] = "String",
+
+    ["sa"] = "Sand",
+    ["wfb"] = "Wooden Form (Brick)",
+    ["cbi"] = coke_brick_item,
 }
 
 ------ GATHER DEF -----------
@@ -107,7 +145,7 @@ local __c_flint02 = {
 }
 
 dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 1, nil, 1)
-dep2 = MetaDependency:new(__r_flint_mortar, 1)
+dep2 = MetaDependency:new(__r_flint_mortar, 0.00001)
 local __r_flint02 = MetaRecipe:newCraftingTable("Flint", __c_flint02, {dep1, dep2})
 
 if HAS_MORTAR then __r_flint = __r_flint02 else __r_flint = __r_flint01 end
@@ -157,6 +195,13 @@ local __c_flint_shovel = {
  0 , 's',  0
 }
 
+-- Doubl check this and the other related recipe
+local __c_flint_knife = {
+ 0 , 'f',  0 ,
+ 0 , 's',  0 ,
+ 0 ,  0 ,  0
+}
+
 dep1 = MetaDependency:new(__r_stick01, 2)
 dep2 = MetaDependency:new(__r_flint, 3)
 
@@ -171,9 +216,19 @@ local __r_flint_hoe = MetaRecipe:newCraftingTable("Flint Hoe", __c_flint_hoe, {d
 dep2 = MetaDependency:new(__r_flint, 1)
 local __r_flint_shovel = MetaRecipe:newCraftingTable("Flint Shovel", __c_flint_shovel, {dep1, dep2}, nil)
 
+dep1 = MetaDependency:new(__r_stick01, 1)
+local __r_flint_knife = MetaRecipe:newCraftingTable("Flint Knife", __c_flint_knife, {dep1, dep2})
+
 -- </Flint Tools>
 
 -- <Furnace/Chest>
+
+local __c_crafting_table01 = {
+'f', 'f',  0 ,
+'l', 'l',  0 ,
+ 0 ,  0 ,  0 ,
+}
+
 local __c_furnace01 = {
 'c', 'c', 'c',
 'f', 'f', 'f',
@@ -185,6 +240,9 @@ local __c_chest01 = {
 'l', 'p', 'l',
 }
 
+dep1 = MetaDependency:new(__r_log, 2)
+dep2 = MetaDependency:new(__r_flint, 2)
+local __r_crafting_table01 = MetaRecipe:newCraftingTable("Crafting Table", __c_crafting_table01, {dep1, dep2})
 
 dep1 = MetaDependency:new(__r_cobblestone, 6)
 dep2 = MetaDependency:new(__r_flint, 3)
@@ -273,7 +331,7 @@ local __c_unfired_clay_bucket = {
 __r_clay_ball01.output = {lable = "Clay", name = "minecraft:clay_ball" }--]]
 
 dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 3)
-dep2 = MetaDependency:new(__r_flint_mortar, 1)
+dep2 = MetaDependency:new(__r_flint_mortar, 0.00001)
 local __r_small_clay_dust01 = MetaRecipe:newCraftingTable("Small Pile of Clay Dust", __c_small_clay_dust01, {dep1, dep2})
 
 dep1 = MetaDependency:new(__r_small_clay_dust01, 4)
@@ -289,12 +347,172 @@ local __r_fired_clay_bucket = MetaRecipe:newBuildingUser("Fired Clay Bucket", "s
 
 -- <Paper>
 
+local __c_woodpulp01 = {
+'M', 'l',  0 ,
+ 0 ,  0 ,  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_paper01 = {
+'wp', 'wp', 'wp',
+'wp', 'wcb', 'wp',
+'wp', 'wp', 'wp',
+}
+
 -- f this shit I'll just manually gather the water because f me alright?
 local __r_water_clay_bucket = MetaRecipe:newEmptyRecipe("Water Clay Bucket", true)
 
+dep1 = MetaDependency:new(__r_flint_mortar, 0.00001)
+dep2 = MetaDependency:new(__r_log, 1)
+local __r_wood_pulp01 = MetaRecipe:newCraftingTable("Wood Pulp", __c_woodpulp01, {dep1, dep2})
 
+-- adjust multipliers if needed
+dep1 = MetaDependency:new(__r_water_clay_bucket, 0.5)
+dep2 = MetaDependency:new(__r_wood_pulp01, 4)
+local __r_paper01 = MetaRecipe:newCraftingTable("Paper", __c_paper01, {dep1, dep2})
 
 -- </Paper>
+
+-- <Pattern n'shit>
+
+local __c_good_cotton = {
+ 0 ,  0 ,  0 ,
+'_co', '_co', 0,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_string01 = {
+ 0 ,  0 ,  0 ,
+'co', 'co','co' ,
+ 0 ,  0 ,  0 ,
+}
+
+local __r_bad_cotton = MetaRecipe:newEmptyRecipe(bad_cotton, true)
+
+dep1 = MetaDependency:new(__r_bad_cotton, 2)
+local __r_cotton01 = MetaRecipe:newCraftingTable(good_cotton, __c_good_cotton, dep1)
+
+dep1 = MetaDependency:new(__r_cotton01, 3)
+local __r_string01 = MetaRecipe:newCraftingTable("String", __c_string01, dep1)
+
+
+local __c_blankpattern = {
+'P', 'P',  0 ,
+'P', 'P',  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+dep1 = MetaDependency:new(__r_paper01, 4)
+local __r_blankpattern = MetaRecipe:newCraftingTable("Blank Pattern", __c_blankpattern, dep1)
+
+-- </Pattern>
+
+-- <Tinkers Quest>
+
+local __c_oak_barricade = {
+ 0 , 'ol',  0  ,
+'ol','str','ol',
+ 0 , 'ol' ,  0 ,
+}
+
+local __c_pattern_chest = {
+'s', 'bp', 's' ,
+'s', 'C' , 's' ,
+ 0 , 'ma' ,  0 ,
+}
+
+local __c_tool_station = {
+'s', 'bp', 's' ,
+'s', 'ct', 's' ,
+ 0 , 'ma' ,  0 ,
+}
+
+local __c_stencil_table = {
+'s', 'bp', 's' ,
+'F', 's' , 'F',
+ 0 , 'ma' ,  0 ,
+}
+
+local __c_part_builder = {
+'s', 'bp', 's' ,
+'Ob','s' ,'Ob',
+ 0 , 'ma' ,  0 ,
+}
+
+dep1 = MetaDependency:new(__r_log, 4)
+dep2 = MetaDependency:new(__r_string01, 1)
+local __r_oak_barricade = MetaRecipe:newCraftingTable("Oak Barricade", __c_oak_barricade, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_stick01, 3)
+dep2 = MetaDependency:new(__r_blankpattern, 1)
+dep3 = MetaDependency:new(__r_oak_barricade, 2)
+dep4 = MetaDependency:new(__r_mallet01, 1)
+local __r_part_builder = MetaRecipe:newCraftingTable("Part Builder", __c_part_builder, {dep1, dep2, dep3, dep4})
+
+dep3 = MetaDependency:new(__r_fence01, 2)
+local __r_stencil_table = MetaRecipe:newCraftingTable("Stencil Table", __c_stencil_table, {dep1, dep2, dep3, dep4})
+
+dep1 = MetaDependency:new(__r_stick01, 4)
+-- dep2 = MetaDependency:new(__
+dep3 = MetaDependency:new(__r_crafting_table01, 1)
+local __r_tool_station = MetaRecipe:newCraftingTable("Tool Station", __c_tool_station, {dep1, dep2, dep3, dep4})
+
+dep3 = MetaDependency:new(__r_chest01, 1)
+local __r_pattern_chest = MetaRecipe:newCraftingTable("Pattern Chest", __c_pattern_chest, {dep1, dep2, dep3, dep4})
+
+-- </Tinkers Quest>
+
+-- <I'm bricked up, and so on>
+
+local __c_wooden_brick_form = {
+'bp',  0 ,  0 ,
+'fk',  0 ,  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_unfired_coke_brick = {
+'cb', 'cb', 'cb',
+'sa', 'wfb','sa',
+'sa', 'sa', 'sa',
+}
+
+local __c_coke_brick_block = {
+'cbi', 'cbi',  0 ,
+'cbi', 'cbi',  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+dep1 = MetaDependency:new(__r_blankpattern, 1)
+dep2 = MetaDependency:new(__r_flint_knife, 1)
+local __r_wooden_brick_form = MetaRecipe:newCraftingTable("Wooden Form (Brick)", __c_wooden_brick_form, {dep1, dep2})
+
+
+-- Hopefully this works, I know this kinds of recipes are a bit buggy, but holy these dependency definitions :sob:
+dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3/3, nil, 3) -- clay
+dep2 = MetaDependency:selectFromMultiple(__r_ground_gather, 5/3, nil, 2) -- sand
+dep3 = MetaDependency:new(__r_wooden_brick_form, 0.000001)
+local __r_unfired_coke_brick = MetaRecipe:newCraftingTable("Unfired Coke Oven Brick", __c_unfired_coke_brick, {dep1, dep2, dep3})
+
+dep1 = MetaDependency:new(__r_unfired_coke_brick, 1)
+local __r_coke_brick_item = MetaRecipe:newBuildingUser(coke_brick_item, "small_home", "raw_usage", dep1)
+
+dep1 = MetaDependency:new(__r_coke_brick_item, 4)
+local __r_coke_brick_block = MetaRecipe:newCraftingTable(coke_brick_block, __c_coke_brick_block, dep1)
+
+-- </I'm bricked up, and so on>
+
+-- <Charcoal>
+
+dep1 = MetaDependency:new(__r_log, 1)
+local __r_charcoal = MetaRecipe:newBuildingUser("Charcoal", "coke_quad", "raw_usage", dep1)
+
+-- This definition for any_fuel is temporary as is obvious :)
+local __r_any_fuel = MetaRecipe:newBuildingUser({[1] = nil, [2] = "any:fuel" }, "coke_quad", "raw_usage", dep1)
+
+-- </Charcoal>
+
+
+
 
 
 local recipe_table = {
@@ -316,7 +534,20 @@ local recipe_table = {
 
     __r_mallet01,
     __r_fired_clay_bucket,
+    __r_paper01,
     -- __r_water_clay_bucket,
+
+    __r_part_builder,
+    __r_stencil_table,
+    __r_tool_station,
+    __r_pattern_chest,
+
+    __r_wooden_brick_form,
+    __r_coke_brick_item,
+    __r_coke_brick_block,
+
+    __r_charcoal,
+    __r_any_fuel,
 
     __r_ore_gather,
     __r_ground_gather,

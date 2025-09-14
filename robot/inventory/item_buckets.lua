@@ -31,6 +31,7 @@ function module.identify(name, lable)
     if fname ("axe")                then return     "tool:axe"          end
     if fname ("shovel")             then return     "tool:shovel"       end
 
+    --[[
     if flabl ("Mallet")
     or flabl ("Soft Hammer")        then return     "tool:mallet"       end
 
@@ -39,6 +40,7 @@ function module.identify(name, lable)
     if flabl ("File")               then return     "tool:file"         end
     if flabl ("Screwdriver")        then return     "tool:screwdriver"  end
     if flabl ("Saw")                then return     "tool:saw"          end
+    --]]
 
     -- prob will catch the blocks as well
     if flabl ("Coal")               then return     "any:fuel"          end
@@ -52,9 +54,14 @@ function module.identify(name, lable)
     if fname ("^any:building$")     then return     "any:building"      end
 
     if flabl ("Fence")
-    or fname("any:fence")           then return     "any:fence"         end
+    or fname ("any:fence")          then return     "any:fence"         end
 
-    if flabl("Coke Oven Brick") then
+    if flabl ("Bucket")
+    or fname ("any:bucket")         then return     "any:bucket"        end
+
+    if flabl ("Cotton")             then return     name                end
+
+    if flabl("^Coke Oven Brick") then
         if fname("Railcraft:machine.alpha") or fname("dreamcraft:item.CokeOvenBrick") then return name end
         return name
     end

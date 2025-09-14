@@ -42,7 +42,8 @@ local function refuel()
 
     local fuel_slot
     if FUEL_TYPE == "loose_coal" then
-        fuel_slot = inv.virtual_inventory:getSmallestSlot(nil, "any:fuel") -- bucket name will probabily need to change
+        --fuel_slot = inv.virtual_inventory:getSmallestSlot(nil, "any:fuel") -- bucket name will probabily need to change
+        fuel_slot = inv.virtual_inventory:getSmallestSlot("Charcoal", nil)
     elseif FUEL_TYPE == "wood" then
         fuel_slot = inv.virtual_inventory:getSmallestSlot(nil, "any:plank")
     else
@@ -97,7 +98,7 @@ function module.calculate_cur_energy(reserve) -- reserve, for example, always ha
     elseif reserve < 0 then reserve = 0 end
 
     local unit_mult
-    if cur_lable == "Coal" or cur_lable == "Charcoal" then unit_mult = u_coal
+    if cur_lable == "Charcoal" then unit_mult = u_coal
     elseif cur_name == "any:plank" then unit_mult = u_wood
     elseif cur_lable == "Creosote Bucket" then unit_mult = u_creosote
     elseif cur_lable == nil and cur_name == nil then -- we have nothing in le hole

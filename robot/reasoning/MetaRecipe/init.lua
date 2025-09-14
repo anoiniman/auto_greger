@@ -54,7 +54,17 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
             error(comms.robot_send("fatal", "assertion failed\n" .. serial))
         end
 
-        if output.lable ~= nil then -- it is already well formated
+        if (output[1] ~= nil or output[2] ~= nil) and (type(output[1]) == "string" or type(output[2]) == "string") then
+            -- Checks for that other format we use for some reason or another I forgot lmao
+            -- (This is what I get for not having standardised the formats before hand, what an idiot)
+            local i_lable = output[1]
+            local i_name = output[2]
+            if i_lable == nil then i_lable = "nil" end
+            if i_name == nil then i_name = "nil" end
+
+            new.output = {lable = i_lable, name = i_name}
+
+        elseif output.lable ~= nil then -- it is already well formated
             local fmt_output = deep_copy.copy(output, pairs)
             if type(fmt_output.name) == "table" then
                 for index, l_name in ipairs(fmt_output.name) do
