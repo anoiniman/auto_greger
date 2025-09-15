@@ -1,5 +1,5 @@
 -- luacheck: globals HAS_WOOD_FARM HAS_MORTAR
--- local deep_copy = require("deep_copy")
+local deep_copy = require("deep_copy")
 
 local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 local MetaRecipe = require("reasoning.MetaRecipe")
@@ -637,6 +637,14 @@ local __r_casting_table = MetaRecipe:newCraftingTable("Casting Table", __c_casti
 
 -- <Ingots>
 
+-- One day we'll have better handling of overlapping recipes, for now we'll only use chalcopyrite
+local output = { lable = "Raw Chalcopyrite Ore", name = "gregtech:raw_ore"}
+local __r_copper_ore = MetaRecipe:newEmptyRecipe("nil")
+__r_copper_ore.inlying_recipe.output = output
+__r_copper_ore.inlying_recipe.mechanism.output = deep_copy.copy(output)
+
+dep1 = MetaDependency:new(__r_copper_ore, 1)
+local __r_copper_ingot = MetaRecipe:newBuildingUser("Copper Ingot", "small_home", "raw_usage", dep1)
 
 
 -- </Ingots>
@@ -676,6 +684,7 @@ local recipe_table = {
     __r_charcoal,
     __r_any_fuel,
 
+    --
     __r_seared_brick,
     __r_seared_bricks,
     __r_seared_stone,
@@ -688,6 +697,12 @@ local recipe_table = {
 
     __r_smeltery_controller,
     __r_smeltery_drain,
+    --
+
+    __r_copper_ingot,
+    __r_tin_ingot,
+    __r_bronze_ingot,
+    __r_iron_ingot,
 
     __r_ore_gather,
     __r_ground_gather,
