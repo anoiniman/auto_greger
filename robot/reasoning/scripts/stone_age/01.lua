@@ -258,6 +258,22 @@ constraint = Constraint:newBuildingConstraint(__dec_sp_storeroom, nil)
 local __g_sp_storeroom01 = Goal:new(__g_coke_quad01, constraint, 60, "__g_sp_storeroom01", false)
 builder:addGoal(__g_sp_storeroom01)
 
+-- Q
+local __q_you_are_not_prepared = {
+    Constraint:newQuestObj("Seared Bricks", nil, 28),
+    Constraint:newQuestObj("Smeltery Controller", nil, 1),
+    Constraint:newQuestObj("Seared Tank", nil, 1),
+
+    Constraint:newQuestObj("Casting Channel", nil, 2),
+    Constraint:newQuestObj("Seared Faucet", nil, 2),
+    Constraint:newQuestObj("Smeltery Drain", nil, 2),
+
+    Constraint:newQuestObj("Casting Basin", nil, 1),
+    Constraint:newQuestObj("Seared Stone", nil, 1),
+    Constraint:newQuestObj("Casting Table", nil, 1),
+}
+
+
 -- 02
 constraint = Constraint:newBuildingConstraint(__dec_tk_smeltery, nil)
 local __g_tk_smeltery = Goal:new(__g_sp_storeroom01, constraint, 40, "__g_tk_smeltery", false)

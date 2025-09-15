@@ -508,11 +508,15 @@ local __r_charcoal = MetaRecipe:newBuildingUser("Charcoal", "coke_quad", "raw_us
 
 -- This definition for any_fuel is temporary as is obvious :)
 local __r_any_fuel = MetaRecipe:newBuildingUser({[1] = nil, [2] = "any:fuel" }, "coke_quad", "raw_usage", dep1)
-
 -- </Charcoal>
 
 
+-- <Smeltery>
 
+local __r_seared_brick = MetaRecipe:newBuildingUser(sdfas
+
+
+-- </Smeltery>
 
 
 local recipe_table = {
