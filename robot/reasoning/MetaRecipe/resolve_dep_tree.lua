@@ -39,7 +39,14 @@ function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
             local a = inv.how_many_internal("Fired Clay Bucket", nil)
             local b = inv.how_many_internal("Water Clay Bucket", nil)
             local total = a + b
-            if total >= 4 then goto continue end
+            if total >= 4 then
+                if inner.output.lable == "Fired Clay Bucket" then goto continue end
+                if inner.output.lable == "Water Clay Bucket" then
+                    if b >= 4 then goto continue end
+                    -- else
+                    return "force_wait", nil
+                end
+            end
         end
 
         -- if there is enough in external storage return "execute" + with a command to do logistics

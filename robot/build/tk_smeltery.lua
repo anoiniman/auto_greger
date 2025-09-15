@@ -24,7 +24,7 @@ Module.dictionary = {
 Module.base_table = {
     {
     "-------",
-    "--cb---",
+    "---b---",
     "--sss--",
     "--sss--",
     "--sss--",

@@ -58,6 +58,8 @@ local dictionary = {
     ["M"] = "Flint Mortar",
 
     ["C"] = "Chest",
+    ["Ct"] = "Crafting Table",
+    ["Fu"] = "Furnace",
 
     ["¢"] = "Carpet",
     ["ma"] = "Wooden Mallet",
@@ -82,6 +84,12 @@ local dictionary = {
     ["sa"] = "Sand",
     ["wfb"] = "Wooden Form (Brick)",
     ["cbi"] = coke_brick_item,
+    ["Gr"] = "Grout",
+
+    ["sb"] = "Seared Brick",
+    ["Sb"] = "Seared Bricks",
+    ["sch"] = "Seared Channel",
+    ["Sst"] = "Seared Stone",
 }
 
 ------ GATHER DEF -----------
@@ -423,7 +431,7 @@ local __c_pattern_chest = {
 
 local __c_tool_station = {
 's', 'bp', 's' ,
-'s', 'ct', 's' ,
+'s', 'Ct', 's' ,
  0 , 'ma' ,  0 ,
 }
 
@@ -491,6 +499,7 @@ local __r_wooden_brick_form = MetaRecipe:newCraftingTable("Wooden Form (Brick)",
 dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3/3, nil, 3) -- clay
 dep2 = MetaDependency:selectFromMultiple(__r_ground_gather, 5/3, nil, 2) -- sand
 dep3 = MetaDependency:new(__r_wooden_brick_form, 0.000001)
+local __d_wooden_brick_form = dep3
 local __r_unfired_coke_brick = MetaRecipe:newCraftingTable("Unfired Coke Oven Brick", __c_unfired_coke_brick, {dep1, dep2, dep3})
 
 dep1 = MetaDependency:new(__r_unfired_coke_brick, 1)
@@ -511,12 +520,126 @@ local __r_any_fuel = MetaRecipe:newBuildingUser({[1] = nil, [2] = "any:fuel" }, 
 -- </Charcoal>
 
 
--- <Smeltery>
+-- <Smeltery Basics>
 
-local __r_seared_brick = MetaRecipe:newBuildingUser(sdfas
+local __c_grout01 = {
+'g', 'g', 'g',
+'cb', 'wcb','cb',
+'sa', 'sa', 'sa',
+}
+local __c_unfired_seared_brick = {
+'Gr', 'Gr', 'Gr',
+'Gr', 'wfb','Gr',
+'Gr', 'Gr', 'Gr',
+}
+local __c_seared_bricks = {
+'sb', 'sb', 'sb',
+'sb', 'wcb','sb',
+'sb', 'sb', 'sb',
+}
 
 
--- </Smeltery>
+-- todo: add, not just multiplier, but also "min" to the dependencies, yup, shouldn't be too hard and it'll save us from some headaches
+-- I'll actually hold-off on that since the crafting logic seems to handle it well enough, the problem is just logistical, aka
+-- we might not have enough in the inventory to complete a minimum craft, if that happens all we need to do is add some extra goal constraints
+-- aka: not worth it for now, I'll fix it later
+dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3/4, nil, 1) -- gravel
+dep2 = MetaDependency:selectFromMultiple(__r_ground_gather, 3/4, nil, 2) -- sand
+dep3 = MetaDependency:new(__r_water_clay_bucket, 1/4)
+local __r_grout01 = MetaRecipe:newCraftingTable("Grout", __c_grout01, {dep1, dep2, dep3})
+
+dep1 = __d_wooden_brick_form
+dep2 = MetaDependency:new(__r_grout01, 8)
+local __r_unfired_seared_brick = MetaRecipe:newCraftingTable("Unfired Seared Brick", __c_unfired_seared_brick, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_unfired_seared_brick, 1)
+local __r_seared_brick = MetaRecipe:newBuildingUser("Seared Brick", "small_home", "raw_usage", dep1)
+
+dep1 = MetaDependency:new(__r_seared_brick, 8/2)
+dep2 = MetaDependency:new(__r_water_clay_bucket, 1/2)
+local __r_seared_bricks = MetaRecipe:newCraftingTable("Seared Bricks", __c_seared_bricks, {dep1, dep2})
+
+
+-- </Smeltery Basics>
+
+-- <Smeltery de-facto>
+
+local __c_seared_faucet = {
+ 0 ,    0 ,  0 ,
+'sb',   0 , 'sb',
+'sb', 'sb', 'sb',
+}
+
+local __c_casting_channel = {
+'sb',   0 , 'sb',
+'sb',   0 , 'sb',
+'sb', 'sb', 'sb',
+}
+
+local __c_casting_table = {
+'sb',   0 , 'sb',
+'Sb', 'Sst','Sb',
+'Sb',   0 , 'Sb',
+}
+
+local __c_casting_basin = {
+'Sb',   0 , 'Sb',
+'Sb',   0 , 'Sb',
+'Sb', 'Sb', 'Sb',
+}
+
+local __c_smeltery_drain = {
+'sb', 'sb', 'sb',
+'sb', 'sch','sb',
+'sb', 'sb', 'sb',
+}
+
+local __c_seared_tank = {
+'Sb', 'sb', 'Sb',
+'sb',   0 , 'sb',
+'Sb', 'sb', 'Sb',
+}
+
+local __c_smeltery_controller = {
+'Sb', 'sb', 'Sb',
+'sb', 'Fu', 'sb',
+'Sb', 'sb', 'Sb',
+}
+
+local dep1 = MetaDependency:new(__r_seared_brick, 4)
+local dep2 = MetaDependency:new(__r_seared_bricks, 4)
+local dep3 = MetaDependency:new(__r_furnace01, 1)
+local __r_smeltery_controller = MetaRecipe:newCraftingTable("Smeltery Controller", __c_smeltery_controller, {dep1, dep2, dep3})
+
+local __r_seared_tank = MetaRecipe:newCraftingTable("Seared Tank", __c_seared_tank, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_seared_brick, 7)
+local __r_casting_channel = MetaRecipe:newCraftingTable("Casting Channel", __c_casting_channel, dep1)
+
+dep1 = MetaDependency:new(__r_seared_brick, 5)
+local __r_seared_faucet = MetaRecipe:newCraftingTable("Seared Faucet", __c_seared_faucet, dep1)
+
+dep1 = MetaDependency:new(__r_seared_brick, 8)
+dep2 = MetaDependency:new(__r_casting_channel, 1)
+local __r_smeltery_drain = MetaRecipe:newCraftingTable("Smeltery Drain", __c_smeltery_drain, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_seared_bricks, 7)
+local __r_casting_basin = MetaRecipe:newCraftingTable("Casting Basin", __c_casting_basin, dep1)
+
+local __r_seared_stone = MetaRecipe:newEmptyRecipe("Seared Stone", true)
+
+dep1 = MetaDependency:new(__r_seared_brick, 2)
+dep2 = MetaDependency:new(__r_seared_bricks, 4)
+dep3 = MetaDependency:new(__r_seared_stone, 1)
+local __r_casting_table = MetaRecipe:newCraftingTable("Casting Table", __c_casting_table, {dep1, dep2, dep3})
+
+-- </Smeltery de-facto>
+
+-- <Ingots>
+
+
+
+-- </Ingots>
 
 
 local recipe_table = {
@@ -552,6 +675,19 @@ local recipe_table = {
 
     __r_charcoal,
     __r_any_fuel,
+
+    __r_seared_brick,
+    __r_seared_bricks,
+    __r_seared_stone,
+    __r_seared_faucet,
+    __r_seared_tank,
+
+    __r_casting_channel,
+    __r_casting_basin,
+    __r_casting_table,
+
+    __r_smeltery_controller,
+    __r_smeltery_drain,
 
     __r_ore_gather,
     __r_ground_gather,

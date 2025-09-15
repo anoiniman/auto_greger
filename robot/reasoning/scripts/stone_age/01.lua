@@ -259,30 +259,49 @@ local __g_sp_storeroom01 = Goal:new(__g_coke_quad01, constraint, 60, "__g_sp_sto
 builder:addGoal(__g_sp_storeroom01)
 
 -- Q
-local __q_you_are_not_prepared = {
+local __q_you_are_not_prepared01 = {
     Constraint:newQuestObj("Seared Bricks", nil, 28),
     Constraint:newQuestObj("Smeltery Controller", nil, 1),
     Constraint:newQuestObj("Seared Tank", nil, 1),
 
     Constraint:newQuestObj("Casting Channel", nil, 2),
     Constraint:newQuestObj("Seared Faucet", nil, 2),
-    Constraint:newQuestObj("Smeltery Drain", nil, 2),
+}
 
+local __q_you_are_not_prepared02 = {
+
+    Constraint:newQuestObj("Smeltery Drain", nil, 2),
     Constraint:newQuestObj("Casting Basin", nil, 1),
+}
+
+local __q_you_are_not_prepared03 = {
     Constraint:newQuestObj("Seared Stone", nil, 1),
     Constraint:newQuestObj("Casting Table", nil, 1),
 }
 
+constraint = Constraint:newQuestConstraint(__q_you_are_not_prepared01)
+local __g_you_are_not_prepared01 = Goal:new(__g_sp_storeroom01, constraint, 40, "__g_you_are_not_prepared01", true)
+builder:addGoal(__g_you_are_not_prepared01)
+
+constraint = Constraint:newQuestConstraint(__q_you_are_not_prepared02)
+local __g_you_are_not_prepared02 = Goal:new(__g_you_are_not_prepared01, constraint, 40, "__g_you_are_not_prepared02", true)
+builder:addGoal(__g_you_are_not_prepared02)
+
 
 -- 02
+local function __f_tk_smeltery () print(comms.robot_send("info", "TK DONE; Remember to now do the thing manual like")) end
 constraint = Constraint:newBuildingConstraint(__dec_tk_smeltery, nil)
-local __g_tk_smeltery = Goal:new(__g_sp_storeroom01, constraint, 40, "__g_tk_smeltery", false)
+local __g_tk_smeltery = Goal:new(__g_you_are_not_prepared02, constraint, 40, "__g_tk_smeltery", true, __f_tk_smeltery)
 builder:addGoal(__g_tk_smeltery)
+
+constraint = Constraint:newQuestConstraint(__q_you_are_not_prepared03)
+local __g_you_are_not_prepared02 = Goal:new(__g_tk_smeltery, constraint, 40, "__g_you_are_not_prepared03", true)
+builder:addGoal(__g_you_are_not_prepared03)
 
 -- 03
 local function __f_f_pickaxe01 () WHAT_LOADOUT = "second" end
 constraint = Constraint:newItemConstraint(nil, "Flint Pickaxe", 2, 3, nil)
-local __g_f_pickaxe01 = Goal:new(__g_tk_smeltery, constraint, 68, "__g_f_pickaxe01", false, __f_f_pickaxe01)
+local __g_f_pickaxe01 = Goal:new(__g_you_are_not_prepared03, constraint, 68, "__g_f_pickaxe01", false, __f_f_pickaxe01)
 builder:addGoal(__g_f_pickaxe01)
 
 

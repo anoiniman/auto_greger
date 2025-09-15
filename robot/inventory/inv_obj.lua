@@ -1,4 +1,4 @@
--- luacheck: globals EMPTY_STRING WHAT_LOADOUT
+-- luacheck: globals EMPTY_STRING
 local module = {}
 --imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
@@ -1125,7 +1125,8 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
                     break
                 end -- else we succeded! (yay!)
                 module.virtual_inventory:removeFromSlot(i_slot, to_transfer) -- it's ok to overshoot!
-                reverse_accumulator = reverse_accumulator - slot_size
+                -- reverse_accumulator = reverse_accumulator - slot_size
+                reverse_accumulator = reverse_accumulator - to_transfer
             end
             if reverse_accumulator ~= 0 then print(comms.robot_send("warning", "r_accumulator was: " .. reverse_accumulator)) end
             if do_break then break end

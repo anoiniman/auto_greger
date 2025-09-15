@@ -6,6 +6,8 @@ local comms = require("comms")
 -- luacheck: push ignore
 local serialize = require("serialization")
 -- luacheck: pop
+local computer = require("computer")
+
 local build_eval = require("eval.build")
 local inv = require("inventory.inv_obj")
 
@@ -224,14 +226,15 @@ function MetaRecipe:newBuildingUser(output, bd_name, usage_flag, dependencies, s
     return new
 end
 
-function MetaRecipe:newEmptyRecipe(output, do_hold)
-    if do_hold == nil then do_hold = false end
+function MetaRecipe:newEmptyRecipe(output, _do_hold)
+    -- if do_hold == nil then do_hold = false end
+    local do_hold = false
 
     local new = self:new(output, nil, nil, nil)
     if not do_hold then new.meta_type = "empty_recipe"
     else new.meta_type = "hold_recipe" end
 
-    new.mechanism = {false} -- use this value in order to generate an alert only once
+    new.mechanism = {computer.uptime()} -- use this value in order to generate an alert only once
     return new
 end
 
@@ -317,7 +320,7 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
         -- (so that we don't try and craft 234 things at once for example) -- add this to the mechanism?!
         return {priority, inv.craft, dictionary, self.mechanism.crafting_recipe, self.output, up_to_quantity, lock_ref}
     elseif self.meta_type == "empty_recipe" or self.meta_type == "hold_recipe" then
-        if self.mechanism[1] == false then
+        if self.mechanism[1] - computer.uptime() >= 120 then
             local r_lable = self.output.lable
             local r_name = self.output.name
             if r_lable == nil then r_lable = "nil" end
@@ -327,7 +330,9 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
             self.mechanism[1] = true
         end
 
-        return nil
+        -- lock_ref[1] = 0 -- force reset!
+        -- return nil
+        return "wait"
     else
         error(comms.robot_send("fatal", "Unimplemented meta_type selected for returnCommand in MetaRecipe: \""
             .. self.meta_type .. "\""))

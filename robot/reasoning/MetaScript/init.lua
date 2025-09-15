@@ -13,7 +13,7 @@ local prio_insert = require("prio_insert")
 
 ---- Other ----
 local build_eval = require("eval.build")
-local inv = require("inventory.inv_obj")
+-- local inv = require("inventory.inv_obj")
 local map = require("nav_module.map_obj")
 local loadouts = require("inventory.loadouts")
 
@@ -334,7 +334,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
 
     local needed_recipe = deep_copy.copy(parent_script:findRecipe(name.lable, name.name), pairs) -- :) copy it so that the state isn't mutated
     if needed_recipe == nil then
-        self.constraint.const_obj.lock[1] = 4  -- aka -> waiting listed
+        REASON_WAIT_LIST:checkAndAdd(self, old_lock_value)
         parent_script.latest_dud[1] = self.name; parent_script.latest_dud[2] = computer.uptime()
         return nil
     end
@@ -389,6 +389,12 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         extra_info,
         parent_script.dictionary
     )
+
+    if type(return_table) == "string" and return_table == "wait" then
+        REASON_WAIT_LIST:checkAndAdd(self, old_lock_value)
+        return nil
+    end
+
     return return_table
 end
 
