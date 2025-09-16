@@ -100,8 +100,16 @@ local dictionary = {
     ["irp"] = "Iron Plate",
     ["irr"] = "Iron Rod",
     ["Irh"] = "Iron Hammer",
+    ["Irw"] = "Iron Wrench",
     ["Irf"] = "Iron File",
     ["Isab"] = "Iron Sawblade",
+
+    ["bri"] = "Bronze Ingot",
+    ["brp"] = "Bronze Plate",
+    ["ubr"] = "Unfired Clay Brick",
+    ["br"] = "Brick",
+    ["Br"] = "Bricks",
+    ["Ifu"] = "Iron Furnace",
 }
 
 ------ GATHER DEF -----------
@@ -775,6 +783,7 @@ local __d_iron_hammer = MetaDependency:new(__r_iron_hammer, 0.00001)
 
 dep1 = __d_iron_hammer
 local __r_iron_wrench = MetaRecipe:newCraftingTable("Iron Wrench", __c_iron_wrench, {dep1, dep2})
+local __d_iron_wrench = MetaDependency:new(__r_iron_wrench, 0.00001)
 
 dep2 = MetaDependency:new(__r_iron_ingot, 2)
 local __r_iron_plate01 = MetaRecipe:newCraftingTable("Iron Plate", __c_iron_plate01, {dep1, dep2})
@@ -805,6 +814,63 @@ dep2 = MetaDependency:new(__r_stick01, 1)
 local __r_iron_saw = MetaRecipe:newCraftingTable("Iron Saw", __c_iron_saw, {dep1, dep2})
 
 -- </Iron Tools>
+
+local __c_iron_furnace01 = {
+'irp', 'irp' , 'irp' ,
+'irp', 'Irw' , 'irp' ,
+'irp', 'Fu' , 'irp' ,
+}
+local __c_unfired_clay_brick01 = {
+'ubr', 'ubr', 'ubr',
+'ubr', 'wfb', 'ubr',
+'ubr', 'ubr', 'ubr',
+}
+local __c_brick_block01 = {
+'br', 'br', 'br',
+'br', 'wcb', 'br',
+'br', 'br', 'br',
+}
+local __c_bronze_plate01 = {
+ 0 , 'Irh' ,  0  ,
+ 0 , 'bri' ,  0  ,
+ 0 , 'bri' ,  0 ,
+}
+local __c_small_coal_boiler = {
+'brp', 'brp' , 'brp' ,
+'brp', 'Irw' , 'brp' ,
+'Br', 'Ifu' ,  'Br' ,
+}
+
+
+dep1 = MetaDependency:new(__r_iron_plate01, 7)
+dep2 = MetaDependency:new(__r_furnace01, 1)
+dep3 = __d_iron_wrench
+local __r_iron_furnace01 = MetaRecipe:newCraftingTable("Iron Furnace", __c_iron_furnace01, {dep1, dep2, dep3})
+
+-- bricks
+
+dep1 = __d_wooden_brick_form
+dep2 = MetaDependency:selectFromMultiple(__r_ground_gather, 8/8, nil, 3) -- clay
+local __r_unfired_clay_brick01 = MetaRecipe:newCraftingTable("Unfired Clay Brick", __c_unfired_clay_brick01, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_unfired_clay_brick01)
+local __r_brick01 = MetaRecipe:newBuildingUser("Brick", "small_home", "raw_usage", dep1)
+
+dep1 = MetaDependency:new(__r_water_clay_bucket, 1/2)
+dep2 = MetaDependency:new(__r_brick01, 4)
+local __r_brick_block01 = MetaRecipe:newCraftingTable("Bricks", __c_brick_block01, {dep1, dep2})
+
+-- /bricks
+
+dep1 = MetaDependency:new(__r_bronze_ingot, 2)
+dep2 = __d_iron_hammer
+local __r_bronze_plate01 = MetaRecipe:newCraftingTable("Bronze Plate", __c_bronze_plate01, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_bronze_plate01, 5)
+dep2 = MetaDependency:new(__r_brick_block01, 2)
+dep3 = MetaDependency:new(__r_iron_furnace01, 1)
+dep4 = __d_iron_wrench
+local __r_small_coal_boiler = MetaRecipe:newCraftingTable("Small Coal Boiler", __c_small_coal_boiler, {dep1, dep2, dep3, dep4})
 
 
 local recipe_table = {
@@ -866,6 +932,8 @@ local recipe_table = {
     __r_iron_file,
     __r_iron_screwdriver,
     __r_iron_saw,
+
+    __r_small_coal_boiler, -- Getting this or bust!
 
     __r_ore_gather,
     __r_ground_gather,
