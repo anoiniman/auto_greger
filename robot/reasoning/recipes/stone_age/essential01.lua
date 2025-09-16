@@ -90,6 +90,18 @@ local dictionary = {
     ["Sb"] = "Seared Bricks",
     ["sch"] = "Seared Channel",
     ["Sst"] = "Seared Stone",
+
+    ["cui"] = "Copper Ingot",
+    ["tii"] = "Tin Ingot",
+    ["cud"] = "Copper Dust",
+    ["tid"] = "Tin Dust",
+
+    ["iri"] = "Iron Ingot",
+    ["irp"] = "Iron Plate",
+    ["irr"] = "Iron Rod",
+    ["Irh"] = "Iron Hammer",
+    ["Irf"] = "Iron File",
+    ["Isab"] = "Iron Sawblade",
 }
 
 ------ GATHER DEF -----------
@@ -145,6 +157,7 @@ local __c_flint_mortar = {
 dep1 = MetaDependency:new(__r_flint01, 2)
 dep2 = MetaDependency:new(__r_stone01, 5)
 local __r_flint_mortar = MetaRecipe:newCraftingTable("Flint Mortar", __c_flint_mortar, {dep1, dep2})
+local __d_flint_mortar = MetaDependency:new(__r_flint_mortar, 0.00001)
 
 local __c_flint02 = {
 'M', 'g',  0 ,
@@ -152,8 +165,9 @@ local __c_flint02 = {
  0 ,  0 ,  0
 }
 
+
 dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 1, nil, 1)
-dep2 = MetaDependency:new(__r_flint_mortar, 0.00001)
+dep2 = __d_flint_mortar
 local __r_flint02 = MetaRecipe:newCraftingTable("Flint", __c_flint02, {dep1, dep2})
 
 if HAS_MORTAR then __r_flint = __r_flint02 else __r_flint = __r_flint01 end
@@ -339,7 +353,7 @@ local __c_unfired_clay_bucket = {
 __r_clay_ball01.output = {lable = "Clay", name = "minecraft:clay_ball" }--]]
 
 dep1 = MetaDependency:selectFromMultiple(__r_ground_gather, 3, nil, 3)
-dep2 = MetaDependency:new(__r_flint_mortar, 0.00001)
+dep2 = __d_flint_mortar
 local __r_small_clay_dust01 = MetaRecipe:newCraftingTable("Small Pile of Clay Dust", __c_small_clay_dust01, {dep1, dep2})
 
 dep1 = MetaDependency:new(__r_small_clay_dust01, 4)
@@ -370,7 +384,7 @@ local __c_paper01 = {
 -- f this shit I'll just manually gather the water because f me alright?
 local __r_water_clay_bucket = MetaRecipe:newEmptyRecipe("Water Clay Bucket", true)
 
-dep1 = MetaDependency:new(__r_flint_mortar, 0.00001)
+dep1 = __d_flint_mortar
 dep2 = MetaDependency:new(__r_log, 1)
 local __r_wood_pulp01 = MetaRecipe:newCraftingTable("Wood Pulp", __c_woodpulp01, {dep1, dep2})
 
@@ -663,7 +677,134 @@ __r_iron_ore.inlying_recipe.mechanism.output = deep_copy.copy(output)
 dep1 = MetaDependency:new(__r_iron_ore, 0.5)
 local __r_iron_ingot = MetaRecipe:newBuildingUser("Iron Ingot", "small_home", "raw_usage", dep1)
 
+
+-- <Bronze>
+
+local __c_tin_dust = {
+'M', 'tui',  0 ,
+ 0 ,  0 ,  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_copper_dust = {
+'M', 'cui',  0 ,
+ 0 ,  0 ,  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+local __c_bronze_dust = {
+'cud', 'cud', 'cud' ,
+'tid',  0 ,  0 ,
+ 0 ,  0 ,  0 ,
+}
+
+dep1 = __d_flint_mortar
+dep2 = MetaDependency:new(__r_tin_ingot, 1)
+local __r_tin_dust = MetaRecipe:newCraftingTable("Tin Dust", __c_tin_dust, {dep1, dep2})
+
+dep1 = __d_flint_mortar
+dep2 = MetaDependency:new(__r_copper_ingot, 1)
+local __r_copper_dust = MetaRecipe:newCraftingTable("Copper Dust", __c_copper_dust, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_copper_dust, 3/3)
+dep2 = MetaDependency:new(__r_tin_dust, 1/3)
+local __r_bronze_dust = MetaRecipe:newCraftingTable("Bronze Dust", __c_bronze_dust, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_bronze_dust, 1)
+local __r_bronze_ingot = MetaRecipe:newBuildingUser("Bronze Ingot", "small_home", "raw_usage", dep1)
+
+-- </Bronze>
 -- </Ingots>
+
+-- <Iron Tools>
+--[[
+    ["iri"] = "Iron Ingot",
+    ["irp"] = "Iron Plate",
+    ["irr"] = "Iron Rod",
+    ["Irh"] = "Iron Hammer",
+    ["Irf"] = "Iron File",
+--]]
+
+local __c_iron_hammer = {
+'iri', 'iri' ,  0 ,
+'iri', 'iri' , 's' ,
+'iri', 'iri' ,  0 ,
+}
+
+local __c_iron_wrench = {
+'iri', 'Irh' , 'iri' ,
+'iri', 'iri' , 'iri' ,
+ 0 , 'iri' ,  0 ,
+}
+local __c_iron_plate01 = {
+ 0 , 'Irh' ,  0  ,
+ 0 , 'iri' ,  0  ,
+ 0 , 'iri' ,  0 ,
+}
+local __c_iron_file = {
+ 0 , 'irp' ,  0  ,
+ 0 , 'irp' ,  0  ,
+ 0 , 's' ,  0 ,
+}
+local __c_iron_rod = {
+'Irf' ,  0  ,  0  ,
+ 0 , 'iri' ,  0  ,
+ 0 ,  0  ,  0 ,
+}
+local __c_iron_screwdriver = {
+0 ,  'Irf'  ,  'irr'  ,
+ 0 , 'irr' ,  'Irh'  ,
+ 's' ,  0  ,  0 ,
+}
+local __c_iron_sawblade = {
+'irp' , 'irp',  0  ,
+'Irf' , 'Irh' ,  0  ,
+ 0 ,  0  ,  0 ,
+}
+local __c_iron_saw = {
+'Isab' ,  's'  ,  0  ,
+ 0 , 0 ,  0  ,
+ 0 ,  0  ,  0 ,
+}
+
+
+dep1 = MetaDependency:new(__r_stick01, 1)
+dep2 = MetaDependency:new(__r_iron_ingot, 6)
+local __r_iron_hammer = MetaRecipe:newCraftingTable("Iron Hammer", __c_iron_hammer, {dep1, dep2})
+local __d_iron_hammer = MetaDependency:new(__r_iron_hammer, 0.00001)
+
+dep1 = __d_iron_hammer
+local __r_iron_wrench = MetaRecipe:newCraftingTable("Iron Wrench", __c_iron_wrench, {dep1, dep2})
+
+dep2 = MetaDependency:new(__r_iron_ingot, 2)
+local __r_iron_plate01 = MetaRecipe:newCraftingTable("Iron Plate", __c_iron_plate01, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_stick01, 1)
+dep2 = MetaDependency:new(__r_iron_plate01, 2)
+local __r_iron_file = MetaRecipe:newCraftingTable("Iron File", __c_iron_file, {dep1, dep2})
+local __d_iron_file = MetaDependency:new(__r_iron_file, 0.00001)
+
+
+dep1 = MetaDependency:new(__r_iron_ingot, 1)
+dep2 = __d_iron_file
+local __r_iron_rod = MetaRecipe:newCraftingTable("Iron Rod", __c_iron_rod, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_iron_rod, 2)
+dep2 = MetaDependency:new(__r_stick01, 1)
+dep3 = __d_iron_file
+dep4 = __d_iron_hammer
+local __r_iron_screwdriver = MetaRecipe:newCraftingTable("Iron Screwdriver", __c_iron_screwdriver, {dep1, dep2, dep3, dep4})
+
+dep1 = MetaDependency:new(__r_iron_plate01, 2)
+dep2 = __d_iron_hammer
+dep3 = __d_iron_file
+local __r_iron_sawblade = MetaRecipe:newCraftingTable("Iron Sawblade", __c_iron_sawblade, {dep1, dep2, dep3})
+
+dep1 = MetaDependency:new(__r_iron_sawblade, 1)
+dep2 = MetaDependency:new(__r_stick01, 1)
+local __r_iron_saw = MetaRecipe:newCraftingTable("Iron Saw", __c_iron_saw, {dep1, dep2})
+
+-- </Iron Tools>
 
 
 local recipe_table = {
@@ -719,6 +860,12 @@ local recipe_table = {
     __r_tin_ingot,
     __r_bronze_ingot,
     __r_iron_ingot,
+
+    __r_iron_hammer,
+    __r_iron_wrench,
+    __r_iron_file,
+    __r_iron_screwdriver,
+    __r_iron_saw,
 
     __r_ore_gather,
     __r_ground_gather,

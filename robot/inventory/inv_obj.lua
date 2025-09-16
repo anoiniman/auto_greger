@@ -642,7 +642,6 @@ function module.equip_tool(tool_type, tool_level)
     end
     ::fall_through::
 
-
     local slot, skip_equip = module.virtual_inventory:equipSomething(tool_type, tool_level, get_forbidden_table())
     -- Equip required tool if found else return false
     if slot == nil then return false end
@@ -1218,7 +1217,7 @@ local function simple_slot_check(slot)
     robot.select(1)
 end
 
-function module.simple_slot_check(slot) simple_slot_check(slot) end
+function module.simple_slot_check(slot) return simple_slot_check(slot) end
 
 function module.maybe_something_added_to_inv(lable_hint, name_hint) -- important to keep crafting table clear
     -- added some bullshit to deal with multiple drops

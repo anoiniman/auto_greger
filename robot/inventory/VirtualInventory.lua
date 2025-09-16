@@ -501,7 +501,7 @@ function Module:equipSomething(tool_type, tool_level, forbidden_slots)
         if tool_level > 0 then
             print(comms.robot_send("warning", "lable_table was not empty, but even so we failed to get/find tool"))
             return nil
-        end -- else we just make sure we are holding nothing :) (TODO)
+        end -- else we just make sure we are holding nothing :)
         from_slot = self:getEmptySlot(forbidden_slots)
         from_lable = EMPTY_STRING
 

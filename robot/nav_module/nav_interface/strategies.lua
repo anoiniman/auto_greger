@@ -1,4 +1,4 @@
--- luacheck: globlas EMPTY_TABLE
+-- luacheck: globals EMPTY_TABLE
 local module = {}
 
 local sides_api = require("sides")
@@ -28,7 +28,7 @@ local smart_move_down_forwards, smart_move_down_backwards
 local function do_move_down(parent, nav_obj, extra_sauce)
     -- Maybe faulty nil corrections, oh well
     if smart_move_down_forwards == nil then smart_move_down_forwards = nav_obj.orientation end
-    if smart_move_down_backwards == nil then 
+    if smart_move_down_backwards == nil then
         smart_move_down_backwards = parent.get_opposite_orientation(nav_obj)
     end
 
@@ -133,8 +133,13 @@ local function try_break_block(direction)
     return true, nil
 end
 
-local function break_log_down(direction, nav_obj)
+-- local function break_log_down(direction, nav_obj) end
+
+local function add_garden()
+    if inv.maybe_something_added_to_inv("Cotton", "harvestcraft:cottonItem") then return true end
+    return inv.maybe_something_added_to_inv()
 end
+
 
 local entity_watch_dog = 0
 local climb_watch_dog = 0
@@ -150,13 +155,21 @@ local function surface(parent, direction, nav_obj, extra_sauce)
         -- return false, "impossible"
 
     elseif err ~= nil and err ~= "impossible move" then
+        local obstacle
         if not table_contains(extra_sauce, "no_auto_up") then
+            -- We'll re-introduce pre-analysis for the sake of getting textile gardens
+            -- TODO, make sure that this is ineed the correct name
+            local g_result = geolyzer.compare("harvestcraft:textilegarden", "direct", -1)
+            if g_result then
+                return inv.smart_swing("empty", "front", 0, add_garden), nil
+            end
+
             local result, err = module.free(parent, "up", nav_obj, break_block)
             if result == true then
                 climb_watch_dog = climb_watch_dog + 1
                 return true, "auto_up"
             end
-            return result, err
+            return false, err
         end
 
         if err == "entity" or err == "replaceable" then
@@ -166,7 +179,7 @@ local function surface(parent, direction, nav_obj, extra_sauce)
             return true, err -- Uhhh, hopefully this won't get us stuck in a infinite loop
         end
 
-        local obstacle = geolyzer.simple_return()
+        obstacle = geolyzer.simple_return()
         return false, obstacle
     end
 
@@ -175,6 +188,11 @@ local function surface(parent, direction, nav_obj, extra_sauce)
     local result, err = maybe_move_down(parent, nav_obj, extra_sauce)
 
     return result, err
+end
+
+local function add_tree()
+    if inv.maybe_something_added_to_inv(nil, "any:log") then return true end
+    return inv.maybe_something_added_to_inv()
 end
 
 -- Added this "entry-function" so that I can capture the results, and track some state (evil)
@@ -200,21 +218,17 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
         local analysis = geolyzer.simple_return()
         if geolyzer.sub_compare("wood", "naive_contains", analysis) then
             -- forward
-            inv.equip_tool("axe", 0) -- maybe unneeded?
-            robot.swing() -- will succeed
-            inv.maybe_something_added_to_inv()
+            inv.smart_swing("axe", "front", 0, add_tree)
             module.free(parent, direction, nav_obj, EMPTY_TABLE) -- must succeed
 
             -- 1
-            robot.swingDown()
-            inv.maybe_something_added_to_inv(nil, "any:log")
+            inv.smart_swing("axe", "down", 0, add_tree)
             local result, err = module.free(parent, "down", nav_obj, EMPTY_TABLE)
             if not result then goto get_out end
 
 
             -- 2
-            robot.swingDown()
-            inv.maybe_something_added_to_inv(nil, "any:log")
+            inv.smart_swing("axe", "down", 0, add_tree)
             local result, err = module.free(parent, "down", nav_obj, EMPTY_TABLE)
             if not result then goto get_out end
 

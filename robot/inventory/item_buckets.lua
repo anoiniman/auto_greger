@@ -31,7 +31,7 @@ function module.identify(name, lable)
     if fname ("axe")                then return     "tool:axe"          end
     if fname ("shovel")             then return     "tool:shovel"       end
 
-    --[[
+    -- to define these things as tools is necessary so their custom lable is not erased by an update
     if flabl ("Mallet")
     or flabl ("Soft Hammer")        then return     "tool:mallet"       end
 
@@ -40,7 +40,6 @@ function module.identify(name, lable)
     if flabl ("File")               then return     "tool:file"         end
     if flabl ("Screwdriver")        then return     "tool:screwdriver"  end
     if flabl ("Saw")                then return     "tool:saw"          end
-    --]]
 
     -- prob will catch the blocks as well
     if flabl ("Coal")               then return     "any:fuel"          end
@@ -115,6 +114,10 @@ local tm_table, tt_table = table.unpack(req_tbl)
 local max_tool_level = 3
 -- returns {lable} table, organized from most preferential to least preferential
 function module.id_equipment(tool_type, tool_level)
+    if tool_type == "empty" or tool_type == "unequip" then
+        return {} -- returning this exploits the control logic of the caller function to unequip the tool :)
+    end
+
     if not search_table.ione(tt_table, tool_type) then
         print(comms.robot_send("error", "Unidentified tool_type: " .. tool_type))
         return nil
