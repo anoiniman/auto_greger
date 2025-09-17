@@ -97,7 +97,7 @@ Module.state_init = {
 Module.hooks = {
     function(state, parent, flag, _quantity_goal, _state_table)
         local go_next = generic_hooks.std_hook1(state, parent, flag, Module.og_state, "hole_home")
-        if go_next > 2 then
+        if go_next == nil or go_next > 2 then
             state.fsm = 1
             state.in_what_asterisk = 1
             state.temp_reg = nil

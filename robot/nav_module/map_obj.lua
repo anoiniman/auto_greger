@@ -306,7 +306,9 @@ end
 -- for example: when off = {1, 1} lx = 1, rx = 0;
 -- but when off = {2, 2} lx = 1, rx = -1 [example written without taking into account negative offset],
 -- so lx = 1 may be thought of the center, rather than leftmost edge
-function module.gen_map_obj(offset)
+function module.gen_map_obj(o_offset)
+    local offset = deep_copy.copy(o_offset)
+
     if map_obj[1] ~= nil then
         print(comms.robot_send("warning", "map_obj was already generated"))
         map_obj = {}

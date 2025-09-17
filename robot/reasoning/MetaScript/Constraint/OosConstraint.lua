@@ -65,7 +65,7 @@ function OosConstraint:check() -- so this was easy?
     local cur_loadout = loadouts.get_cur_loadout()
 
     for _, o_def in ipairs(self.quest_item_tbl) do
-        for l_def in ipairs(cur_loadout) do
+        for _, l_def in ipairs(cur_loadout) do
             if o_def.lable == l_def[1] and o_def.name == l_def[2] then -- there is a match
                 def_existed = true
 

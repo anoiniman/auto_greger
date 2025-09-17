@@ -129,7 +129,7 @@ Module.hooks = {
         print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
 
         local go_next = generic_hooks.std_hook1(state, parent, flag, Module.og_state, "coke_quad")
-        if go_next > 2 then
+        if go_next == nil or go_next > 2 then
             state.fsm = 1
             state.in_what_asterisk = 1
             state.temp_reg = nil
