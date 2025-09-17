@@ -127,6 +127,11 @@ function module.load_state(exclude)
     if not filesystem.isDirectory(save_home) then
         return
     end
+
+    -- important to do this first
+    if not search_table.ione(exclude, "-misc") then load_thing(misc_path, misc) end
+    map.gen_map_obj(HOME_CHUNK)
+
     if not search_table.ione(exclude, "-inv") then load_thing(inv_path, inv) end
     if not search_table.ione(exclude, "-map") then load_thing(map_path, map) end
     if not search_table.ione(exclude, "-nav") then load_thing(nav_path, nav, map) end

@@ -407,10 +407,9 @@ end
 -- TODO, change the way chunks are generated so that they are generated only after attempted
 -- reinstantiation so that we might provide a different chunk offset, do soon!
 function module.re_instantiate(big_table)
-    -- First we regen the object
-    module.gen_map_obj(HOME_CHUNK)
+    -- module.gen_map_obj(HOME_CHUNK)
 
-    -- Then we "recreate" the areas
+    -- First we "recreate" the areas
     areas_table = AreasTable:new()
     for _, raw_area in ipairs(big_table[1]) do
         local new_area = deep_copy.copy(NamedArea, pairs) -- makes sure we copy the functions over
