@@ -50,7 +50,7 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
         local fmt_output = {lable = output, name = "nil_name"}
         new.output = fmt_output
     else -- complicated set of operations in order to create a valid table arrangement
-        if #output == 0 and output.lable == nil and output.name == nil then
+        if #output == 0 and output[2] == nil and output.lable == nil and output.name == nil then
             local serial = serialize.serialize(output)
             if serial == nil then serial = "nil" end
             error(comms.robot_send("fatal", "assertion failed\n" .. serial))

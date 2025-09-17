@@ -662,8 +662,8 @@ local __r_casting_table = MetaRecipe:newCraftingTable("Casting Table", __c_casti
 -- One day we'll have better handling of overlapping recipes, for now we'll only use chalcopyrite
 local output = { lable = "Raw Chalcopyrite Ore", name = "gregtech:raw_ore"}
 local __r_copper_ore = MetaRecipe:newEmptyRecipe("nil")
-__r_copper_ore.inlying_recipe.output = output
-__r_copper_ore.inlying_recipe.mechanism.output = deep_copy.copy(output)
+__r_copper_ore.output = output
+__r_copper_ore.mechanism.output = deep_copy.copy(output)
 
 dep1 = MetaDependency:new(__r_copper_ore, 1)
 local __r_copper_ingot = MetaRecipe:newBuildingUser("Copper Ingot", "small_home", "raw_usage", dep1)
@@ -671,16 +671,16 @@ local __r_copper_ingot = MetaRecipe:newBuildingUser("Copper Ingot", "small_home"
 
 local output = { lable = "Raw Cassiterite Sand Ore", name = "gregtech:raw_ore"}
 local __r_tin_ore = MetaRecipe:newEmptyRecipe("nil")
-__r_tin_ore.inlying_recipe.output = output
-__r_tin_ore.inlying_recipe.mechanism.output = deep_copy.copy(output)
+__r_tin_ore.output = output
+__r_tin_ore.mechanism.output = deep_copy.copy(output)
 
 dep1 = MetaDependency:new(__r_tin_ore, 0.5)
 local __r_tin_ingot = MetaRecipe:newBuildingUser("Tin Ingot", "small_home", "raw_usage", dep1)
 
 local output = { lable = "Raw Brown Limonite Ore", name = "gregtech:raw_ore"}
 local __r_iron_ore = MetaRecipe:newEmptyRecipe("nil")
-__r_iron_ore.inlying_recipe.output = output
-__r_iron_ore.inlying_recipe.mechanism.output = deep_copy.copy(output)
+__r_iron_ore.output = output
+__r_iron_ore.mechanism.output = deep_copy.copy(output)
 
 dep1 = MetaDependency:new(__r_iron_ore, 0.5)
 local __r_iron_ingot = MetaRecipe:newBuildingUser("Iron Ingot", "small_home", "raw_usage", dep1)

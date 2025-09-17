@@ -34,7 +34,7 @@ Module.name = "oak_tree_farm"
 Module.dictionary = {
     ["s"] = {"Oak Sapling", "minecraft:sapling"},
     ["c"] = {"Chest", "minecraft:chest"},
-    ["d"] = {"nil", "any:grass", "name"}
+    ["d"] = {"nil", "any:grass", "name"},
     ["|"] = {"air", "shovel"},
 }
 

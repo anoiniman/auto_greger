@@ -1,6 +1,7 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local inv = require("inventory.inv_obj")
+local loadouts = require("inventory.loadouts")
 
 local RawQuestItem = {
     lable = nil,
@@ -61,7 +62,7 @@ function OosConstraint:check() -- so this was easy?
     -- and make our thing very high priority
 
     -- check if the current layout got what we need
-    local cur_loadout = inv.get_cur_loadout()
+    local cur_loadout = loadouts.get_cur_loadout()
 
     for _, o_def in ipairs(self.quest_item_tbl) do
         for l_def in ipairs(cur_loadout) do
