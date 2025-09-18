@@ -35,17 +35,17 @@ builder:addGoal(hole_goal)
 -- WARNING (TODO) we're getting a cant find recipe "nil", "nil" from this point onwards so yeah
 local quest01_table = {
     Constraint:newQuestObj("Dirt", "minecraft:generic", 8),
-    -- Constraint:newQuestObj(nil, "Iron Ingot", 32),
+    Constraint:newQuestObj(nil, "Iron Ingot", 32),
 }
-
-constraint = Constraint:newQuestConstraint(quest01_table)
-local quest_goal = Goal:new(hole_goal, constraint, 50, "quest_const", true)
-builder:addGoal(quest_goal)
-
 
 local function test()
     print(comms.robot_send("info", "Get in THERE!!!!!!!!!!!!!!!"))
 end
+
+constraint = Constraint:newQuestConstraint(quest01_table)
+local quest_goal = Goal:new(hole_goal, constraint, 50, "quest_const", true, test)
+builder:addGoal(quest_goal)
+
 
 -- constraint = Constraint:newItemConstraint("any:ingot", "Iron Ingot", 16, 64, nil)
 -- local iron_goal = Goal:new(quest_goal, constraint, 50, "iron_const", false, test)

@@ -42,7 +42,14 @@ function OosConstraint:check() -- so this was easy?
     if self.lock[1] == 1 or self.lock[1] == 4 then
         return nil, nil -- Hold It
     end
-    if self.lock[1] == 5 then return 0, nil end
+    if self.lock[1] == 5 then return 0, nil end -- self.lock[1] = 5 doesn't work because the building handler clears it with "2"
+    -- I think this is how we want to handle it after it "delivers" because, at least for now it does in one swoop
+    -- Logistics does not set lock as 2, only the building usage handler does
+    if self.lock[1] == 2 then
+        self.lock[1] = 3
+        return 0, nil
+    end
+
 
     if self.lock[1] == 3 then
         if do_once then return 0, nil end -- This condition is "cleared", but there is nothing to do
@@ -67,8 +74,7 @@ function OosConstraint:check() -- so this was easy?
     for _, o_def in ipairs(self.quest_item_tbl) do
         for _, l_def in ipairs(cur_loadout) do
             if o_def.lable == l_def[1] and o_def.name == l_def[2] then -- there is a match
-                def_existed = true
-
+                -- def_existed = true
                 if o_def.count > l_def[3] then -- the def doesn't have enough oomph
                     l_def[3] = o_def.count
                 end
@@ -85,7 +91,7 @@ function OosConstraint:check() -- so this was easy?
     end
     local new_loadout = cur_loadout
 
-    local all_ready = true
+    -- local all_ready = true
     for _, def in ipairs(self.quest_item_tbl) do -- check the cur in inv
         local real_quantity = inv.how_many_internal(def.lable, def.name)
         if real_quantity < def.count then

@@ -25,19 +25,10 @@ Module.base_table = {
     {
     "-------",
     "-------",
-    "-------",
-    "a||||||",
-    "a||||||",
-    "a|||||r",
-    "-------",
-    },
-    {
-    "-------",
-    "-------",
     "a------",
-    "a||||||",
-    "a||||||",
-    "-||||||",
+    "a|||||-",
+    "a|||||-",
+    "-||||r-",
     "-------",
     },
     {
@@ -50,7 +41,7 @@ Module.base_table = {
     "-------",
     },
     {
-    "a*o----", -- OOS will be to the right of the * point, or atleast adjacent to it
+    "*o-----", -- OOS will be to the right of the * point, or atleast adjacent to it
     "a------",
     "a------",
     "-------",
