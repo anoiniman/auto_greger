@@ -851,17 +851,20 @@ end
 function module.load_preset()
     -- module.gen_map_obj(HOME_CHUNK)
 
-    -- temp
+    -- temp 
     local name = "home"
-    if areas_table:getarea("home") == nil then
+    if areas_table:getArea("home") == nil then
         module.create_named_area("home", "green", 69, "Dirt")
     end
-    if areas_table:getarea("gather") == nil then
-        module.create_named_area("home", "green", 69, "Dirt")
+
+    -- perm
+    if areas_table:getArea("gather") == nil then
+        module.create_named_area("gather", "green", 69, "Dirt")
     end
-    if areas_table:getarea("gather_tree") == nil then
-        module.create_named_area("home", "green", 69, "Dirt")
+    if areas_table:getArea("gather_tree") == nil then
+        module.create_named_area("gather_tree", "green", 69, "Dirt")
     end
+    -- /perm
 
     local what_chunk = {-2,0}
     module.get_chunk(what_chunk).chunk.roads_cleared = true

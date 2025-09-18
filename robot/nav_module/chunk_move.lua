@@ -132,7 +132,7 @@ local function move_to_road(what_kind, nav_obj, cur_building)
     print("warning", "chunk_move, failed to exit thorugh door :(")
     local height_save = cur_height + 1
     while true do
-        local goal_rel = {what_door.x, what_door.z, cur_height}
+        local goal_rel = {what_door.x, what_door.z, height_save}
         local result, _ = rel_move.access_opaque(nav_obj, goal_rel, nil)
         update_chunk_nav(nav_obj)
         if result == 0 or result == nil then
