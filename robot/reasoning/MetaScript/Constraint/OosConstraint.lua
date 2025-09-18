@@ -42,7 +42,7 @@ end--]]
 
 -- These quests are always do_once, we'll need a special lock value to represent this being done because of weirdness
 -- this means that the Oos finisher thing should not mees with the lock,or at the very list force lock it to 5
-function OosConstraint:check() -- so this was easy?
+function OosConstraint:check(do_once) -- so this was easy?
     local do_once = false
     if self.lock[1] == 1 or self.lock[1] == 4 then
         return nil, nil -- Hold It
@@ -59,7 +59,10 @@ function OosConstraint:check() -- so this was easy?
     if self.lock[1] == 3 then
         if do_once then return 0, nil end -- This condition is "cleared", but there is nothing to do
         -- else set the lock back to 0, and allow the checks to go through unmolested
-        self.lock[1] = 0
+        -- self.lock[1] = 0
+
+        -- I don't think there is any quest I'd liek to do more than once so I'll just force lock this for now TODO
+        return 0, nil
     end
 
     for _, def in ipairs(self.quest_item_tbl) do

@@ -128,7 +128,21 @@ local function move_to_road(what_kind, nav_obj, cur_building)
         nav_obj.cur_building = nil
         return false
     end -- else movement failed
-    print(comms.robot_send("error", "chunk_move, failed to exit thorugh door :("))
+
+    print("warning", "chunk_move, failed to exit thorugh door :(")
+    local height_save = cur_height + 1
+    while true do
+        local goal_rel = {what_door.x, what_door.z, cur_height}
+        local result, _ = rel_move.access_opaque(nav_obj, goal_rel, nil)
+        update_chunk_nav(nav_obj)
+        if result == 0 or result == nil then
+            return false
+        end
+        height_save = height_save + 1
+        if height_save - cur_height > 5 then
+            error(comms.robot_send("fatal", "chunk_move, failed to exit thorugh door :("))
+        end
+    end
 end
 
 -- When we are in road, but, not in a road correctly orientated we just move forwards anyway, which is bad

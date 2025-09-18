@@ -997,13 +997,11 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
             end
         end
 
-        module.virtual_inventory:removeFromSlot(slot, quantity)
-        up_to = up_to - quantity
-
         local index = (slot * 3) - 2
         local lable = module.virtual_inventory.inv_table[index]
         local name = module.virtual_inventory.inv_table[index + 1]
 
+        -- add the entry into the external inventory
         if external_inventory == nil or type(external_inventory) ~= "table" then goto continue end
         if external_slot == nil then
             external_inventory.ledger:addOrCreate(lable, name, quantity, nil)
@@ -1013,6 +1011,9 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
             -- then we need to get the next free external slot, duh
             external_slot = external_inventory.ledger:getEmptySlot()
         end
+
+        -- finally remove the entry
+        module.virtual_inventory:removeFromSlot(slot, quantity)
 
         ::continue::
     end
@@ -1289,7 +1290,11 @@ function module.remove_from_slot(what_slot, quantity)
 end
 
 function module.force_update_vinv()
-    return module.virtual_inventory:forceUpdateInternal()
+    local result = module.virtual_inventory:forceUpdateInternal()
+    for index = 1, 12, 1 do
+        if index % 4 ~= 0 then module.simple_slot_check(index) end
+    end
+    return result
 end
 
 function module.force_update_einv(external_inventory)
