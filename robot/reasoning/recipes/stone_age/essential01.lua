@@ -214,6 +214,11 @@ local __c_flint_axe = {
 'f', 's',  0 ,
  0 , 's',  0
 }
+local __c_flint_sword = {
+ 0 , 'f',  0 ,
+ 0 , 'f',  0 ,
+ 0 , 's',  0
+}
 local __c_flint_hoe = {
 'f', 'f',  0 ,
  0 , 's',  0 ,
@@ -241,8 +246,11 @@ local __r_flint_axe = MetaRecipe:newCraftingTable("Flint Axe", __c_flint_axe, sh
 
 dep2 = MetaDependency:new(__r_flint, 2)
 local __r_flint_hoe = MetaRecipe:newCraftingTable("Flint Hoe", __c_flint_hoe, {dep1, dep2})
--- local __r_flint_sword = MetaRecipe:newCraftingTable("Flint Sword
 
+dep1 = MetaDependency:new(__r_stick01, 1)
+local __r_flint_sword = MetaRecipe:newCraftingTable("Flint Sword", __c_flint_sword, {dep1, dep2})
+
+dep1 = MetaDependency:new(__r_stick01, 2)
 dep2 = MetaDependency:new(__r_flint, 1)
 local __r_flint_shovel = MetaRecipe:newCraftingTable("Flint Shovel", __c_flint_shovel, {dep1, dep2}, nil)
 
@@ -416,6 +424,11 @@ local __c_string01 = {
 'co', 'co','co' ,
  0 ,  0 ,  0 ,
 }
+local __c_wool01 = {
+ 'str' ,  0 , 'str' ,
+    0, 'str', 0,
+ 'str' ,  0 ,  'str' ,
+}
 
 local __r_bad_cotton = MetaRecipe:newEmptyRecipe(bad_cotton, true)
 
@@ -424,6 +437,9 @@ local __r_cotton01 = MetaRecipe:newCraftingTable(good_cotton, __c_good_cotton, d
 
 dep1 = MetaDependency:new(__r_cotton01, 3)
 local __r_string01 = MetaRecipe:newCraftingTable("String", __c_string01, dep1)
+
+dep1 = MetaDependency:new(__r_string01, 5)
+local __r_wool01 = MetaRecipe:newCraftingTable("Wool", __c_wool01, dep1)
 
 
 local __c_blankpattern = {
@@ -885,6 +901,7 @@ local recipe_table = {
     __r_flint_axe,
     __r_flint_shovel,
     __r_flint_hoe,
+    __r_flint_sword,
 
     __r_furnace01,
     __r_chest01,
@@ -899,6 +916,7 @@ local recipe_table = {
     __r_stencil_table,
     __r_tool_station,
     __r_pattern_chest,
+    __r_wool01,
 
     __r_wooden_brick_form,
     __r_coke_brick_item,

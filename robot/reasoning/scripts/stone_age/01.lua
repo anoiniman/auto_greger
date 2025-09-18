@@ -1,4 +1,5 @@
 -- luacheck: globals WHAT_LOADOUT FUEL_TYPE HAS_WOOD_FARM HAS_MORTAR
+local comms = require("comms")
 local MSBuilder, Goal, Constraint, StructureDeclaration = table.unpack(require("reasoning.MetaScript"))
 local debug_recipes, dictionary = table.unpack(require("reasoning.recipes.stone_age.essential01"))
 
@@ -103,10 +104,15 @@ constraint = Constraint:newQuestConstraint(__q_tools)
 local __g_tools = Goal:new(__g_where_flint, constraint, 90, "__g_tools", true)
 builder:addGoal(__g_tools)
 
+local __q_sharpness_over_five = { Constraint:newQuestObj("Flint Sword", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_sharpness_over_five)
+local __g_sharpness_over_five = Goal:new(__g_tools, constraint, 90, "__g_sharpness_over_five", true)
+builder:addGoal(__g_sharpness_over_five)
+
 
 -- 04
 constraint = Constraint:newItemConstraint(nil, "Cobblestone", 4, 64, nil)
-local __g_cobblestone01 = Goal:new(__g_logs02, constraint, 10, "__g_cobblestone01", false)
+local __g_cobblestone01 = Goal:new({__g_logs02, __g_sharpness_over_five}, constraint, 10, "__g_cobblestone01", false)
 builder:addGoal(__g_cobblestone01)
 
 -- Q2b
@@ -295,7 +301,7 @@ local __g_tk_smeltery = Goal:new(__g_you_are_not_prepared02, constraint, 40, "__
 builder:addGoal(__g_tk_smeltery)
 
 constraint = Constraint:newQuestConstraint(__q_you_are_not_prepared03)
-local __g_you_are_not_prepared02 = Goal:new(__g_tk_smeltery, constraint, 40, "__g_you_are_not_prepared03", true)
+local __g_you_are_not_prepared03 = Goal:new(__g_tk_smeltery, constraint, 40, "__g_you_are_not_prepared03", true)
 builder:addGoal(__g_you_are_not_prepared03)
 
 -- 03
