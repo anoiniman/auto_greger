@@ -37,6 +37,12 @@ local function check_subset(state, do_up) -- (do up is optional and abuses polym
     if do_up then side = sides_api.up
     else side = sides_api.forward end
 
+    local pre_check
+    if side == sides_api.up then pre_check = robot.detectUp()
+    else pre_check = robot.detect() end
+
+    if pre_check == false then return false end
+
     local block_to_check = geolyzer.simple_return(side)
 
     if state.sub_set == nil then

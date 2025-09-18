@@ -11,7 +11,7 @@ local computer = require("computer")
 -- wait list of goals, force check / step them?
 
 local scripts = {}
-scripts[1] = dofile("/home/robot/reasoning/scripts/debug/08.lua")
+scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua")
 -- local recipes = {}
 
 -- TEMPORARY TODO, update cur_script programatically

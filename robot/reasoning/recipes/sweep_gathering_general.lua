@@ -106,7 +106,7 @@ function module.automatic(parent_name, state, depleted_string, gather_string, ch
                 state.step = 4
             end
         elseif sweep_result == 1 then
-            -- makes sense for surface move but maybe not so much for other storts of move
+            -- makes sense for surface move but maybe not so much for other sorts of move
             error(comms.robot_send("fatal", "not able to deal with a failed sweep for now"))
         else
             error(comms.robot_send("fatal", "surface_resource_sweep sweep_result is not expected"))

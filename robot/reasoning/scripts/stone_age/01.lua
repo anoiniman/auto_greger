@@ -209,7 +209,7 @@ constraint = Constraint:newQuestConstraint(__q_something_to_carry_l)
 local __g_something_to_carry_l = Goal:new(__g_clay_gathering, constraint, 40, "__g_something_to_carry_l", true)
 builder:addGoal(__g_something_to_carry_l)
 
-local __q_book_parts = { Constraint:newQuestObj("Paper", nil, 1) }
+local __q_book_parts = { Constraint:newQuestObj("Paper", nil, 16) }
 constraint = Constraint:newQuestConstraint(__q_book_parts)
 local __g_book_parts = Goal:new(__g_something_to_carry_l, constraint, 40, "__g_book_parts", true)
 builder:addGoal(__g_book_parts)
@@ -230,7 +230,8 @@ constraint = Constraint:newQuestConstraint(__q_forming_press)
 local __g_forming_press = Goal:new(__g_tinker_time, constraint, 40, "__g_forming_press", true)
 builder:addGoal(__g_forming_press)
 
-local __q_another_brick = { Constraint:newQuestObj("Coke Oven Brick", "dreamcraft:item.CokeOvenBrick", 104) }
+-- local __q_another_brick = { Constraint:newQuestObj("Coke Oven Brick", "dreamcraft:item.CokeOvenBrick", 104) }
+local __q_another_brick = { Constraint:newQuestObj("Coke Oven Brick", "Railcraft:machine.alpha", 104) }
 constraint = Constraint:newQuestConstraint(__q_another_brick)
 local __g_another_brick = Goal:new(__g_forming_press, constraint, 40, "__g_another_brick", true)
 builder:addGoal(__g_another_brick)
