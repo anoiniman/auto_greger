@@ -96,7 +96,7 @@ local function surface_resource_sweep(arguments)
                 else command_prio = new_prio end
             end
 
-            -- return a priority given back by "automatic" OR default - mechanism.priority
+            -- return a priority given back by "automatic" OR default - state.priority
             return {command_prio, mechanism.algorithm, table.unpack(arguments)}
         else
             print(comms.robot_send("debug", "finished gathering01 routine"))

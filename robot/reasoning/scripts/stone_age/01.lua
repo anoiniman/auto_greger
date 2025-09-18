@@ -34,7 +34,7 @@ local __g_hole_home01 = Goal:new(nil, constraint, 100, "__g_hole_home01", true)
 builder:addGoal(__g_hole_home01)
 
 -- Q1
-local __q_firstnight = { Constraint:newQuestObj("minecraft:generic", "Dirt", 8) }
+local __q_firstnight = { Constraint:newQuestObj("any:grass", "Dirt", 8) }
 constraint = Constraint:newQuestConstraint(__q_firstnight)
 local __g_firstnight = Goal:new(__g_hole_home01, constraint, 98, "__g_firstnight", true)
 builder:addGoal(__g_firstnight)

@@ -853,8 +853,14 @@ function module.load_preset()
 
     -- temp
     local name = "home"
-    if areas_table:getArea("home") == nil then
-        module.create_named_area("home", "green", 69, "dirt")
+    if areas_table:getarea("home") == nil then
+        module.create_named_area("home", "green", 69, "Dirt")
+    end
+    if areas_table:getarea("gather") == nil then
+        module.create_named_area("home", "green", 69, "Dirt")
+    end
+    if areas_table:getarea("gather_tree") == nil then
+        module.create_named_area("home", "green", 69, "Dirt")
     end
 
     local what_chunk = {-2,0}

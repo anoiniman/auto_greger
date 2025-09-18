@@ -125,15 +125,15 @@ local function surface_resource_sweep(arguments)
     local lock = arguments[4]
 
     if state.interrupt == true then
-        return {mechanism.priority, mechanism.algorithm, mechanism}
+        return {state.priority, mechanism.algorithm, mechanism}
     end
     if state.mode == "automatic" then
         local is_finished, new_prio = automatic(state)
         if not is_finished then -- I think everything is getting passed as ref so it's ok to pass arguments back in
-            local prio_to_return = mechanism.priority
+            local prio_to_return = state.priority
             if new_prio ~= nil then prio_to_return = new_prio end
 
-            -- return a priority given back by "automatic" OR default - mechanism.priority
+            -- return a priority given back by "automatic" OR default - state.priority
             return {prio_to_return, mechanism.algorithm, table.unpack(arguments)}
         else
             state.chunk:addMark(deplete_mark) -- Will mark chunk such that we don't try to gather it again
