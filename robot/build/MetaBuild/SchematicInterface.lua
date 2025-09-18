@@ -103,11 +103,14 @@ function SchematicInterface:doBuild(top_down)
         return self:InstructionConstruction(chunk, rel)
     end
 
-    local print_a = serialize.serialize(b_stack, true)
-    print(comms.robot_send("debug", "b_stack is: \n" .. print_a))
+    --[[if DO_DEBUG_PRINT then
+        local print_a = serialize.serialize(b_stack, true)
+        print(comms.robot_send("info", "b_stack is: \n" .. print_a))
+        io.read()
+    end--]]
 
-    local print_schematic = serialize.serialize(self.schematic, true)
-    print(comms.robot_send("debug", "self.schematic is: \n" .. print_a))
+    --[[local print_schematic = sierialize.serialize(self.schematic, true)
+    print(comms.robot_send("info", "self.schematic is: \n" .. print_a))--]]
 
     --local chunk = self.schematic.lookUp(b_stack.logical_y, b_stack.logical_z, b_stack.logical_x)
 

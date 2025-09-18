@@ -218,10 +218,6 @@ function Module:setupBuild(what_quad, chunk_height)
     end
     -- its ok to retain this after dumping the primitive because of GC, I think
     self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
-    if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
-        print("top_bottomed")
-        self.s_interface.build_stack.logical_y = #self.s_interface.schematic
-    end
     self.special_blocks = self.s_interface:getSpecialBlocks()
 
     if self:checkHumanMap(base_table, self.primitive.name) ~= 0 then -- sanity check
@@ -244,6 +240,11 @@ function Module:setupBuild(what_quad, chunk_height)
             -- print(comms.robot_send("debug", "MetaBuild:setupBuild() we looped once m8"))
             --max_index = max_index + 1
         end
+    end
+
+    if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
+        print("top_bottomed")
+        self.s_interface.build_stack.logical_y = #self.s_interface.schematic
     end
     -- print(comms.robot_send("debug", "we facking did it m8!"))
 
