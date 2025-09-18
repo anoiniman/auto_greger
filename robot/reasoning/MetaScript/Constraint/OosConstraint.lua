@@ -95,11 +95,13 @@ function OosConstraint:check() -- so this was easy?
     for _, def in ipairs(self.quest_item_tbl) do -- check the cur in inv
         local real_quantity = inv.how_many_internal(def.lable, def.name)
         if real_quantity < def.count then
+            print("Oos Logistic Transfer")
             return 1, {c_type = "OosLogisticTransfer" , loadout = new_loadout}
         end
     end
 
     self.lock[1] = 5
+    print("Oos Finish")
     return 1, {c_type = "OosFinish"} -- it is impossible for the robot to know that the game has accepts its attempt, so.... don't fail
     -- error(comms.send_unexpected(true))
 end

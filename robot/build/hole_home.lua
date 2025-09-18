@@ -52,7 +52,7 @@ Module.base_table = {
     -- dirt floor here (hopefully) [lenght is 4]
 }
 
-Module.origin_block = {0,0,-4} -- x, z, y
+Module.origin_block = {0,0,-3} -- x, z, y
 
 Module.doors = {}
 Module.doors[1] = meta_door:new()

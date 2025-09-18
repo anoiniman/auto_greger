@@ -38,6 +38,7 @@ local quest01_table = {
     Constraint:newQuestObj(nil, "Iron Ingot", 32),
 }
 
+-- For this function to execute there needs to be "unfinished" goals afterwards
 local function test()
     print(comms.robot_send("info", "Get in THERE!!!!!!!!!!!!!!!"))
 end
@@ -47,9 +48,9 @@ local quest_goal = Goal:new(hole_goal, constraint, 50, "quest_const", true, test
 builder:addGoal(quest_goal)
 
 
--- constraint = Constraint:newItemConstraint("any:ingot", "Iron Ingot", 16, 64, nil)
--- local iron_goal = Goal:new(quest_goal, constraint, 50, "iron_const", false, test)
--- builder:addGoal(iron_goal)
+constraint = Constraint:newItemConstraint("any:ingot", "Iron Ingot", 16, 64, nil)
+local iron_goal = Goal:new(quest_goal, constraint, 50, "iron_const", false, test)
+builder:addGoal(iron_goal)
 
 
 local script = builder:build()
