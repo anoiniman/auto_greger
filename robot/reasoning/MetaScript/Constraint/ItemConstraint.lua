@@ -58,6 +58,7 @@ function ItemConstraint:check(do_once) -- so this was easy?
         if items_in_inv < self.set_count then -- we need to act
             return 1, {name = self.item_name, lable = self.item_lable}
         end -- else all good, keep hacking at it
+        self.lock[1] = 3
         return 0, nil
     end
     if self.lock[1] == 2 then

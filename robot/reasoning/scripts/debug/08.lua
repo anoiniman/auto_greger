@@ -35,7 +35,7 @@ builder:addGoal(hole_goal)
 -- WARNING (TODO) we're getting a cant find recipe "nil", "nil" from this point onwards so yeah
 local quest01_table = {
     Constraint:newQuestObj("Dirt", "minecraft:generic", 8),
-    Constraint:newQuestObj(nil, "Iron Ingot", 32),
+    Constraint:newQuestObj("Iron Ingot", nil, 32),
 }
 
 -- For this function to execute there needs to be "unfinished" goals afterwards

@@ -15,6 +15,11 @@ function RawQuestItem:new(lable, name, count)
 
     if count == nil then
         print(comms.robot_send("warning", "count warning:\n" .. debug.traceback()))
+        io.read()
+    end
+    if lable == nil then
+        print(comms.robot_send("warning", "lable warning:\n" .. debug.traceback()))
+        io.read()
     end
     new.count = count or -1
     return new
