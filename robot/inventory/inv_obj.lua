@@ -294,7 +294,7 @@ end
 
 function module.how_many_internal(lable, name)
     local quantity = module.virtual_inventory:howMany(lable, name)
-    -- TODO - mess around with the generator
+
     local empty_slot = module.virtual_inventory:getEmptySlot()
     if empty_slot == nil then return quantity end
 
@@ -304,7 +304,7 @@ function module.how_many_internal(lable, name)
         local what_is = inventory.getStackInInternalSlot(empty_slot)
         if  what_is ~= nil and
             (what_is.label == lable or (what_is.name == name and (lable == nil or lable == "nil" or lable == "nil_lable"))) then
-            quantity = quantity + what_is.count
+            quantity = quantity + what_is.size
         end
 
         generator.insert(64)
