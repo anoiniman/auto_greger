@@ -14,6 +14,7 @@ local prio_insert = require("prio_insert")
 ---- Other ----
 local build_eval = require("eval.build")
 -- local inv = require("inventory.inv_obj")
+local item_buckets = require("inventory.item_buckets")
 local map = require("nav_module.map_obj")
 local loadouts = require("inventory.loadouts")
 
@@ -81,6 +82,11 @@ function MetaScript:findRecipe(lable, name)
     if self.recipes == nil then
         error(comms.robot_send("fatal", "MetaScript: \"" .. self.desc .. "\"NO RECIPES!"))
     end
+
+    if lable ~= "air" then -- little fix-up sort of thing
+        name = item_buckets.identify(name, lable)
+    end
+
     if lable ~= nil then
         if lable == "air" then return "skip" end
         for _, recipe in ipairs(self.recipes) do

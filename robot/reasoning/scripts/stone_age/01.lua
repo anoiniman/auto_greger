@@ -81,7 +81,7 @@ builder:addGoal(__g_logs02)
 
 -- 03a
 constraint = Constraint:newItemConstraint("minecraft:generic", "Gravel", 18, 72, nil) -- uhhh find a way for the gathering mechanism to get all
-local __g_gravel01 = Goal:new(__g_logs01, constraint, 60, "__g_gravel01", false) -- (prob have to do that in recipe definition)
+local __g_gravel01 = Goal:new(__g_logs02, constraint, 60, "__g_gravel01", false) -- (prob have to do that in recipe definition)
 builder:addGoal(__g_gravel01)
 
 -- Q2a

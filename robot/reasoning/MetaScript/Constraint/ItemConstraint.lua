@@ -1,6 +1,7 @@
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 local inv = require("inventory.inv_obj")
+-- local item_buckets = require("inventory.item_buckets")
 
 -- (revised) lock meaning:
 -- 0 == Never Touched Before
@@ -31,6 +32,7 @@ function ItemConstraint:new(item_name, item_lable, set_count, reset_count, filte
     new.set_count = set_count
     new.reset_count = reset_count
     new.filter = filter
+    -- new.item_name = item_buckets.identify(item_name, item_lable)
     new.item_name = item_name
     new.item_lable = item_lable
 

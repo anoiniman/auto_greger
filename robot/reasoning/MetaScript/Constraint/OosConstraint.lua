@@ -2,6 +2,7 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 local inv = require("inventory.inv_obj")
 local loadouts = require("inventory.loadouts")
+-- local item_buckets = require("inventory.item_buckets")
 
 local RawQuestItem = {
     lable = nil,
@@ -12,6 +13,7 @@ function RawQuestItem:new(lable, name, count)
     local new = deep_copy.copy(self, pairs)
     new.lable = lable or "nil"
     new.name = name or "nil"
+    -- new.name = item_buckets.identify(name, lable)
 
     if count == nil then
         print(comms.robot_send("warning", "count warning:\n" .. debug.traceback()))

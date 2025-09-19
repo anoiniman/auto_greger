@@ -8,6 +8,8 @@ local eval_build = require("eval.build")
 local map_obj = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local LogisticTransfer = require("complex_algorithms.LogisticTransfer")
+-- local item_buckets = require("inventory.item_buckets")
+
 
 local MetaBuild = require("build.MetaBuild")
 
@@ -116,6 +118,8 @@ function BuildingConstraint:decideToBuild(to_build)
         end -- if it is not possible go get 'em chief
 
         needed_quantity = needed_quantity - extern_quantity -- will alywas be positive
+
+        --element.name = item_buckets.identify(element.name, element.lable)
         if true then return 1, element, needed_quantity end
         ::continue::
     end

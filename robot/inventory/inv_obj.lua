@@ -300,7 +300,7 @@ function module.how_many_internal(lable, name)
 
     if name == "any:plank" or name == "any:fuel" or lable == "Charcoal" then
         robot.select(empty_slot)
-        generator.remove(generator.count)
+        generator.remove(generator.count())
         local what_is = inventory.getStackInInternalSlot(empty_slot)
         if what_is.label == lable or (what_is.name == name and (lable == nil or lable == "nil" or lable == "nil_lable")) then
             quantity = quantity + what_is.count
