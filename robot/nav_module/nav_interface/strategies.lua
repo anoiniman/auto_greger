@@ -159,9 +159,14 @@ local function surface(parent, direction, nav_obj, extra_sauce)
         if not table_contains(extra_sauce, "no_auto_up") then
             -- We'll re-introduce pre-analysis for the sake of getting textile gardens
             -- TODO, make sure that this is ineed the correct name
-            local g_result = geolyzer.compare("harvestcraft:textilegarden", "direct", -1)
-            if g_result then
+
+            local analysis = geolyzer.simple_return()
+            print (analysis.name)
+            if geolyzer.sub_compare("harvestcraft:textilegarden", "naive_contains", analysis) then
+                print("yay")
                 return inv.smart_swing("empty", "front", 0, add_garden), nil
+            elseif geolyzer.sub_compare("minecraft:double_plant", "naive_contains", analysis) then
+                return inv.smart_swing("empty", "front", 0, function() return end), nil
             end
 
             local result, err = module.free(parent, "up", nav_obj, break_block)

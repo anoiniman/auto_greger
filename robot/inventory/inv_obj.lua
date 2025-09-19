@@ -716,6 +716,13 @@ local function swing_general(swing_function, dir, pre_analysis)
 
     local needed_level = g_info.harvestLevel
     local needed_tool = g_info.harvestTool
+
+    -- needed to normalise some geolyzer intricacies
+    if needed_tool == nil then
+        needed_level = 0
+        needed_tool = "empty"
+    end
+
     local result = module.equip_tool(needed_tool, needed_level)
     if not result and needed_level > 0 then
         print(comms.robot_send("warning", "unable to equip needed tool"))

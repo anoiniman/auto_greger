@@ -23,7 +23,7 @@ local el_state = {
     chunk = nil,
     i_id = nil,
 
-    sub_set = {"wood"},  -- The subset doesn't check for the inv definition, but rather the golyzer definition
+    sub_set = {"log"},  -- The subset doesn't check for the inv definition, but rather the golyzer definition
     interrupt = false,
     mode = "automatic", -- will search for areas tagged with "gather"
                         -- otherwise it will use the interactive system

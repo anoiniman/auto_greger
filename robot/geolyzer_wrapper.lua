@@ -53,7 +53,7 @@ function module.debug_print(side)
 end
 
 function module.simple_return(side)
-    if side == nil then side = sides_api.front end
+    if side == nil or side == -1 then side = sides_api.front end
     local analysis = geo.analyze(side)
     return analysis
 end
