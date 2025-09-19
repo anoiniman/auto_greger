@@ -140,6 +140,9 @@ local function add_garden()
     return inv.maybe_something_added_to_inv()
 end
 
+local function maybe_sapling()
+    return inv.maybe_something_added_to_inv(nil, "any:sapling")
+end
 
 local entity_watch_dog = 0
 local climb_watch_dog = 0
@@ -167,6 +170,8 @@ local function surface(parent, direction, nav_obj, extra_sauce)
                 return inv.smart_swing("empty", "front", 0, add_garden), nil
             elseif geolyzer.sub_compare("minecraft:double_plant", "naive_contains", analysis) then
                 return inv.smart_swing("empty", "front", 0, function() return true end), nil
+            elseif geolyzer.sub_compare("leaves", "naive_contains", analysis) then
+                return inv.smart_swing("empty", "front", 0, maybe_sapling), nil
             end
 
             local result, err = module.free(parent, "up", nav_obj, break_block)
