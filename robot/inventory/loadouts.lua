@@ -28,12 +28,27 @@ local __l_first  = {
 
 local __l_second = {
     {"Flint Pickaxe", "tool:pickaxe", 2, 1},
-    {"nil", "any:plank", 128, 48},
+    {"nil", "any:plank", 64, 16},
     {"nil", "any:log", 64, 16},
+    {"Charcoal", "any:fuel", 128, 32},
 }
+
+local __l_third = {
+    {"Flint Pickaxe", "tool:pickaxe", 3, 2},
+    {"nil", "any:plank", 64, 16},
+    {"nil", "any:log", 64, 16},
+    {"Charcoal", "any:fuel", 256, 32},
+}
+
 
 local cur_loadout = {} -- is only the data field of a loadout
 local loadouts = {
+    {
+        data = __l_second,
+        condition = function()
+            return WHAT_LOADOUT == "third"
+        end,
+    },
     {
         data = __l_second,
         condition = function()
@@ -41,11 +56,17 @@ local loadouts = {
         end,
     },
     {
-        data = __l_test,
+        data = __l_first,
         condition = function()
-            return WHAT_LOADOUT == "test"
+            return WHAT_LOADOUT == "first"
         end,
     },
+    --[[{
+        data = {},
+        condition = function()
+            return WHAT_LOADOUT == "empty"
+        end,
+    },--]]
 }
 
 function module.get_cur_loadout() -- gives copy

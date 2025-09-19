@@ -275,7 +275,7 @@ function module.reverse_sweep()
 end
 
 
---temp
+--temp, you know what, I'll keep you as a default, what could go wrong
 nav_obj.height = 69
 nav_obj.orientation = "west"
 nav_obj.abs[1] = -16

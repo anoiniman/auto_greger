@@ -11,7 +11,7 @@ HAS_MORTAR = false
 HOME_CHUNK = {0, 0}     -- coords
 DO_AUTO_FILL = false
 
-WHAT_LOADOUT = "zero"
+WHAT_LOADOUT = "NONE"
 
 -- luacheck: globals FUEL_TYPE IGNORE_ORE_FUEL_CHECK
 -- FUEL_TYPE = "wood"

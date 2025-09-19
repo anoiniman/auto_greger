@@ -866,7 +866,7 @@ function module.load_preset()
     end
     -- /perm
 
-    local what_chunk = {-2,0}
+    --[[local what_chunk = {-2,0}
     module.get_chunk(what_chunk).chunk.roads_cleared = true
 
     -- I think this is being erased by the loading process :P
@@ -878,7 +878,7 @@ function module.load_preset()
     module.pretend_build("home", "coke_quad", chunk, 1)
     module.pretend_build("home", "oak_tree_farm", chunk, 3)
     module.pretend_build("home", "sp_storeroom", what_chunk, 1)
-    module.pretend_build("home", "small_home", what_chunk, 4)
+    module.pretend_build("home", "small_home", what_chunk, 4)--]]
 end
 
 -- more temp

@@ -161,20 +161,20 @@ local function surface(parent, direction, nav_obj, extra_sauce)
             -- TODO, make sure that this is ineed the correct name
 
             local analysis = geolyzer.simple_return()
-            print (analysis.name)
+            -- print (analysis.name)
             if geolyzer.sub_compare("harvestcraft:textilegarden", "naive_contains", analysis) then
-                print("yay")
+                -- print("yay")
                 return inv.smart_swing("empty", "front", 0, add_garden), nil
             elseif geolyzer.sub_compare("minecraft:double_plant", "naive_contains", analysis) then
-                return inv.smart_swing("empty", "front", 0, function() return end), nil
+                return inv.smart_swing("empty", "front", 0, function() return true end), nil
             end
 
             local result, err = module.free(parent, "up", nav_obj, break_block)
             if result == true then
                 climb_watch_dog = climb_watch_dog + 1
-                return true, "auto_up"
+                return true, "auto_up", analysis
             end
-            return false, err
+            return false, err, analysis
         end
 
         if err == "entity" or err == "replaceable" then
@@ -203,7 +203,7 @@ end
 -- Added this "entry-function" so that I can capture the results, and track some state (evil)
 function module.surface(parent, direction, nav_obj, extra_sauce)
     smart_move_down_forwards = direction
-    local result, err = surface(parent, direction, nav_obj, extra_sauce)
+    local result, err, analysis = surface(parent, direction, nav_obj, extra_sauce)
     smart_move_down_forwards = nil
 
     if result then
@@ -219,9 +219,9 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
         print(comms.robot_send("warning", "Warning, surface move got stuck on entity"))
         entity_watch_dog = 0
     end
-    if climb_watch_dog == 2 then -- let's see if there is a tree ahead of us, and in front as whell (fat trees)
-        local analysis = geolyzer.simple_return()
-        if geolyzer.sub_compare("wood", "naive_contains", analysis) then
+    if climb_watch_dog == 1 then -- let's see if there is a tree ahead of us, and in front as whell (fat trees)
+        if analysis == nil then analysis = geolyzer.simple_return() end
+        if geolyzer.sub_compare("log", "naive_contains", analysis) then
             -- forward
             inv.smart_swing("axe", "front", 0, add_tree)
             module.free(parent, direction, nav_obj, EMPTY_TABLE) -- must succeed

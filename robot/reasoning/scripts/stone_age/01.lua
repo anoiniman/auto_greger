@@ -1,7 +1,8 @@
--- luacheck: globals WHAT_LOADOUT FUEL_TYPE HAS_WOOD_FARM HAS_MORTAR
+-- luacheck: globals WHAT_LOADOUT FUEL_TYPE HAS_WOOD_FARM HAS_MORTAR DO_SCRIPT_RELOAD
 local comms = require("comms")
 local MSBuilder, Goal, Constraint, StructureDeclaration = table.unpack(require("reasoning.MetaScript"))
-local debug_recipes, dictionary = table.unpack(require("reasoning.recipes.stone_age.essential01"))
+-- local essential_recipes, dictionary = table.unpack(require("reasoning.recipes.stone_age.essential01"))
+local essential_recipes, dictionary = table.unpack(dofile("/home/robot/reasoning/recipes/stone_age/essential01"))
 
 local desc = "GOD IS IN HIS HEAVEN! ALL IS WELL! WITH THE WORLD!"
 local builder = MSBuilder:new_w_desc(desc)
@@ -62,7 +63,7 @@ builder:addGoal(__g_sapling01)--]]
 -- Second Era (Preparing for charcoal)
 
 -- 01
-local function __f_oak_tree_farm01 () HAS_WOOD_FARM = true end
+local function __f_oak_tree_farm01 () HAS_WOOD_FARM = true; DO_SCRIPT_RELOAD = true end
 constraint = Constraint:newBuildingConstraint(__dec_oak_tree_farm, nil)
 -- local __g_oak_tree_farm01 = Goal:new(__g_sapling01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
 local __g_oak_tree_farm01 = Goal:new(__g_logs01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
@@ -176,7 +177,7 @@ builder:addGoal(__g_macerator0_1)
 
 -- 01
 local max_mortar = 3
-local function __f_mortar01 () HAS_MORTAR = true end
+local function __f_mortar01 () HAS_MORTAR = true; DO_SCRIPT_RELOAD = true end
 
 constraint = Constraint:newItemConstraint(nil, "Flint Mortar", 1, max_mortar)
 local __g_mortar01 = Goal:new(__g_macerator0_1, constraint, 80, "__g_mortar01", false, __f_mortar01)
@@ -248,7 +249,7 @@ constraint = Constraint:newQuestConstraint(__q_finally_some)
 local __g_finally_some = Goal:new(__g_coke_quad01, constraint, 40, "__g_finally_some", true)
 builder:addGoal(__g_finally_some)
 
-local function __f_charcoal01 () FUEL_TYPE = "loose_coal" end
+local function __f_charcoal01 () FUEL_TYPE = "loose_coal"; WHAT_LOADOUT = "second" end
 constraint = Constraint:newItemConstraint(nil, "Charcoal", 32, 128, nil)
 local __g_charcoal01 = Goal:new(__g_finally_some, constraint, 88, "__g_charcoal01", false, __f_charcoal01)
 builder:addGoal(__g_charcoal01)
@@ -306,7 +307,7 @@ local __g_you_are_not_prepared03 = Goal:new(__g_tk_smeltery, constraint, 40, "__
 builder:addGoal(__g_you_are_not_prepared03)
 
 -- 03
-local function __f_f_pickaxe01 () WHAT_LOADOUT = "second" end
+local function __f_f_pickaxe01 () WHAT_LOADOUT = "third" end
 constraint = Constraint:newItemConstraint(nil, "Flint Pickaxe", 2, 3, nil)
 local __g_f_pickaxe01 = Goal:new(__g_you_are_not_prepared03, constraint, 68, "__g_f_pickaxe01", false, __f_f_pickaxe01)
 builder:addGoal(__g_f_pickaxe01)
@@ -373,7 +374,7 @@ local __g_you_shall_proceed = Goal:new(__g_important_tools, constraint, 40, "__g
 builder:addGoal(__g_you_shall_proceed)
 
 builder:setDictionary(dictionary)
-builder:addMultipleRecipes(debug_recipes)
+builder:addMultipleRecipes(essential_recipes)
 
 local script = builder:build()
 

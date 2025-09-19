@@ -171,11 +171,28 @@ function reason_obj.force_load(index)
     end
 end
 
+-- luacheck: globals DO_SCRIPT_RELOAD
+DO_SCRIPT_RELOAD = false
 local loaded = false
 function reason_obj.step_script()
     if not loaded then
         reason_obj.force_load(1)
         loaded = true
+    end
+
+    -- Dangerous Hack; but should do what we're looking for (reloading recipes)
+    if DO_SCRIPT_RELOAD then
+        local le_save_table = reason_obj.get_data()
+        scripts[1] = nil
+        cur_script = nil
+
+        scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua") -- reload happens here
+        cur_script = scripts[1]
+        reason_obj.re_instantiate(le_save_table) -- to make sure everything stays synced (and we don't enter a reloading loop)
+
+        DO_SCRIPT_RELOAD = false
+        print(comms.robot_send("info", "Activated reload script hack"))
+        return nil, nil -- we let it come around again for idk's sake
     end
 
     local return_type, command_table = REASON_WAIT_LIST:checkAndStep()
