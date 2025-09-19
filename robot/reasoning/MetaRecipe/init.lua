@@ -10,6 +10,7 @@ local computer = require("computer")
 
 local build_eval = require("eval.build")
 local inv = require("inventory.inv_obj")
+local item_buckets = require("inventory.item_buckets")
 
 -- This state_primitive bullshitery and what not seems quite poorly designed, we'll need to revise that for v2
 -- only gathering uses that stupid crap anyway
@@ -90,6 +91,11 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
         end
     end
     if new.output == nil then error(comms.robot_send("fatal", "assertion failed")) end
+
+    -- overdue correction (I'm assuming that if we in the recipe definition set a name, that name is to be kept):
+    if new.output.name == nil or new.output.name == "nil" then
+        new.output.name = item_buckets.identify(new.output.name, new.output.lable)
+    end
 
     -- this failed to activate because I was only checking for type table and not for if it is a raw MetaDependency
     if dependencies ~= nil and dependencies.inlying_recipe ~= nil then -- else it must be a table of deps
