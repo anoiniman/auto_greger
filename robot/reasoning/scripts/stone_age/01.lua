@@ -2,7 +2,7 @@
 local comms = require("comms")
 local MSBuilder, Goal, Constraint, StructureDeclaration = table.unpack(require("reasoning.MetaScript"))
 -- local essential_recipes, dictionary = table.unpack(require("reasoning.recipes.stone_age.essential01"))
-local essential_recipes, dictionary = table.unpack(dofile("/home/robot/reasoning/recipes/stone_age/essential01"))
+local essential_recipes, dictionary = table.unpack(dofile("/home/robot/reasoning/recipes/stone_age/essential01.lua"))
 
 local desc = "GOD IS IN HIS HEAVEN! ALL IS WELL! WITH THE WORLD!"
 local builder = MSBuilder:new_w_desc(desc)

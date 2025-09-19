@@ -7,7 +7,7 @@ local nav = require("nav_module.nav_obj")
 local simple_elevator = require("nav_module.simple_elevator")
 local map = require("nav_module.map_obj")
 
--- depleted_string = "surface_depleted" or "tree_depleted" (it resetes eventually)
+-- depleted_string = "surface_depleted" or "tree_depleted"
 -- if sweep_mode is not a nil AND a number then it represents a specific y-axis to target and to set free-move
 function module.automatic(parent_name, state, depleted_string, gather_string, check_subset, f_step4, sweep_mode)
     if sweep_mode ~= nil and type(sweep_mode) ~= "number" then
@@ -39,7 +39,7 @@ function module.automatic(parent_name, state, depleted_string, gather_string, ch
         local chunk_to_act_upon
         for _, chunk_coords in ipairs(area.chunks) do
             local chunk = map.get_chunk(chunk_coords)
-            if chunk.chunk.mark == nil or not chunk:checkMarks(depleted_string) then
+            if chunk.chunk.marks == nil or not chunk:checkMarks(depleted_string) then
                 chunk_to_act_upon = chunk
                 break
             end
@@ -97,7 +97,7 @@ function module.automatic(parent_name, state, depleted_string, gather_string, ch
         local sweep_result = nav.sweep(do_surface) -- goes forward one block
 
         if sweep_result == -1 then
-            state.chunk:addMark("surface_depleted")
+            state.chunk:addMark(depleted_string)
             return true, nil
         elseif sweep_result == 0 then
             -- careful with hardened _clay_ (and _sand_stone)
