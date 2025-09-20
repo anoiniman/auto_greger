@@ -48,7 +48,7 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
     end
 
     if type(output) ~= "table" then
-        local fmt_output = {lable = output, name = "nil_name"}
+        local fmt_output = {lable = output, name = "nil"}
         new.output = fmt_output
     else -- complicated set of operations in order to create a valid table arrangement
         if #output == 0 and output[2] == nil and output.lable == nil and output.name == nil then

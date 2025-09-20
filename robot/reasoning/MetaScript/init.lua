@@ -245,9 +245,20 @@ function Goal:selfSatisfied()
     return self.constraint:check(self.do_once)
 end
 
-function Goal:depSatisfied()
+local dep_sat_recurse_counter = 0
+function Goal:depSatisfied(is_child)
     if self.dependencies == nil then return true end
+
+    if is_child == nil then is_child = false end
+    if not is_child then dep_sat_recurse_counter = 0
+    else dep_sat_recurse_counter = dep_sat_recurse_counter + 1 end
+
+    if dep_sat_recurse_counter > 6 then return true end -- if we are looking too deep, just accept that it is fine
+
     for _, dep in ipairs(self.dependencies) do
+        -- Nuclear solution recommended by me by "my" automatic semantic analysis machine
+        if not dep:depSatisfied(true) then return false end
+
         local index, _ = dep:selfSatisfied()
         if index == nil or index ~= 0 then return false end
     end
