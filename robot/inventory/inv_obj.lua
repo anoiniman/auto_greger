@@ -1105,6 +1105,15 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
             local accumulator = 0
             local i_slot_tbl = module.virtual_inventory:getAllSlots(lable, name)
             local i_slot_tbl = sort_table_indexed(i_slot_tbl, false, 2)
+            if i_slot_tbl == nil then -- there has been an woopsie in the crafting/recipe/scripting
+                print(comms.robot_send(
+                    "error", string.format("While Crafting i_slot_tbl was nil, this means we didn't \z
+                    have what we expected inside of the inventory: (l,n) -> (%s, %s)", lable, name)
+                ))
+                clean_up = true
+                break
+            end
+
             for _, inner_slot in ipairs(i_slot_tbl) do
                 local slot_size = module.virtual_inventory:howManySlot(inner_slot)
                 accumulator = accumulator + slot_size
