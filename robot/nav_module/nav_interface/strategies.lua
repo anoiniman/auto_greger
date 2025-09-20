@@ -168,7 +168,9 @@ local function surface(parent, direction, nav_obj, extra_sauce)
             if geolyzer.sub_compare("harvestcraft:textilegarden", "naive_contains", analysis) then
                 -- print("yay")
                 return inv.smart_swing("empty", "front", 0, add_garden), nil
-            elseif geolyzer.sub_compare("minecraft:double_plant", "naive_contains", analysis) then
+            elseif  geolyzer.sub_compare("minecraft:double_plant", "naive_contains", analysis)
+                    or geolyzer.sub_compare("BiomesOPlenty:foliage", "naive_contains", analysis)
+            then
                 return inv.smart_swing("empty", "front", 0, function() return true end), nil
             elseif geolyzer.sub_compare("leaves", "naive_contains", analysis) then
                 return inv.smart_swing("empty", "front", 0, maybe_sapling), nil
