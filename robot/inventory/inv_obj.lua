@@ -1114,7 +1114,8 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
                 break
             end
 
-            for _, inner_slot in ipairs(i_slot_tbl) do
+            for _, inner_slot_obj in ipairs(i_slot_tbl) do
+                local inner_slot = inner_slot_obj[1]
                 local slot_size = module.virtual_inventory:howManySlot(inner_slot)
                 accumulator = accumulator + slot_size
                 table.insert(ingredient_slots, inner_slot)
