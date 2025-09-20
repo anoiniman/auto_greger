@@ -16,6 +16,17 @@ local solve_tree = {}
 -- dumping things we need into long-term storage and then spin cycling
 function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
     local latest_node = ctx:getLatestNode()
+    if needed_quantity == nil or needed_quantity == 0 then -- more debugging
+        local output = latest_node.le_self.inlying_recipe.output
+        if needed_quantity == nil then needed_quantity = "nil" end
+        needed_quantity = tostring(needed_quantity)
+
+        print(comms.robot_send(
+            "error",
+            string.format("Invalid needed quantity: %s || (l, n) -> %s, %s", needed_quantity, output.lable, output.name)
+        ))
+        io.read()
+    end
 
     local mode, dep_found
     for _, node in ipairs(latest_node.children) do
