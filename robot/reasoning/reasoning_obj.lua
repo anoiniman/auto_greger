@@ -7,9 +7,6 @@ local computer = require("computer")
 -- local MetaScriptTable = require("reasoning.MetaScript")
 -- local MetaScript = MetaScriptTable[#MetaScriptTable]
 
--- TODO combing through the wait list
--- wait list of goals, force check / step them?
-
 local scripts = {}
 scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua")
 -- local recipes = {}
@@ -157,6 +154,8 @@ function reason_obj.reset_one_locks()
         for _, goal in ipairs(script.goals) do
             local lock = goal.constraint.const_obj.lock
             if lock[1] == 1 then lock[1] = 0 end
+            -- REASON_WAIT_LIST is not saved ever, so goals that are set with the "Waiting" lock need to be reset
+            if lock[1] == 4 then lock[1] = 0 end
         end
     end
 end

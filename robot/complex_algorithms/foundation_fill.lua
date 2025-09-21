@@ -35,7 +35,7 @@ local function up_stroke()
 
     nav.debug_move("up", 1)
     -- if it fails, just keep climbing until le target height
-    inv.place_block("down", {"any:building", "any:grass", "any:plank", "any:log"}, "name_table", nil)
+    inv.place_block("down", {"any:building", "any:plank", "any:log", "any:grass"}, "name_table", nil)
     return false
 end
 

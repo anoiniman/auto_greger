@@ -17,6 +17,8 @@ local __dec_oak_tree_farm       =   StructureDeclaration:new("oak_tree_farm", 0,
 local __dec_sp_storeroom        =   StructureDeclaration:new("sp_storeroom", 0, 0, 1)
 local __dec_tk_smeltery         =   StructureDeclaration:new("tk_smeltery", 0, 0, 1)
 
+local __dec_small_oak_farm     =   StructureDeclaration:new("small_oak_farm", 0, 0, 1)
+
 -- TODO, actually programme in the meta inventories in simplified/storeroom (we're not going to use simplified store-room)
 -- local __dec_simp_storeroom_n    =   StructureDeclaration:new("simplified/storeroom_north", 0, 0, 1)
 -- local __dec_simp_storeroom_s    =   StructureDeclaration:new("simplified/storeroom_south", 0, 0, 1)
@@ -52,8 +54,13 @@ builder:addGoal(__g_planks01)
 
 -- 02b
 constraint = Constraint:newItemConstraint("any:log", nil, 8, 24, nil)
-local __g_logs01 = Goal:new(__g_hole_home01, constraint, 90, "__g_logs01", false)
+local __g_logs01 = Goal:new(__g_hole_home01, constraint, 82, "__g_logs01", false)
 builder:addGoal(__g_logs01)
+
+local function __f_small_oak_farm01 () HAS_WOOD_FARM = true; DO_SCRIPT_RELOAD = true end
+constraint = Constraint:newBuildingConstraint(__dec_small_oak_farm)
+local __g_small_oak_farm01 = Goal:new(__g_logs01, constraint, 90, "__g_small_oak_farm01", false, __f_small_oak_farm01)
+builder:addGoal(__g_small_oak_farm01)
 
 --[[constraint = Constraint:newItemConstraint("any:sapling", nil, 0, 22, nil)
 local __g_sapling01 = Goal:new(__g_logs01, constraint, 30, "__g_sapling01", true)
@@ -63,10 +70,9 @@ builder:addGoal(__g_sapling01)--]]
 -- Second Era (Preparing for charcoal)
 
 -- 01
-local function __f_oak_tree_farm01 () HAS_WOOD_FARM = true; DO_SCRIPT_RELOAD = true end
 constraint = Constraint:newBuildingConstraint(__dec_oak_tree_farm, nil)
 -- local __g_oak_tree_farm01 = Goal:new(__g_sapling01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
-local __g_oak_tree_farm01 = Goal:new(__g_logs01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
+local __g_oak_tree_farm01 = Goal:new(__g_small_oak_farm01, constraint, 60, "__g_oak_tree_farm01", false)
 builder:addGoal(__g_oak_tree_farm01)
 
 -- 02a
@@ -76,7 +82,7 @@ builder:addGoal(__g_planks02)
 
 -- 02b
 constraint = Constraint:newItemConstraint("any:log", nil, 32, 72, nil)
-local __g_logs02 = Goal:new(__g_oak_tree_farm01, constraint, 82, "__g_logs02", false)
+local __g_logs02 = Goal:new({__g_oak_tree_farm01, __g_planks02}, constraint, 82, "__g_logs02", false)
 builder:addGoal(__g_logs02)
 
 -- 03a

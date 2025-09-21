@@ -33,7 +33,7 @@ function module.be_an_elevator(target_height, complex_mode, wall_dir, force_tool
         end
         local is_wall, _ = robot.detect()
         if not is_wall then
-            local result = inv.place_block("front", {"any:building", "any:grass"}, "name_table")
+            local result = inv.place_block("front", {"any:building", "any:plank", "any:log", "any:grass"}, "name_table")
             if not result then print(comms.robot_send("warning", "Uh oh, be an elevator")) end
         end
     end
