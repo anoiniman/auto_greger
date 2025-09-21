@@ -88,11 +88,22 @@ function module.debug(arguments)
             return nil
         end
 
+        local dir = arguments[3]
+
+        local use_func = robot.useDown
+        if dir ~= nil then
+            if dir == "front" then use_func = robot.use
+            elseif dir == "up" then use_func = robot.useUp end
+        end
+
         robot.select(what_slot)
         inv_controller.equip()
-        robot.useDown()
+        use_func()
         robot.equip()
-        inv.maybe_something_added_to_inv(nil, "any:bucket")
+        if not inv.maybe_something_added_to_inv(nil, "any:bucket") then
+            inv.maybe_something_added_to_inv()
+        end
+
         robot.select(1)
 
     elseif arguments[1] == "dig_move" then
