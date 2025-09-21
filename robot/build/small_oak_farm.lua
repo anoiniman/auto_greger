@@ -29,7 +29,7 @@ local suck = component.getPrimary("tractor_beam")
 local inv_component = component.getPrimary("inventory_controller")
 
 local Module = {parent = nil}
-Module.name = "oak_tree_farm"
+Module.name = "small_oak_farm"
 
 Module.dictionary = {
     ["s"] = {"Oak Sapling", "minecraft:sapling"},
@@ -65,17 +65,7 @@ Module.human_readable = {
     "-------",
     },
 }
---[[Module.human_readable = {
-    "s+s-s+s",
-    "s+sts+s",
-    "t-----t",
-    "s+s-s+s",
-    "c*---*c",
-    "s+s+s+s",
-    "t----*c",
-}--]]
 
---Module.origin_block = {0,0,-1} -- x, z, y
 Module.origin_block = {0,0,-1} -- x, z, y
 Module.base_table = Module.human_readable
 
@@ -237,26 +227,6 @@ Module.hooks = {
 
         return 1
     end,
-    -- TODO deal with minor branches
-    --[[function(state) -- Simple dump what matches function [I think the chests are determinitstic?]
-        local storage_table = state[1]; local cur_index = state[2]
-        local cur_storage = storage_table[cur_index]
-
-        for _, item_def in cur_storage:itemDefIter() do
-            inv.dump_only_named(item_def.lable, item_def.name, cur_storage.ledger)
-        end
-        return 1
-    end,
-    function(ledger)
-        local le_item = inv_component.getStackInSlot(sides_api.front, 1) -- check first slot
-        if le_item ~= nil then -- we should suck everything dry
-            inv.suck_all(ledger)
-            return 1
-        end -- if false we should dump instead
-
-        if not inv.dump_all_possible(ledger) then print(comms.robot_send("error", "oak_tree_farm, failed to empty inventory")) end
-        return 1
-    end--]]
 }
 
 return Module
