@@ -47,6 +47,8 @@ local function prio_insert(task_list, message)
     table.insert(task_list, message)
 end
 
+local empty_looping_counter = 0
+
 -- Dangerous global value
 -- luacheck: globals INTERACTED
 INTERACTED = false
@@ -66,6 +68,15 @@ function module.robot_routine(message)
     local extend_queue = {} -- yes, its an array alloc every loop who cares
     -- ugly cludge, fix later
     local where = #task_list
+
+    -- Another ugly cludge, this time for energy saving
+    if where == 0 then
+        empty_looping_counter = empty_looping_counter + 1
+        if empty_looping_counter > 10 then os.sleep(6)
+        elseif empty_looping_counter > 50 then os.sleep(20) end
+    else
+        empty_looping_counter = empty_looping_counter - 1
+    end
 
     local gate_delay = nil
     while where > 0 do

@@ -173,7 +173,7 @@ Module.hooks = {
     -- luacheck: no unused args
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            if computer.uptime() - state.last_checked < 60 * 16 then return "wait" end -- prev was 60 * 22
+            if computer.uptime() - state.last_checked < 60 * 10 then return "wait" end -- prev was 60 * 22
 
             return "all_good"
         elseif flag ~= "raw_usage" then

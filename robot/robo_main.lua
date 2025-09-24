@@ -1,4 +1,5 @@
 -- luacheck: globals DO_LOAD ALREADY_SAVED
+local block_delay = -1
 local robot_name = "sumire-chan"
 require("overloads")
 
@@ -129,6 +130,8 @@ local function blocking_prompt() -- Return Command
     print(#post_read)
 
     table.insert(post_read, 1, -1)
+
+    if block_delay > 0 then os.sleep(block_delay) end
 
     return post_read -- Special command to stop blocking "run_auto"
 end
