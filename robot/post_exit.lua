@@ -1,4 +1,4 @@
--- luacheck: globals HOME_CHUNK
+-- luacheck: globals HOME_CHUNK HAS_WOOD_FARM WHAT_LOADOUT FUEL_TYPE IGNORE_ORE_FUEL_CHECK HAS_MORTAR
 
 -- Things to do after exit is called
 local comms = require("comms")
@@ -130,6 +130,7 @@ function module.load_state(exclude)
 
     -- important to do this first
     if not search_table.ione(exclude, "-misc") then load_thing(misc_path, misc) end
+    local tmp_offset = {-HOME_CHUNK[1], -HOME_CHUNK[2]}
     map.gen_map_obj(HOME_CHUNK)
 
     if not search_table.ione(exclude, "-inv") then load_thing(inv_path, inv) end
