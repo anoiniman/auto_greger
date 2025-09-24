@@ -99,7 +99,7 @@ function module.debug(arguments)
         robot.select(what_slot)
         inv_controller.equip()
         use_func()
-        robot.equip()
+        inv_controller.equip()
         if not inv.maybe_something_added_to_inv(nil, "any:bucket") then
             inv.maybe_something_added_to_inv()
         end

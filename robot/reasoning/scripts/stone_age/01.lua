@@ -160,8 +160,8 @@ constraint = Constraint:newQuestConstraint(__q_soft_mallet_adv)
 local __g_soft_mallet_adv = Goal:new(__g_smallhome01, constraint, 40, "__g_soft_mallet_adv", true)
 builder:addGoal(__g_soft_mallet_adv)
 
--- We'll get the robot to slam a door in our house and then we'll give her the wool
-local __q_fluffy_and_red = { Constraint:newQuestObj("Wool", nil, 6) }
+
+--[[local __q_fluffy_and_red = { Constraint:newQuestObj("Wool", nil, 6) }
 constraint = Constraint:newQuestConstraint(__q_fluffy_and_red)
 local __g_fluffy_and_red = Goal:new(__g_soft_mallet_adv, constraint, 30, "__g_fluffy_and_red", true)
 builder:addGoal(__g_fluffy_and_red)
@@ -169,13 +169,13 @@ builder:addGoal(__g_fluffy_and_red)
 local __q_so_tired_must_sleep = { Constraint:newQuestObj("Bed", nil, 1) }
 constraint = Constraint:newQuestConstraint(__q_so_tired_must_sleep)
 local __g_so_tired_must_sleep = Goal:new(__g_fluffy_and_red, constraint, 90, "__g_so_tired_must_sleep", true)
-builder:addGoal(__g_so_tired_must_sleep)
+builder:addGoal(__g_so_tired_must_sleep)--]]
 
 
 -- Q4 (Stone age starts now)
 local __q_basic_processing = { Constraint:newQuestObj("Stone", nil, 25) }
 constraint = Constraint:newQuestConstraint(__q_basic_processing)
-local __g_basic_processing = Goal:new(__g_so_tired_must_sleep, constraint, 40, "__g_basic_processing", true)
+local __g_basic_processing = Goal:new(__g_soft_mallet_adv, constraint, 40, "__g_basic_processing", true)
 builder:addGoal(__g_basic_processing)
 
 
