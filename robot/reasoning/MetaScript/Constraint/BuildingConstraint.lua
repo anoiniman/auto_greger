@@ -60,6 +60,7 @@ function BuildingConstraint:check(do_once)
         self.lock[1] = 0 -- and continue
     end
 
+    -- TODO -> this way to count buildings and do "structure declarations" is so stupid on god
     local heap = {}
     for index, structure in ipairs(self.structures) do
         local name = structure.name

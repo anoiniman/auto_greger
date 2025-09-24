@@ -249,7 +249,7 @@ builder:addGoal(__g_another_brick)
 
 
 -- 02a
-constraint = Constraint:newBuildingConstraint(__dec_coke_quad, nil)
+constraint = Constraint:newBuildingConstraint({__dec_coke_quad, __dec_coke_quad}, nil)
 local __g_coke_quad01 = Goal:new(__g_another_brick, constraint, 60, "__g_coke_quad01", true)
 builder:addGoal(__g_coke_quad01)
 
