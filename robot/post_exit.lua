@@ -131,7 +131,7 @@ function module.load_state(exclude)
     -- important to do this first
     if not search_table.ione(exclude, "-misc") then load_thing(misc_path, misc) end
     local tmp_offset = {-HOME_CHUNK[1], -HOME_CHUNK[2]}
-    map.gen_map_obj(HOME_CHUNK)
+    map.gen_map_obj(tmp_offset)
 
     if not search_table.ione(exclude, "-inv") then load_thing(inv_path, inv) end
     if not search_table.ione(exclude, "-map") then load_thing(map_path, map) end
