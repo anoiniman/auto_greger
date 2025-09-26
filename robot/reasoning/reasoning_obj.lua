@@ -8,11 +8,10 @@ local computer = require("computer")
 -- local MetaScript = MetaScriptTable[#MetaScriptTable]
 
 local scripts = {}
-scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua")
 -- local recipes = {}
 
 -- TEMPORARY TODO, update cur_script programatically
-local cur_script = scripts[1]
+local cur_script = nil
 
 
 -- luacheck: globals REASON_WAIT_LIST
@@ -120,6 +119,9 @@ function reason_obj.re_instantiate(big_table)
     save_table = big_table[1]
     local save_script_desc = big_table[2]
 
+    scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua")
+    cur_script = scripts[1]
+
     -- useless block?
     local s_index = -1
     for index, script in ipairs(scripts) do
@@ -177,6 +179,11 @@ function reason_obj.step_script()
     if not loaded then
         reason_obj.force_load(1)
         loaded = true
+    end
+
+    if scripts[1] == nil then -- change alter
+        scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua")
+        cur_script = scripts[1]
     end
 
     -- Dangerous Hack; but should do what we're looking for (reloading recipes)
