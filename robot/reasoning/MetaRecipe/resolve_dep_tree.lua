@@ -25,7 +25,7 @@ function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
             "error",
             string.format("Invalid needed quantity: %s || (l, n) -> %s, %s", pn_quantity, output.lable, output.name)
         ))
-        io.read()
+        -- io.read()
 
         needed_quantity = 0.01 -- hopefully this is good enough
     end
