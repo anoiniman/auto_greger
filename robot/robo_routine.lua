@@ -75,7 +75,11 @@ function module.robot_routine(message)
         if empty_looping_counter > 10 then os.sleep(6)
         elseif empty_looping_counter > 50 then os.sleep(20) end
     else
-        empty_looping_counter = empty_looping_counter - 1
+        if empty_looping_counter < 10 then
+            empty_looping_counter = empty_looping_counter - 1
+        else
+            empty_looping_counter = 5
+        end
     end
 
     local gate_delay = nil
