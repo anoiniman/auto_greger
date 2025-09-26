@@ -68,9 +68,6 @@ function module.identify(name, lable)
 
     if flabl("^Dirt$") or flabl("^Cobblestone$") then return "any:building" end
 
-    -- Remember to be very carefully when setting clay recipes
-    if fname("^minecraft:clay_ball$") or fname("^minecraft:clay$") then return name end
-
     --[[if fname("^minecraft:") then
         if flabl("chest") then return "minecraft:chest" end
         return "minecraft:generic"
@@ -91,6 +88,12 @@ function module.identify(name, lable)
 
         return "gregtech:generic"
     end
+
+    if flabl("^Gravel$") then return "minecraft:gravel" end
+    if flabl("^Sand$") or flabl("^Red Sand$") then return "minecraft:sand" end
+
+    -- Remember to be very carefully when setting clay recipes
+    if fname("^minecraft:clay_ball$") or fname("^minecraft:clay$") then return name end
 
     return "generic"
 end

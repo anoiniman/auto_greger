@@ -201,7 +201,7 @@ builder:addGoal(__g_flint01)
 -- Q5 (Stone-Age Gathering Quests)
 local __q_gravel_gathering = { Constraint:newQuestObj("Gravel", nil, 128) }
 constraint = Constraint:newQuestConstraint(__q_gravel_gathering)
-local __g_gravel_gathering = Goal:new(__g_so_tired_must_sleep, constraint, 40, "__g_gravel_gathering", true)
+local __g_gravel_gathering = Goal:new(__g_flint01, constraint, 40, "__g_gravel_gathering", true)
 builder:addGoal(__g_gravel_gathering)
 
 local __q_sand_gathering = { Constraint:newQuestObj("Sand", nil, 128) }

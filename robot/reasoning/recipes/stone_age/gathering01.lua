@@ -118,8 +118,8 @@ el_state.sub_set = all_table
 
 -- hopefully this works!
 local all_table = {
-    {lable = "Gravel", name = "nil"},
-    {lable = "Sand", name = "nil"},
+    {lable = "Gravel", name = "minecraft:gravel"},
+    {lable = "Sand", name = "minecraft:sand"},
     {lable = "Clay", name = "minecraft:clay_ball"},
 }
 local all_gather = MetaRecipe:newGathering(all_table, "shovel", 0, surface_resource_sweep, el_state)
