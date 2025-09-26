@@ -226,7 +226,7 @@ function module.surface(parent, direction, nav_obj, extra_sauce)
         print(comms.robot_send("warning", "Warning, surface move got stuck on entity"))
         entity_watch_dog = 0
     end
-    if climb_watch_dog == 1 then -- let's see if there is a tree ahead of us, and in front as whell (fat trees)
+    if climb_watch_dog == 2 then -- let's see if there is a tree ahead of us, and in front as whell (fat trees)
         if analysis == nil then analysis = geolyzer.simple_return() end
         if geolyzer.sub_compare("log", "naive_contains", analysis) then
             -- forward
