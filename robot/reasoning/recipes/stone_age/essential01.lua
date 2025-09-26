@@ -126,6 +126,17 @@ local dep1, dep2, dep3, dep4
 
 -- <Logs>
 -- Didn't add sapling recipe, because its logs but with a different output, and I hope for the best
+local any_sapling = {
+    [1] = nil,
+    [2] = "any:sapling",
+}
+local oak_sapling = {
+    [1] = "Oak Sapling",
+    [2] = "any:sapling",
+}
+
+local __r_sapling01 = MetaRecipe:newEmptyRecipe(any_sapling, true)
+local __r_sapling02 = MetaRecipe:newEmptyRecipe(oak_sapling, true)
 
 -- As you can see the dependencies of a building user are implicit
 output = {lable = nil, name = "any:log"}
@@ -955,5 +966,8 @@ local recipe_table = {
 
     __r_ore_gather,
     __r_ground_gather,
+
+    __r_sapling01,
+    __r_sapling02,
 }
 return {recipe_table, dictionary}
