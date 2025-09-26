@@ -148,8 +148,14 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
         parent_recipe = parent_dependency
     end
 
-    if parent_recipe.meta_type == "crafting_table" or parent_recipe.meta_type == "empty_recipe" then
+    if parent_recipe.meta_type == "crafting_table" then
         if parent_recipe.dependencies == nil then error(comms.robot_send("fatal", "This cannot be for a crafting_table")) end
+        return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
+
+    elseif parent_recipe.meta_type == "empty_recipe" or parent_recipe.meta_type == "hold_recipe" then
+        -- if is empty/hold_recipe and has no dependencies then, logically, it is for all intents "satisfied"
+        if parent_recipe.dependencies == nil then return "all_good", nil end
+
         return solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
 
     elseif parent_recipe.meta_type == "gathering" then
