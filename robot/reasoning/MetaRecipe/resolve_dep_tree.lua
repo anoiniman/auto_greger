@@ -200,8 +200,12 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
             end
 
             if result == "all_good" then
-                local mode, dep_found = solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
-                if mode ~= "all_good" then return mode, dep_found end
+                if parent_recipe.dependencies ~= nil then
+                    local mode, dep_found = solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
+                    if mode ~= "all_good" then return mode, dep_found end
+
+                    return "all_good", build
+                end
 
                 return "all_good", build
 
