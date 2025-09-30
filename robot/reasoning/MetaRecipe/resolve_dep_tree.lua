@@ -183,13 +183,21 @@ function solve_tree.isSatisfied(needed_quantity, ctx)
 
 
         for _, build in ipairs(buildings) do
-            -- I will assume that the smelting goals only have 1 dependency
-            local one_dep = parent_recipe.dependencies[1]
-            local one_recipe = one_dep.inlying_recipe
+            local result, b_check_extra
 
-            local dep_quantity = math.ceil(one_dep.input_multiplier * needed_quantity)
-            local check_table = {one_recipe.output, dep_quantity}
-            local result, b_check_extra = build:runBuildCheck(check_table)
+            -- I will assume that the smelting goals only have 1 dependency
+            if parent_recipe.dependencies ~= nil then
+                -- idk why we only check 1 dep but whatever
+                local one_dep = parent_recipe.dependencies[1]
+                local one_recipe = one_dep.inlying_recipe
+
+                local dep_quantity = math.ceil(one_dep.input_multiplier * needed_quantity)
+                local check_table = {one_recipe.output, dep_quantity}
+
+                result, b_check_extra = build:runBuildCheck(check_table)
+            else
+                result, b_check_extra = build:runBuildCheck()
+            end
 
             if result == "all_good" then
                 local mode, dep_found = solve_tree.interpretSelection(ctx, needed_quantity, parent_recipe.meta_type)
