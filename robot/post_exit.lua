@@ -19,6 +19,11 @@ local filesystem = require("filesystem")
 
 local misc = {}
 function misc.re_instantiate(big_table)
+    if type(big_table[1]) == "boolean" then
+        if big_table[1] == false then big_table[1] = 0
+        elseif big_table[1] == true then big_table[1] = 1 end
+    end
+
     HAS_WOOD_FARM = big_table[1] or HAS_WOOD_FARM
     HOME_CHUNK = big_table[2] or HOME_CHUNK
     WHAT_LOADOUT = big_table[3] or WHAT_LOADOUT
