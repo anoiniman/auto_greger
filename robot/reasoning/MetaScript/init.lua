@@ -190,13 +190,18 @@ function MetaScript:step(preselected_goal_name, change_lock) -- most important f
         local extra_quantity = extra[2]
         result, extra = best_goal:step(nil, result, self, true, extra_quantity)
         if result == nil then
-            if last_reported_force_fail ~= last.lable then
+            local s_name = last.name
+            local s_lable = last.lable
+            if s_name == nil then s_name = "nil" end
+            if s_lable == nil then s_lable = "nil" end
+
+            if last_reported_force_fail ~= s_lable then
                 print(comms.robot_send("error",
-                    string.format("MetaScript:step() -- Tried to force a recipe, for (%s, %s) but failed to find one", last.lable, last.name)
+                    string.format("MetaScript:step() -- Tried to force a recipe, for (%s, %s) but failed to find one", s_lable, s_name)
                 ))
             end
 
-            last_reported_force_fail = last.lable
+            last_reported_force_fail = s_lable
             return "end", nil
         end
         -- luacheck: pop
