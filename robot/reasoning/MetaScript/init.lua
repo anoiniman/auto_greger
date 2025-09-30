@@ -380,6 +380,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
     end
 
     local extra_info
+    recurse_watch_dog = 0 -- stupid
     needed_recipe, extra_info, needed_quantity = recurse_recipe_tree(needed_recipe, needed_quantity, MetaContext:new(needed_recipe))
 
     -- TODO implement mechanism to unlock this lock
