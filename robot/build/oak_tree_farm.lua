@@ -190,6 +190,8 @@ Module.hooks = {
             state.temp_reg = nil
             state.in_building = false
 
+            state.last_checked = computer.uptime()
+
             return nil
         end
         return go_next
