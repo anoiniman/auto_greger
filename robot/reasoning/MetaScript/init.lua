@@ -135,6 +135,8 @@ function MetaScript:findBestGoal()
     return nil, nil, nil
 end
 
+local last_reported_force_fail = nil
+
 function MetaScript:step(preselected_goal_name, change_lock) -- most important function does everything, I think
     self:unlockPosterior()
     local best_goal, index, name
@@ -184,10 +186,17 @@ function MetaScript:step(preselected_goal_name, change_lock) -- most important f
     if extra ~= nil and extra[1] == "try_recipe" then -- happens when a non recipe goal demands a recipe
         -- after try recipe it's getting locked? idk why
         -- luacheck: push ignore extra
+        local last = result
         local extra_quantity = extra[2]
         result, extra = best_goal:step(nil, result, self, true, extra_quantity)
         if result == nil then
-            print(comms.robot_send("error", "MetaScript:step() -- Tried to force a recipe, but failed to find one"))
+            if last_reported_force_fail ~= last then
+                print(comms.robot_send("error",
+                    string.format("MetaScript:step() -- Tried to force a recipe, for \"%s\" but failed to find one", last)
+                ))
+            end
+
+            last_reported_force_fail = last
             return "end", nil
         end
         -- luacheck: pop
