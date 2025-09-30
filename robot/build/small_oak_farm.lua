@@ -125,7 +125,7 @@ local function down_stroke()
 
         result, err = nav.debug_move("down", 1)
         if not result and err == "solid" then -- attempt to break a possibly placed block, or check if its dirt/grass
-            local analysis = geolyzer.simple_return()
+            local analysis = geolyzer.simple_return(sides_api.down)
             if analysis.harvestTool ~= "shovel" then -- aka, not dirt/grass
                 inv.smart_swing("axe", "down", 0, something_added)
             end
@@ -163,7 +163,7 @@ Module.hooks = {
     -- luacheck: no unused args
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            if computer.uptime() - state.last_checked < 60 * 14 then return "wait" end -- prev was 60 * 22
+            if computer.uptime() - state.last_checked < 60 * 6 then return "wait" end -- prev was 60 * 22
 
             return "all_good"
         elseif flag ~= "raw_usage" then
