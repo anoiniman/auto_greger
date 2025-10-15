@@ -73,7 +73,7 @@ builder:addGoal(__g_sapling01)--]]
 -----------------------------------------
 -- Second Era (Preparing for charcoal)
 
--- 01
+-- 01 (for some reason this failed to execute?)
 local function __f_oak_tree_farm01 () HAS_WOOD_FARM = 2; DO_SCRIPT_RELOAD = true end
 constraint = Constraint:newBuildingConstraint(__dec_oak_tree_farm, nil)
 local __g_oak_tree_farm01 = Goal:new(__g_small_oak_farm01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
@@ -282,6 +282,7 @@ local __g_sp_storeroom01 = Goal:new(__g_coke_quad01, constraint, 60, "__g_sp_sto
 builder:addGoal(__g_sp_storeroom01)
 
 -- Q
+--[[
 local __q_you_are_not_prepared01 = {
     Constraint:newQuestObj("Seared Bricks", nil, 28),
     Constraint:newQuestObj("Smeltery Controller", nil, 1),
@@ -320,11 +321,13 @@ builder:addGoal(__g_tk_smeltery)
 constraint = Constraint:newQuestConstraint(__q_you_are_not_prepared03)
 local __g_you_are_not_prepared03 = Goal:new(__g_tk_smeltery, constraint, 40, "__g_you_are_not_prepared03", true)
 builder:addGoal(__g_you_are_not_prepared03)
+--]]
 
 -- 03
 local function __f_f_pickaxe01 () WHAT_LOADOUT = "third" end
 constraint = Constraint:newItemConstraint(nil, "Flint Pickaxe", 2, 3, nil)
-local __g_f_pickaxe01 = Goal:new(__g_you_are_not_prepared03, constraint, 68, "__g_f_pickaxe01", false, __f_f_pickaxe01)
+--local __g_f_pickaxe01 = Goal:new(__g_you_are_not_prepared03, constraint, 68, "__g_f_pickaxe01", false, __f_f_pickaxe01)
+local __g_f_pickaxe01 = Goal:new(__g_sp_storeroom01, constraint, 68, "__g_f_pickaxe01", false, __f_f_pickaxe01)
 builder:addGoal(__g_f_pickaxe01)
 
 
