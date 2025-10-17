@@ -47,7 +47,7 @@ Module.dictionary = {
 -- things defined through * = inventories, and through + = action hooks?
 Module.human_readable = {
     {
-    "d-d-d-d",
+    "-------",
     "d-d-d-d",
     "-------",
     "d-d-d-d",
@@ -56,7 +56,7 @@ Module.human_readable = {
     "-------",
     },
     {
-    "s*s|s*s",
+    "|||||||",
     "s*s|s*s",
     "|||||||",
     "s*s|s*s",
@@ -138,6 +138,7 @@ local function down_stroke()
             local analysis = geolyzer.simple_return(sides_api.down)
             if analysis.harvestTool ~= "shovel" then -- aka, not dirt/grass
                 inv.smart_swing("axe", "down", 0, something_added)
+                result = true
             end
         end
     end

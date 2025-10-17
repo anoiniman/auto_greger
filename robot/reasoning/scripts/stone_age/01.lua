@@ -79,9 +79,9 @@ constraint = Constraint:newBuildingConstraint(__dec_oak_tree_farm, nil)
 local __g_oak_tree_farm01 = Goal:new(__g_small_oak_farm01, constraint, 60, "__g_oak_tree_farm01", false, __f_oak_tree_farm01)
 builder:addGoal(__g_oak_tree_farm01)
 
-constraint = Constraint:newBuildingConstraint({__dec_oak_tree_farm, __dec_oak_tree_farm}, nil)
+--[[constraint = Constraint:newBuildingConstraint({__dec_oak_tree_farm, __dec_oak_tree_farm}, nil)
 local __g_oak_tree_farm02 = Goal:new(__g_oak_tree_farm01, constraint, 60, "__g_oak_tree_farm02", false)
-builder:addGoal(__g_oak_tree_farm02)
+builder:addGoal(__g_oak_tree_farm02)--]]
 
 
 -- 02a
