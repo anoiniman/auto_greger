@@ -49,16 +49,22 @@ local function __f_planks01 () FUEL_TYPE = "wood" end
 
 -- 02a (small plank goal for fuel reasons)
 constraint = Constraint:newItemConstraint("any:sapling", "Oak Sapling", 4, 4)
-local __g_sapling01 = Goal:new(__g_hole_home01, constraint, 30, "__g_sapling01", true)
-builder:addGoal(__g_sapling01)
+local __g_oak_sapling01 = Goal:new(__g_hole_home01, constraint, 30, "__g_oak_sapling01", true)
+builder:addGoal(__g_oak_sapling01)
 
 local function __f_small_oak_farm01 () HAS_WOOD_FARM = 1; DO_SCRIPT_RELOAD = true end
 constraint = Constraint:newBuildingConstraint(__dec_small_oak_farm)
-local __g_small_oak_farm01 = Goal:new(__g_sapling01, constraint, 90, "__g_small_oak_farm01", false, __f_small_oak_farm01)
+local __g_small_oak_farm01 = Goal:new(__g_oak_sapling01, constraint, 90, "__g_small_oak_farm01", false, __f_small_oak_farm01)
 builder:addGoal(__g_small_oak_farm01)
 
+
+constraint = Constraint:newItemConstraint("any:sapling", "Oak Sapling", 10, 20)
+local __g_oak_sapling02 = Goal:new(__g_small_oak_farm01, constraint, 90, "__g_oak_sapling02", false)
+builder:addGoal(__g_oak_sapling02)
+
+
 constraint = Constraint:newItemConstraint("any:plank", nil, 16, 64, nil)
-local __g_planks01 = Goal:new(__g_small_oak_farm01, constraint, 80, "__g_planks01", false, __f_planks01)
+local __g_planks01 = Goal:new({__g_small_oak_farm01, __g_oak_sapling02}, constraint, 80, "__g_planks01", false, __f_planks01)
 builder:addGoal(__g_planks01)
 
 -- 02b
@@ -66,9 +72,6 @@ constraint = Constraint:newItemConstraint("any:log", nil, 8, 24, nil)
 local __g_logs01 = Goal:new(__g_planks01, constraint, 82, "__g_logs01", false)
 builder:addGoal(__g_logs01)
 
---[[constraint = Constraint:newItemConstraint("any:sapling", nil, 0, 22, nil)
-local __g_sapling01 = Goal:new(__g_logs01, constraint, 30, "__g_sapling01", true)
-builder:addGoal(__g_sapling01)--]]
 
 -----------------------------------------
 -- Second Era (Preparing for charcoal)

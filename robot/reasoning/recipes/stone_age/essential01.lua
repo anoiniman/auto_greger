@@ -136,7 +136,12 @@ local oak_sapling = {
 }
 
 local __r_sapling01 = MetaRecipe:newEmptyRecipe(any_sapling, true)
-local __r_sapling02 = MetaRecipe:newEmptyRecipe(oak_sapling, true)
+local __r_sapling02
+if HAS_WOOD_FARM >= 1 then
+    __r_sapling02 = MetaRecipe:newBuildingUser(oak_sapling, "small_oak_farm", "raw_usage", nil, nil)
+else
+    __r_sapling02 = MetaRecipe:newEmptyRecipe(oak_sapling, true)
+end
 
 -- As you can see the dependencies of a building user are implicit
 output = {lable = nil, name = "any:log"}
