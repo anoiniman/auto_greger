@@ -86,7 +86,7 @@ builder:addGoal(__g_oak_tree_farm02)--]]
 
 -- 02a
 constraint = Constraint:newItemConstraint("any:plank", nil, 32, 124, nil)
-local __g_planks02 = Goal:new(__g_oak_tree_farm01, constraint, 82, "__g_planks02", false)
+local __g_planks02 = Goal:new({__g_oak_tree_farm01, __g_logs01} constraint, 82, "__g_planks02", false)
 builder:addGoal(__g_planks02)
 
 -- 02b

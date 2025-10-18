@@ -246,26 +246,14 @@ end
 
 -- checks if there is ANY intersection betwen the sets
 function MetaRecipe:includesOutput(other)
-    -- TODO - support multiple outputs, but not in this way!
-    if type(self.output.lable) == "table" then
-        for self_index = 1, #self.output.lable, 1 do
-            local s_lable = self.output.lable[self_index]
-            local s_name = self.output.name[self_index]
+    for _, inner_table in ipairs(self.output) do -- checks for i-iterateable tables of valid {lable, name} outputs
+        local result = inner_table.lable == other.output.lable and other.output.name == inner_table.name
+        if result then return true end
 
-            if type(other.output.lable) == "table" then
-                for other_index = 1, #other.output.lable, 1 do
-                    local o_lable = other.output.lable[other_index]
-                    local o_name = other.output.name[other_index]
-                    if o_lable == s_lable and o_name == s_name then return true end
-                end -- for other
-                return false
-            end -- if otther is table
+        --[[for _, o_inner in ipairs(other.output) do -- TODO later, when we actually re-write shit
 
-            if other.output.lable == s_lable and other.output.name == s_name then return true end
-        end -- for self
-
-        return false
-    end
+        end--]]
+    end -- else we assume that the values are directly acessible
 
     return self.output.lable == other.output.lable and self.output.name == other.output.name
 end

@@ -94,6 +94,7 @@ Module.state_init = {
             -- last_checked = computer.uptime() - 60 * 23, -- temp thing
             last_checked = computer.uptime(),
 
+            back_hack = false,
             fsm = 1,
             in_what_asterisk = 1,
             temp_reg = nil,
@@ -185,11 +186,17 @@ Module.hooks = {
         print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
 
         local go_next = generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "oak_tree_farm")
+        if (state.fsm == 2 or state.fsm == 21) and not state.back_hack then -- go backwards
+            nav.debug_move("north", 2)
+            state.back_hack = true
+        end
+
         if go_next == nil or go_next > 2 then
             state.fsm = 1
             state.in_what_asterisk = 1
             state.temp_reg = nil
             state.in_building = false
+            state.back_hack = false
 
             state.last_checked = computer.uptime()
 
