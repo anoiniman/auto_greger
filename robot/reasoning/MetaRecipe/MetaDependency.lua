@@ -26,9 +26,9 @@ end
 function MetaDependency:selectFromMultiple(recipe, multiplier, dep_type, index)
     ----- HACKY SHIT ------
     local recipe_copy = deep_copy.copy(recipe, pairs)
-    local new_output = recipe_copy.output
-    new_output.lable = recipe_copy.output.lable[index]
-    new_output.name = recipe_copy.output.name[index]
+    --[[new_output.lable = recipe_copy.output.lable[index]
+    new_output.name = recipe_copy.output.name[index]--]]
+    local new_output = deep_copy.copy(recipe_copy.output[index])
     recipe_copy.output = new_output
 
     return self:new(recipe_copy, multiplier, dep_type)
