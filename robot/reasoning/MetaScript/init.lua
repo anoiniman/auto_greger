@@ -382,7 +382,7 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
 
     local needed_quantity
     if quantity_override == nil then
-        needed_quantity = self.constraint.const_obj.set_count
+        needed_quantity = self.constraint.const_obj.set_count -- Is this right? What about quest goals? TODO -> Fix this crap
     else
         needed_quantity = quantity_override
     end
