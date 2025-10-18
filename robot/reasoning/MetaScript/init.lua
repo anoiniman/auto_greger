@@ -90,8 +90,16 @@ function MetaScript:findRecipe(lable, name)
     if lable ~= nil then
         if lable == "air" then return "skip" end
         for _, recipe in ipairs(self.recipes) do
-            if recipe:includesOutputLiteral(lable, name) then
+            local result = recipe:includesOutputLiteral(lable, name)
+            if result == 0 then
                 return recipe
+            elseif result > -1 then -- another temporary hack, that'll need to be changed when we regularize the formatting of .output
+                -- Create a "fake" copy of the recipe with normalised .output
+                local copy = deep_copy.copy(recipe)
+                copy.output = {}
+                copy.output.lable = recipe.output[result].lable
+                copy.output.name = recipe.output[result].name
+                return copy
             end
         end
     else
@@ -109,7 +117,7 @@ function MetaScript:findRecipe(lable, name)
 
     if string.find(s_lable, "Ore") or string.find(s_name, ":raw_ore") then
         for _, recipe in ipairs(self.recipes) do
-            if recipe:includesOutputLiteral("_Ore", nil) then
+            if recipe:includesOutputLiteral("_Ore", nil) == 0 then
                 -- for direct dependency recipes we'll be fingering the pie there! Don't forget to deep_copy!
                 local recipe_copy = deep_copy.copy(recipe)
                 recipe_copy.mechanism.output = {["lable"] = lable, ["name"] = name} -- dirty hack

@@ -257,16 +257,18 @@ end
 
 -- checks if there is ANY intersection betwen the sets
 function MetaRecipe:includesOutput(other)
-    for _, inner_table in ipairs(self.output) do -- checks for i-iterateable tables of valid {lable, name} outputs
+    for index, inner_table in ipairs(self.output) do -- checks for i-iterateable tables of valid {lable, name} outputs
         local result = inner_table.lable == other.output.lable and other.output.name == inner_table.name
-        if result then return true end
+        if result then return index end
 
         --[[for _, o_inner in ipairs(other.output) do -- TODO later, when we actually re-write shit
 
         end--]]
     end -- else we assume that the values are directly acessible
 
-    return self.output.lable == other.output.lable and self.output.name == other.output.name
+    local result = self.output.lable == other.output.lable and self.output.name == other.output.name
+    if result then return 0 end
+    return -1
 end
 
 function MetaRecipe:includesName(name)
