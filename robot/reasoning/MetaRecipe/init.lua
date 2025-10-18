@@ -80,12 +80,23 @@ function MetaRecipe:new(output, state_primitive, strict, dependencies)
         elseif output.name ~= nil and type(output.name) == "string" then
             local fmt_output = {lable = "nil", name = output.name}
             new.output = fmt_output
-        elseif output.name == nil then -- It's just a table of lables
-            local fmt_output = {lable = output, name = {}}
-            for i = 1, #fmt_output.lable, 1 do
-                fmt_output.name[i] = "nil"
+        elseif output.name == nil then -- It's just a table of [Something]
+            if output[1] == nil then error(comms.robot_send("fatal", "unexpected")) end
+
+            if type(output[1]) == "string" then -- [Something] == "lable"
+                --local fmt_output = {lable = output, name = {}}
+                local fmt_output = {}
+                for i = 1, #output, 1 do
+                    fmt_output[i] = {}
+                    fmt_output[i].lable = output[i]
+                    fmt_output[i].name = "nil"
+                end
+                new.output = fmt_output
+            elseif type(output[1]) == "table" then
+                new.output = output -- should be enough to be valid since i-iteratable?
+            else
+                error(comms.robot_send("fatal", "unexpected"))
             end
-            new.output = fmt_output
         else
             error(comms.robot_send("fatal", "unexpected"))
         end
