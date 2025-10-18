@@ -17,7 +17,14 @@ local solve_tree = {}
 function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
     local latest_node = ctx:getLatestNode()
     if needed_quantity == nil or needed_quantity == 0 then -- more debugging
-        local output = latest_node.le_self.inlying_recipe.output
+        local inlying = latest_node.le_self.inlying_recipe
+        if inlying == nil then
+            print("latest node has no inlying, attempting parent")
+            local parent_node = ctx:getParentNode()
+            inlying = parent_node.le_self.inlying_recipe
+        end
+
+        local output = inlying.output
         local pn_quantity = tostring(needed_quantity)
 
         if pn_quantity == nil then pn_quantity = "nil" end
