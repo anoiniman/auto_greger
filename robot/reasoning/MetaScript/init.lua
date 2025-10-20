@@ -387,6 +387,10 @@ function Goal:step(index, name, parent_script, force_recipe, quantity_override)
         needed_quantity = quantity_override
     end
 
+    if needed_quantity == nil then
+        error(comms.robot_send("fatal", "Same shit as always"))
+    end
+
     local extra_info
     recurse_watch_dog = 0 -- stupid
     needed_recipe, extra_info, needed_quantity = recurse_recipe_tree(needed_recipe, needed_quantity, MetaContext:new(needed_recipe))

@@ -25,6 +25,7 @@ end
 
 -- This is basically a table of simplified ItemConstraint but that will be treated differently by the resolution system etc etc.
 local OosConstraint = {
+    set_count = nil, -- hackiest shit in the west
     quest_item_tbl = nil,
     lock = {0},
 }
@@ -40,7 +41,9 @@ end--]]
 
 -- These quests are always do_once, we'll need a special lock value to represent this being done because of weirdness
 -- this means that the Oos finisher thing should not mees with the lock,or at the very list force lock it to 5
-function OosConstraint:check(do_once) -- so this was easy?
+function OosConstraint:check(_do_once) -- so this was easy?
+    self.set_count = nil
+
     local do_once = false
     if self.lock[1] == 1 or self.lock[1] == 4 then
         return nil, nil -- Hold It
@@ -66,6 +69,7 @@ function OosConstraint:check(do_once) -- so this was easy?
     for _, def in ipairs(self.quest_item_tbl) do
         local real_quantity = inv.how_many_total(def.lable, def.name)
         if real_quantity < def.count then
+            self.set_count = def.count - real_quantity -- hack is here TODO remove need for it
             return 1, {name = def.name, lable = def.lable}
         end
     end
