@@ -121,6 +121,12 @@ function MetaContext:unwind(node_index)
     local err_node = cur_path[node_index]
     local err_recipe = err_node.le_self.inlying_recipe
 
+    local s_lable = err_recipe.output.lable
+    local s_name = err_recipe.output.name
+    if s_lable == nil then s_lable = "nil" end
+    if s_name == nil then s_name = "nil" end
+
+    print(string.format("Loop found in entry no.%d: (%s, %s)", node_index, s_lable, s_name))
 
     local match_node = nil
     -- we go until '2' because 1 (the root) is a special node that shouldn't be messed with
@@ -129,6 +135,7 @@ function MetaContext:unwind(node_index)
         local temp_recipe = temp_node.le_self.inlying_recipe
 
         if err_recipe:includesOutput(temp_recipe) and temp_node ~= err_node then
+            print(string.format("Matches with entry no.%d", temp_index))
             match_node = temp_node
             break
         end

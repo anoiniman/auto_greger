@@ -42,6 +42,7 @@ function solve_tree.selectDependency(ctx, needed_quantity, meta_type)
         local dep = node.le_self
         -- Check if we're looping over or something similar, detect cycle and try to break it, error out if it can't be done
         if ctx:checkForLoop(dep.inlying_recipe) then
+            ctx:addDepth(dep)
             return "loop_detected", ctx:getCurNodeIndex() + 1
         end
 
