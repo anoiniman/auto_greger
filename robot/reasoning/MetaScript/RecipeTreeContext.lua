@@ -131,7 +131,7 @@ function MetaContext:unwind(node_index)
     local match_node = nil
     -- we go until '2' because 1 (the root) is a special node that shouldn't be messed with
     for temp_index = node_index - 1, 2, -1 do
-        local temp_node = cur_path[temp_index]
+        local temp_node = cur_path.path[temp_index]
         local temp_recipe = temp_node.le_self.inlying_recipe
 
         if err_recipe:includesOutput(temp_recipe) and temp_node ~= err_node then
