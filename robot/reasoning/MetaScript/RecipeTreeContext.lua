@@ -116,6 +116,7 @@ function MetaContext:getCurNodeIndex()
     return cur_path.index
 end
 
+-- TODO Change to argument be "dependency" directly, rather than index to remove need to pre-add
 function MetaContext:unwind(node_index)
     local cur_path = self.paths[self.cur_path]
     local err_node = cur_path.path[node_index]
@@ -135,7 +136,11 @@ function MetaContext:unwind(node_index)
         local temp_recipe = temp_node.le_self.inlying_recipe
 
         if err_recipe:includesOutput(temp_recipe) and temp_node ~= err_node then
-            print(string.format("Matches with entry no.%d", temp_index))
+            local s_lable = temp_recipe.output.lable
+            local s_name = temp_recipe.output.name
+            if s_lable == nil then s_lable = "nil" end
+            if s_name == nil then s_name = "nil" end
+            print(string.format("Matches with entry no.%d: (%s, %s)", temp_index, s_lable, s_name))
             match_node = temp_node
             break
         end

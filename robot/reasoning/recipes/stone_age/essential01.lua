@@ -213,7 +213,7 @@ local __c_stick01 = {
 }
 
 output = { lable = nil, name = "any:plank" }
-dep1 = MetaDependency:new(__r_log, 1, "Optional")
+dep1 = MetaDependency:new(__r_log, 1)
 local __r_plank01 = MetaRecipe:newCraftingTable(output, __c_plank01, dep1, nil)
 
 dep1 = MetaDependency:new(__r_plank01, 1)
