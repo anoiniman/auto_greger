@@ -105,7 +105,7 @@ function MetaContext:checkForLoop(recipe_to_check)
     for index = 2, #cur_path.path, 1 do
         local node = cur_path.path[index]
         local le_recipe = node.le_self.inlying_recipe
-        if le_recipe:includesOutput(recipe_to_check) then return true end
+        if le_recipe:includesOutput(recipe_to_check) >= 0 then return true end
     end
 
     return false
@@ -135,7 +135,7 @@ function MetaContext:unwind(node_index)
         local temp_node = cur_path.path[temp_index]
         local temp_recipe = temp_node.le_self.inlying_recipe
 
-        if err_recipe:includesOutput(temp_recipe) and temp_node ~= err_node then
+        if err_recipe:includesOutput(temp_recipe) >= 0 and temp_node ~= err_node then
             local s_lable = temp_recipe.output.lable
             local s_name = temp_recipe.output.name
             if s_lable == nil then s_lable = "nil" end
