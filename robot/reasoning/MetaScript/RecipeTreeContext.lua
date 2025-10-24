@@ -118,7 +118,7 @@ end
 
 function MetaContext:unwind(node_index)
     local cur_path = self.paths[self.cur_path]
-    local err_node = cur_path[node_index]
+    local err_node = cur_path.path[node_index]
     local err_recipe = err_node.le_self.inlying_recipe
 
     local s_lable = err_recipe.output.lable
