@@ -27,6 +27,8 @@ end
 local OosConstraint = {
     set_count = nil, -- hackiest shit in the west
     quest_item_tbl = nil,
+
+    to_finish = false,
     lock = {0},
 }
 
@@ -51,7 +53,9 @@ function OosConstraint:check(_do_once) -- so this was easy?
     if self.lock[1] == 5 then return 0, nil end -- self.lock[1] = 5 doesn't work because the building handler clears it with "2"
     -- I think this is how we want to handle it after it "delivers" because, at least for now it does in one swoop
     -- Logistics does not set lock as 2, only the building usage handler does
-    if self.lock[1] == 2 then
+    -- IDIOT crafting also sets lock to 2
+
+    if self.lock[1] == 2 and self.to_finish then
         self.lock[1] = 3
         return 0, nil
     end
@@ -111,6 +115,7 @@ function OosConstraint:check(_do_once) -- so this was easy?
     end
 
     self.lock[1] = 5
+    self.to_finish = true
     print("Oos Finish")
     return 1, {c_type = "OosFinish"} -- it is impossible for the robot to know that the game has accepts its attempt, so.... don't fail
     -- error(comms.send_unexpected(true))
