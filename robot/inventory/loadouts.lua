@@ -24,6 +24,7 @@ local __l_first  = {
     {"Flint Pickaxe", "tool:pickaxe", 2, 1},
     {"nil", "any:plank", 128, 48},
     {"nil", "any:log", 64, 16},
+    {"Oak Sapling", "any:sapling", 20, 10},
 }
 
 local __l_second = {
@@ -31,6 +32,7 @@ local __l_second = {
     {"nil", "any:plank", 64, 16},
     {"nil", "any:log", 64, 16},
     {"Charcoal", "any:fuel", 128, 32},
+    {"Oak Sapling", "any:sapling", 20, 10},
 }
 
 local __l_third = {
@@ -38,6 +40,7 @@ local __l_third = {
     {"nil", "any:plank", 64, 16},
     {"nil", "any:log", 64, 16},
     {"Charcoal", "any:fuel", 256, 32},
+    {"Oak Sapling", "any:sapling", 20, 10},
 }
 
 
