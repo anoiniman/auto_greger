@@ -108,6 +108,12 @@ constraint = Constraint:newQuestConstraint(__q_sticks_n_stones)
 local __g_sticks_n_stones = Goal:new(__g_gravel01, constraint, 90, "__g_sticks_n_stones", true)
 builder:addGoal(__g_sticks_n_stones)
 
+local __q_crafting_table = { Constraint:newQuestObj("Crafting Table", nil, 1) }
+constraint = Constraint:newQuestConstraint(__q_crafting_table)
+local __g_crafting_table = Goal:new(__g_sticks_n_stones, constraint, 90, "__g_crafting_table", true)
+builder:addGoal(__g_crafting_table)
+
+
 local __q_where_flint = { Constraint:newQuestObj("Flint", nil, 3) }
 constraint = Constraint:newQuestConstraint(__q_where_flint)
 local __g_where_flint = Goal:new(__g_sticks_n_stones, constraint, 90, "__q_where_flint", true)
