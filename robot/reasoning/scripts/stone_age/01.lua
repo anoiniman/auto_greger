@@ -58,8 +58,9 @@ local __g_small_oak_farm01 = Goal:new(__g_oak_sapling01, constraint, 90, "__g_sm
 builder:addGoal(__g_small_oak_farm01)
 
 
+-- right now we've lowered the priority of this goal, because it interacts weird with the plank/log goals (was 90, now 79)
 constraint = Constraint:newItemConstraint("any:sapling", "Oak Sapling", 10, 20)
-local __g_oak_sapling02 = Goal:new(__g_small_oak_farm01, constraint, 90, "__g_oak_sapling02", false)
+local __g_oak_sapling02 = Goal:new(__g_small_oak_farm01, constraint, 79, "__g_oak_sapling02", false)
 builder:addGoal(__g_oak_sapling02)
 
 

@@ -49,9 +49,9 @@ function BuildingConstraint:check(do_once)
         return nil, nil -- Hold It
     end
 
-    if self.lock[1] == 2 then
-        print(comms.robot_send("warning", "BuildingConstraint, unideomatic lock state (2)"))
-        self.lock[1] = 3
+    if self.lock[1] == 2 then -- This state can happen when the building needs something to get crafted, and crafting marks lock[1] as 2
+        -- print(comms.robot_send("warning", "BuildingConstraint, unideomatic lock state (2)"))
+        self.lock[1] = 0
         return 0, nil
     end
     if self.lock[1] == 3 then
