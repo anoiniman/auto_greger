@@ -910,6 +910,7 @@ local __r_small_coal_boiler = MetaRecipe:newCraftingTable("Small Coal Boiler", _
 local recipe_table = {
     __r_crafting_table01,
     __r_cobblestone,
+    __r_stone01,
 
     __r_flint,
     __r_flint_mortar,
