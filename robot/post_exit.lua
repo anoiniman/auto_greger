@@ -138,8 +138,15 @@ function module.load_state(exclude)
     local tmp_offset = {-HOME_CHUNK[1], -HOME_CHUNK[2]}
     map.gen_map_obj(tmp_offset)
 
-    if not search_table.ione(exclude, "-inv") then load_thing(inv_path, inv) end
+    -- Maybe it is a mistake to laod inv before map? I try to invert it to see if it fixes the malaise we currently
+    -- have with loading external inventories, if this doesn't work then we'll try to have a separate load_step
+    -- for external inventories, otherwise, if it still doesn't work, we'll cry
+
+    -- if not search_table.ione(exclude, "-inv") then load_thing(inv_path, inv) end
+    -- if not search_table.ione(exclude, "-map") then load_thing(map_path, map) end
+
     if not search_table.ione(exclude, "-map") then load_thing(map_path, map) end
+    if not search_table.ione(exclude, "-inv") then load_thing(inv_path, inv) end
     if not search_table.ione(exclude, "-nav") then load_thing(nav_path, nav, map) end
     if not search_table.ione(exclude, "-reas") then load_thing(reas_path, reas) end
     if not search_table.ione(exclude, "-ore") then load_thing(ore_path, ore) end

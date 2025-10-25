@@ -228,8 +228,10 @@ Module.hooks = {
             print(comms.robot_send("error", string.format("coke_quad, bad_flag: %s", flag)))
             return nil
         end
-        local serial = serialize.serialize(state, true)
-        print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
+        -- Lol, the serialization made us run out of ram
+
+        -- local serial = serialize.serialize(state, true)
+        -- print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
 
         if state.to_cook_def == nil then
             state.to_cook_def = deep_copy.copy(check_table[1])

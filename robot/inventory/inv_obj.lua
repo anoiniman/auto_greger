@@ -979,7 +979,10 @@ function module.dump_only_matching(external_inventory, up_to, matching_slots, ex
     local inv_type = external_inventory.ledger.inv_type
     if inv_type == "ledger" then error(comms.robot_send("fatal", "This is not supported right now")) end
     if matching_slots == nil or #matching_slots == 0 then
-        print(comms.robot_send("warning", "dump_only_matching, matching_slots was nil or 0"))
+        print(comms.robot_send("warning",
+            -- string.format("dump_only_matching, matching_slots was nil or 0\n (%s, %s)")
+            "dump_only_matching, matching_slots was nil or 0"
+        ))
         return false
     end
 
