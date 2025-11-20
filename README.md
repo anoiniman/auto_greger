@@ -3,12 +3,13 @@ This will Greg for You!
 ## Installation Intrunctions
 ### Pre-Requesites
 Be on GTNH, and have a opencomputers robot with the <necessary> modules as shown in the video:
->2x Inventory Expansion
->1x Inventory Controller
->1x Geolyzer
->1x Combustion Generator
->1x Module Expansion Slot
-etc.
+- 2x Inventory Expansion
+- 1x Inventory Controller
+- 1x Geolyzer
+- 1x Combustion Generator
+- 1x Module Expansion Slot
+-etc.
+
 Be mindful that in order for all modules to be equipable, you may not have a floppy disc drive installed on the robot, you must deconstruct/reconstruct the robot after installing OpenOS.
 Also, make sure that you have enough RAM and disc-space, you WILL need the full complement of 2MB of RAM.
 If you want to use remote functionalities through remember to properly link the 2 tunnel-card together, one for the robot, another for the remote computer terminal.
@@ -38,18 +39,18 @@ For a complete list of all possible commands, reading the source code is recomen
 Simply cd into the installed folder inside your /home directory and run "robo_main"/"prompt".
 
 ### Controller
-Type ``comm`` in order to activity remote guidance mode.
-``print_mode`` allows robot responses to be printed imediatly, alternative you may press the enter-key in order to poll for a response.
-Pressing 'q' while in "print_mode" will exit print_mode and allow you to input commands once again.
-Type ``exit`` once in comm mode in order to stop dictating commands to the robot.
+- Type ``comm`` in order to activity remote guidance mode.
+- ``print_mode`` allows robot responses to be printed imediatly, alternative you may press the enter-key in order to poll for a response.
+- Pressing 'q' while in "print_mode" will exit print_mode and allow you to input commands once again.
+- Type ``exit`` once in comm mode in order to stop dictating commands to the robot.
+
 While in comm mode everything else you type other than the above mentioned commands will be sent to the robot as a robot command for the robot to interpret.
 
-
 ### Robot
-``auto_run`` Unlocks the robot from manual control, only works when run from the robot itself
-While running in "auto" holding 'q' will eventually re-lock the robot into manual mode, alternativly you may send the ``block`` command from your controll computer.
-``debug move \[north|south|west|east\] <int>`` In order to manually move into a certain cardinal direction x times.
-``start_reason`` in order to enable reasoning module.
-``reason_once`` in order to enable reasoning module ONCE and only ONCE.
+- ``auto_run`` Unlocks the robot from manual control, only works when run from the robot itself
+- While running in "auto" holding 'q' will eventually re-lock the robot into manual mode, alternativly you may send the ``block`` command from your controll computer.
+- ``debug move [north|south|west|east] <int>`` In order to manually move into a certain cardinal direction x times.
+- ``start_reason`` in order to enable reasoning module.
+- ``reason_once`` in order to enable reasoning module ONCE and only ONCE.
 
 I might expand the explanation later on, but for now just read the source code in order to get a full command list.
