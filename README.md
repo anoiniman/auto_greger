@@ -36,6 +36,7 @@ installer controller all
 
 ## Usage Instructions
 For a complete list of all possible commands, reading the source code is recomended, particularly: "./robot/robo_main.lua", "./robot/eval/eval_main.lua", "./robot/eval/debug.lua" and "./controller/prompt.lua".
+
 Simply cd into the installed folder inside your /home directory and run "robo_main"/"prompt".
 
 ### Controller
