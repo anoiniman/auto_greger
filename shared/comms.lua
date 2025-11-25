@@ -1,6 +1,6 @@
 -- luacheck: globals DO_DEBUG_PRINT
 
-local module = {}
+local comms = {}
 -- Robot message handling is poll based rather than call-back based
 -- because this is not a server :P
 -- Correction -- Is this an hybrid approach now?
@@ -42,7 +42,7 @@ local function listener_function(name, local_addr, foreign_addr, port, dist, ...
     table.insert(glb_msg_tbl, new_table)
 end
 
-function module.recieve()
+function comms.recieve()
     -- return format = {bool, string, table}
     if listener == nil or listener == false then
         print("Comms Listener not registered!")
@@ -61,7 +61,7 @@ function module.recieve()
 end
 
 
-function module.setup_listener()
+function comms.setup_listener()
     if listener == nil then
         print("Setting up listener")
         listener = event.listen("modem_message", listener_function)
@@ -71,20 +71,20 @@ function module.setup_listener()
 end
 
 -- Same format
-function module.controller_send(any)
+function comms.controller_send(any)
     local message_table = serialize.serialize(any, false)
     tunnel.send(message_table)
     return message_table
 end
 
 local post_exit = nil
-function module.inject_post_exit(obj)
+function comms.inject_post_exit(obj)
     post_exit = obj
 end
 
 -- luacheck: globals ALREADY_SAVED
 ALREADY_SAVED = false
-function module.robot_send(part1, part2) -- part1 & 2 must be strings
+function comms.robot_send(part1, part2) -- part1 & 2 must be strings
     if part1 == "fatal" and filesystem.exists("/home/robot") then -- le emergency save
         ALREADY_SAVED = true
         if post_exit ~= nil then post_exit.exit() end
@@ -108,25 +108,25 @@ function module.robot_send(part1, part2) -- part1 & 2 must be strings
     return final_string
 end
 
-function module.send_unexpected(fatal)
+function comms.send_unexpected(fatal)
     if fatal == nil then fatal = false end
 
     local str = "warning"
     if fatal then str = "fatal" end
 
-    return module.robot_send(
+    return comms.robot_send(
         str,
         "Hey brosky, this is code-path should not be being threaded, watch yo back!\n"
         .. debug.traceback()
     )
 end
 
-function module.cls_nself()
+function comms.cls_nself()
     term.clear()
     tunnel.send(serialize.serialize({"command", "term", "clear"}))
 end
 
-function module.send_command(...)
+function comms.send_command(...)
     local args = {...}
     table.insert(args, 1, "command")
     local serial = serialize.serialize(args)
@@ -134,8 +134,54 @@ function module.send_command(...)
 end
 
 -- prints a buffer expanded to a full screen (because computer monitor and robot monitor have different resolutions)
-function module.screen_print()
+function comms.screen_print()
 
 end
 
-return module
+function comms.log(level, content)
+    if level == nil then level = 0 end
+    if type(level) == "string" then
+        local s_level = string.lower(level)
+        if s_level == "info" then level = 0
+        elseif s_level == "warning" then level = 1
+        elseif s_level == "error" then level = 2
+        elseif s_level == "fatal" then level = 3
+        else level = 4 end
+    end
+
+    local time_str = os.date("<%X>")
+    local fmt_str = string.format("[%%s] %s %s", time_str, content)
+    local log_msg = string.format(fmt_str, "LOG")
+
+    local store_msg
+
+    if level == 0 then
+        print(log_msg)
+        store_msg = string.format(fmt_str, "INFO")
+    elseif level == 1 then
+        print(comms.robot_send("warning", log_msg))
+        store_msg = string.format(fmt_str, "WARNING")
+    elseif level == 2 then
+        print(comms.robot_send("error", log_msg))
+        store_msg = string.format(fmt_str, "ERROR")
+    elseif level == 3 then
+        print(comms.robot_send("fatal", log_msg))
+        store_msg = string.format(fmt_str, "FATAL")
+    else
+        print(comms.robot_send("log_error", log_msg))
+        store_msg = string.format(fmt_str, "LOG ERROR")
+    end
+
+    if V_ENV ~= nil then -- We are in a virtual environment
+        -- write to /tmp (sucks to be winblows)
+        -- Not sure if I should have the file perma-open or not
+        local log_file = io.open("/tmp/autogregger.log", "a")
+        log_file:write(store_msg)
+        log_file:flush()
+        log_file:close()
+    end
+end
+LOG = comms.log
+NLOG = function (a, b) print(comms.robot_send(a, b)) end
+
+return comms

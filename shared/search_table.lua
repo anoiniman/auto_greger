@@ -46,16 +46,24 @@ end
 
 -- it's le recursive! totally not a cludge! (this means this can't compare tables together :P)
 function module.ione(tbl, particle)
-    if tbl == nil or type(tbl) ~= "table" then return false end
+    if tbl == nil then return false end
+    if type(tbl) ~= "table" then
+        if type(particle) == "table" then
+            NLOG("fatal", "Particulate is table:\n" .. debug.traceback())
+        end
+        return tbl == particle
+    end
 
     for _, element in ipairs(tbl) do
         if type(element) == "table" then
+            LOG("error", "Attempted recursion on table_check on:\n" .. debug.traceback())
             if module.ione(element, particle) then return true end
         end
         if particle == element then return true end
     end
     return false
 end
+CMP_OTT = module.ione -- Compare Object to Table
 
 
 return module

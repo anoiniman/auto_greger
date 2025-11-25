@@ -2,28 +2,24 @@ local comms = require("comms")
 
 local module = {}
 
-function module.copy(obj, iter_func) -- I'm dumb, I've had to create this function
-    if obj == nil then return nil end
-    if type(obj) == "table" then
-        return module.copy_table(obj, iter_func)
-    else
-        print(comms.robot_send("error", "What are you doing fr fr, module_copy etc -- this isn't a table bro"))
-        print(comms.robot_send("stack-trace", debug.traceback()))
-        return obj
-    end
+function module.copy_table(old_table, iter_func)
+    LOG(1, "Used Old copy_table function in:\n" .. debug.traceback()) 
+    return module.copy(old_table, iter_func)
 end
 
-function module.copy_table(old_table, iter_func) -- pair or ipair
-    if old_table == nil then return nil end
+function module.copy(obj, iter_func) -- pair or ipair
+    if obj == nil then return nil end
     if iter_func == nil then iter_func = pairs end
+    if type(obj) ~= "table" then return obj end
+
     local new_table = {}
 
-    local old_meta = getmetatable(old_table)
+    local old_meta = getmetatable(obj)
     if old_meta ~= nil then
         setmetatable(new_table, old_meta)
     end
 
-    for k, v in iter_func(old_table) do
+    for k, v in iter_func(obj) do
         if type(v) == "table" then
             v = module.copy_table(v, iter_func)
         end
@@ -33,6 +29,7 @@ function module.copy_table(old_table, iter_func) -- pair or ipair
 
     return new_table
 end
+COPY = module.copy
 
 function module.copy_no_functions(old_table)
     if old_table == nil then return nil end
