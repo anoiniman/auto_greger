@@ -85,6 +85,15 @@ function BlockSet:addPrism(block, y1, y2, z1, z2, x1, x2)
     for yindex = y1, y2, 1 do self:addRectangle(block, yindex, z1, z2, x1, x2) end
 end
 
+function BlockSet:parseNativeSchematic(schematic_table, dictionary, _iterator)
+    for yindex, slice in ipairs(schematic_table) do for zindex, column in ipairs(slice) do
+        local xindex = 0
+        for char in string.gmatch(str, ".") do
+            local block = dictionary[char]
+            if char ~= '-' then self:addUnchecked(block, xindex, zindex, yindex) end
+        end
+    end end
+end
 
 local World = {
     blocks = BlockSet:new(),
@@ -92,8 +101,28 @@ local World = {
     robot = nil,
 }
 
-function World:new()
+function World:default()
     return COPY(self)
+end
+
+-- renderer can definitively be improved
+local block_size = rl.new("Vector3", 2, 2, 2)
+function World:render()
+    local blocks = self.blocks
+    for index, block in ipairs(blocks.block_array) do
+        if type(block) == "number" then goto continue end
+
+        local y = index / (blocks.size_x() * blocks.size_z());
+        index = index - (y * blocks.size_x() * blocks.size_z());
+
+        local z = index / blocks.size_x();
+        local x = index % blocks.size_x();
+
+        local pos = rl.new("Vector3", x, y, z)
+        rl.DrawCubeV(pos, block_size, rl.RED)
+
+        ::continue::
+    end
 end
 
 return World
