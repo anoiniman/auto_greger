@@ -4,7 +4,13 @@ package.path = "../shared/?.lua;" .. package.path
 package.path = "virtual/interface/?.lua;" .. package.path
 -- print(package.path)
 
+V_ENV = true
+
 -- require("robo_main")
+require("deep_copy")
+--print(COPY)
+
+
 local World = require("virtual.World")
 local world = World:default()
 
@@ -24,12 +30,16 @@ local camera_mode = rl.CAMERA_FREE
 
 -- luacheck: globals rl
 while not rl.WindowShouldClose() do
-    rl.UpdateCamera(camera, camera_mode); 
+    if rl.IsCursorHidden() then rl.UpdateCamera(camera, camera_mode) end
+    if rl.IsMouseButtonPressed(rl.MOUSE_BUTTON_RIGHT) then
+        if rl.IsCursorHidden() then rl.EnableCursor()
+        else rl.DisableCursor() end
+    end
 
     rl.BeginDrawing()
         rl.ClearBackground(rl.BLACK)
         rl.BeginMode3D(camera)
-            world:Render()
+            world:render()
         rl.EndMode3D()
     rl.EndDrawing()
 end

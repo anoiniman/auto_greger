@@ -142,6 +142,8 @@ function serialization.unserialize(data)
   return output
 end
 
+return serialization
+
 ----------------------
 --[[local serialize = serialization
 local example = {b="hate", "Love", 0, 100, false, a = "love"}
