@@ -13,7 +13,7 @@ local event = require("event")
 local filesystem = require("filesystem")
 
 
-local tunnel = component.tunnel
+local tunnel = component.getPrimary("tunnel")
 --local tunnel_addr = tunnel.getChannel()
 local tunnel_card_addr = tunnel.address
 
@@ -150,7 +150,7 @@ function comms.log(level, content)
     end
 
     local time_str = os.date("<%X>")
-    local fmt_str = string.format("[%%s] %s %s", time_str, content)
+    local fmt_str = string.format("[%%s] %s %s\n", time_str, content)
     local log_msg = string.format(fmt_str, "LOG")
 
     local store_msg

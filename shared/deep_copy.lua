@@ -21,7 +21,7 @@ function module.copy(obj, iter_func) -- pair or ipair
 
     for k, v in iter_func(obj) do
         if type(v) == "table" then
-            v = module.copy_table(v, iter_func)
+            v = module.copy(v, iter_func)
         end
 
         new_table[k] = v
@@ -30,6 +30,7 @@ function module.copy(obj, iter_func) -- pair or ipair
     return new_table
 end
 COPY = module.copy
+CLONE = module.copy
 
 function module.copy_no_functions(old_table)
     if old_table == nil then return nil end
