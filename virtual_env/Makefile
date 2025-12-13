@@ -1,4 +1,4 @@
-SRCS = ./src/render.c ./src/stencil.c
+SRCS = ./src/render.c #./src/stencil.c
 DEPENDS := $(patsubst %.c,%.d,$(SRCS))
 SRC_DIR = src
 

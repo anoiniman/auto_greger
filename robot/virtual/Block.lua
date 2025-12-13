@@ -30,15 +30,16 @@ function Block:default()
     return deep_copy.copy(self)
 end
 
-local color = {}
-function color.new() end
+local function newColor(r, g, b, a) 
+    return {r, g, b, a} 
+end
 
 local known_blocks = {
     Block:default(),
-    Block:new("minecraft:cobblestone", "Cobblestone", color.new(33, 33, 33, 212)),
-    Block:new("minecraft:chest", "Chest", color.new(120, 12, 42, 212)),
-    Block:new("minecraft:oak_sapling", "Oak Sapling", color.new(120, 12, 42, 212)),
-    Block:new("", "", color.new(133, 133, 133, 212)),
+    Block:new("minecraft:cobblestone", "Cobblestone", newColor(33, 33, 33, 212)),
+    Block:new("minecraft:chest", "Chest", newColor(120, 12, 42, 212)),
+    Block:new("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
+    Block:new("", "", newColor(133, 133, 133, 212)),
 }
 
 local KnownBlocks = {

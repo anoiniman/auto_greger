@@ -3,7 +3,8 @@
 #include "/usr/include/lua5.4/lauxlib.h"
 
 #include "raylib.h"
-// #include "stencil"
+#include "raymath.h"
+#include "stencil.c"
 // #include "dyn_array.c"
 
 // gcc getch.c -shared -o getch.so -fPIC -L/usr/include/lua5.4 -llua5.4
@@ -17,9 +18,16 @@ Shader BLUR_SHADER = { 0 };
 // Shader LIGHT_SHADER = { 0 };
 
 Mesh cube_mesh = { 0 };
+Mesh outline_mesh = { 0 };
 Model cube_model = { 0 };
+Model outline_model = { 0 };
+
 Image color_image = { 0 };
+Image outline_image = { 0 };
+
 Texture color_texture = { 0 };
+Texture outline_texture = { 0 };
+
 RenderTexture2D target = { 0 };
 
 Camera camera;
@@ -32,7 +40,9 @@ static int close(lua_State *L) {
     // UnloadShader(LIGHT_SHADER);
 
     UnloadModel(cube_model);
+    UnloadModel(outline_model);
     // UnloadMesh(cube_mesh);
+    UnloadImage(outline_image);
     UnloadImage(color_image);
     CloseWindow();
     return 0;
@@ -119,6 +129,16 @@ static int world_render(lua_State *L) {
 
     //DrawModel(cube_model, pos, 1, *color);
     DrawModel(cube_model, pos, 1, WHITE);
+
+    /*
+    Vector3 a_pos = (Vector3) {pos.x + BLOCK_SIZE/2 + SCALE, pos.y + BLOCK_SIZE/2, pos.z };
+    Vector3 o_pos = (Vector3) {a_pos.x, a_pos.y, a_pos.z};
+    DrawModel(outline_model, o_pos, 1, WHITE);
+    o_pos = (Vector3) {a_pos.x - BLOCK_SIZE, a_pos.y, a_pos.z};
+    if((int) pos.x <= 0) DrawModel(outline_model, o_pos, 1, WHITE);
+    */
+
+    endStencil();
     return 0;
 }
 
@@ -210,6 +230,15 @@ static int init(lua_State *L) {
     target = LoadRenderTexture(screenWidth, screenHeight);
 
     cube_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = color_texture;
+
+    outline_mesh = GenMeshCube(BLOCK_SIZE * 0.05, BLOCK_SIZE * 0.05, BLOCK_SIZE);
+    outline_model = LoadModelFromMesh(outline_mesh);
+    Color other_color = (Color){240, 32, 192, 250};
+    outline_image = GenImageColor(128, 128, other_color);
+    outline_texture = LoadTextureFromImage(outline_image);
+
+    outline_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = outline_texture;
+
     return 0;
 }
 

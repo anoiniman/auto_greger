@@ -1,3 +1,4 @@
+-- luacheck: globals COPY, ignore deep_copy
 local deep_copy = require("deep_copy")
 local fake_pointer = require("fake_pointer")
 
@@ -92,7 +93,7 @@ local dic = {
     d = known_blocks:get_by_lable("Chest"),
 }
 
-local schematic = {
+local schem = {
     {
     "dcccbcccc",
     "cdccbcccc",
@@ -125,22 +126,31 @@ local World = {
 
 function World:default()
     local new = COPY(self)
-    -- new.blocks:addPrism(Block:default(), 1, 2, 1, 4, 1, 4)
-    new.blocks:parseNativeSchematic(schematic, dic)
+    new.blocks:addPrism(Block:default(), 1, 2, 1, 4, 1, 4)
+    -- new.blocks:parseNativeSchematic(schematic, dic)
     return new
 end
 
---local my_red = rl.new("Color", 230, 41, 55, 212)
---local my_green = rl.new("Color", 0, 158, 47, 212)
---local my_blue = rl.new("Color", 102, 191, 255, 212)
--- local my_red = rl.new("Color", 170, 30.3, 40.6, 255)
-local block_size = 0.8
-local scale = block_size * 0.06
--- local block_sizeV = rl.new("Vector3", block_size, block_size, block_size)
+function World:fromSchematic(schematic, dictionary, _iterator)
+    local new = COPY(self)
+    local x_size, z_size, y_size
+    x_size = -1
+    z_size = -1
+    y_size = #schematic
+    for _, slice in pairs(schematic) do
+        if #slice > z_size then z_size = #slice end
+        for _, str in pairs(slice) do
+            if string.len(str) > x_size then x_size = string.len(str) end
+        end
+    end
+
+    new.blocks = BlockSet:new(x_size, z_size, y_size)
+    new.blocks:parseNativeSchematic(schematic, dictionary)
+    return new
+end
 
 local render_api = require("librender")
 function World:render()
-    -- print("do_render")
     local blocks = self.blocks
     for index, block in pairs(blocks.block_array) do
         if type(block) == "number" then goto continue end
@@ -157,34 +167,5 @@ function World:render()
     end
 end
 
-function World:old_render()
-    local blocks = self.blocks
-    -- rl.DrawCubeV(rl.new("Vector3", 0, 0, 0), rl.new("Vector3", 10, 10, 10), rl.RED)
-
-    for index, block in pairs(blocks.block_array) do
-        if type(block) == "number" then goto continue end
-        index = index - 1
-
-        local y = math.floor(index / (blocks.size_x() * blocks.size_z()))
-        index = math.floor(index - (y * blocks.size_x() * blocks.size_z()))
-
-        local z = math.floor(index / blocks.size_x())
-        local x = (index % blocks.size_x())
-
-        -- print(string.format("x: %f, z: %f, y: %f", x, z, y))
-
-        local pos = rl.new("Vector3", 
-            x*block_size + scale * x,
-            y*block_size + scale * y,
-            z*block_size + scale * z
-        )
-        rl.BeginShaderMode(BLOOM_SHADER)
-            rl.DrawCubeV(pos, block_sizeV, block.color)
-        rl.EndShaderMode()
-        -- rl.DrawCubeWiresV(pos, block_sizeV, rl.BLUE)
-
-        ::continue::
-    end
-end
 
 return World
