@@ -69,6 +69,7 @@ function BlockSet:addUnchecked(new_block, x, z, y)
     local index = x + z * self.size_x() + y * self.size_z() * self.size_x()
     index = index + 1 -- lua shanenigans
     self.block_array[index] = new_block
+    -- render_api.setIntArray(self.block_array, index, new_block);
 end
 
 function BlockSet:addLine(block, z, y, x1, x2)
@@ -136,7 +137,27 @@ end
 local block_size = 0.8
 local scale = block_size * 0.06
 -- local block_sizeV = rl.new("Vector3", block_size, block_size, block_size)
+
+local render_api = require("librender")
 function World:render()
+    -- print("do_render")
+    local blocks = self.blocks
+    for index, block in pairs(blocks.block_array) do
+        if type(block) == "number" then goto continue end
+        index = index - 1
+
+        local y = math.floor(index / (blocks.size_x() * blocks.size_z()))
+        index = math.floor(index - (y * blocks.size_x() * blocks.size_z()))
+
+        local z = math.floor(index / blocks.size_x())
+        local x = (index % blocks.size_x())
+
+        render_api.world_render(x, z, y, {"yellow", 230, 192, 94, 212})
+        ::continue::
+    end
+end
+
+function World:old_render()
     local blocks = self.blocks
     -- rl.DrawCubeV(rl.new("Vector3", 0, 0, 0), rl.new("Vector3", 10, 10, 10), rl.RED)
 
@@ -160,7 +181,6 @@ function World:render()
         rl.BeginShaderMode(BLOOM_SHADER)
             rl.DrawCubeV(pos, block_sizeV, block.color)
         rl.EndShaderMode()
-
         -- rl.DrawCubeWiresV(pos, block_sizeV, rl.BLUE)
 
         ::continue::

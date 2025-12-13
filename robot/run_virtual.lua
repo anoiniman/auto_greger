@@ -21,8 +21,7 @@ render.init()
 
 local is_ok = 2
 while is_ok == 2 do
-    is_ok = render.render()
-    print(is_ok)
+    is_ok = render.render(world.render, world)
 end
 
 -- will have to transition the rendering to C, hurts, but the raylib-lua thing is not doing it for me
