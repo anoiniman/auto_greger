@@ -1,13 +1,8 @@
 local deep_copy = require("deep_copy")
 local fake_pointer = require("fake_pointer")
 
-local Block = {
-    lable = "Dirt",
-    passable = false,
-}
-function Block:default()
-    return deep_copy.copy(self)
-end
+local a = require("virtual.Block")
+local Block, known_blocks = table.unpack(a)
 
 
 -- inner_array format: for a 3*3*2 universe
@@ -90,32 +85,57 @@ function BlockSet:addPrism(block, y1, y2, z1, z2, x1, x2)
     for yindex = y1, y2, 1 do self:addRectangle(block, yindex, z1, z2, x1, x2) end
 end
 
+local dic = {
+    c = known_blocks:get_by_lable("Cobblestone"),
+    b = known_blocks:get_by_lable("kdfjs"),
+    d = known_blocks:get_by_lable("Chest"),
+}
+
+local schematic = {
+    {
+    "dcccbcccc",
+    "cdccbcccc",
+    "ccdcbcccc",
+    "cccdbcccc",
+    "ccccdcccc",
+    "ccccbdccc",
+    "ccccbcdcc",
+    "ddddddddd",
+    }
+}
+
 function BlockSet:parseNativeSchematic(schematic_table, dictionary, _iterator)
     for yindex, slice in ipairs(schematic_table) do for zindex, column in ipairs(slice) do
         local xindex = 0
-        for char in string.gmatch(str, ".") do
+        for char in string.gmatch(column, ".") do
             local block = dictionary[char]
+            -- local block = Block:default()
             if char ~= '-' then self:addUnchecked(block, xindex, zindex, yindex) end
+            xindex = xindex + 1
         end
     end end
 end
 
 local World = {
-    blocks = BlockSet:new(),
+    blocks = BlockSet:new(24, 24, 24),
     test_conditions = nil,
     robot = nil,
 }
 
 function World:default()
     local new = COPY(self)
-    new.blocks:addPrism(Block:default(), 1, 2, 1, 4, 1, 4)
+    -- new.blocks:addPrism(Block:default(), 1, 2, 1, 4, 1, 4)
+    new.blocks:parseNativeSchematic(schematic, dic)
     return new
 end
 
-local my_red = rl.new("Color", 230, 41, 55, 212)
-local block_size = 1
-local scale = block_size * 0.1
-local block_sizeV = rl.new("Vector3", 1, 1, 1)
+--local my_red = rl.new("Color", 230, 41, 55, 212)
+--local my_green = rl.new("Color", 0, 158, 47, 212)
+--local my_blue = rl.new("Color", 102, 191, 255, 212)
+-- local my_red = rl.new("Color", 170, 30.3, 40.6, 255)
+local block_size = 0.8
+local scale = block_size * 0.06
+-- local block_sizeV = rl.new("Vector3", block_size, block_size, block_size)
 function World:render()
     local blocks = self.blocks
     -- rl.DrawCubeV(rl.new("Vector3", 0, 0, 0), rl.new("Vector3", 10, 10, 10), rl.RED)
@@ -137,7 +157,10 @@ function World:render()
             y*block_size + scale * y,
             z*block_size + scale * z
         )
-        rl.DrawCubeV(pos, block_sizeV, my_red)
+        rl.BeginShaderMode(BLOOM_SHADER)
+            rl.DrawCubeV(pos, block_sizeV, block.color)
+        rl.EndShaderMode()
+
         -- rl.DrawCubeWiresV(pos, block_sizeV, rl.BLUE)
 
         ::continue::
