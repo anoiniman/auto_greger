@@ -18,32 +18,45 @@ Shader BLUR_SHADER = { 0 };
 // Shader LIGHT_SHADER = { 0 };
 
 Mesh cube_mesh = { 0 };
-Mesh outline_mesh = { 0 };
-Model cube_model = { 0 };
-Model outline_model = { 0 };
 
-Image color_image = { 0 };
-Image outline_image = { 0 };
+Mesh robot_mesh = { 0 };
+Image robot_image = { 0 };
+Texture robot_texture = { 0 };
+Model robot_model = { 0 };
 
-Texture color_texture = { 0 };
-Texture outline_texture = { 0 };
 
-RenderTexture2D target = { 0 };
+RenderTexture2D world_target = { 0 };
+RenderTexture2D robot_target = { 0 };
 
 Camera camera;
 int camera_mode;
 
+#define COLOR_ARR_SIZE 256
+Image knownColorImages[COLOR_ARR_SIZE];
+Texture knownColorTextures[COLOR_ARR_SIZE];
+Model knownColorModels[COLOR_ARR_SIZE];
+
+char *knownColorNames[COLOR_ARR_SIZE];
+
+int kcIndex = -1;
 static int close(lua_State *L) {
     UnloadShader(BLOOM_SHADER);
     UnloadShader(GREY_SHADER);
     UnloadShader(BLUR_SHADER);
     // UnloadShader(LIGHT_SHADER);
 
-    UnloadModel(cube_model);
-    UnloadModel(outline_model);
-    // UnloadMesh(cube_mesh);
-    UnloadImage(outline_image);
-    UnloadImage(color_image);
+    for (int i = 0; i < kcIndex + 1; i++) {
+        UnloadModel(knownColorModels[i]);
+        UnloadTexture(knownColorTextures[i]);
+        UnloadImage(knownColorImages[i]);
+    }
+    UnloadModel(robot_model);
+    UnloadTexture(robot_texture);
+    UnloadImage(robot_image);
+
+    UnloadMesh(robot_mesh);
+    UnloadMesh(cube_mesh);
+
     CloseWindow();
     return 0;
 }
@@ -60,10 +73,6 @@ void lua_printi(lua_State *L, int i) {
     lua_pcall(L, 1, 0, 0);
 }
 
-#define COLOR_ARR_SIZE 256
-Color knownColors[COLOR_ARR_SIZE];
-char *knownColorNames[COLOR_ARR_SIZE];
-int knownColorIndex = -1;
 
 static char *def_color_name = "NONE";
 
@@ -71,18 +80,17 @@ static char *def_color_name = "NONE";
 #define SCALE BLOCK_SIZE * 0.06
 
 // Expects color table to be at the top of the stack
-Color *fromLuaColor(lua_State *L) {
+Model *fromLuaColor(lua_State *L) {
 
     lua_rawgeti(L, -1, 1);
     // Early check cache
     char* name = lua_tostring(L, -1);
     for (int i = 0; i < COLOR_ARR_SIZE; i++) {
-        if (i > knownColorIndex) break;
+        if (i > kcIndex) break;
 
         char *clr_name = knownColorNames[i];
-        if (!strcmp(name, clr_name)) return &knownColors[i];
+        if (!strcmp(name, clr_name)) return &knownColorModels[i];
     }
-    // Here returns fine
 
     // Record new color
     lua_rawgeti(L, -2, 2);
@@ -107,19 +115,28 @@ Color *fromLuaColor(lua_State *L) {
     lua_printi(L, b);
     lua_printi(L, a);
  
-    knownColorIndex += 1;
-    knownColorNames[knownColorIndex] = name;
-    knownColors[knownColorIndex] = (Color) {r, g, b, a};
+    kcIndex += 1;
+    knownColorNames[kcIndex] = name;
+    Model model = LoadModelFromMesh(cube_mesh);
 
-    return &knownColors[knownColorIndex];
+    Color color = (Color){120, 198, 216, 250};
+    Image color_image = GenImageColor(128, 128, color);
+    Texture color_texture = LoadTextureFromImage(color_image);
+    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = color_texture;
+    
+    knownColorImages[kcIndex] = color_image;
+    knownColorTextures[kcIndex] = color_texture;
+    knownColorModels[kcIndex] = model;
+
+    return &knownColorModels[kcIndex];
 }
 
 Vector3 block_sizeV = { 0 };
-static int world_render(lua_State *L) {
+static int render_world(lua_State *L) {
     double x = lua_tointeger(L, 1);
     double z = lua_tointeger(L, 2);
     double y = lua_tointeger(L, 3);
-    Color *color = fromLuaColor(L);
+    Model *model = fromLuaColor(L);
 
     Vector3 pos = (Vector3) { 
         x*BLOCK_SIZE + SCALE * x,
@@ -127,8 +144,7 @@ static int world_render(lua_State *L) {
         z*BLOCK_SIZE + SCALE * z
     };
 
-    //DrawModel(cube_model, pos, 1, *color);
-    DrawModel(cube_model, pos, 1, WHITE);
+    DrawModel(*model, pos, 1, WHITE);
 
     /*
     Vector3 a_pos = (Vector3) {pos.x + BLOCK_SIZE/2 + SCALE, pos.y + BLOCK_SIZE/2, pos.z };
@@ -138,7 +154,32 @@ static int world_render(lua_State *L) {
     if((int) pos.x <= 0) DrawModel(outline_model, o_pos, 1, WHITE);
     */
 
-    endStencil();
+    return 0;
+}
+
+static int render_robot(lua_State *L) {
+    // Robot coordinates
+    double x = lua_tointeger(L, 1);
+    double z = lua_tointeger(L, 2);
+    double y = lua_tointeger(L, 3);
+
+    double height_shift = 0.04;
+    Vector3 pos = (Vector3) { 
+        x*BLOCK_SIZE + SCALE * x,
+        (y*BLOCK_SIZE + SCALE * y) + height_shift,
+        z*BLOCK_SIZE + SCALE * z
+    };
+    
+    Vector3 rotation = (Vector3) {
+        1.0f,
+        0.0f,
+        0.0f
+    };
+
+    DrawModel(robot_model, pos, 1, WHITE); // Up position?
+    pos.y -= height_shift;
+    DrawModelEx(robot_model, pos, rotation, 180.0f, (Vector3){1.0, 1.0, 1.0}, WHITE);
+
     return 0;
 }
 
@@ -157,7 +198,7 @@ static int render(lua_State *L) {
     */
 
 
-    BeginTextureMode(target);
+    BeginTextureMode(world_target);
         ClearBackground(BLACK);
         BeginMode3D(camera);
             lua_pcall(L, 1, 0, 0);
@@ -168,8 +209,8 @@ static int render(lua_State *L) {
         ClearBackground(BLACK);
         BeginShaderMode(BLOOM_SHADER);
             DrawTextureRec(
-            target.texture,
-            (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height },
+            world_target.texture,
+            (Rectangle){ 0, 0, (float)world_target.texture.width, (float)-world_target.texture.height },
             (Vector2){ 0, 0 },
             WHITE
             );
@@ -177,8 +218,8 @@ static int render(lua_State *L) {
 
         BeginShaderMode(BLUR_SHADER);
             DrawTextureRec(
-            target.texture,
-            (Rectangle){ 0, 0, (float)target.texture.width, (float)-target.texture.height },
+            world_target.texture,
+            (Rectangle){ 0, 0, (float)world_target.texture.width, (float)-world_target.texture.height },
             (Vector2){ 0, 0 },
             WHITE
             );
@@ -194,7 +235,6 @@ static int render(lua_State *L) {
     return 1;
 }
 
-Color a_color = { 0 };
 static int init(lua_State *L) {
     SetConfigFlags(FLAG_VSYNC_HINT);
     int screenWidth = 1280;
@@ -221,23 +261,16 @@ static int init(lua_State *L) {
 
     for (int i = 0; i < COLOR_ARR_SIZE; i++) knownColorNames[i] = def_color_name;
     cube_mesh = GenMeshCube(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-    cube_model = LoadModelFromMesh(cube_mesh);
+    world_target = LoadRenderTexture(screenWidth, screenHeight);
+    robot_target = LoadRenderTexture(screenWidth, screenHeight);
 
-    // a_color = (Color){167, 243, 244, 216};
-    a_color = (Color){120, 198, 216, 250};
-    Image color_image = GenImageColor(128, 128, a_color);
-    color_texture = LoadTextureFromImage(color_image);
-    target = LoadRenderTexture(screenWidth, screenHeight);
 
-    cube_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = color_texture;
+    robot_mesh = GenMeshCone(BLOCK_SIZE * 1.25, BLOCK_SIZE / 2, 4);
+    robot_model = LoadModelFromMesh(robot_mesh);
 
-    outline_mesh = GenMeshCube(BLOCK_SIZE * 0.05, BLOCK_SIZE * 0.05, BLOCK_SIZE);
-    outline_model = LoadModelFromMesh(outline_mesh);
-    Color other_color = (Color){240, 32, 192, 250};
-    outline_image = GenImageColor(128, 128, other_color);
-    outline_texture = LoadTextureFromImage(outline_image);
-
-    outline_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = outline_texture;
+    robot_image = GenImageColor(128, 128, RAYWHITE);
+    robot_texture = LoadTextureFromImage(robot_image);
+    robot_model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = robot_texture;
 
     return 0;
 }
@@ -246,7 +279,8 @@ static const struct luaL_Reg mylib [] = {
     {"init", init},
     {"render", render},
     {"close", close},
-    {"world_render", world_render},
+    {"render_world", render_world},
+    {"render_robot", render_robot},
     {NULL, NULL}
 };
 
