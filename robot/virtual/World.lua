@@ -121,7 +121,7 @@ end
 local World = {
     blocks = BlockSet:new(24, 24, 24),
     test_conditions = nil,
-    robot = nil,
+    robot_ref = nil,
 }
 
 function World:default()
@@ -131,7 +131,7 @@ function World:default()
     return new
 end
 
-function World:fromSchematic(schematic, dictionary, _iterator)
+function World:fromSchematic(robot_ref, schematic, dictionary, _iterator)
     local new = COPY(self)
     local x_size, z_size, y_size
     x_size = -1
@@ -146,6 +146,8 @@ function World:fromSchematic(schematic, dictionary, _iterator)
 
     new.blocks = BlockSet:new(x_size, z_size, y_size)
     new.blocks:parseNativeSchematic(schematic, dictionary)
+
+    new.robot_ref = robot_ref
     return new
 end
 
@@ -162,7 +164,7 @@ function World:render()
         local z = math.floor(index / blocks.size_x())
         local x = (index % blocks.size_x())
 
-        render_api.world_render(x, z, y, {"yellow", 230, 192, 94, 212})
+        render_api.render_world(x, z, y, {"yellow", 230, 192, 94, 212})
         ::continue::
     end
 end

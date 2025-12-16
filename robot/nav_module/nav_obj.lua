@@ -1,6 +1,8 @@
 local module = {}
 
 ------- Sys Requires -------
+local test_interface
+if V_ENV ~= nil then test_interface = require("tests") end
 
 ------- Own Requires -------
 local comms = require("comms") -- luacheck: ignore
@@ -171,109 +173,9 @@ function module.set_rel(x, z)
     nav_obj.rel[2] = z
 end
 
-function module.change_orientation(orient)
-    return interface.c_orientation(orient, nav_obj)
-end
-
-function module.get_opposite_orientation()
-    return interface.get_opposite_orientation(nav_obj)
-end
-
-function module.rotate_right()
-    return interface.rotate_right(nav_obj)
-end
-
 function module.set_orientation(orient)
     nav_obj.orientation = orient
 end
-
-function module.is_in_chunk(target_chunk)
-    return chunk_move.quick_check(nav_obj, target_chunk)
-end
-
-function module.is_setup_navigate_chunk()
-    return chunk_move.is_setup()
-end
-
-function module.setup_navigate_chunk(what_chunk)
-    chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
-end
-
-function module.navigate_chunk(what_kind)
-    return chunk_move.navigate_chunk(what_kind, nav_obj, nav_obj.cur_building)
-end
-
-function module.force_reset_navigate_chunk()
-    chunk_move.reset()
-end
-
--- luacheck: globals EMPTY_TABLE
--- This is debug_move, but useful for surface navigation
-function module.surface_move(dir)
-    return interface.r_move("surface", dir, nav_obj, EMPTY_TABLE)
-end
-
-function module.debug_move(dir, distance, forget)
-    return interface.debug_move(dir, distance, forget, nav_obj)
-end
-
-function module.force_forward()
-    return interface.debug_move(nav_obj.orientation, 1, nil, nav_obj)
-end
-
-function module.is_setup_navigate_rel()
-    return rel_move.is_setup()
-end
-
-function module.setup_navigate_rel(what_coords)
-    rel_move.setup_navigate_rel(what_coords[1], what_coords[2], what_coords[3])
-end
-
-function module.navigate_rel_opaque(what_coords)
-    return rel_move.access_opaque(nav_obj, what_coords)
-end
-
-function module.navigate_rel(extra_sauce)
-    return rel_move.navigate_rel(nav_obj, extra_sauce)
-end
-
-function module.is_setup_door_move()
-    return door_move.is_setup()
-end
-
-function module.setup_door_move(door_table)
-    return door_move.setup_move(door_table, module.get_rel())
-end
-
-function module.door_move()
-    return door_move.do_move(module)
-end
-
-
-function module.is_sweep_setup()
-    return rel_move.is_sweep_setup()
-end
-
-function module.setup_sweep()
-    return rel_move.setup_sweep(nav_obj)
-end
-
-function module.sweep(is_surface)
-    return rel_move.sweep(nav_obj, is_surface)
-end
-
-function module.resume_sweep(s_start, reverse)
-    return rel_move.resume_sweep(s_start, reverse)
-end
-
-function module.interrupt_sweep()
-    return rel_move.interrupt_sweep(nav_obj)
-end
-
-function module.reverse_sweep()
-    return rel_move.reverse_sweep()
-end
-
 
 --temp, you know what, I'll keep you as a default, what could go wrong
 nav_obj.height = 69
@@ -286,5 +188,9 @@ nav_obj.rel[2] = 0
 
 nav_obj.chunk[1] = -2
 nav_obj.chunk[2] = 0
+
+if test_interface ~= nil then
+    test_interface.registerObject(nav_obj, "nav_obj", nil)
+end
 
 return module
