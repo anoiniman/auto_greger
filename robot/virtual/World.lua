@@ -122,6 +122,8 @@ local World = {
     blocks = BlockSet:new(24, 24, 24),
     test_conditions = nil,
     robot_ref = nil,
+
+    render_check = 0,
 }
 
 function World:default()
@@ -152,6 +154,11 @@ function World:fromSchematic(robot_ref, schematic, dictionary, _iterator)
 end
 
 local render_api = require("librender")
+
+function World:simulate()
+
+end
+
 function World:render()
     local blocks = self.blocks
     for index, block in pairs(blocks.block_array) do
@@ -166,6 +173,14 @@ function World:render()
 
         render_api.render_world(x, z, y, {"yellow", 230, 192, 94, 212})
         ::continue::
+    end
+
+    local x, z, y = self.robot_ref:getCoords()
+    local result = render_api.render_robot(x, z, y, self.render_check)
+    if result == 1 then -- this means we where told to wait until we get a clear signal
+        self.render_check = 1
+    else
+        self.render_check = 0
     end
 end
 

@@ -7,7 +7,7 @@ LOBJS = $(subst src/,src/,$(SRCS:.c=.o))
 
 RAY_DIR = ../../../raylib-5.5_linux_amd64
 LINUX_CC = gcc
-CFLAGS = -g -Wall -Wpedantic -Wextra -fPIC\
+CFLAGS = -g -Wall -Wextra -fPIC -O2\
 	 -L/usr/include/lua5.4 -L$(RAY_DIR)/lib -I$(RAY_DIR)/include\
 	 -I$(RAY_DIR)/include/GLFW
 LINUX_LIBS = -llua5.4 -lraylib -lGL

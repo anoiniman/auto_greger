@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#define RENDER_FPS 60
 
 Shader BLOOM_SHADER = { 0 };
 Shader GREY_SHADER = { 0 };
@@ -157,11 +158,113 @@ static int render_world(lua_State *L) {
     return 0;
 }
 
+#define ROBOT_MAX_RENDER_QUEUE 30
+struct {
+    struct {
+        int x;
+        int z;
+        int y;
+    } icoordinates[ROBOT_MAX_RENDER_QUEUE];
+    // 1-60 animation frames for a second long animation, 1-10 for a 1/6 of second long animation
+    int frame;
+    int frame_target;
+    int rest_frames; // lets do 4 for now
+
+    int coordinate_index;
+} robot_render_state;
+
+// icoordinates[0] == current location; icoordinates[1] == target_location
+static int init_robot(lua_State *L) {
+    int ix = lua_tointeger(L, 1);
+    int iz = lua_tointeger(L, 2);
+    int iy = lua_tointeger(L, 3);
+
+    robot_render_state.icoordinates[0].x = ix;
+    robot_render_state.icoordinates[0].z = iz;
+    robot_render_state.icoordinates[0].y = iy;
+
+    robot_render_state.frame = -1;
+    robot_render_state.rest_frames = 4;
+    robot_render_state.frame_target = 12;
+
+    robot_render_state.coordinate_index = 0;
+
+    return 0;
+}
+
+double lerp(double v0, double v1, double t) {
+    return (1 - t) * v0 + t * v1;
+}
+
 static int render_robot(lua_State *L) {
-    // Robot coordinates
-    double x = lua_tointeger(L, 1);
-    double z = lua_tointeger(L, 2);
-    double y = lua_tointeger(L, 3);
+    int return_code = 0;
+
+    // (in-engine) robot coordinates
+    int ix = lua_tointeger(L, 1);
+    int iz = lua_tointeger(L, 2);
+    int iy = lua_tointeger(L, 3);
+    int do_check = lua_tointeger(L, 4);
+
+    double x, z, y;
+    x = ix; z = iz; y = iy;
+
+    int cindex = robot_render_state.coordinate_index;
+    if ( // detectes a change in latest robot coordinates
+        cindex < ROBOT_MAX_RENDER_QUEUE &&
+        (robot_render_state.icoordinates[cindex].x != ix ||
+        robot_render_state.icoordinates[cindex].z != iz ||
+        robot_render_state.icoordinates[cindex].y != iy)
+    ) {
+        cindex += 1;
+        robot_render_state.coordinate_index += 1;
+        
+        robot_render_state.icoordinates[cindex].x = ix;
+        robot_render_state.icoordinates[cindex].z = iz;
+        robot_render_state.icoordinates[cindex].y = iy;
+        robot_render_state.frame = 0;
+
+        if (cindex + 1 >= ROBOT_MAX_RENDER_QUEUE) {
+            // Communicate to lua that we cannot accept more render targets
+            // and to wait until we've got more space
+            return_code = 1;
+        }
+    }
+
+
+    // If we are not currently animating then we can just draw right away,
+    // otherwise we have to do some calculations
+    int frame = robot_render_state.frame;
+
+    // Advance movement target if possible
+    if (frame > robot_render_state.frame_target + robot_render_state.rest_frames) {
+        int cindex = robot_render_state.coordinate_index;
+        // Now we push the coordinates to the left, getting a new "target coordinate"
+        if (cindex > 0) {
+            for (int i = 1; i <= cindex; i++) {
+                robot_render_state.icoordinates[i - 1] = robot_render_state.icoordinates[i];
+            }
+            
+            robot_render_state.coordinate_index -= 1;
+            robot_render_state.frame = 0;
+        }
+        
+        // Else set state for stand-still if the queue has run out and animation is over
+        robot_render_state.frame = -1;
+    }
+    else if (frame > robot_render_state.frame_target) {
+        x = robot_render_state.icoordinates[1].x;
+        z = robot_render_state.icoordinates[1].z;
+        y = robot_render_state.icoordinates[1].y;
+    }
+    else if (frame > 0) {
+        double t = frame / robot_render_state.frame_target;
+
+        x = lerp(robot_render_state.icoordinates[0].x, robot_render_state.icoordinates[1].x, t);
+        z = lerp(robot_render_state.icoordinates[0].z, robot_render_state.icoordinates[1].z, t);
+        y = lerp(robot_render_state.icoordinates[0].y, robot_render_state.icoordinates[1].y, t);
+        robot_render_state.frame += 1;
+    }
+    else if (frame < 0 ) {/* Nothing to be done */ }
 
     double height_shift = 0.04;
     Vector3 pos = (Vector3) { 
@@ -180,7 +283,15 @@ static int render_robot(lua_State *L) {
     pos.y -= height_shift;
     DrawModelEx(robot_model, pos, rotation, 180.0f, (Vector3){1.0, 1.0, 1.0}, WHITE);
 
-    return 0;
+    if (do_check) {
+        if (cindex + 1 == ROBOT_MAX_RENDER_QUEUE) {
+            return_code = 1;
+        } else {
+            return_code = 0;
+        }
+    }
+    lua_pushinteger(L, return_code);
+    return 1;
 }
 
 static int render(lua_State *L) {
@@ -240,13 +351,15 @@ static int init(lua_State *L) {
     int screenWidth = 1280;
     int screenHeight = 720;
     InitWindow(screenWidth, screenHeight, "VirtuCraft Renderer");
+    SetTargetFPS(RENDER_FPS);
 
     camera = (Camera){ 0 };
     camera.position =   (Vector3) { 0, 10, 10};
     camera.target   =   (Vector3) { 0, 0, 0};
     camera.up       =   (Vector3) {0, 1, 0};
     camera.fovy = 45;
-    // type = rl.CAMERA_ORTHOGRAPHIC
+    // camera.projection = CAMERA_ORTHOGRAPHIC;
+
     BLOOM_SHADER = LoadShader(0, TextFormat("./virtual/def/bloom.fs", 330));
     GREY_SHADER = LoadShader(0, TextFormat("./virtual/def/greyscale.fs", 330));
     BLUR_SHADER = LoadShader(0, TextFormat("./virtual/def/blur.fs", 330));
@@ -277,6 +390,7 @@ static int init(lua_State *L) {
 
 static const struct luaL_Reg mylib [] = {
     {"init", init},
+    {"init_robot", init_robot},
     {"render", render},
     {"close", close},
     {"render_world", render_world},
