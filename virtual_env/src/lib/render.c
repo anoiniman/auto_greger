@@ -4,7 +4,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include "stencil.c"
+// #include "stencil.c"
 // #include "dyn_array.c"
 
 // gcc getch.c -shared -o getch.so -fPIC -L/usr/include/lua5.4 -llua5.4
