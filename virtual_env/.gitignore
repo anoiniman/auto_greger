@@ -1,6 +1,0 @@
-librender.so
-run_virtual
-**/src/lib/*.d
-**/src/lib/*.o
-**/src/runner/*.o
-**/src/runner/*.d
