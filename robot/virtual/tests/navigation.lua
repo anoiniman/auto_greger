@@ -60,6 +60,11 @@ local function __t_nav_fail(nav_obj, fail_value)
     end
 end
 
+-- always starts 
+local schematic = {
+}
+local world = World:empty(robot_rep, 72, 72, 6)
+
 local navigate = test_interface:addTest(world, nil, nil)
 navigate:trackObj(
     {

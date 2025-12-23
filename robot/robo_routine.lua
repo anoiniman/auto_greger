@@ -122,4 +122,10 @@ function module.robot_routine(message)
     end
 end
 
+function module.clear_queue()
+    for key, value in ipairs(task_list) do
+        task_list[key] = nil
+    end
+end
+
 return module

@@ -216,4 +216,5 @@ end
 
 
 -- Execution into main function always has to occur in the end due to how lua works
-robot_main()
+if not V_ENV then robot_main() end
+return robot_main

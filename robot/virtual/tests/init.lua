@@ -138,4 +138,6 @@ function testing_interface:runTests()
     error("TODO")
 end
 
-return testing_interface
+local nav_test = require("tests.navigation")
+
+return {testing_interface, {nav_test}}

@@ -106,22 +106,36 @@ local schem = {
     }
 }
 
-function BlockSet:parseNativeSchematic(schematic_table, dictionary, _iterator)
-    for yindex, slice in ipairs(schematic_table) do for zindex, column in ipairs(slice) do
-        local xindex = 0
-        for char in string.gmatch(column, ".") do
-            local block = dictionary[char]
-            -- local block = Block:default()
-            if char ~= '-' then self:addUnchecked(block, xindex, zindex, yindex) end
-            xindex = xindex + 1
+function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table)
+    local x_offset, z_offset, y_offset = table.unpack(offset_table)
+    x_offset = x_offset or 0
+    z_offset = z_offset or 0
+    y_offset = y_offset or 0
+
+    for yindex, slice in ipairs(schematic_table) do 
+        yindex += y_offset
+        for zindex, column in ipairs(slice) do
+            zindex += z_offset
+
+            local xindex = x_offseet
+            for char in string.gmatch(column, ".") do
+                local block = dictionary[char]
+                -- local block = Block:default()
+                if char ~= '-' then self:addUnchecked(block, xindex, zindex, yindex) end
+                xindex = xindex + 1
+            end
         end
-    end end
+    end
+
 end
 
+-- How about we backport our bitmap map loader, with the height being mesured with the
+-- r: channel, and blocktype by the g:channel, and the b channel reserved for later,
+-- prob no need for an alpha channel
 local World = {
     blocks = BlockSet:new(24, 24, 24),
     test_conditions = nil,
-    robot_ref = nil,
+    robot_rep = nil,
 
     render_check = 0,
 }
@@ -133,7 +147,14 @@ function World:default()
     return new
 end
 
-function World:fromSchematic(robot_ref, schematic, dictionary, _iterator)
+function World:empty(robot_rep, x_size, z_size, y_size)
+    local new = Copy(self)
+    new.blocks = BlockSet:new(x_size, z_size, y_size)
+    new.robot_rep = robot_rep
+    return new
+end
+
+function World:fromSchematic(robot_rep, schematic, dictionary)
     local new = COPY(self)
     local x_size, z_size, y_size
     x_size = -1
@@ -149,7 +170,7 @@ function World:fromSchematic(robot_ref, schematic, dictionary, _iterator)
     new.blocks = BlockSet:new(x_size, z_size, y_size)
     new.blocks:parseNativeSchematic(schematic, dictionary)
 
-    new.robot_ref = robot_ref
+    new.robot_rep = robot_rep
     return new
 end
 
@@ -175,7 +196,7 @@ function World:render()
         ::continue::
     end
 
-    local x, z, y = self.robot_ref:getCoords()
+    local x, z, y = self.robot_rep:getCoords()
     local result = render_api.render_robot(x, z, y, self.render_check)
     if result == 1 then -- this means we where told to wait until we get a clear signal
         self.render_check = 1
