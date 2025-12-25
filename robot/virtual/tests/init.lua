@@ -34,7 +34,7 @@ local TrackObj = {
     __f_pass = nil,
     __f_fail = nil,
 
-    obj_state = "pass"
+    obj_state = "undecided"
 }
 function TrackObj:new(obj, __f_pass, __f_fail)
     local new = COPY(self)
@@ -50,6 +50,23 @@ function TrackObj:fromPartialTable(new_tbl)
     end
     if new_tbl.obj == nil then error("Invalid partial table, must at least have a .obj field") end
     return new_tbl
+end
+
+function TrackObj:checkSelf()
+    if self.__f_pass ~= nil then
+        if self.__f_pass(self.obj) then self.obj_state = "pass" end
+    end
+    if self.__f_fail ~= nil then
+        local fail_value = self.__f_fail(self.obj)
+        if fail_value ~= 0 then
+            self.obj_state = "fail"
+            if type(self.fail_text) == "function" then
+                self.fail_text(self.obj, fail_value)
+            else print(self.fail_text) end
+        end
+    end
+
+    return self.obj_state
 end
 
 --[[function TrackObj:newKFT(key, func, table)
@@ -138,6 +155,4 @@ function testing_interface:runTests()
     error("TODO")
 end
 
-local nav_test = require("tests.navigation")
-
-return {testing_interface, {nav_test}}
+return testing_interface

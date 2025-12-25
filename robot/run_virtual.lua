@@ -10,7 +10,9 @@ local robot_step = require("robo_main")
 
 local depp_copy = require("deep_copy")
 local World = require("virtual.World")
-local TestInterface, tests = table.unpack{require("tests")}
+-- local TestInterface, tests = table.unpack{require("tests")}
+local test_interface = require("tests")
+local test_table = require("test_table")
 
 local world = World:default()
 render.init()
