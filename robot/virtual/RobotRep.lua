@@ -14,6 +14,11 @@ function Inventory:new()
     return new
 end
 
+-- Mostly used to mapover component behaviour
+local RobotGlobals = {
+
+}
+
 local RobotRep = {}
 function RobotRep:new()
     local new = COPY(self)

@@ -1,5 +1,15 @@
+local RobotRep = require("RobotRep")
+local event = require("event")
+
 local Tunnel = {}
-function Tunnel.send()
+--[[local mm_core = {
+    "localAddr",
+    "remoteAddr",
+    6969,
+    255,
+}
+event.addToList("modem_message", mm_core)--]]
+function Tunnel.send() -- should be enough since we print either way
     return
 end
 

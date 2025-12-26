@@ -9,4 +9,11 @@ function filesystem.exists(path)
     return true
 end
 
+function filesystem.makeDirectory(path)
+    path = string.gsub(path, "/home/robot/", "./")
+    print("Directory creation not allowed")
+    print("Attempted to create: " .. path)
+    -- os.execute("mkdir " .. path)
+end
+
 return filesystem

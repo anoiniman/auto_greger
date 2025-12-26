@@ -1,7 +1,7 @@
 local term = {}
 
 function term.getCursor()
-    print("dummy")
+    print("term_getCursor")
 end
 
 function term.setCursor(col, row)
@@ -18,7 +18,7 @@ function term.setCursorBlink(enabled)
 end
 
 function term.clear()
-    print("dummy")
+    print("term_clear")
 end
 
 function term.clearLine()

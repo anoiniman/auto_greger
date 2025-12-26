@@ -4,8 +4,16 @@ package.path = "../shared/?.lua;" .. package.path
 package.path = "virtual/interface/?.lua;" .. package.path
 package.path = "virtual/def/?.lua;" .. package.path
 
+print("--------- RAY LIB DEBUG INFO ------------")
+print()
+
 V_ENV = true
 local render = require("librender")
+
+print("--------- RAY LIB DEBUG INFO ------------")
+print()
+print()
+
 local robot_step = require("robo_main")
 
 local depp_copy = require("deep_copy")

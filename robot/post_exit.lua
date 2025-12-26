@@ -84,6 +84,8 @@ local function save_thing(path, obj, extra)
 end
 
 local save_home = "/home/robot/save_state"
+if V_ENV then save_home = "./save_state" end
+
 local inv_path = save_home .. "/inv.save"
 local map_path = save_home .. "/map.save"
 local nav_path = save_home .. "/nav.save"
