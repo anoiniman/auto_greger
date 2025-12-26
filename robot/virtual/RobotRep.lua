@@ -1,18 +1,5 @@
-local deep_copy = require("deep_copy");
-
-local Slot = {is_empty = true, label = "", name = ""}
-function Slot:empty()
-    return COPY(self)
-end
-
-local Inventory = {inner = {}}
-function Inventory:new()
-    local new = COPY(self)
-    for i = 1, 32, 1 do
-        new.inner[i] = Slot:empty()
-    end
-    return new
-end
+local deep_copy = require("deep_copy")
+local Inventory = require("Inventory")
 
 -- Mostly used to mapover component behaviour
 local RobotGlobals = {
@@ -20,12 +7,16 @@ local RobotGlobals = {
 }
 
 local RobotRep = {}
-function RobotRep:new()
+function RobotRep:new(world)
     local new = COPY(self)
+
+    new.world = world
 
     new.equiped_tool = nil
     new.inventory = Inventory:new()
     new.position = {0, 0, 0}
+
+    new.selected_slot = 1
 
     return new
 end
@@ -37,6 +28,31 @@ function RobotRep:setPosition(x, z, y)
     self.position[1] = x
     self.position[2] = z
     self.position[3] = y
+end
+
+function RobotRep:dropIntoSlot(block, slot_num, count)
+    if slot_num > #block.inventory.inner or slot_num < 1 then
+        return false, "External Slot Number is Invalid"
+    end
+    if self.inventory:getSlot(self.selected_slot).is_empty then
+        return false, "Nothing to be Droped in Selected Slot"
+    end
+
+    local item_info = self.inventory:getSlotInfo(self.selected_slot)
+    local removed = self.inventory:removeFromSlot(self.selected_slot, count)
+    local added = block.inventory:addToSlot(item_info, slot_num, removed)
+
+    -- If we added less than we removed, for whatever reason, re-add
+    local diff = removed - added
+    self.inventory:addToSlot(slot_num, diff)
+
+    return true
+end
+
+-- Global robot funcs must follow the following interface:
+-- (func_name = function (robot_rep, <Other Argumnets>))
+function RobotRep:addGlobal(name, func_table)
+    RobotGlobals[name] = func_table
 end
 
 return RobotRep
