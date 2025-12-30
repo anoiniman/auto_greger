@@ -1,4 +1,4 @@
-local ItemInfo = require("item.ItemInfo")
+local ItemInfo = require("virtual.item.ItemInfo")
 
 local Slot = {
     is_empty = true,
@@ -59,9 +59,17 @@ function Inventory:addToSlot(item_info, slot_num, count)
     if entry.item.size > entry.item.maxSize then
         -- If count was bigger than actual slot size corrected the "added" record
         added = added - (entry.item.size - entry.item.maxSize)
+        entry.item.size = entry.item.maxSize
     end
 
     return added
+end
+
+function Inventory:overwriteSlot(item_info, slot_num)
+    local old_item = self.inner[slot_num].item
+    self.inner[slot_num].item = item_info
+
+    return old_item
 end
 
 return Inventory

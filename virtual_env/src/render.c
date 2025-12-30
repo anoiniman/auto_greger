@@ -77,7 +77,8 @@ void lua_printi(lua_State *L, int i) {
 
 static char *def_color_name = "NONE";
 
-#define BLOCK_SIZE 0.8
+// #define BLOCK_SIZE 0.8
+#define BLOCK_SIZE 3.4
 #define SCALE BLOCK_SIZE * 0.06
 
 // Expects color table to be at the top of the stack
@@ -120,7 +121,7 @@ Model *fromLuaColor(lua_State *L) {
     knownColorNames[kcIndex] = name;
     Model model = LoadModelFromMesh(cube_mesh);
 
-    Color color = (Color){120, 198, 216, 250};
+    Color color = (Color){r, g, b, a};
     Image color_image = GenImageColor(128, 128, color);
     Texture color_texture = LoadTextureFromImage(color_image);
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = color_texture;
@@ -192,12 +193,23 @@ static int init_robot(lua_State *L) {
     return 0;
 }
 
+static int set_robot_frame_info(lua_State *L) {
+    int frame_target = lua_tointeger(L, 1);
+    int rest_frames = lua_tointeger(L, 2);
+
+    robot_render_state.frame_target = frame_target;
+    robot_render_state.rest_frames = rest_frames;
+    return 0;
+}
+
 double lerp(double v0, double v1, double t) {
     return (1 - t) * v0 + t * v1;
 }
 
 static int render_robot(lua_State *L) {
     int return_code = 0;
+    // lua_printi(L, -1);
+    // getchar();
 
     // (in-engine) robot coordinates
     int ix = lua_tointeger(L, 1);
@@ -208,6 +220,7 @@ static int render_robot(lua_State *L) {
     double x, z, y;
     x = ix; z = iz; y = iy;
 
+    // lua_printi(L, 0);
     int cindex = robot_render_state.coordinate_index;
     if ( // detectes a change in latest robot coordinates
         cindex < ROBOT_MAX_RENDER_QUEUE &&
@@ -215,6 +228,7 @@ static int render_robot(lua_State *L) {
         robot_render_state.icoordinates[cindex].z != iz ||
         robot_render_state.icoordinates[cindex].y != iy)
     ) {
+        // lua_printi(L, 10);
         cindex += 1;
         robot_render_state.coordinate_index += 1;
         
@@ -231,6 +245,7 @@ static int render_robot(lua_State *L) {
     }
 
 
+    // lua_printi(L, 20);
     // If we are not currently animating then we can just draw right away,
     // otherwise we have to do some calculations
     int frame = robot_render_state.frame;
@@ -266,7 +281,7 @@ static int render_robot(lua_State *L) {
     }
     else if (frame < 0 ) {/* Nothing to be done */ }
 
-    double height_shift = 0.04;
+    double height_shift = 0.06 * BLOCK_SIZE;
     Vector3 pos = (Vector3) { 
         x*BLOCK_SIZE + SCALE * x,
         (y*BLOCK_SIZE + SCALE * y) + height_shift,
@@ -346,6 +361,7 @@ static int render(lua_State *L) {
     return 1;
 }
 
+// Remember to create a custom camera movement behaviour soon
 static int init(lua_State *L) {
     SetConfigFlags(FLAG_VSYNC_HINT);
     int screenWidth = 1280;
@@ -355,9 +371,10 @@ static int init(lua_State *L) {
 
     camera = (Camera){ 0 };
     camera.position =   (Vector3) { 0, 10, 10};
-    camera.target   =   (Vector3) { 0, 0, 0};
+    camera.target   =   (Vector3) {0, 0, 0};
     camera.up       =   (Vector3) {0, 1, 0};
-    camera.fovy = 45;
+    // camera.fovy = 95;
+    camera.fovy = 65;
     // camera.projection = CAMERA_ORTHOGRAPHIC;
 
     BLOOM_SHADER = LoadShader(0, TextFormat("./virtual/def/bloom.fs", 330));
@@ -378,7 +395,7 @@ static int init(lua_State *L) {
     robot_target = LoadRenderTexture(screenWidth, screenHeight);
 
 
-    robot_mesh = GenMeshCone(BLOCK_SIZE * 1.25, BLOCK_SIZE / 2, 4);
+    robot_mesh = GenMeshCone(BLOCK_SIZE * 0.64, BLOCK_SIZE / 2, 4);
     robot_model = LoadModelFromMesh(robot_mesh);
 
     robot_image = GenImageColor(128, 128, RAYWHITE);
@@ -395,6 +412,7 @@ static const struct luaL_Reg mylib [] = {
     {"close", close},
     {"render_world", render_world},
     {"render_robot", render_robot},
+    {"set_robot_frame_info", set_robot_frame_info},
     {NULL, NULL}
 };
 

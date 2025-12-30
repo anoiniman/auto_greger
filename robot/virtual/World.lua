@@ -5,6 +5,8 @@ local fake_pointer = require("fake_pointer")
 local a = require("virtual.Block")
 local Block, known_blocks = table.unpack(a)
 
+local render_api = require("librender")
+
 
 -- inner_array format: for a 3*3*2 universe
 -- {
@@ -113,9 +115,9 @@ function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table
     y_offset = y_offset or 0
 
     for yindex, slice in ipairs(schematic_table) do 
-        yindex += y_offset
+        yindex = yindex + y_offset
         for zindex, column in ipairs(slice) do
-            zindex += z_offset
+            zindex = zindex + z_offset
 
             local xindex = x_offseet
             for char in string.gmatch(column, ".") do
@@ -140,21 +142,20 @@ local World = {
     render_check = 0,
 }
 
-function World:default()
+function World:default(robot_rep)
     local new = COPY(self)
     new.blocks:addPrism(Block:default(), 1, 2, 1, 4, 1, 4)
-    -- new.blocks:parseNativeSchematic(schematic, dic)
     return new
 end
 
-function World:empty(robot_rep, x_size, z_size, y_size)
+function World:empty(x_size, z_size, y_size)
     local new = Copy(self)
     new.blocks = BlockSet:new(x_size, z_size, y_size)
     new.robot_rep = robot_rep
     return new
 end
 
-function World:fromSchematic(robot_rep, schematic, dictionary)
+function World:fromSchematic(schematic, dictionary)
     local new = COPY(self)
     local x_size, z_size, y_size
     x_size = -1
@@ -174,7 +175,14 @@ function World:fromSchematic(robot_rep, schematic, dictionary)
     return new
 end
 
-local render_api = require("librender")
+function World:setRobotRep(robot_rep)
+    self.robot_rep = robot_rep
+end
+
+function World:init()
+    local x, z, y = self.robot_rep:getPosition()
+    render_api.init_robot(x, z, y)
+end
 
 function World:simulate()
 
@@ -192,11 +200,14 @@ function World:render()
         local z = math.floor(index / blocks.size_x())
         local x = (index % blocks.size_x())
 
-        render_api.render_world(x, z, y, {"yellow", 230, 192, 94, 212})
+        -- necessary to get this 0 indexed, otherwise it'll be 1 indexed
+        y = y - 1; x = x - 1; z = z - 1;
+        render_api.render_world(x, z, y, block.color)
         ::continue::
     end
 
-    local x, z, y = self.robot_rep:getCoords()
+    local x, z, y = self.robot_rep:getPosition()
+    x = x - 1; z = z - 1; y = y - 1;
     local result = render_api.render_robot(x, z, y, self.render_check)
     if result == 1 then -- this means we where told to wait until we get a clear signal
         self.render_check = 1

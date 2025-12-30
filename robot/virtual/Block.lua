@@ -4,11 +4,16 @@ local ViewportBehaviour = {
 }
 
 
+local function newColor(name, r, g, b, a) 
+    return {name, r, g, b, a} 
+end
+
 local Block = {
     name = "minecraft:dirt",
     lable = "Dirt",
     -- color = rl.new("Color", 102, 191, 255, 212),
     -- color = rl.new("Color", 48, 212, 138, 212),
+    color = newColor("Default", 48, 212, 138, 212),
     passable = false,
     shape = "Cube",
 
@@ -30,13 +35,11 @@ function Block:default()
     return deep_copy.copy(self)
 end
 
-local function newColor(r, g, b, a) 
-    return {r, g, b, a} 
-end
+local gray = newColor("Gray1", 33, 33, 33, 242)
 
 local known_blocks = {
     Block:default(),
-    Block:new("minecraft:cobblestone", "Cobblestone", newColor(33, 33, 33, 212)),
+    Block:new("minecraft:cobblestone", "Cobblestone", gray),
     Block:new("minecraft:chest", "Chest", newColor(120, 12, 42, 212)),
     Block:new("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
     Block:new("", "", newColor(133, 133, 133, 212)),

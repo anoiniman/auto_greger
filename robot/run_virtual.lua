@@ -2,28 +2,48 @@
 -- package.path = "../testing/virtual/?.lua;" .. package.path
 package.path = "../shared/?.lua;" .. package.path
 package.path = "virtual/interface/?.lua;" .. package.path
-package.path = "virtual/def/?.lua;" .. package.path
+package.path = "virtual/interface/?/init.lua;" .. package.path
 
-print("--------- RAY LIB DEBUG INFO ------------")
-print()
+package.path = "virtual/def/?.lua;" .. package.path
+-- package.path = "virtual/def/?/init.lua;" .. package.path
 
 V_ENV = true
 local render = require("librender")
 
-print("--------- RAY LIB DEBUG INFO ------------")
-print()
-print()
+-- local robot_step = require("robo_main")
+local function sleep(n)
+    local n = tonumber(n)
+    if n == nil then return end
 
-local robot_step = require("robo_main")
+    local str = tostring(n) .. "s"
+    os.execute("sleep " .. str)
+end
+os.sleep = sleep
+
 
 local depp_copy = require("deep_copy")
 local World = require("virtual.World")
+local RobotRep = require("virtual.RobotRep")
+
 -- local TestInterface, tests = table.unpack{require("tests")}
-local test_interface = require("tests")
-local test_table = require("test_table")
+local test_interface = require("virtual.tests")
+local test_table = require("virtual.tests.test_table")
+
 
 local world = World:default()
+local robot_rep = RobotRep:new(world)
+robot_rep:setPosition(3, 3, 3)
+world:setRobotRep(robot_rep)
+
+print("------------ RAY LIB ---------------")
+print()
 render.init()
+print()
+print("------------ RAY LIB ---------------")
+print()
+
+
+world:init()
 
 local render_ok = 2
 while render_ok == 2 do
