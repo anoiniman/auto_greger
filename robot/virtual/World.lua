@@ -205,7 +205,9 @@ function World:render()
         render_api.render_world(x, z, y, block.color)
         ::continue::
     end
+end
 
+function World:renderRobot()
     local x, z, y = self.robot_rep:getPosition()
     x = x - 1; z = z - 1; y = y - 1;
     local result = render_api.render_robot(x, z, y, self.render_check)

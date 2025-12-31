@@ -48,6 +48,6 @@ world:init()
 local render_ok = 2
 while render_ok == 2 do
     step_ok = World:simulate(robot_step)
-    render_ok = render.render(world.render, world)
+    render_ok = render.render(world.render, world, world.renderRobot, world)
 end
 

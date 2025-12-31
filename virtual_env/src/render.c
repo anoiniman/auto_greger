@@ -325,11 +325,20 @@ static int render(lua_State *L) {
 
 
     BeginTextureMode(world_target);
-        ClearBackground(BLACK);
+        // ClearBackground(BLACK);
+        ClearBackground((Color){0,0,0,0});
         BeginMode3D(camera);
+            lua_pcall(L, 1, 0, 0);
             lua_pcall(L, 1, 0, 0);
         EndMode3D();
     EndTextureMode();
+
+    /* BeginTextureMode(world_target);
+        ClearBackground((Color){0,0,0,0});
+        BeginMode3D(camera);
+            lua_pcall(L, 1, 0, 0);
+        EndMode3D();
+    EndTextureMode();*/
 
     BeginDrawing();
         ClearBackground(BLACK);
@@ -342,14 +351,25 @@ static int render(lua_State *L) {
             );
         EndShaderMode();
 
-        BeginShaderMode(BLUR_SHADER);
+        /* BeginBlendMode(BLEND_ALPHA);
+        // If you want a shader on robot, wrap DrawTextureRec with BeginShaderMode/EndShaderMode
+        // robot_mesh = GenMeshCone(BLOCK_SIZE * 0.64, BLOCK_SIZE / 2, 4);
+        DrawTextureRec(
+            robot_target.texture,
+            (Rectangle){ 0, 0, (float)robot_target.texture.width, (float)-robot_target.texture.height },
+            (Vector2){ 0, 0 },
+            WHITE
+        );
+        EndBlendMode();*/
+
+        /* BeginShaderMode(BLUR_SHADER);
             DrawTextureRec(
             world_target.texture,
             (Rectangle){ 0, 0, (float)world_target.texture.width, (float)-world_target.texture.height },
             (Vector2){ 0, 0 },
             WHITE
             );
-        EndShaderMode();
+        EndShaderMode(); */
     EndDrawing();
 
     if (WindowShouldClose()) {
