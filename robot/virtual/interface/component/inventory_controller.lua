@@ -12,7 +12,7 @@ function inventory_controller.getInventorySize()
 end
 
 function inventory_controller.getStackInSlot(side, slot_num)
-    local block = robot_rep.world:getBlockRelSide(robot_rep.position, sides_api[side])
+    local block = robot_rep.world:getBlockRelSide(robot_rep, sides_api[side])
     if block.inventory ~= nil then
         return block.inventory:getSlot(slot_num)
     end

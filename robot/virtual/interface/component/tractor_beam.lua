@@ -11,11 +11,13 @@ end
 -- quotes on all these things because it i'll be a very rough "simulation"
 -- of minecrafft entities are
 
-function tractor_beam.suck(robot_rep)
+function tractor_beam.suck()
     for yindex, 5, 1 do
     for zindex, 5, 1 do
     for xindex, 5, 1 do
         local block = robot_rep.world:getBlockAbs(xindex, zindex, yindex)
+        if block == nil then goto skip end
+
         local item = block:pickUpOneItem()
         if item ~= nil then
             if not robot_rep:suckItem(item) then
@@ -23,6 +25,8 @@ function tractor_beam.suck(robot_rep)
             end
             return -- early return to copy actual behaviour of this
         end
+
+        ::skip::
     end
     end
 end

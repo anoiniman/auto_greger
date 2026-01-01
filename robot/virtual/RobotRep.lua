@@ -15,6 +15,7 @@ function RobotRep:new(world)
     new.equiped_item = nil
     new.inventory = Inventory:new()
     new.position = {0, 0, 0}
+    new.orientation = "north",
 
     new.selected_slot = 1
 

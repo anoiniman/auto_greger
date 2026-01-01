@@ -4,6 +4,7 @@ local fake_pointer = require("fake_pointer")
 
 local a = require("virtual.Block")
 local Block, known_blocks = table.unpack(a)
+local sides_api = require("sides")
 
 local render_api = require("librender")
 
@@ -114,12 +115,12 @@ function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table
     z_offset = z_offset or 0
     y_offset = y_offset or 0
 
-    for yindex, slice in ipairs(schematic_table) do 
+    for yindex, slice in ipairs(schematic_table) do
         yindex = yindex + y_offset
         for zindex, column in ipairs(slice) do
             zindex = zindex + z_offset
 
-            local xindex = x_offseet
+            local xindex = x_offset
             for char in string.gmatch(column, ".") do
                 local block = dictionary[char]
                 -- local block = Block:default()
@@ -144,18 +145,18 @@ local World = {
 
 function World:default(robot_rep)
     local new = COPY(self)
-    new.blocks:addPrism(Block:default(), 1, 2, 1, 4, 1, 4)
+    new.blocks:addPrism(Block:default(), 0, 0, 0, 4, 2, 4)
     return new
 end
 
-function World:empty(x_size, z_size, y_size)
-    local new = Copy(self)
+function World:empty(x_size, z_size, y_size, robot_rep)
+    local new = COPY(self)
     new.blocks = BlockSet:new(x_size, z_size, y_size)
     new.robot_rep = robot_rep
     return new
 end
 
-function World:fromSchematic(schematic, dictionary)
+function World:fromSchematic(schematic, dictionary, robot_rep)
     local new = COPY(self)
     local x_size, z_size, y_size
     x_size = -1
@@ -184,6 +185,64 @@ function World:init()
     render_api.init_robot(x, z, y)
 end
 
+function World:getBlockRelSide(robot_rep, side)
+    local ori = robot_rep.orientation
+
+    local cardinal_side
+    if side == sides_api["front"] then
+        cardinal_side = ori
+    elseif side == sides_api["back"] then
+        if ori == "north" then cardinal_side = "south"
+        elseif ori == "east" then cardinal_side = "west"
+        elseif ori == "south" then cardinal_side = "north"
+        elseif ori == "west" then cardinal_side = "east" end
+    elseif side == sides_api["right"] then
+        if ori == "north" then cardinal_side = "east"
+        elseif ori == "east" then cardinal_side = "south"
+        elseif ori == "south" then cardinal_side = "west"
+        elseif ori == "west" then cardinal_side = "north" end
+    elseif side == sides_api["left"] then
+        if ori == "north" then cardinal_side = "west"
+        elseif ori == "east" then cardinal_side = "north"
+        elseif ori == "south" then cardinal_side = "east"
+        elseif ori == "west" then cardinal_side = "south" end
+
+    elseif side == sides_api["top"] then
+        cardinal_side = "top"
+    elseif side == sides_api["bottom"] then
+        cardinal_side = "bottom"
+    end
+
+    if cardinal_side == nil then
+        error("Failed to set cardinal side succesefully")
+    end
+
+
+    local x, z, y = robot_rep:getPosition()
+    if cardinal_side == "north" then
+        return self:getBlockAbs(x, z - 1, y)
+    elseif cardinal_side == "south" then
+        return self:getBlockAbs(x, z + 1, y)
+    elseif cardinal_side == "east" then
+        return self:getBlockAbs(x + 1, z, y)
+    elseif cardinal_side == "west" then
+        return self:getBlockAbs(x - 1, z, y)
+    end
+
+    if cardinal_side == "top" then
+        self:getBlockAbs(x, z, y + 1)
+    elseif cardinal_side == "bottom" then
+        self:getBlockAbs(x, z, y - 1)
+    end
+
+    error("Unreacheable")
+end
+
+function World:getBlockAbs(x, z, y)
+    local index = x + z * self.size_x() + y * self.size_z() * self.size_x()
+    return self.block_array[index]
+end
+
 function World:simulate()
 
 end
@@ -200,8 +259,7 @@ function World:render()
         local z = math.floor(index / blocks.size_x())
         local x = (index % blocks.size_x())
 
-        -- necessary to get this 0 indexed, otherwise it'll be 1 indexed
-        y = y - 1; x = x - 1; z = z - 1;
+        -- y = y - 1; x = x - 1; z = z - 1;
         render_api.render_world(x, z, y, block.color)
         ::continue::
     end
@@ -209,7 +267,8 @@ end
 
 function World:renderRobot()
     local x, z, y = self.robot_rep:getPosition()
-    x = x - 1; z = z - 1; y = y - 1;
+    -- x = x - 1; z = z - 1; y = y - 1;
+
     local result = render_api.render_robot(x, z, y, self.render_check)
     if result == 1 then -- this means we where told to wait until we get a clear signal
         self.render_check = 1
