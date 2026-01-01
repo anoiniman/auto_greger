@@ -16,12 +16,14 @@ end
 
 local inventory_controller = require("component.inventory_controller")
 local crafting = require("component.crafting")
+local tractor_beam = require("component.tractor_beam")
+local geolyzer = require("component.geolyzer")
 
 local component_list = {
     inventory_controller = inventory_controller,
     crafting = crafting,
     tractor_beam = tractor_beam,
-    geolyzer = nil,
+    geolyzer = geolyzer,
     generator = nil,
 
     tunnel = tunnel,

@@ -72,4 +72,39 @@ function Inventory:overwriteSlot(item_info, slot_num)
     return old_item
 end
 
+-- As is obvious can only fit 1 stack at the time
+function Inventory:addItem(item_info)
+    -- look for occurences of item in inventory
+    for _, entry in ipairs(self.inner) do
+        if entry.is_empty then goto continue end
+        if entry.item.label ~= item_info.label or entry.item.name ~= item_info.name then goto continue end
+        
+        local empty_space = entry.item.maxSize - entry.item.size
+        local can_fit = empty_space - item_info.size
+
+        if can_fit >= 0 then
+            entry.item.size = entry.item.size + item_info.size
+            item_info.size = 0
+        else
+            entry.item.size = entry.item.size + item_info.size + can_fit
+            item_info.size = item_info.size - item_info.size - can_fit
+        end
+
+        if item_info.size == 0 then return true end
+        ::continue::
+    end
+
+    -- As a last resort we put it in the first empty slot we find
+    for _, entry in ipairs(self.inner) do
+        if entry.is_empty then
+            entry.is_empty = false
+            entry.item = item_info
+            return true
+        end
+    end
+
+    -- Else item could not be picked up
+    return false
+end
+
 return Inventory

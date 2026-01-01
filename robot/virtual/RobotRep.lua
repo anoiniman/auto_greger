@@ -71,6 +71,10 @@ function RobotRep:suckIntoSlot(block, slot_num, count)
     return true
 end
 
+function RobotRep:suckItem(item_info)
+    return self.inventory:addItem(item_info) 
+end
+
 function RobotRep:equip()
     local i_item_info = self.inventory:overwriteSlot(e_item_info, self.selected_slot)
     self.equiped_item = i_item_info

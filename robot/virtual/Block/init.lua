@@ -1,18 +1,20 @@
 local deep_copy = require("deep_copy")
+local ItemInfo = require("virtual.item.ItemInfo")
+
 local ViewportBehaviour = {
 
 }
-
 
 local function newColor(name, r, g, b, a) 
     return {name, r, g, b, a} 
 end
 
+-- In implementing sapling falling from leaves, orthographic projection into the floor
+-- and "fall" in the nearest possible item
 local Block = {
-    name = "minecraft:dirt",
-    lable = "Dirt",
-    -- color = rl.new("Color", 102, 191, 255, 212),
-    -- color = rl.new("Color", 48, 212, 138, 212),
+    item_info = ItemInfo:defaultBlock()
+    dropped_items = {}
+
     color = newColor("Default", 48, 212, 138, 212),
     passable = false,
     shape = "Cube",
@@ -23,9 +25,9 @@ local Block = {
 }
 
 function Block:new(name, lable, color, passable)
-    local new = deep_copy.copy(self)
-    new.name = name
-    new.lable = lable
+    local new = COPY(self)
+    new.item_info.name = name
+    new.item_info.lable = lable
     new.color = color
     new.passable = passable or false
     return new
@@ -34,6 +36,15 @@ end
 function Block:default()
     return deep_copy.copy(self)
 end
+
+function Block:pickUpOneItem()
+    return table.remove(self.dropped_items)
+end
+
+function Block:dropOneItem(item)
+    table.insert(self.dropped_items, item)
+end
+
 
 local gray = newColor("Gray1", 33, 33, 33, 242)
 
