@@ -3,14 +3,16 @@ local sides_api = require("sides")
 local geolyzer = { }
 local robot_rep
 
-function geolyzer.setRobotReb(robot_rep_)
+function geolyzer.setRobotRep(robot_rep_)
     robot_rep = robot_rep_
 end
 
--- TODO
+-- I don't know what "options" option is supposed to do, but here it is in the parametres
 function geolyzer.analyze(side, options)
     local block = robot_rep.world:getBlockRelSide(robot_rep, sides_api[side])
-    error("todo")
+    local ginfo = block.ginfo
+
+    return ginfo
 end
 
 function geolyzer.canSeeSky()

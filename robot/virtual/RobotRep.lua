@@ -39,7 +39,7 @@ function RobotRep:dropIntoSlot(block, slot_num, count)
     if slot_num > #block.inventory.inner or slot_num < 1 then
         return false, "External Slot Number is Invalid"
     end
-    if self.inventory:getSlot(self.selected_slot).is_empty then
+    if self.inventory:isSlotEmpty(self.selected_slot) then
         return false, "Nothing to be Droped in Selected Slot"
     end
 
@@ -58,14 +58,18 @@ function RobotRep:suckIntoSlot(block, slot_num, count)
     if slot_num > #block.inventory.inner or slot_num < 1 then
         return false, "External Slot Number is Invalid"
     end
-    if block.inventory:getSlot(self.selected_slot).is_empty then
+    if block.inventory:isSlotEmpty(self.selected_slot) then
         return false, "Nothing to be Sucked in Selected Slot"
     end
 
     local item_info = block.inventory:getSlotInfo(slot_num)
+    -- Check for impossible to add, if it was impossible revert and return false
+    if not self.inventory:isItemSame(item_info, self.selected_slot) then
+        return false, "Sucking item x into slot with item y, can't do that"
+    end
+
     local removed = block.inventory:removeFromSlot(slot_num, count)
     local added = self.inventory:addToSlot(item_info, self.selected_slot, removed)
-
     local diff = math.abs(removed - added)
     block.inventory:addToSlot(slot_num, diff)
 

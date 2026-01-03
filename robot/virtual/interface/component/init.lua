@@ -18,13 +18,14 @@ local inventory_controller = require("component.inventory_controller")
 local crafting = require("component.crafting")
 local tractor_beam = require("component.tractor_beam")
 local geolyzer = require("component.geolyzer")
+local generator = require("component.generator")
 
 local component_list = {
     inventory_controller = inventory_controller,
     crafting = crafting,
     tractor_beam = tractor_beam,
     geolyzer = geolyzer,
-    generator = nil,
+    generator = generator,
 
     tunnel = tunnel,
 }
@@ -34,11 +35,14 @@ local component = {}
 -- Call this whenever a new robot_rep is loaded as the main robot_rep associated with currently
 -- executed World
 function component.setRobotRep(robot_rep)
-    for _, module in pairs(component_list) do
+    print("Setting robotRep")
+    for name, module in pairs(component_list) do
         if module.setRobotRep ~= nil then
+            print(name)
             module.setRobotRep(robot_rep)
         end
     end
+    print("Done")
 end
 
 function component.getPrimary(name)

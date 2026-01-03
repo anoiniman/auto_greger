@@ -17,6 +17,15 @@ function Inventory:new()
     end
     return new
 end
+function Inventory:special(size)
+    local new = COPY(self)
+
+    for i = 1, size, 1 do
+        new.inner[i] = Slot:empty()
+    end
+
+    return new
+end
 
 function Inventory:getSlot(slot_num)
     return self.inner[slot_num]
@@ -53,6 +62,8 @@ function Inventory:addToSlot(item_info, slot_num, count)
         entry.item = new_item_info
         entry.is_empty = false
     end
+
+    if not self:isItemSame(item_info, slot_num) then error("CHECK ITEMSAME BEFORE TRYING TO ADD TO SLOT STUPID BAKA") end
 
     local added = count
     entry.item.size = entry.item.size + count
@@ -105,6 +116,17 @@ function Inventory:addItem(item_info)
 
     -- Else item could not be picked up
     return false
+end
+
+function Inventory:isItemSame(item_info, slot_num)
+    local entry = self.inner[slot_num]
+    local eitem = entry.item
+    
+    return (eitem.label == item_info.label and eitem.name == item_info.name)
+end
+
+function Inventory:isSlotEmpty(slot_num)
+    return self.inner[slot_num].is_empty
 end
 
 return Inventory

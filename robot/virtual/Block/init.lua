@@ -12,8 +12,16 @@ end
 -- In implementing sapling falling from leaves, orthographic projection into the floor
 -- and "fall" in the nearest possible item
 local Block = {
-    item_info = ItemInfo:defaultBlock()
-    dropped_items = {}
+    item_info = ItemInfo:defaultBlock(),
+    ginfo = {
+        color = 6666666,
+        hardness = 0.66,
+        harvestLevel = 0,
+        harvestTool = "shovel"
+        metadata = 0,
+        name = "minecraft:grass"
+    },
+    dropped_items = {},
 
     color = newColor("Default", 48, 212, 138, 212),
     passable = false,
@@ -24,12 +32,16 @@ local Block = {
     -- viewport = ViewportBehaviour:default(),
 }
 
-function Block:new(name, lable, color, passable)
+function Block:new(name, lable, color, passable, harvestTool, harvestLevel)
     local new = COPY(self)
     new.item_info.name = name
     new.item_info.lable = lable
     new.color = color
     new.passable = passable or false
+
+    new.ginfo.name = name
+    new.ginfo.harvestTool = harvestTool
+    new.ginfo.harvestLevel = harvestLevel
     return new
 end
 
