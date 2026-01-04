@@ -9,7 +9,7 @@ end
 
 -- I don't know what "options" option is supposed to do, but here it is in the parametres
 function geolyzer.analyze(side, options)
-    local block = robot_rep.world:getBlockRelSide(robot_rep, sides_api[side])
+    local block = robot_rep.world:getBlockRelSide(sides_api[side])
     local ginfo = block.ginfo
 
     return ginfo

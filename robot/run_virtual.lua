@@ -8,6 +8,7 @@ package.path = "virtual/def/?.lua;" .. package.path
 -- package.path = "virtual/def/?/init.lua;" .. package.path
 
 V_ENV = true
+INV_SIZE = 32
 local render = require("librender")
 
 -- local robot_step = require("robo_main")

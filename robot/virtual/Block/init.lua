@@ -50,11 +50,11 @@ function Block:default()
     return deep_copy.copy(self)
 end
 
-function Block:pickUpOneItem()
+function Block:pickUpOneItemStack()
     return table.remove(self.dropped_items)
 end
 
-function Block:dropOneItem(item)
+function Block:dropOneItemStack(item)
     table.insert(self.dropped_items, item)
 end
 

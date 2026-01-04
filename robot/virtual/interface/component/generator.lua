@@ -40,7 +40,6 @@ end
 
 -- "Removes up to the specified number of fuel items from the generator and places
 -- them into the currently selected slot or the first free slot after it."
--- TODO
 function generator.remove(count)
     if generator.inventory.inner[1].is_empty then return false, "Generator is Empty" end
 

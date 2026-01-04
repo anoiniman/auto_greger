@@ -185,7 +185,7 @@ function World:init()
     render_api.init_robot(x, z, y)
 end
 
-function World:getBlockRelSide(robot_rep, side)
+function World:getBlockRelSide(side)
     local ori = robot_rep.orientation
 
     local cardinal_side

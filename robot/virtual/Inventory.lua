@@ -85,10 +85,12 @@ end
 
 -- As is obvious can only fit 1 stack at the time
 function Inventory:addItem(item_info)
+    local initial_size = item_info.size
+
     -- look for occurences of item in inventory
-    for _, entry in ipairs(self.inner) do
+    for slot, entry in ipairs(self.inner) do
         if entry.is_empty then goto continue end
-        if entry.item.label ~= item_info.label or entry.item.name ~= item_info.name then goto continue end
+        if not self:isItemSame(entry.item, slot) then goto continue end
         
         local empty_space = entry.item.maxSize - entry.item.size
         local can_fit = empty_space - item_info.size
@@ -115,7 +117,18 @@ function Inventory:addItem(item_info)
     end
 
     -- Else item could not be picked up
-    return false
+    local diff = initial_size - item_info.size
+    return false, diff
+end
+
+function Inventory:getFirstItemInfo()
+    for slot_num, entry in ipairs(self.inner) do
+        if not entry.is_empty then 
+            return entry.item, slot_num
+        end
+    end
+
+    return nil, nil
 end
 
 function Inventory:isItemSame(item_info, slot_num)

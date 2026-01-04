@@ -35,6 +35,23 @@ function RobotRep:getPosition()
     return self.position[1], self.position[2], self.position[3]
 end
 
+function RobotRep:transferTo(slot_num, count)
+    local to_entry = self.inventory:getSlot(slot_num)
+    local from_entry = self.inventory:getSlot(self.selected_slot)
+    
+    if from_entry.empty then return false end
+
+    local item_info = from_entry.item
+    if not self.inventory:isItemSame(item_info, slot_num) then return false end
+
+    local removed = self.inventory:removeFromSlot(self.selected_slot, count)
+    local added = self.inventory:addToSlot(item_info, slot_num, removed)
+    local diff = math.abs(removed - added)
+    self.inventory:addToSlot(self.selected_slot, diff)
+
+    return true
+end
+
 function RobotRep:dropIntoSlot(block, slot_num, count)
     if slot_num > #block.inventory.inner or slot_num < 1 then
         return false, "External Slot Number is Invalid"
@@ -44,12 +61,12 @@ function RobotRep:dropIntoSlot(block, slot_num, count)
     end
 
     local item_info = self.inventory:getSlotInfo(self.selected_slot)
+    if not block.inventory:isItemSame(item_info, slot_num) then return false, "Invalid Item Mixing" end
+
     local removed = self.inventory:removeFromSlot(self.selected_slot, count)
     local added = block.inventory:addToSlot(item_info, slot_num, removed)
-
-    -- If we added less than we removed, for whatever reason, re-add
     local diff = math.abs(removed - added)
-    self.inventory:addToSlot(slot_num, diff)
+    self.inventory:addToSlot(self.selected_slot, diff)
 
     return true
 end
@@ -65,7 +82,7 @@ function RobotRep:suckIntoSlot(block, slot_num, count)
     local item_info = block.inventory:getSlotInfo(slot_num)
     -- Check for impossible to add, if it was impossible revert and return false
     if not self.inventory:isItemSame(item_info, self.selected_slot) then
-        return false, "Sucking item x into slot with item y, can't do that"
+        return false, "Invalid Item Mixing"
     end
 
     local removed = block.inventory:removeFromSlot(slot_num, count)
@@ -77,7 +94,8 @@ function RobotRep:suckIntoSlot(block, slot_num, count)
 end
 
 function RobotRep:suckItem(item_info)
-    return self.inventory:addItem(item_info) 
+    local bool, removed = self.inventory:addItem(item_info) 
+    return bool
 end
 
 function RobotRep:equip()

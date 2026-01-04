@@ -18,10 +18,10 @@ function tractor_beam.suck()
         local block = robot_rep.world:getBlockAbs(xindex, zindex, yindex)
         if block == nil then goto skip end
 
-        local item = block:pickUpOneItem()
+        local item = block:pickUpOneItemStack()
         if item ~= nil then
             if not robot_rep:suckItem(item) then
-                block:dropOneItem(item)
+                block:dropOneItemStaack(item)
             end
             return -- early return to copy actual behaviour of this
         end
