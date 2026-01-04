@@ -32,16 +32,17 @@ local Block = {
     -- viewport = ViewportBehaviour:default(),
 }
 
-function Block:new(name, lable, color, passable, harvestTool, harvestLevel)
+function Block:new(name, lable, color, passable, meta_type, harvestTool, harvestLevel)
     local new = COPY(self)
     new.item_info.name = name
     new.item_info.lable = lable
     new.color = color
     new.passable = passable or false
+    new.meta_type = meta_type or "solid"
 
     new.ginfo.name = name
-    new.ginfo.harvestTool = harvestTool
-    new.ginfo.harvestLevel = harvestLevel
+    new.ginfo.harvestTool = harvestTool or "shovel"
+    new.ginfo.harvestLevel = harvestLevel or 0
     return new
 end
 
