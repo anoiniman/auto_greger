@@ -58,6 +58,11 @@ function Block:dropOneItemStack(item)
     table.insert(self.dropped_items, item)
 end
 
+-- TODO, maybe one day implement uhhh blocks being air idk maybe
+function Block:isAir()
+    return false
+end
+
 
 local gray = newColor("Gray1", 33, 33, 33, 242)
 
@@ -73,11 +78,24 @@ local KnownBlocks = {
     blocks = known_blocks,
 }
 
-function KnownBlocks:get_by_lable(lable)
-    for _, block in ipairs(self.blocks) do
-        if block.lable == lable then return block end
-    end
+function KnownBlocks:default()
     return self.blocks[1]
+end
+
+function KnownBlocks:getByLabel(label)
+    for _, block in ipairs(self.blocks) do
+        local iblock_info = block.item_info
+        if iblock_info.label == label then return block end
+    end
+
+    return nil
+end
+
+function KnownBlocks:getByItemInfo(item_info)
+    for _, block in ipairs(self.blocks) do
+        local iblock_info = block.item_info
+        if iblock_info:isSame(item_info) then return block end
+    end
 end
 
 return {Block, KnownBlocks}

@@ -28,4 +28,8 @@ function ItemInfo:defaultBlock()
     return new
 end
 
+function ItemInfo:isSame(item_info)
+    return self.label == item_info.label and self.name == item_info.name
+end
+
 return ItemInfo

@@ -1,5 +1,6 @@
 -- luacheck: globals INV_SIZE
 local sides_api = require("sides")
+local Block, KnownBlocks = table.unpack(require("Block"))
 
 local robot = { }
 local robot_rep
@@ -133,5 +134,28 @@ end
 function robot.suck(count) return sub_suck(count, "front") end
 function robot.suckUp() return sub_suck(64, "up") end
 function robot.suckDown() return sub_suck(64, "down") end
+
+
+-- If side is nil then try all sides*
+-- This sort of behaviour will probably be unecessary in our simulation, so we'll just ignore
+-- Both side and sneaky, for now at least, the simulation is still not very advenaced
+local function sub_place(_side, _sneaky, dir)
+    local cur_block, bpos = robot_rep.world:getBlockRelSide(dir)
+    if cur_block ~= nil and not block:isAir() then return false, "Other Block in the Way" end
+
+    local item_info = robot_rep.inventory:getSlotInfo(robot_rep.selected_slot)
+    local new_block = KnownBlocks:getByItemInfo(item_info)
+    if new_block == nil then return false, "Cannot Place Selected" end
+
+    robot_rep.world:placeBlock(new_block, table.unpack(bpos))
+    robot_rep.inventory:removeFromSlot(robot_rep.selected_slot, 1)
+
+    return true, nil
+end
+
+function robot.place() return sub_place(nil, nil, "front") end
+function robot.placeUp() return sub_place(nil, nil, "up") end
+function robot.placeDown() return sub_place(nil, nil, "down") end
+
 
 return robot

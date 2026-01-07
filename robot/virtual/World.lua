@@ -3,7 +3,7 @@ local deep_copy = require("deep_copy")
 local fake_pointer = require("fake_pointer")
 
 local a = require("virtual.Block")
-local Block, known_blocks = table.unpack(a)
+local Block, KnownBlocks = table.unpack(a)
 local sides_api = require("sides")
 
 local render_api = require("librender")
@@ -55,6 +55,25 @@ function BlockSet:new(size_x, size_z, size_y)
     return new
 end
 
+function BlockSet:getCoords(index)
+    index = index - 1
+
+    local y = math.floor(index / (blocks.size_x() * blocks.size_z()))
+    index = math.floor(index - (y * blocks.size_x() * blocks.size_z()))
+
+    local z = math.floor(index / blocks.size_x())
+    local x = (index % blocks.size_x())
+
+    return x, z, y
+end
+
+function BlockSet:getIndex(x, z, y)
+    -- local index = (x - 1) + (z - 1) * self.size_x() + (y - 1) * self.size_z() * self.size_x()
+    local index = x + z * self.size_x() + y * self.size_z() * self.size_x()
+    index = index + 1 -- lua shanenigans
+    return index
+end
+
 function BlockSet:addBlock(new_block, x, z, y)
     -- First, check for out of bounds
     local pos_args = {x, z, y}
@@ -69,9 +88,7 @@ function BlockSet:addBlock(new_block, x, z, y)
 end
 
 function BlockSet:addUnchecked(new_block, x, z, y)
-    -- local index = (x - 1) + (z - 1) * self.size_x() + (y - 1) * self.size_z() * self.size_x()
-    local index = x + z * self.size_x() + y * self.size_z() * self.size_x()
-    index = index + 1 -- lua shanenigans
+    local index = self:getIndex(x, z, y)
     self.block_array[index] = new_block
     -- render_api.setIntArray(self.block_array, index, new_block);
 end
@@ -91,9 +108,9 @@ function BlockSet:addPrism(block, y1, y2, z1, z2, x1, x2)
 end
 
 local dic = {
-    c = known_blocks:get_by_lable("Cobblestone"),
-    b = known_blocks:get_by_lable("kdfjs"),
-    d = known_blocks:get_by_lable("Chest"),
+    c = KnownBlocks:getByLabel("Cobblestone") or KnownBlocks:default(),
+    b = KnownBlocks:getByLabel("kdfjs") or KnownBlocks:default(),
+    d = KnownBlocks:getByLabel("Chest") or KnownBlocks:default(),
 }
 
 local schem = {
@@ -219,28 +236,25 @@ function World:getBlockRelSide(side)
 
 
     local x, z, y = robot_rep:getPosition()
-    if cardinal_side == "north" then
-        return self:getBlockAbs(x, z - 1, y)
-    elseif cardinal_side == "south" then
-        return self:getBlockAbs(x, z + 1, y)
-    elseif cardinal_side == "east" then
-        return self:getBlockAbs(x + 1, z, y)
-    elseif cardinal_side == "west" then
-        return self:getBlockAbs(x - 1, z, y)
+    if      cardinal_side == "north"    then    z = z - 1 
+    elseif  cardinal_side == "south"    then    z = z + 1
+    elseif  cardinal_side == "east"     then    x = x + 1
+    elseif  cardinal_side == "west"     then    x = x - 1
+
+    elseif  cardinal_side == "top"      then    y = y + 1
+    elseif  cardinal_side == "bottom"   then    y = y - 1
     end
 
-    if cardinal_side == "top" then
-        self:getBlockAbs(x, z, y + 1)
-    elseif cardinal_side == "bottom" then
-        self:getBlockAbs(x, z, y - 1)
-    end
-
-    error("Unreacheable")
+    return self:getBlockAbs(x, z, y), {x, z, y}
 end
 
 function World:getBlockAbs(x, z, y)
-    local index = x + z * self.size_x() + y * self.size_z() * self.size_x()
-    return self.block_array[index]
+    local index = self.blocks:getIndex(x, z, y)
+    return self.blocks.block_array[index]
+end
+
+function World:placeBlock(block, x, z, y)
+    self.blocks:addBlock(block, x, z, y)
 end
 
 function World:simulate()
@@ -251,15 +265,8 @@ function World:render()
     local blocks = self.blocks
     for index, block in pairs(blocks.block_array) do
         if type(block) == "number" then goto continue end
-        index = index - 1
+        local x, z, y = self.blocks:getCoords(index)
 
-        local y = math.floor(index / (blocks.size_x() * blocks.size_z()))
-        index = math.floor(index - (y * blocks.size_x() * blocks.size_z()))
-
-        local z = math.floor(index / blocks.size_x())
-        local x = (index % blocks.size_x())
-
-        -- y = y - 1; x = x - 1; z = z - 1;
         render_api.render_world(x, z, y, block.color)
         ::continue::
     end

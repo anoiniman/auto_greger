@@ -132,10 +132,8 @@ function Inventory:getFirstItemInfo()
 end
 
 function Inventory:isItemSame(item_info, slot_num)
-    local entry = self.inner[slot_num]
-    local eitem = entry.item
-    
-    return (eitem.label == item_info.label and eitem.name == item_info.name)
+    local eitem = self.inner[slot_num].item
+    return eitem:isSame(item_info)
 end
 
 function Inventory:isSlotEmpty(slot_num)
