@@ -28,7 +28,7 @@ local Block = {
     shape = "Cube",
 
     right_click = nil,
-    breaking_block = nil,
+    block_break = nil,
     -- viewport = ViewportBehaviour:default(),
 }
 
@@ -56,6 +56,12 @@ end
 
 function Block:dropOneItemStack(item)
     table.insert(self.dropped_items, item)
+end
+
+-- Get what block drops if broken
+function Block:getDrop()
+    if self.block_break ~= nil then return self.block_break() end
+    return self.item_info
 end
 
 -- TODO, maybe one day implement uhhh blocks being air idk maybe

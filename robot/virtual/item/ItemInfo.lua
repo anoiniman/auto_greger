@@ -7,6 +7,10 @@ local ItemInfo = {
 
     name = "nil",
     label = "nil",
+    equipment_data = {
+        type = "none",
+        level = -1,
+    }
 }
 
 function ItemInfo:empty()
@@ -30,6 +34,17 @@ end
 
 function ItemInfo:isSame(item_info)
     return self.label == item_info.label and self.name == item_info.name
+end
+
+function ItemInfo:removeDurability(amount)
+    self.damage = self.damage + amount
+
+    if self.damage > self.maxDamage then
+        local empty = ItemInfo:empty()
+        for key, value in pairs(empty) do
+            self[key] = value
+        end
+    end
 end
 
 return ItemInfo

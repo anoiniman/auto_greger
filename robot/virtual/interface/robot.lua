@@ -104,7 +104,10 @@ function robot.drop(count) return sub_drop(count, "front") end
 function robot.dropUp() return sub_drop(64, "up") end
 function robot.dropDown() return sub_drop(64, "down") end
 
-function sub_suck(count, dir)
+-- Implementation for dropped item's is stupid, fix that one day if there are any issues,
+-- but I think it is something so side-line-ish that this implementation style is good enough
+-- but that iislot ~= nil stuff is vile
+local function sub_suck(count, dir)
     count = count or 64
     local block = robot_rep.world:getBlockRelSide(sides_api[dir])
     local item_info, iislot
@@ -116,16 +119,31 @@ function sub_suck(count, dir)
     end
     if item_info == nil then return false end
 
+    local removed
+    local original_size = item_info.size
+    if iislot ~= nil then removed = block.inventory:removeFromSlot(iislot, count)
+    else 
+        item_info.size = item_info.size - count
+        if item_info.size < 0 then
+            removed = original_size
+            item_info.size = 0
+        else
+            removed = count
+        end
+    end
+
     -- Behaviour currently is to add as much as possible to wanted slot and only then addind to first free slot
     -- not sure if it is supposed to be like this, but oh well
-    local original_size = item_info.size
-    local added = robot_rep.inventory:addToSlot(item_info, robot_rep.selected_slot)
-    if original_size - added ~= 0 then
+    local added = robot_rep.inventory:addToSlot(item_info, robot_rep.selected_slot, removed)
+    if removed - added ~= 0 then
         local _, added_ = robot_rep.inventory:addItem(item_info)
         added = added + added_
     end
 
-    if iislot ~= nil then block.inventory:removeFromSlot(iislot, added) end
+    if iislot == nil then -- Aka if we picked it up from the ground
+        if item_info.size > 0 then
+        block:dropOneItemStack(item_info)
+    end
 
     if added == 0 then return false end
     return true
@@ -153,9 +171,63 @@ local function sub_place(_side, _sneaky, dir)
     return true, nil
 end
 
-function robot.place() return sub_place(nil, nil, "front") end
-function robot.placeUp() return sub_place(nil, nil, "up") end
-function robot.placeDown() return sub_place(nil, nil, "down") end
+function robot.place(side, sneaky) return sub_place(side, sneaky, "front") end
+function robot.placeUp(side, sneaky) return sub_place(side, sneaky, "up") end
+function robot.placeDown(side, sneaky) return sub_place(side, sneaky, "down") end
+
+function robot.durability()
+    if robot_rep.equiped_item == nil then return nil, "no tool equipped" end
+    if robot_rep.equiped_item.maxDamage == -1 then return nil, "tool cannot be damaged" end
+
+    return  table.unpack(
+            {
+            robot_rep.equiped_item.maxDamange - robot_rep.equiped_item.damage,
+            robot_rep.equiped_item.damage,
+            robot_rep.equiped_item.maxDamage
+            }
+            )
+end
+
+-- TODO: add interaction with entities && implement skil touch
+local function sub_swing(_side, _sneak, dir)
+    local equipment = nil
+    if robot_rep.equiped_item ~= nil then equipment = robot_rep.equiped_item.equipment_data end
+
+    local block, bpos = robot_rep.world:getBlockRelSide(dir)
+    
+    if block == nil then return false, "no block" end
+    -- block.ginfo
+    if block.ginfo.harvestLevel > 0 then
+        if equipment == nil then return false, "no tool" end
+        if block.ginfo.harvestTool ~= equipment.type then return false, "wrong tool" end
+        if block.ginfo.harvestLevel > equipment.level then return false, "weak tool" end
+     
+        -- else we can mine it :)
+    end
+    
+    -- If not silk-touch
+    local item_info = block:getDrop()
+    robot_rep.inventory:addItem(item_info)
+    robot_rep.world:removeBlock(table.unpack(bpos))
+
+    robot_rep.equiped_item:removeDurability(1)
+    return true 
+end
+
+function robot.swing(side, sneaky) return sub_swing(side, sneaky, "front") end
+function robot.swingUp(side, sneaky) return sub_swing(side, sneaky, "up") end
+function robot.swingDown(side, sneaky) return sub_swing(side, sneaky, "down") end
+
+
+-- TODO implement use
+local function sub_use(_side, _sneaky, _duration, dir)
+    error("Not implemented")
+end
+
+function robot.use(side, sneaky, duration) return sub_use(side, sneaky, duration, "front")  end
+function robot.useUp(side, sneaky, duration) return sub_use(side, sneaky, duration, "up")  end
+function robot.useDown(side, sneaky, duration) return sub_use(side, sneaky, duration, "down")  end
+
 
 
 return robot

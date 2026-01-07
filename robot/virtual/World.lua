@@ -74,6 +74,11 @@ function BlockSet:getIndex(x, z, y)
     return index
 end
 
+function BlockSet:removeBlock(x, z, y)
+    local index = self:getIndex(x, z, y)
+    self.block_array[index] = nil
+end
+
 function BlockSet:addBlock(new_block, x, z, y)
     -- First, check for out of bounds
     local pos_args = {x, z, y}
@@ -256,6 +261,11 @@ end
 function World:placeBlock(block, x, z, y)
     self.blocks:addBlock(block, x, z, y)
 end
+
+function World:removeBlock(x, z, y)
+    self.blocks:removeBlock(x, z, y)
+end
+
 
 function World:simulate()
 
