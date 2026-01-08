@@ -1,4 +1,4 @@
-local deep_copy = require("deep_copy")
+require("deep_copy")
 local ItemInfo = {
     damage = -1,
     maxDamage = -1,
@@ -10,7 +10,7 @@ local ItemInfo = {
     equipment_data = {
         type = "none",
         level = -1,
-    }
+    },
 
     use = nil,
 }

@@ -1,44 +1,13 @@
 local deep_copy = require("deep_copy")
 local ItemInfo = require("virtual.item.ItemInfo")
 
-local ViewportBehaviour = {
+--[[local ViewportBehaviour = {
 
-}
+}--]]
 
 local function newColor(name, r, g, b, a)
     return {name, r, g, b, a}
 end
-
-local BlockFactory = {
-    passable = false,
-    meta_type = "solid",
-    harvestTool = "shovel",
-    harvestLevel = 0,
-
-    opt = {
-        right_click = nil,
-        block_break = nil,
-    }
-}
-function BlockFactory:make(name, label, color)
-    local new = Block:new(name, label, color, self.passable, self.meta_type, self.harvestTool, self.harvestLevel)
-    for k, _ in pairs(self.opt) do self.opt[k] = nil end
-    return new
-end
-
-function BlockFactory:opt(right_click, block_break)
-    self.opt.right_click = right_click
-    self.opt.block_break = block_break
-    return self
-end
-
-function BlockFactory:update(tbl)
-    for key, value in pairs(tbl) do
-        self[key] = value
-    end
-end
-
-function Block:new(name, label, color, passable, meta_type, harvestTool, harvestLevel)
 
 -- In implementing sapling falling from leaves, orthographic projection into the floor
 -- and "fall" in the nearest possible item
@@ -48,9 +17,9 @@ local Block = {
         color = 6666666,
         hardness = 0.66,
         harvestLevel = 0,
-        harvestTool = "shovel"
+        harvestTool = "shovel",
         metadata = 0,
-        name = "minecraft:grass"
+        name = "minecraft:grass",
     },
     dropped_items = {},
 
@@ -103,15 +72,51 @@ function Block:use(with_what)
     return false
 end
 
+-- luacheck: push ignore
 -- TODO, maybe one day implement uhhh blocks being air idk maybe
 function Block:isAir()
     return false
+end
+-- luacheck: pop
+
+local BlockFactory = {
+    passable = false,
+    meta_type = "solid",
+    harvestTool = "shovel",
+    harvestLevel = 0,
+
+    opt = {
+        right_click = nil,
+        block_break = nil,
+    }
+}
+function BlockFactory:make(name, label, color)
+    local new = Block:new(name, label, color, self.passable, self.meta_type, self.harvestTool, self.harvestLevel)
+    for k, _ in pairs(self.opt) do self.opt[k] = nil end
+    return new
+end
+
+function BlockFactory:opt(right_click, block_break)
+    self.opt.right_click = right_click
+    self.opt.block_break = block_break
+    return self
+end
+
+function BlockFactory:update(tbl)
+    for key, value in pairs(tbl) do
+        self[key] = value
+    end
+end
+
+
+local function break_grass()
+    error("TODO return dirt item")
 end
 
 -- TODO separate block declrations into separate files, maybe
 
 local gray1 = newColor("Gray1", 33, 33, 33, 246)
-local grass_green = newColor("GrassGreen", 164. 249, 149, 212)
+local grass_green = newColor("GrassGreen", 164, 249, 149, 212)
 
 -- For now, placing things like saplings will not check if block below is grass/dirt etc.
 local known_blocks = {

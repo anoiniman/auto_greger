@@ -1,3 +1,5 @@
+-- luacheck: globals LOG
+
 local test_interface = require("tests")
 local RobotRep = require("RobotRep")
 local World = require("World")
@@ -43,7 +45,7 @@ local function __t_nav_fail(nav_obj, fail_value)
         LOG(string.format(
             "RobotRep ABS Position = {%d, %d, %d}, while nav_obj: abs = {%d, %d} height = %d",
             robot_rep.position[1], robot_rep.position[2], robot_rep.position[3],
-            nav_obj.abs[1], nav_obj.abs[2], height
+            nav_obj.abs[1], nav_obj.abs[2], nav_obj.height
         ))
     elseif fail_value == 2 then
         LOG(string.format(

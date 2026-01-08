@@ -28,7 +28,7 @@ local sides = {
     north = 2,
     south = 3,
     west = 4,
-    left = 5,
+    east = 5,
 
     negy = 0,
     posy = 1,

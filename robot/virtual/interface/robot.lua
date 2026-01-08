@@ -1,6 +1,8 @@
 -- luacheck: globals INV_SIZE
 local sides_api = require("sides")
+-- luacheck: push ignore Block
 local Block, KnownBlocks = table.unpack(require("Block"))
+-- luacheck: pop
 
 local robot = { }
 local robot_rep
@@ -87,15 +89,17 @@ local function sub_drop(count, dir)
     if robot_rep.inventory:isSlotEmpty(robot_rep.selected_slot) then return false end
 
     local block = robot_rep.world:getBlockRelSide(sides_api[dir])
-    local item_info = robot_rep.inventory:getSlotInfo(robot_rep.selected_slot)
+    local item_info_copy = COPY(robot_rep.inventory:getSlotInfo(robot_rep.selected_slot))
+    item_info_copy.size = math.min(item_info_copy.size, count)
 
     if block.inventory == nil then
-        block:dropOneItemStack(item_info)
-        robot_rep.inventory:removeFromSlot(robot_rep.selected_slot, 64)
+        block:dropOneItemStack(item_info_copy)
+        robot_rep.inventory:removeFromSlot(robot_rep.selected_slot, count)
         return true
     end
 
-    local _, added = block.inventory:addItem(item_info)
+    local _, not_added = block.inventory:addItem(item_info_copy)
+    local added = count - not_added
     robot_rep.inventory:removeFromSlot(robot_rep.selected_slot, added)
     return true
 end
@@ -142,7 +146,8 @@ local function sub_suck(count, dir)
 
     if iislot == nil then -- Aka if we picked it up from the ground
         if item_info.size > 0 then
-        block:dropOneItemStack(item_info)
+            block:dropOneItemStack(item_info)
+        end
     end
 
     if added == 0 then return false end
@@ -159,7 +164,7 @@ function robot.suckDown() return sub_suck(64, "down") end
 -- Both side and sneaky, for now at least, the simulation is still not very advenaced
 local function sub_place(_side, _sneaky, dir)
     local cur_block, bpos = robot_rep.world:getBlockRelSide(dir)
-    if cur_block ~= nil and not block:isAir() then return false, "Other Block in the Way" end
+    if cur_block ~= nil and not cur_block:isAir() then return false, "Other Block in the Way" end
 
     local item_info = robot_rep.inventory:getSlotInfo(robot_rep.selected_slot)
     local new_block = KnownBlocks:getByItemInfo(item_info)

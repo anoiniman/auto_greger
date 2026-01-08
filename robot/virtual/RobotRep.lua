@@ -1,10 +1,5 @@
-local deep_copy = require("deep_copy")
+require("deep_copy")
 local Inventory = require("virtual.Inventory")
-
--- Mostly used to mapover component behaviour
-local RobotGlobals = {
-
-}
 
 local RobotRep = {}
 function RobotRep:new(world)
@@ -15,7 +10,7 @@ function RobotRep:new(world)
     new.equiped_item = nil
     new.inventory = Inventory:new()
     new.position = {0, 0, 0}
-    new.orientation = "north",
+    new.orientation = "north"
 
     new.selected_slot = 1
 
@@ -36,7 +31,6 @@ function RobotRep:getPosition()
 end
 
 function RobotRep:transferTo(slot_num, count)
-    local to_entry = self.inventory:getSlot(slot_num)
     local from_entry = self.inventory:getSlot(self.selected_slot)
 
     if from_entry.empty then return false end
@@ -94,20 +88,22 @@ function RobotRep:suckIntoSlot(block, slot_num, count)
 end
 
 function RobotRep:suckItem(item_info)
-    local bool, removed = self.inventory:addItem(item_info)
+    local bool, _ = self.inventory:addItem(item_info)
     return bool
 end
 
 function RobotRep:equip()
-    local i_item_info = self.inventory:overwriteSlot(e_item_info, self.selected_slot)
+    local i_item_info = self.inventory:overwriteSlot(self.equiped_item, self.selected_slot)
     self.equiped_item = i_item_info
 end
 
 
 -- TODO After we "digitise" recipes we hook this up, until then just don't run any crafting related tests
-function RobotRep:craft(count)
+-- luacheck: push ignore
+function RobotRep:craft(_count)
     error("Attempted to craft, TODO!")
 end
+-- luacheck: pop
 
 function RobotRep:forward()
     local ori = self.orientation

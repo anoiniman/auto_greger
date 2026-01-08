@@ -8,7 +8,8 @@ local assumed_memory = 2048
 function computer.freeMemory()
     local count = collectgarbage("count")
     local kilo = count / 1024
-    return kilo
+
+    return assumed_memory - kilo
 end
 
 function computer.uptime()

@@ -56,6 +56,7 @@ function BlockSet:new(size_x, size_z, size_y)
 end
 
 function BlockSet:getCoords(index)
+    local blocks = self.blocks
     index = index - 1
 
     local y = math.floor(index / (blocks.size_x() * blocks.size_z()))
@@ -168,6 +169,7 @@ local World = {
 function World:default(robot_rep)
     local new = COPY(self)
     new.blocks:addPrism(Block:default(), 0, 0, 0, 4, 2, 4)
+    new.robot_rep = robot_rep
     return new
 end
 
@@ -208,7 +210,7 @@ function World:init()
 end
 
 function World:getBlockRelSide(side)
-    local ori = robot_rep.orientation
+    local ori = self.robot_rep.orientation
 
     local cardinal_side
     if side == sides_api["front"] then
@@ -240,7 +242,7 @@ function World:getBlockRelSide(side)
     end
 
 
-    local x, z, y = robot_rep:getPosition()
+    local x, z, y = self.robot_rep:getPosition()
     if      cardinal_side == "north"    then    z = z - 1
     elseif  cardinal_side == "south"    then    z = z + 1
     elseif  cardinal_side == "east"     then    x = x + 1

@@ -1,7 +1,7 @@
 local World = require("World")
 local test_interface = require("tests")
 
-local world = World:new
+local world = World:new()
 
 local function __f_fail (test)
     if test.step_count > 100 * 100 then return 1 end
@@ -23,5 +23,5 @@ test:trackObj(
 
             return false
         end
-    },
+    }
 )

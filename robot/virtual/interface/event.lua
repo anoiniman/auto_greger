@@ -1,5 +1,6 @@
 local event = {}
 
+local EVENT_LIST = {}
 local EVENT_TYPE = {}
 local EVENT_QUEUE = {}
 

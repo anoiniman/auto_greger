@@ -103,7 +103,7 @@ function Inventory:addItem(item_info)
             item_info.size = item_info.size - item_info.size - can_fit
         end
 
-        if item_info.size == 0 then return true end
+        if item_info.size == 0 then return true, 0 end
         ::continue::
     end
 
@@ -112,7 +112,7 @@ function Inventory:addItem(item_info)
         if entry.is_empty then
             entry.is_empty = false
             entry.item = item_info
-            return true
+            return true, 0
         end
     end
 

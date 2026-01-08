@@ -4,8 +4,8 @@ function term.getCursor()
     print("term_getCursor")
 end
 
-function term.setCursor(col, row)
-    error()
+function term.setCursor(_col, _row)
+    print("term_setCursor")
 end
 
 local cursor_blink = true
@@ -33,7 +33,7 @@ function term.write(value)
     print(value)
 end
 
-function term.bind(gpu)
+function term.bind(_gpu)
     error()
 end
 
