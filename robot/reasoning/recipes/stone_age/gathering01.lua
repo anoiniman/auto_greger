@@ -36,7 +36,7 @@ local function check_subset(state)
     end
 
     for _, block_name in ipairs(state.sub_set) do
-        if geolyzer.sub_compare(block_name, "naive_contains", block_below) 
+        if geolyzer.sub_compare(block_name, "naive_contains", block_below)
             and not geolyzer.sub_compare("stone", "naive_contains", block_below) -- temporrary additions, I guess
             and not geolyzer.sub_compare("hard", "naive_contains", block_below)
             and not geolyzer.sub_compare("GravelOre", "naive_contains", block_below) -- thats the name TC tec.
@@ -56,7 +56,7 @@ local function something_added()
 end
 
 local function work_stroke(state)
-    local break_result = inv.smart_swing("shovel", "down", 0, something_added) 
+    local break_result = inv.smart_swing("shovel", "down", 0, something_added)
     if not break_result then
         print(comms.robot_send("warning", "surface_resource_sweep, I thought the block was a block we \z
                                 wanted, but in the end I was unable to break it, worrying"))

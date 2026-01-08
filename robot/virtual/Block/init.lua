@@ -5,8 +5,8 @@ local ViewportBehaviour = {
 
 }
 
-local function newColor(name, r, g, b, a) 
-    return {name, r, g, b, a} 
+local function newColor(name, r, g, b, a)
+    return {name, r, g, b, a}
 end
 
 local BlockFactory = {
@@ -27,7 +27,7 @@ function BlockFactory:make(name, label, color)
 end
 
 function BlockFactory:opt(right_click, block_break)
-    self.opt.right_click = right_click 
+    self.opt.right_click = right_click
     self.opt.block_break = block_break
     return self
 end

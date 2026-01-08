@@ -7,9 +7,9 @@ local map = require("nav_module.map_obj")
 function module.need_move(what_chunk, door_info)
     local target_build = map.find_build(what_chunk, door_info) -- should be fine?
     local cur_build = nav.get_cur_building()
-    if cur_build ~= nil and target_build == cur_build then 
+    if cur_build ~= nil and target_build == cur_build then
         print(comms.robot_send("debug", "we're in building"))
-        return false 
+        return false
     end
 
     print(comms.robot_send("debug", "we're not in building"))

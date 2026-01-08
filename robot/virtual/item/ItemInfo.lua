@@ -16,7 +16,7 @@ local ItemInfo = {
 }
 
 function ItemInfo:empty()
-    return COPY(self) 
+    return COPY(self)
 end
 
 function ItemInfo:fromPartialTable(table)

@@ -10,7 +10,7 @@ end
 
 local cursor_blink = true
 function term.getCursorBlink()
-    return cursor_blink 
+    return cursor_blink
 end
 
 function term.setCursorBlink(enabled)

@@ -6,13 +6,13 @@ local robot_rep = RobotRep:new()
 
 local function __f_nav_fail(nav_obj)
     -- Check that absolute coordinates are coordinated
-    if  robot_rep.position[1] ~= nav_obj.abs[1] 
+    if  robot_rep.position[1] ~= nav_obj.abs[1]
         or robot_rep.position[2] ~= nav_obj.abs[2]
         or robot_rep.position[3] ~= nav_obj.height
     then
         return 1
     end
-    
+
     -- Check that relative coordinates are coordinated
     if  robot_rep.position[1] % 15 ~= nav_obj.rel[1]
         or robot_rep.position[2] % 15 ~= nav_obj.rel[2]
@@ -60,7 +60,7 @@ local function __t_nav_fail(nav_obj, fail_value)
     end
 end
 
--- always starts 
+-- always starts
 local schematic = {
 }
 local world = World:empty(robot_rep, 72, 72, 6)

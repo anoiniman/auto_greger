@@ -42,7 +42,7 @@ function Inventory:removeFromSlot(slot_num, count)
 
     local removed = count
     entry.item.size = entry.item.size - count
-    if entry.item.size <= 0 then 
+    if entry.item.size <= 0 then
         -- If count was bigger than actual slot size corrected the "removed" record
         removed = removed - entry.item.size
 
@@ -91,7 +91,7 @@ function Inventory:addItem(item_info)
     for slot, entry in ipairs(self.inner) do
         if entry.is_empty then goto continue end
         if not self:isItemSame(entry.item, slot) then goto continue end
-        
+
         local empty_space = entry.item.maxSize - entry.item.size
         local can_fit = empty_space - item_info.size
 
@@ -123,7 +123,7 @@ end
 
 function Inventory:getFirstItemInfo()
     for slot_num, entry in ipairs(self.inner) do
-        if not entry.is_empty then 
+        if not entry.is_empty then
             return entry.item, slot_num
         end
     end

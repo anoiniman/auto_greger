@@ -23,7 +23,7 @@ function RobotRep:new(world)
 end
 function RobotRep:setPosition(x, z, y)
     if type(x) ~= "number" or type(z) ~= "number" or type(y) ~= "number" then
-        error("Tried to setPosition to something that is not a number") 
+        error("Tried to setPosition to something that is not a number")
     end
 
     self.position[1] = x
@@ -38,7 +38,7 @@ end
 function RobotRep:transferTo(slot_num, count)
     local to_entry = self.inventory:getSlot(slot_num)
     local from_entry = self.inventory:getSlot(self.selected_slot)
-    
+
     if from_entry.empty then return false end
 
     local item_info = from_entry.item
@@ -94,7 +94,7 @@ function RobotRep:suckIntoSlot(block, slot_num, count)
 end
 
 function RobotRep:suckItem(item_info)
-    local bool, removed = self.inventory:addItem(item_info) 
+    local bool, removed = self.inventory:addItem(item_info)
     return bool
 end
 
@@ -106,7 +106,7 @@ end
 
 -- TODO After we "digitise" recipes we hook this up, until then just don't run any crafting related tests
 function RobotRep:craft(count)
-    error("Attempted to craft, TODO!")     
+    error("Attempted to craft, TODO!")
 end
 
 function RobotRep:forward()

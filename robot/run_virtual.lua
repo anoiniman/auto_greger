@@ -1,11 +1,10 @@
--- #!/bin/bash
--- package.path = "../testing/virtual/?.lua;" .. package.path
+-- luacheck globals V_ENV INV_SIZE
+
 package.path = "../shared/?.lua;" .. package.path
 package.path = "virtual/interface/?.lua;" .. package.path
 package.path = "virtual/interface/?/init.lua;" .. package.path
 
 package.path = "virtual/def/?.lua;" .. package.path
--- package.path = "virtual/def/?/init.lua;" .. package.path
 
 V_ENV = true
 INV_SIZE = 32
@@ -13,16 +12,18 @@ local render = require("librender")
 
 -- local robot_step = require("robo_main")
 local function sleep(n)
-    local n = tonumber(n)
+    n = tonumber(n)
     if n == nil then return end
-
-    local str = tostring(n) .. "s"
-    os.execute("sleep " .. str)
+    --[[local str = tostring(n) .. "s"
+    os.execute("sleep " .. str)--]]
+    local ntime = os.clock() + n
+    repeat until os.clock() > ntime
 end
+-- luacheck push ignore
 os.sleep = sleep
+-- luacheck pop ignore
 
-
-local depp_copy = require("deep_copy")
+local deep_copy = require("deep_copy")
 local World = require("virtual.World")
 local RobotRep = require("virtual.RobotRep")
 
@@ -46,6 +47,7 @@ print()
 
 world:init()
 
+local step_ok
 local render_ok = 2
 while render_ok == 2 do
     step_ok = World:simulate(robot_step)

@@ -122,7 +122,7 @@ local function sub_suck(count, dir)
     local removed
     local original_size = item_info.size
     if iislot ~= nil then removed = block.inventory:removeFromSlot(iislot, count)
-    else 
+    else
         item_info.size = item_info.size - count
         if item_info.size < 0 then
             removed = original_size
@@ -194,24 +194,24 @@ local function sub_swing(_side, _sneak, dir)
     if robot_rep.equiped_item ~= nil then equipment = robot_rep.equiped_item.equipment_data end
 
     local block, bpos = robot_rep.world:getBlockRelSide(dir)
-    
+
     if block == nil then return false, "no block" end
     -- block.ginfo
     if block.ginfo.harvestLevel > 0 then
         if equipment == nil then return false, "no tool" end
         if block.ginfo.harvestTool ~= equipment.type then return false, "wrong tool" end
         if block.ginfo.harvestLevel > equipment.level then return false, "weak tool" end
-     
+
         -- else we can mine it :)
     end
-    
+
     -- If not silk-touch
     local item_info = block:getDrop()
     robot_rep.inventory:addItem(item_info)
     robot_rep.world:removeBlock(table.unpack(bpos))
 
     robot_rep.equiped_item:removeDurability(1)
-    return true 
+    return true
 end
 
 function robot.swing(side, sneaky) return sub_swing(side, sneaky, "front") end

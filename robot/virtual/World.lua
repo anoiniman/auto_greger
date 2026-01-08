@@ -241,7 +241,7 @@ function World:getBlockRelSide(side)
 
 
     local x, z, y = robot_rep:getPosition()
-    if      cardinal_side == "north"    then    z = z - 1 
+    if      cardinal_side == "north"    then    z = z - 1
     elseif  cardinal_side == "south"    then    z = z + 1
     elseif  cardinal_side == "east"     then    x = x + 1
     elseif  cardinal_side == "west"     then    x = x - 1
