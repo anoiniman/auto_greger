@@ -219,9 +219,9 @@ function robot.swingUp(side, sneaky) return sub_swing(side, sneaky, "up") end
 function robot.swingDown(side, sneaky) return sub_swing(side, sneaky, "down") end
 
 
--- TODO implement use
 local function sub_use(_side, _sneaky, _duration, dir)
-    error("Not implemented")
+    local block = robot_rep.world:getBlockRelSide(dir)
+    return block:use(robot_rep.equiped_item)
 end
 
 function robot.use(side, sneaky, duration) return sub_use(side, sneaky, duration, "front")  end

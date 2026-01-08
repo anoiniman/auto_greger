@@ -11,6 +11,8 @@ local ItemInfo = {
         type = "none",
         level = -1,
     }
+
+    use = nil,
 }
 
 function ItemInfo:empty()

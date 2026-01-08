@@ -9,6 +9,37 @@ local function newColor(name, r, g, b, a)
     return {name, r, g, b, a} 
 end
 
+local BlockFactory = {
+    passable = false,
+    meta_type = "solid",
+    harvestTool = "shovel",
+    harvestLevel = 0,
+
+    opt = {
+        right_click = nil,
+        block_break = nil,
+    }
+}
+function BlockFactory:make(name, label, color)
+    local new = Block:new(name, label, color, self.passable, self.meta_type, self.harvestTool, self.harvestLevel)
+    for k, _ in pairs(self.opt) do self.opt[k] = nil end
+    return new
+end
+
+function BlockFactory:opt(right_click, block_break)
+    self.opt.right_click = right_click 
+    self.opt.block_break = block_break
+    return self
+end
+
+function BlockFactory:update(tbl)
+    for key, value in pairs(tbl) do
+        self[key] = value
+    end
+end
+
+function Block:new(name, label, color, passable, meta_type, harvestTool, harvestLevel)
+
 -- In implementing sapling falling from leaves, orthographic projection into the floor
 -- and "fall" in the nearest possible item
 local Block = {
@@ -32,10 +63,10 @@ local Block = {
     -- viewport = ViewportBehaviour:default(),
 }
 
-function Block:new(name, lable, color, passable, meta_type, harvestTool, harvestLevel)
+function Block:new(name, label, color, passable, meta_type, harvestTool, harvestLevel)
     local new = COPY(self)
     new.item_info.name = name
-    new.item_info.lable = lable
+    new.item_info.label = label
     new.color = color
     new.passable = passable or false
     new.meta_type = meta_type or "solid"
@@ -64,20 +95,34 @@ function Block:getDrop()
     return self.item_info
 end
 
+-- First we try specific block interactions, then we try tool only interactions
+function Block:use(with_what)
+    if self.right_click ~= nil then return self:right_click(with_what) end
+    if with_what ~= nil then return with_what:use() end
+
+    return false
+end
+
 -- TODO, maybe one day implement uhhh blocks being air idk maybe
 function Block:isAir()
     return false
 end
 
+-- TODO separate block declrations into separate files, maybe
 
-local gray = newColor("Gray1", 33, 33, 33, 242)
+local gray1 = newColor("Gray1", 33, 33, 33, 246)
+local grass_green = newColor("GrassGreen", 164. 249, 149, 212)
 
+-- For now, placing things like saplings will not check if block below is grass/dirt etc.
 local known_blocks = {
     Block:default(),
-    Block:new("minecraft:cobblestone", "Cobblestone", gray),
-    Block:new("minecraft:chest", "Chest", newColor(120, 12, 42, 212)),
-    Block:new("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
-    Block:new("", "", newColor(133, 133, 133, 212)),
+    BlockFactory:opt(nil, break_grass):make("minecraft:grass", "Grass", grass_green),
+    BlockFactory:make("minecraft:dirt", "Dirt", grass_green),
+    BlockFactory:make("minecraft:cobblestone", "Cobblestone", gray1),
+
+    BlockFactory:make("minecraft:chest", "Chest", newColor(120, 12, 42, 212)),
+    BlockFactory:make("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
+    BlockFactory:make("", "", newColor(133, 133, 133, 212)),
 }
 
 local KnownBlocks = {

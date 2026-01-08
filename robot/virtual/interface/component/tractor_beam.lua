@@ -12,9 +12,11 @@ end
 -- of minecrafft entities are
 
 function tractor_beam.suck()
-    for yindex, 5, 1 do
-    for zindex, 5, 1 do
-    for xindex, 5, 1 do
+    local x, z, y = table.unpack(robot_rep.position)
+
+    for yindex = y - 2, 5, 1 do
+    for zindex = z - 2, 5, 1 do
+    for xindex = x - 2, 5, 1 do
         local block = robot_rep.world:getBlockAbs(xindex, zindex, yindex)
         if block == nil then goto skip end
 
@@ -27,6 +29,7 @@ function tractor_beam.suck()
         end
 
         ::skip::
+    end
     end
     end
 end
