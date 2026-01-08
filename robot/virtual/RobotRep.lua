@@ -104,13 +104,71 @@ function RobotRep:equip()
 end
 
 
-function RobotRep:craft(count)
-
-
 -- TODO After we "digitise" recipes we hook this up, until then just don't run any crafting related tests
 function RobotRep:craft(count)
     error("Attempted to craft, TODO!")     
 end
 
+function RobotRep:forward()
+    local ori = self.orientation
+    if ori == "north" then
+        self.position[2] = self.position[2] - 1
+    elseif ori == "south" then
+        self.position[2] = self.position[2] + 1
+    elseif ori == "west" then
+        self.position[1] = self.position[1] - 1
+    elseif ori == "east" then
+        self.position[1] = self.position[1] + 1
+    end
+end
+
+function RobotRep:back()
+    local ori = self.orientation
+    if ori == "north" then
+        self.position[2] = self.position[2] + 1
+    elseif ori == "south" then
+        self.position[2] = self.position[2] - 1
+    elseif ori == "west" then
+        self.position[1] = self.position[1] + 1
+    elseif ori == "east" then
+        self.position[1] = self.position[1] - 1
+    end
+end
+
+function RobotRep:up() self.position[3] = self.position[3] + 1 end
+function RobotRep:down() self.position[3] = self.position[3] - 1 end
+
+function RobotRep:turnLeft()
+    local ori = self.orientation
+    if ori == "north" then ori = "west"
+    elseif ori == "west" then ori = "south"
+    elseif ori == "south" then ori = "east"
+    elseif ori == "east" then ori = "north"
+    end
+
+    self.orientation = ori
+end
+
+function RobotRep:turnRight()
+    local ori = self.orientation
+    if ori == "north" then ori = "east"
+    elseif ori == "east" then ori = "south"
+    elseif ori == "south" then ori = "west"
+    elseif ori == "west" then ori = "north"
+    end
+
+    self.orientation = ori
+end
+
+function RobotRep:turnAround()
+    local ori = self.orientation
+    if ori == "north" then ori = "south"
+    elseif ori == "east" then ori = "west"
+    elseif ori == "south" then ori = "north"
+    elseif ori == "west" then ori = "east"
+    end
+
+    self.orientation = ori
+end
 
 return RobotRep
