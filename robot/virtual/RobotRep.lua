@@ -103,7 +103,11 @@ function RobotRep:equip()
     self.equiped_item = i_item_info
 end
 
--- After we "digitise" recipes we hook this up, until then just don't run any crafting related tests
+
+function RobotRep:craft(count)
+
+
+-- TODO After we "digitise" recipes we hook this up, until then just don't run any crafting related tests
 function RobotRep:craft(count)
     error("Attempted to craft, TODO!")     
 end

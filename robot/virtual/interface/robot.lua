@@ -229,5 +229,15 @@ function robot.useUp(side, sneaky, duration) return sub_use(side, sneaky, durati
 function robot.useDown(side, sneaky, duration) return sub_use(side, sneaky, duration, "down")  end
 
 
+function robot.forward() robot_rep:forward() end
+function robot.back() robot_rep:back() end
+function robot.up() robot_rep:up() end
+function robot.down() robot_rep:down() end
+
+function robot.turnLeft() robot_rep:turnLeft() end
+function robot.turnRight() robot_rep:turnRight() end
+function robot.turnAround() robot_rep:turnAround() end
+
+-- TODO "tank controls", not that I used them in the current robot though :P
 
 return robot
