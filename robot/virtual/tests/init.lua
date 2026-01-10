@@ -28,6 +28,7 @@ local prefab_funcs = {
 
 
 local TrackObj = {
+    parent = nil,
     obj = nil,
     fail_text = nil,
 
@@ -36,32 +37,40 @@ local TrackObj = {
 
     obj_state = "undecided"
 }
-function TrackObj:new(obj, __f_pass, __f_fail)
+function TrackObj:new(parent, obj, __f_pass, __f_fail)
     local new = COPY(self)
+    new.parent = parent
     new.obj = obj
     new.__f_pass = __f_pass
     new.__f_fail = __f_fail
     return new
 end
 
-function TrackObj:fromPartialTable(new_tbl)
-    for key, value in pairs(self) do
-        if new_tbl[key] == nil then new_tbl[key] = value end
+function TrackObj:fromPartialTable(parent, partial_table)
+    local new = COPY(self)
+
+    if partial_table.obj == nil then error("Invalid partial table, must at least have a .obj field") end
+    for key, value in pairs(partial_table) do
+        if new[key] == nil then new[key] = value end
     end
-    if new_tbl.obj == nil then error("Invalid partial table, must at least have a .obj field") end
-    return new_tbl
+
+    new.parent = parent
+    return new
 end
 
 function TrackObj:checkSelf()
+    local robot_rep = self.parent.
+
     if self.__f_pass ~= nil then
-        if self.__f_pass(self.obj) then self.obj_state = "pass" end
+        if self.__f_pass(robot_rep, self.obj) then self.obj_state = "pass" end
     end
     if self.__f_fail ~= nil then
-        local fail_value = self.__f_fail(self.obj)
+        local fail_value = self.__f_fail(robot_rep, self.obj)
+
         if fail_value ~= 0 then
             self.obj_state = "fail"
             if type(self.fail_text) == "function" then
-                self.fail_text(self.obj, fail_value)
+                self.fail_text(robot_rep, self.obj, fail_value)
             else print(self.fail_text) end
         end
     end
@@ -89,10 +98,17 @@ local Test = {
 }
 function Test:new(interface, world, __f_pass, __f_fail)
     local new = COPY(self)
+    new.world = world
+
     new.__f_pass = __f_pass
     new.__f_fail = __f_fail
     new.interface = interface
 
+    return new
+end
+function Test:empty(interface)
+    local new = COPY(self)
+    new.interface = interface
     return new
 end
 
@@ -115,8 +131,10 @@ function Test:trackObj(track_tbl, track_name, obj_name, path)
     track_name = track_name or obj_name
 
     track_tbl.obj = obj
-    local track_obj = TrackObj:fromPartialTable(track_tbl)
+    local track_obj = TrackObj:fromPartialTable(self, track_tbl)
     self.tracked_objects[track_name] = track_obj
+    
+    return track_obj
 end
 
 function Test:doStep()
@@ -133,6 +151,11 @@ function testing_interface:addTest(world, __f_pass, __f_fail)
     local test = Test:new(self, world, __f_pass, __f_fail)
     table.insert(self.tests, test)
     return test -- returns handle to the test
+end
+
+function testing_interface:rawTracker(track_tbl, track_name, obj_name, path)
+    local tmp = Test:empty(self)
+    return tmp:TrackObj(track_tbl, track_name, obj_name, path)
 end
 
 -- path is a table {"home", "user"} obj is a table -> "/home/user/obj_name"

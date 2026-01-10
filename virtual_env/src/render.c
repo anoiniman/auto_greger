@@ -47,13 +47,14 @@ static int close(lua_State *L) {
     // UnloadShader(LIGHT_SHADER);
 
     for (int i = 0; i < kcIndex + 1; i++) {
-        UnloadModel(knownColorModels[i]);
-        UnloadTexture(knownColorTextures[i]);
         UnloadImage(knownColorImages[i]);
+        UnloadTexture(knownColorTextures[i]);
+        // UnloadModel(knownColorModels[i]);
     }
-    UnloadModel(robot_model);
-    UnloadTexture(robot_texture);
+
     UnloadImage(robot_image);
+    UnloadTexture(robot_texture);
+    // UnloadModel(robot_model);
 
     UnloadMesh(robot_mesh);
     UnloadMesh(cube_mesh);

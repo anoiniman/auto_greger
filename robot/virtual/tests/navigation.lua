@@ -2,11 +2,8 @@
 
 local test_interface = require("tests")
 local RobotRep = require("RobotRep")
-local World = require("World")
 
-local robot_rep = RobotRep:new()
-
-local function __f_nav_fail(nav_obj)
+local function __f_nav_fail(robot_rep, nav_obj)
     -- Check that absolute coordinates are coordinated
     if  robot_rep.position[1] ~= nav_obj.abs[1]
         or robot_rep.position[2] ~= nav_obj.abs[2]
@@ -34,7 +31,7 @@ local function __f_nav_fail(nav_obj)
     return 0
 end
 
-local function __t_nav_fail(nav_obj, fail_value)
+local function __t_nav_fail(robot_rep, nav_obj, fail_value)
     LOG(
         "There has been a misalignement between the robot_rep positional state \z
         and the nav_obj state as it is self-tracked by the robot.\n\z
@@ -62,13 +59,7 @@ local function __t_nav_fail(nav_obj, fail_value)
     end
 end
 
--- always starts
-local schematic = {
-}
-local world = World:empty(robot_rep, 72, 72, 6)
-
-local navigate = test_interface:addTest(world, nil, nil)
-navigate:trackObj(
+local nav_track = test_interface:rawTracker(
     {
         __f_fail = __f_nav_fail,
         fail_text = __t_nav_fail,
@@ -80,4 +71,4 @@ navigate:trackObj(
 
 
 
-return navigate
+return nav_track

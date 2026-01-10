@@ -1,4 +1,4 @@
-As I am basing/sourcing many of the "interface" files for the virtual module directly
+As I am basing/sourcing some of the "interface" files for the virtual module directly
 from the opencomputers code-base I include a copy of the copyright/license (MIT) of the
 opencomputers code base here, the following is for all the opencomputers source code I
 have adapted/copied into my project:

@@ -193,7 +193,7 @@ function robot.durability()
             )
 end
 
--- TODO: add interaction with entities && implement skil touch
+-- TODO: add interaction with entities && implement silk touch
 local function sub_swing(_side, _sneak, dir)
     local equipment = nil
     if robot_rep.equiped_item ~= nil then equipment = robot_rep.equiped_item.equipment_data end

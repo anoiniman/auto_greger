@@ -85,20 +85,20 @@ local BlockFactory = {
     harvestTool = "shovel",
     harvestLevel = 0,
 
-    opt = {
+    f_opt = {
         right_click = nil,
         block_break = nil,
     }
 }
 function BlockFactory:make(name, label, color)
     local new = Block:new(name, label, color, self.passable, self.meta_type, self.harvestTool, self.harvestLevel)
-    for k, _ in pairs(self.opt) do self.opt[k] = nil end
+    for k, _ in pairs(self.f_opt) do self.f_opt[k] = nil end
     return new
 end
 
 function BlockFactory:opt(right_click, block_break)
-    self.opt.right_click = right_click
-    self.opt.block_break = block_break
+    self.f_opt.right_click = right_click
+    self.f_opt.block_break = block_break
     return self
 end
 

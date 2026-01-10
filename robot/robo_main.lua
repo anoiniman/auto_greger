@@ -136,7 +136,10 @@ local function blocking_prompt() -- Return Command
     return post_read -- Special command to stop blocking "run_auto"
 end
 
-local function process_messages(cron_message)
+local process_messages
+
+if not V_ENV then
+process_messages = function (cron_message)
     local block_message = nil
 
     if block_read_bool == true then
@@ -171,20 +174,24 @@ local function process_messages(cron_message)
         robot_routine.robot_routine(cron_message)
     end
 end
-
-local not_yet_printed = false
-local function handler(err)
-    if not ALREADY_SAVED then
-        not_yet_printed = true
-        ALREADY_SAVED = true
-        post_exit.exit()
+else
+process_messages = function(cron_message)
+    if block_read_bool == true then
+        local block = blocking_prompt()
+        if block ~= nil then
+            block_message = block
+        end
     end
-    return err
-    -- error("Unchecked")
-end
+    special_message_interpretation(block_message)
 
-local zot_clock = 30
-local zot_interval = computer.uptime()
+    if watch_dog == 0 or block_message ~= nil then
+        robot_routine.robot_routine(block_message)
+    end
+    if cron_message ~= nil then
+        robot_routine.robot_routine(cron_message)
+    end
+end
+end
 
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP
 ROBO_MAIN_THREAD_SLEEP = 0.2
@@ -200,13 +207,6 @@ local function robot_main()
         end
 
         local cron_message = cron_jobs()
-        --[[local result, err = xpcall(process_messages, handler, cron_message)
-        if not result then
-            do_exit = true
-            if not_yet_printed then
-                print(comms.robot_send("unchecked", tostring(err)))
-            end
-        end--]]
         process_messages(cron_message)
     end -- While
 

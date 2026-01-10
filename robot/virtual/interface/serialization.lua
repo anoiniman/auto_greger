@@ -1,3 +1,4 @@
+-- OpenComputers (tm) code https://github.com/MightyPirates/OpenComputers/
 local serialization = {}
 
 -- delay loaded tables fail to deserialize cross [C] boundaries (such as when having to read files that cause yields)

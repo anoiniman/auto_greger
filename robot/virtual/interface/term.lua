@@ -30,7 +30,7 @@ function term.read()
 end
 
 function term.write(value)
-    print(value)
+    io.write(value)
 end
 
 function term.bind(_gpu)
