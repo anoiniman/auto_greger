@@ -35,10 +35,14 @@ BlockSet.size_x = BlockSet.size_array[1]
 BlockSet.size_z = BlockSet.size_array[2]
 BlockSet.size_y = BlockSet.size_array[3]
 
+-- There is something wierd with the "fake pointers" that the value is not getting updated
 function BlockSet:new(size_x, size_z, size_y)
     local pos_args = {size_x, size_z, size_y}
-
     local new = COPY(self)
+    new.size_x = new.size_array[1]
+    new.size_z = new.size_array[2]
+    new.size_y = new.size_array[3]
+
     for index, size_ptr in ipairs(new.size_array) do
         if pos_args[index] ~= nil then fake_pointer.replace(size_ptr, pos_args[index])
         else fake_pointer.replace(size_ptr, 8) end
@@ -56,14 +60,13 @@ function BlockSet:new(size_x, size_z, size_y)
 end
 
 function BlockSet:getCoords(index)
-    local blocks = self.blocks
     index = index - 1
 
-    local y = math.floor(index / (blocks.size_x() * blocks.size_z()))
-    index = math.floor(index - (y * blocks.size_x() * blocks.size_z()))
+    local y = math.floor(index / (self.size_x() * self.size_z()))
+    index = math.floor(index - (y * self.size_x() * self.size_z()))
 
-    local z = math.floor(index / blocks.size_x())
-    local x = (index % blocks.size_x())
+    local z = math.floor(index / self.size_x())
+    local x = (index % self.size_x())
 
     return x, z, y
 end
@@ -94,7 +97,14 @@ function BlockSet:addBlock(new_block, x, z, y)
 end
 
 function BlockSet:addUnchecked(new_block, x, z, y)
+    -- print(self.size_x(), self.size_z(), self.size_y())
+    -- print(x,z,y)
+
     local index = self:getIndex(x, z, y)
+    -- print(index)
+    -- print(self:getCoords(index))
+    -- io.read()
+
     self.block_array[index] = new_block
     -- render_api.setIntArray(self.block_array, index, new_block);
 end
@@ -166,10 +176,9 @@ local World = {
     render_check = 0,
 }
 
-function World:default(robot_rep)
+function World:default()
     local new = COPY(self)
-    new.blocks:addPrism(Block:default(), 0, 0, 0, 4, 2, 4)
-    new.robot_rep = robot_rep
+    new.blocks:addPrism(Block:default(), 0, 2, 0, 2, 0, 2)
     return new
 end
 
@@ -276,8 +285,11 @@ end
 function World:render()
     local blocks = self.blocks
     for index, block in pairs(blocks.block_array) do
+        -- print(index)
         if type(block) == "number" then goto continue end
         local x, z, y = self.blocks:getCoords(index)
+        --print(x,z,y)
+        --io.read()
 
         render_api.render_world(x, z, y, block.color)
         ::continue::

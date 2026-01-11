@@ -11,7 +11,9 @@ local map = require("nav_module.map_obj")
 local nav = require("nav_module.nav_obj")
 local inv = require("inventory.inv_obj")
 local reas = require("reasoning.reasoning_obj")
-local _, ore = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
+
+local a = require("reasoning.recipes.stone_age.gathering_ore")
+local _, ore = table.unpack(a)
 
 local serialize = require("serialization")
 local io = require("io")

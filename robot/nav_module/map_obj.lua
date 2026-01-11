@@ -103,7 +103,7 @@ local UnderlyingChunk = {
 }
 
 function UnderlyingChunk:new(x, z) -- lazy initialization :I (one day :) )
-    local new = deep_copy.copy_table(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     new.x = x
     new.z = z
     return new

@@ -2,7 +2,7 @@ local module = {}
 
 ------- Sys Requires -------
 local test_interface
-if V_ENV ~= nil then test_interface = require("tests") end
+if V_ENV ~= nil then test_interface = require("virtual.tests") end
 
 ------- Own Requires -------
 local comms = require("comms") -- luacheck: ignore
@@ -190,7 +190,7 @@ nav_obj.chunk[1] = -2
 nav_obj.chunk[2] = 0
 
 if test_interface ~= nil then
-    test_interface.registerObject(nav_obj, "nav_obj", nil)
+    test_interface:registerObject(nav_obj, "nav_obj", nil)
 end
 
 return module

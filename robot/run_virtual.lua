@@ -10,7 +10,7 @@ V_ENV = true
 INV_SIZE = 32
 local render = require("librender")
 
--- local robot_step = require("robo_main")
+local robot_step = require("robo_main")
 local function sleep(n)
     n = tonumber(n)
     if n == nil then return end
@@ -50,7 +50,7 @@ world:init()
 local step_ok
 local render_ok = 2
 while render_ok == 2 do
-    step_ok = World:simulate(robot_step)
+    step_ok = world:simulate(robot_step)
     render_ok = render.render(world.render, world, world.renderRobot, world)
 end
 

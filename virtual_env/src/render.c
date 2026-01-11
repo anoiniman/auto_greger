@@ -79,7 +79,8 @@ void lua_printi(lua_State *L, int i) {
 static char *def_color_name = "NONE";
 
 // #define BLOCK_SIZE 0.8
-#define BLOCK_SIZE 3.4
+#define BLOCK_SIZE 1.4
+// #define BLOCK_SIZE 3.4
 #define SCALE BLOCK_SIZE * 0.06
 
 // Expects color table to be at the top of the stack

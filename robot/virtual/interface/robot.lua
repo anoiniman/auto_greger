@@ -1,7 +1,8 @@
 -- luacheck: globals INV_SIZE
 local sides_api = require("sides")
 -- luacheck: push ignore Block
-local Block, KnownBlocks = table.unpack(require("Block"))
+local a = require("virtual.Block")
+local Block, KnownBlocks = table.unpack(a)
 -- luacheck: pop
 
 local robot = { }

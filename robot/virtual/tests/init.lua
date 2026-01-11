@@ -59,7 +59,7 @@ function TrackObj:fromPartialTable(parent, partial_table)
 end
 
 function TrackObj:checkSelf()
-    local robot_rep = self.parent.
+    local robot_rep = self.parent.interface.robot_rep
 
     if self.__f_pass ~= nil then
         if self.__f_pass(robot_rep, self.obj) then self.obj_state = "pass" end
@@ -169,6 +169,7 @@ function testing_interface:registerObject(obj, obj_name, path)
         if tree[name] == nil then tree[name] = {} end
         node = tree[name]
     end
+    if node == nil then node = tree end
 
     if node[obj_name] ~= nil then error("Attempted to register same name twice") end
     node[obj_name] = obj

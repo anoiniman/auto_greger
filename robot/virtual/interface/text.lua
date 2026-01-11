@@ -2,7 +2,7 @@
 
 local function checkArg() end
 
-local unicode = require("unicode")
+local unicode = require("utf8")
 local tx = require("transforms")
 
 local text = {}
@@ -112,7 +112,7 @@ end
 
 
 local tx = require("transforms")
-local unicode = require("unicode")
+local unicode = require("utf8")
 
 -- separate string value into an array of words delimited by whitespace
 -- groups by quotes

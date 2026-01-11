@@ -175,17 +175,18 @@ process_messages = function (cron_message)
     end
 end
 else
-process_messages = function(cron_message)
-    if block_read_bool == true then
+process_messages = function(cron_message, venv_message)
+    --[[if block_read_bool == true then
         local block = blocking_prompt()
         if block ~= nil then
             block_message = block
         end
     end
     special_message_interpretation(block_message)
+    --]]
 
-    if watch_dog == 0 or block_message ~= nil then
-        robot_routine.robot_routine(block_message)
+    if watch_dog == 0 or venv_message ~= nil then
+        robot_routine.robot_routine(venv_message)
     end
     if cron_message ~= nil then
         robot_routine.robot_routine(cron_message)
@@ -195,7 +196,7 @@ end
 
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP
 ROBO_MAIN_THREAD_SLEEP = 0.2
-local function robot_main()
+local function robot_main(venv_message)
     -- START
     comms.setup_listener()
 
@@ -207,7 +208,7 @@ local function robot_main()
         end
 
         local cron_message = cron_jobs()
-        process_messages(cron_message)
+        process_messages(cron_message, venv_message)
     end -- While
 
     print(comms.robot_send("info", "exiting!"))

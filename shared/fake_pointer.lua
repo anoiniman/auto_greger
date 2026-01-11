@@ -8,6 +8,8 @@ local NONE = {} -- Will give us an unique pointer
 local FakePointer = {
     inner_value = NONE,
     mut = false,
+
+    is_fake_pointer = true,
 }
 
 function module.new(obj)
@@ -35,6 +37,7 @@ function module.replace(f_pointer, new_inner)
     end
     if new_inner == nil then new_inner = NONE end
 
+    -- print(new_inner)
     local old = f_pointer.inner_value
     f_pointer.inner_value = new_inner
     return old

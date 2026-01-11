@@ -16,5 +16,9 @@ function computer.uptime()
     return os.time()
 end
 
+function computer.maxEnergy()
+    return 30000
+end
+
 
 return computer

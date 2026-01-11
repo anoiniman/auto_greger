@@ -315,14 +315,14 @@ function module.free(parent, direction, nav_obj, extra_sauce)
                 os.sleep(1)
 
                 local result = inv.place_block("down", "any:building_block", "name")
-                if result then goto no_error end
+                if result then goto no_error1 end
 
                 watch_dog = watch_dog + 1
             end
             print(comms.robot_send("error", "auto_bridge -- place -- exceeded watch_dog! Are we fighting windmills?"))
             return false, nil -- report that bridging failed, let the caller handle this
         end
-        ::no_error::
+        ::no_error1::
 
         -- we can now assume that we've placed down a block, unless specified we now go back to collect the previous block
         if not table_contains(extra_sauce, "no_destroy") then
@@ -340,7 +340,7 @@ function module.free(parent, direction, nav_obj, extra_sauce)
                     os.sleep(1)
 
                     local result, _ = parent.base_move(new_dir, nav_obj)
-                    if result then goto no_error end
+                    if result then goto no_error2 end
 
                     watch_dog = watch_dog + 1
                 end
@@ -348,7 +348,7 @@ function module.free(parent, direction, nav_obj, extra_sauce)
                 print(comms.robot_send("error", "auto_bridge -- walk_back -- exceeded watch_dog! Are we fighting windmills?"))
                 return false, "auto_bridge"
             end
-            ::no_error::
+            ::no_error2::
 
             -- Breaky The Block
             local result = inv.blind_swing_down()
@@ -367,7 +367,7 @@ function module.free(parent, direction, nav_obj, extra_sauce)
                     os.sleep(1)
 
                     local result, _ = parent.base_move(old_dir, nav_obj)
-                    if result then goto no_error2 end
+                    if result then goto no_error3 end
 
                     watch_dog = watch_dog + 1
                 end
@@ -375,7 +375,7 @@ function module.free(parent, direction, nav_obj, extra_sauce)
                 print(comms.robot_send("error", "auto_bridge -- walk_back -- exceeded watch_dog! Are we fighting windmills?"))
                 return false, "auto_bridge"
             end
-            ::no_error2::
+            ::no_error3::
 
         end
     end -- Auto Bridge END
