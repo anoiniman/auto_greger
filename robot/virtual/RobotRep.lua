@@ -105,6 +105,9 @@ function RobotRep:craft(_count)
 end
 -- luacheck: pop
 
+
+-- TODO: force these movement functions to respect the opencomputers movement rules
+-- (floating only 8 blocks, etc.) || the block placement code will need the same treatment
 function RobotRep:forward()
     local ori = self.orientation
     if ori == "north" then

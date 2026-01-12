@@ -1,3 +1,4 @@
+local text = require("text")
 local deep_copy = require("deep_copy")
 
 --[[local function iSmaller (obj, target) return obj <  target end
@@ -89,6 +90,7 @@ end
 end--]]
 
 local Test = {
+    command_list = nil,
     interface = nil,
     world = nil,
 
@@ -96,13 +98,14 @@ local Test = {
     _f_pass = nil,
     _f_fail = nil,
 }
-function Test:new(interface, world, __f_pass, __f_fail)
+function Test:new(interface, world, __f_pass, __f_fail, command_list)
     local new = COPY(self)
     new.world = world
 
     new.__f_pass = __f_pass
     new.__f_fail = __f_fail
     new.interface = interface
+    new.command_list = command_list
 
     return new
 end
@@ -137,8 +140,22 @@ function Test:trackObj(track_tbl, track_name, obj_name, path)
     return track_obj
 end
 
-function Test:doStep()
+function Test:doStep(__f_robo_main)
+    local command_string = table.remove(self.command_list, 1)
+    local command_table = nil
+    if command_string ~= nil then
+        command_table = text.tokenize(command_string)
+        table.insert(command_table, 1, -1) -- insert priority number
+    end
 
+    __f_robo_main(command_table)
+    for _, obj in ipairs(self.tracked_objects) do
+        obj:checkSelf()
+    end
+end
+
+function Test:initWorld()
+    self.world:init()
 end
 
 -- Singleton
@@ -147,15 +164,10 @@ local testing_interface = {
     registered_objects = {}, -- hierarchical
 }
 
-function testing_interface:addTest(world, __f_pass, __f_fail)
-    local test = Test:new(self, world, __f_pass, __f_fail)
+function testing_interface:addTest(world, __f_pass, __f_fail, command_list)
+    local test = Test:new(self, world, __f_pass, __f_fail, command_list)
     table.insert(self.tests, test)
     return test -- returns handle to the test
-end
-
-function testing_interface:rawTracker(track_tbl, track_name, obj_name, path)
-    local tmp = Test:empty(self)
-    return tmp:TrackObj(track_tbl, track_name, obj_name, path)
 end
 
 -- path is a table {"home", "user"} obj is a table -> "/home/user/obj_name"

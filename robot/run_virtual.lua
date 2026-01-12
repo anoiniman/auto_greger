@@ -11,6 +11,8 @@ INV_SIZE = 32
 local render = require("librender")
 
 local robot_step = require("robo_main")
+local post_exit = require("post_exit")
+
 local function sleep(n)
     n = tonumber(n)
     if n == nil then return end
@@ -32,10 +34,10 @@ local test_interface = require("virtual.tests")
 local test_table = require("virtual.tests.test_table")
 
 
-local world = World:default()
+--[[local world = World:default()
 local robot_rep = RobotRep:new(world)
 robot_rep:setPosition(3, 3, 3)
-world:setRobotRep(robot_rep)
+world:setRobotRep(robot_rep)--]]
 
 print("------------ RAY LIB ---------------")
 print()
@@ -45,12 +47,21 @@ print("------------ RAY LIB ---------------")
 print()
 
 
-world:init()
+local test = require("virtual.tests.interface_test")
+test:initWorld()
+--world:init()
+
+local simulate_time = 0.5
+local simulate_clock = os.clock()
 
 local step_ok
 local render_ok = 2
 while render_ok == 2 do
-    step_ok = world:simulate(robot_step)
-    render_ok = render.render(world.render, world, world.renderRobot, world)
+    if os.clock() > simulate_clock + simulate_time then
+        step_ok = test:doStep(robot_step)
+        simulate_clock = os.clock()
+    end
+
+    render_ok = render.render(test.world.render, test.world, test.world.renderRobot, test.world)
 end
 

@@ -10,6 +10,7 @@ local comms = require("comms")
 local eval = require("eval.eval_main")
 
 ---------------------------------------
+local dbg = require("debugger")
 
 -- task_list is updated by reference
 -- linear search should be good enough, surely
@@ -70,15 +71,17 @@ function module.robot_routine(message)
     local where = #task_list
 
     -- Another ugly cludge, this time for energy saving
-    if where == 0 then
-        empty_looping_counter = empty_looping_counter + 1
-        if empty_looping_counter > 10 then os.sleep(6)
-        elseif empty_looping_counter > 50 then os.sleep(20) end
-    else
-        if empty_looping_counter < 10 then
-            empty_looping_counter = empty_looping_counter - 1
+    if not V_ENV then
+        if where == 0 then
+            empty_looping_counter = empty_looping_counter + 1
+            if empty_looping_counter > 10 then os.sleep(6)
+            elseif empty_looping_counter > 50 then os.sleep(20) end
         else
-            empty_looping_counter = 5
+            if empty_looping_counter < 10 then
+                empty_looping_counter = empty_looping_counter - 1
+            else
+                empty_looping_counter = 5
+            end
         end
     end
 

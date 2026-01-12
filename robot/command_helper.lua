@@ -63,7 +63,7 @@ end
 function module.inspect_raw(prio, command, arguments)
     if command == nil then command = "nil" end
     local buffer = {"\n"}
-    table.insert(buffer, string.format("(p%d) Command: \"%s\" is invalid!\n", prio, command))
+    table.insert(buffer, string.format("(p%s) Command: \"%s\" is invalid!\n", tostring(prio), command))
     local max_depth = 10; local depth = 0;
     local function recursive_append(tbl)
         if depth >= max_depth then return end
@@ -93,10 +93,13 @@ function module.inspect_raw(prio, command, arguments)
 
     print(comms.robot_send("error", table.concat(buffer)))
     local counter = 0
-    while true do
-        os.sleep(0.1)
-        if counter >= 60 or keyboard.isKeyDown(keyboard.keys.q) then break end
-        counter = counter + 0.1
+
+    if not V_ENV then
+        while true do
+            os.sleep(0.1)
+            if counter >= 60 or keyboard.isKeyDown(keyboard.keys.q) then break end
+            counter = counter + 0.1
+        end
     end
 end
 

@@ -34,6 +34,10 @@ local nav_obj = {
     orientation = "north"
 }
 
+function module.get_obj()
+    return nav_obj
+end
+
 function module.print_nav_obj()
     local print_buffer = {"\n"}
     for k, v in pairs(nav_obj) do

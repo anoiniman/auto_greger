@@ -1,5 +1,6 @@
 -- luacheck: globals COPY, ignore deep_copy
 local deep_copy = require("deep_copy")
+local component = require("component")
 local fake_pointer = require("fake_pointer")
 
 local a = require("virtual.Block")
@@ -216,6 +217,7 @@ end
 function World:init()
     local x, z, y = self.robot_rep:getPosition()
     render_api.init_robot(x, z, y)
+    component.setRobotRep(self.robot_rep)
 end
 
 function World:getBlockRelSide(side)

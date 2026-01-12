@@ -20,5 +20,9 @@ function computer.maxEnergy()
     return 30000
 end
 
+function computer.energy()
+    return 30000
+end
+
 
 return computer

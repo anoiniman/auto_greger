@@ -65,7 +65,7 @@ function text.internal.words(input, options)
   local tokens, token = {}, {}
   local escaped, start = false, -1
   for i = 1, unicode.len(input) do
-    local char = unicode.sub(input, i, i)
+    local char = string.sub(input, i, i)
     if escaped then -- escaped character
       escaped = false
       -- include escape char if show_escapes

@@ -48,7 +48,11 @@ function robot.inventorySize()
 end
 
 function robot.count(slot_num)
+    if slot_num == nil then slot_num = robot_rep.selected_slot end
+
     local info = robot_rep.inventory:getSlotInfo(slot_num)
+    if info == nil then return 0 end
+
     return info.size
 end
 

@@ -13,7 +13,9 @@ local comms = require("comms")
 local post_exit = require("post_exit")
 
 local geolyzer = require("geolyzer_wrapper")
-local nav = require("nav_module.nav_obj")
+local nav_obj = require("nav_module.nav_obj")
+local nav_interface = require("nav_module.nav_interface")
+
 local map = require("nav_module.map_obj")
 local inv = require("inventory.inv_obj")
 local loadouts = require("inventory.loadouts")
@@ -27,7 +29,7 @@ local inv_controller = component.getPrimary("inventory_controller")
 
 local known_symbols = {
     geolyzer = geolyzer,
-    nav = nav,
+    nav_obj = nav,
     map = map,
     inv = inv,
     reason = reason,
@@ -125,7 +127,7 @@ function module.debug(arguments)
         for i = 1, to_move, 1 do
             os.sleep(0.1)
             if keyboard.isKeyDown(keyboard.keys.q) then break end
-            local result, err = nav.debug_move(dir, 1)
+            local result, err = nav_obj.debug_move(dir, 1)
 
             if err == "impossible" then
                 print(comms.robot_send("error", "impossible move reached"))
@@ -148,7 +150,7 @@ function module.debug(arguments)
                     break
                 end
 
-                nav.debug_move(dir, 1)
+                nav_obj.debug_move(dir, 1)
             elseif err ~= nil then
                 print(comms.robot_send("error", string.format("err: %s move reached", err)))
                 break
@@ -169,7 +171,6 @@ function module.debug(arguments)
     elseif arguments[1] == "move" then
         local move = arguments[2]
         local how_much = tonumber(arguments[3])
-        local forget = arguments[4]
         if move == nil then
             print(comms.robot_send("error", "nil direction in debug move"))
             return nil
@@ -177,12 +178,9 @@ function module.debug(arguments)
         if how_much == nil then
             how_much = 1
         end
-        if forget == nil then
-            forget = false
-        end
 
         print("attempting to move")
-        nav.debug_move(move, how_much, forget)
+        nav_interface.debug_move(move, how_much, nav_obj.get_obj())
     elseif arguments[1] == "surface_chunk_move" then
         local x = arguments[2]
         local z = arguments[3]
@@ -192,7 +190,7 @@ function module.debug(arguments)
             return nil
         end
         local chunk = {x,z}
-        nav.setup_navigate_chunk(chunk)
+        nav_obj.setup_navigate_chunk(chunk)
         return {50, "navigate_chunk", "surface"}
 
     elseif arguments[1] == "set_orientation" then
@@ -204,14 +202,14 @@ function module.debug(arguments)
             print(comms.robot_send("error", "set_orientation: mis-formated"))
             return nil
         end
-        nav.set_orientation(o)
+        nav_obj.set_orientation(o)
     elseif arguments[1] == "set_height" then
         local height = tonumber(arguments[2])
         if height == nil then
             print(comms.robot_send("error", "set_height: no valid number provided"))
             return nil
         end
-        nav.set_height(height)
+        nav_obj.set_height(height)
     elseif arguments[1] == "set_pos" then -- x and z as abs
         local x = tonumber(arguments[2])
         local z = tonumber(arguments[3])
@@ -219,7 +217,7 @@ function module.debug(arguments)
         if x == nil then print(comms.robot_send("error", "set_pos: invalid x")) end
         if z == nil then print(comms.robot_send("error", "set_pos: invalid z")) end
 
-        nav.set_pos_auto(x, z, y)
+        nav_obj.set_pos_auto(x, z, y)
 
     elseif arguments[1] == "place" then
         local dir = tostring(arguments[2])
@@ -286,7 +284,7 @@ function module.debug(arguments)
 
     elseif arguments[1] == "print" then
         if arguments[2] == "nav" then
-            nav.print_nav_obj()
+            nav_obj.print_nav_obj()
         elseif arguments[2] == "inv" then
         elseif arguments[2] == "map" then
         elseif arguments[2] == "reason" then

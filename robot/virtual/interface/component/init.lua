@@ -1,5 +1,6 @@
 -- local RobotRep = require("RobotRep")
 -- local event = require("event")
+local robot = require("robot")
 
 local tunnel = {}
 --[[local mm_core = {
@@ -42,6 +43,9 @@ function component.setRobotRep(robot_rep)
             module.setRobotRep(robot_rep)
         end
     end
+
+    print("robot")
+    robot.setRobotRep(robot_rep)
     print("Done")
 end
 

@@ -1,7 +1,7 @@
 -- luacheck: globals LOG
 
-local test_interface = require("tests")
-local RobotRep = require("RobotRep")
+local test_interface = require("virtual.tests")
+local RobotRep = require("virtual.RobotRep")
 
 local function __f_nav_fail(robot_rep, nav_obj)
     -- Check that absolute coordinates are coordinated
@@ -59,7 +59,7 @@ local function __t_nav_fail(robot_rep, nav_obj, fail_value)
     end
 end
 
-local nav_track = test_interface:rawTracker(
+local nav_track = {
     {
         __f_fail = __f_nav_fail,
         fail_text = __t_nav_fail,
@@ -67,8 +67,6 @@ local nav_track = test_interface:rawTracker(
     "nav_obj",
     "nav_obj",
     nil
-)
-
-
+}
 
 return nav_track

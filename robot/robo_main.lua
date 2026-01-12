@@ -3,6 +3,9 @@ local block_delay = -1
 local robot_name = "sumire-chan"
 require("overloads")
 
+if V_ENV then DBG = require("debugger")
+else DBG = function () end end
+
 -- import of globals
 local io = require("io")
 local computer = require("computer")
@@ -39,13 +42,16 @@ term.clear()
 print(comms.robot_send("info", robot_name .. " -- Now Online! " .. msg))
 term.setCursorBlink(false)
 
-if DO_LOAD then
-    post_exit.load_state({})
-else
-    post_exit.do_presets()
+-- When we are in a V_ENV we have to handle these loads and do_presets "manually", this is to say,
+-- the V_ENV we'll have to manage these actions directly.
+if not V_ENV then
+    if DO_LOAD then post_exit.load_state({})
+    else post_exit.do_presets() end
 end
 
+if not V_ENV then
 keep_alive.start_check() -- you need to have the inventory loaded/preset in order to do this succesefully
+end
 reasoning.reset_one_locks()
 
 
@@ -196,7 +202,7 @@ end
 
 -- luacheck: globals ROBO_MAIN_THREAD_SLEEP
 ROBO_MAIN_THREAD_SLEEP = 0.2
-local function robot_main(venv_message)
+local function robot_main()
     -- START
     comms.setup_listener()
 
@@ -208,14 +214,18 @@ local function robot_main(venv_message)
         end
 
         local cron_message = cron_jobs()
-        process_messages(cron_message, venv_message)
+        process_messages(cron_message)
     end -- While
 
     print(comms.robot_send("info", "exiting!"))
     post_exit.exit()
 end
 
+local function robot_main2(venv_message)
+    local cron_message = cron_jobs()
+    process_messages(cron_message, venv_message)
+end
 
 -- Execution into main function always has to occur in the end due to how lua works
 if not V_ENV then robot_main() end
-return robot_main
+return robot_main2

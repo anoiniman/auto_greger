@@ -3,6 +3,8 @@
 local buffer = {}
 local keyboard = {}
 
+keyboard.keys = require("keyboard_keys")
+
 function keyboard.isAltDown()
     return false
 end
@@ -26,4 +28,4 @@ function keyboard.isShiftDown()
     return false
 end
 
-return new
+return keyboard

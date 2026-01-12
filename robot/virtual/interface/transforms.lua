@@ -26,8 +26,8 @@ local view=lib.internal.table_view
 
 -- first(p1,p2) searches for the first range in p1 that satisfies p2
 function lib.first(tbl,pred,f,l)
-  checkArg(1,tbl,'table')
-  checkArg(2,pred,'function','table')
+  --checkArg(1,tbl,'table')
+  --checkArg(2,pred,'function','table')
   if type(pred)=='table'then
     local set;set,pred=pred,function(e,fi,tbl)
       for vi=1,#set do

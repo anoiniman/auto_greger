@@ -208,7 +208,7 @@ function inward_facing.real_move(strat_name, direction, nav_obj, extra_sauce)
 end
 
 -- for now forget argument remais for compatibility, but needs to be refactored in the future
-function to_export.debug_move(dir, distance, forget, nav_obj)
+function to_export.debug_move(dir, distance, nav_obj)
     local result, err
 
     local all_ok = true
