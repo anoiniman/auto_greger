@@ -16,23 +16,23 @@ function robot.name()
     return "Testy"
 end
 
-local function subDetect(dir)
-    local block = robot_rep.world:getBlockRelSide(robot_rep, sides_api[dir])
+local function sub_detect(dir)
+    local block = robot_rep.world:getBlockRelSide(sides_api[dir])
     if block == nil then return true, "passable" end -- its probabily air
 
     return block.passable, block.meta_type
 end
 
 function robot.detect()
-    return subDetect("front")
+    return sub_detect("front")
 end
 
 function robot.detectUp()
-    return subDetect("up")
+    return sub_detect("up")
 end
 
 function robot.detectDown()
-    return subDetect("down")
+    return sub_detect("down")
 end
 
 function robot.select(slot_num)
@@ -239,14 +239,23 @@ function robot.useUp(side, sneaky, duration) return sub_use(side, sneaky, durati
 function robot.useDown(side, sneaky, duration) return sub_use(side, sneaky, duration, "down")  end
 
 
-function robot.forward() robot_rep:forward() end
-function robot.back() robot_rep:back() end
-function robot.up() robot_rep:up() end
-function robot.down() robot_rep:down() end
+local function sub_move(dir, move_func)
+    local pass, info = sub_detect(dir)
+    if not pass then return pass, info end
 
-function robot.turnLeft() robot_rep:turnLeft() end
-function robot.turnRight() robot_rep:turnRight() end
-function robot.turnAround() robot_rep:turnAround() end
+    return move_func(robot_rep)
+end
+
+function robot.forward()
+    return sub_move("front", robot_rep.forward)
+end
+function robot.back() return sub_move("back", robot_rep.back) end
+function robot.up() return sub_move("up", robot_rep.up) end
+function robot.down() return sub_move("down", robot_rep.down) end
+
+function robot.turnLeft() return robot_rep:turnLeft() end
+function robot.turnRight() return robot_rep:turnRight() end
+function robot.turnAround() return robot_rep:turnAround() end
 
 -- TODO "tank controls", not that I used them in the current robot though :P
 

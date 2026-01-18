@@ -249,7 +249,15 @@ function World:getBlockRelSide(side)
     end
 
     if cardinal_side == nil then
-        error("Failed to set cardinal side succesefully")
+        if type(side) == "table" then
+            for k, v in pairs(side) do print(k, v) end
+        end
+
+        error(string.format(
+            "Failed to set cardinal side succesefully: ori was: %s, side was: %s",
+            tostring(ori),
+            tostring(side)
+            ))
     end
 
 
@@ -266,9 +274,12 @@ function World:getBlockRelSide(side)
     return self:getBlockAbs(x, z, y), {x, z, y}
 end
 
+-- Added a cast in order to make sure that a number value is interpreted as nil
 function World:getBlockAbs(x, z, y)
     local index = self.blocks:getIndex(x, z, y)
-    return self.blocks.block_array[index]
+    local block = self.blocks.block_array[index]
+    if type(block) == "number" then block = nil end
+    return block
 end
 
 function World:placeBlock(block, x, z, y)

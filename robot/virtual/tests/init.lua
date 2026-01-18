@@ -152,6 +152,9 @@ function Test:doStep(__f_robo_main)
     for _, obj in ipairs(self.tracked_objects) do
         obj:checkSelf()
     end
+    --[[for _, v in pairs(self.world.robot_rep.position) do
+        print(v)
+    end--]]
 end
 
 function Test:initWorld()

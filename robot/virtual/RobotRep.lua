@@ -119,6 +119,8 @@ function RobotRep:forward()
     elseif ori == "east" then
         self.position[1] = self.position[1] + 1
     end
+
+    return true
 end
 
 function RobotRep:back()
@@ -132,10 +134,18 @@ function RobotRep:back()
     elseif ori == "east" then
         self.position[1] = self.position[1] - 1
     end
+
+    return true
 end
 
-function RobotRep:up() self.position[3] = self.position[3] + 1 end
-function RobotRep:down() self.position[3] = self.position[3] - 1 end
+function RobotRep:up()
+    self.position[3] = self.position[3] + 1
+    return true
+end
+function RobotRep:down()
+    self.position[3] = self.position[3] - 1
+    return true
+end
 
 function RobotRep:turnLeft()
     local ori = self.orientation

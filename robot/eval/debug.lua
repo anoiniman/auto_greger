@@ -171,6 +171,7 @@ function module.debug(arguments)
     elseif arguments[1] == "move" then
         local move = arguments[2]
         local how_much = tonumber(arguments[3])
+
         if move == nil then
             print(comms.robot_send("error", "nil direction in debug move"))
             return nil
@@ -179,7 +180,7 @@ function module.debug(arguments)
             how_much = 1
         end
 
-        print("attempting to move")
+        print(string.format("attempting to move (%d)", how_much))
         nav_interface.debug_move(move, how_much, nav_obj.get_obj())
     elseif arguments[1] == "surface_chunk_move" then
         local x = arguments[2]
