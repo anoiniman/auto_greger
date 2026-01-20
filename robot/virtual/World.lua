@@ -7,6 +7,8 @@ local a = require("virtual.Block")
 local Block, KnownBlocks = table.unpack(a)
 local sides_api = require("sides")
 
+local MetaBuild = require("build.MetaBuild")
+
 local render_api = require("librender")
 
 
@@ -163,7 +165,21 @@ function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table
             end
         end
     end
+end
 
+function BlockSet:instantiateBuilding(name, chunk_tbl, height, quad_num)
+    local build = MetaBuild:new()
+    build:require(name, chunk_tbl)
+    build:setupBuild(quad_num, height)
+
+    -- TODO: for now this will work with only base tables, no segments plz, thats boring to code
+    local primitive = build.primitive
+    local schematic_table = primitive.base_table
+    local dictionary = primitive.dictionary2 -- special dicttionary just for this use
+    local offset_table = primitive.origin_block
+
+    if dictionary == nil then error("Remember to adapt the building table you want to use: " .. name) end
+    self:parseNativeSchematic(schematic_table, dictionary, offset_table)
 end
 
 -- How about we backport our bitmap map loader, with the height being mesured with the
