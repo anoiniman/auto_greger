@@ -14,7 +14,8 @@ local component = require("component")
 local serialize = require("serialization")
 
 -------- Other ------------
-local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
+local a = require("inventory.MetaExternalInventory")
+local MetaInventory, MetaItem = table.unpack(a)
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 
 local geolyzer = require("geolyzer_wrapper")
@@ -37,6 +38,18 @@ Module.dictionary = {
     ["d"] = {"nil", "any:grass"},
     ["|"] = {"air", "shovel"},
 }
+
+if V_ENV then
+    local a = require("virtual.Block")
+    local _, KnownBlocks = table.unpack(a)
+
+    Module.dictionary2 = {
+        ["s"] = KnownBlocks:getByLabel("Oak Sapling"),
+        ["c"] = KnownBlocks:getByLabel("Chest"),
+        ["d"] = KnownBlocks:getByLabel("Grass"),
+        ["|"] = 0,
+    }
+end
 
 -- No torches (so that it can be built in le early game)
 -- This more compact / more inteligent design needs to be in a specific quadrant in order to work with

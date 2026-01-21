@@ -400,6 +400,7 @@ static int init(lua_State *L) {
     // camera.projection = CAMERA_ORTHOGRAPHIC;
 
     BLOOM_SHADER = LoadShader(0, TextFormat("./virtual/def/bloom.fs", 330));
+    // BLOOM_SHADER = LoadShader(0, TextFormat("./virtual/def/bloom2.fs", 330));
     GREY_SHADER = LoadShader(0, TextFormat("./virtual/def/greyscale.fs", 330));
     BLUR_SHADER = LoadShader(0, TextFormat("./virtual/def/blur.fs", 330));
 

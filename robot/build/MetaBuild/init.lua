@@ -264,9 +264,16 @@ function Module:require(name, what_chunk)
     end
     if name == nil then name = "nil" end
 
-    local path = "/home/robot/build/" .. name .. ".lua"
+    local path
+    if V_ENV then path = "./build/" .. name .. ".lua"
+    else path = "/home/robot/build/" .. name .. ".lua" end
     local build_table = nil -- luacheck: ignore
-    if filesystem.exists(path) and not filesystem.isDirectory(path) then
+
+    local conditional
+    if V_ENV then conditional = filesystem.exists(path)
+    else conditional = filesystem.exists(path) and not filesystem.isDirectory(path) end
+
+    if conditional then
         build_table = dofile(path)
     else
         print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
