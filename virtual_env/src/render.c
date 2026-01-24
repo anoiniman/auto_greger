@@ -297,8 +297,10 @@ static int render_robot(lua_State *L) {
     };
 
     DrawModel(robot_model, pos, 1, WHITE); // Up position?
+    DrawModelWires(robot_model, pos, 1, BLUE);
     pos.y -= height_shift;
     DrawModelEx(robot_model, pos, rotation, 180.0f, (Vector3){1.0, 1.0, 1.0}, WHITE);
+    DrawModelWiresEx(robot_model, pos, rotation, 180.0f, (Vector3){1.0, 1.0, 1.0}, BLUE);
 
     if (do_check) {
         if (cindex + 1 == ROBOT_MAX_RENDER_QUEUE) {

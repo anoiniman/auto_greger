@@ -295,6 +295,11 @@ function World:getBlockAbs(x, z, y)
     local index = self.blocks:getIndex(x, z, y)
     local block = self.blocks.block_array[index]
     if type(block) == "number" then block = nil end
+
+    --[[if block ~= nil then
+        for k, v in pairs(block) do print(k, v) end
+    end--]]
+
     return block
 end
 

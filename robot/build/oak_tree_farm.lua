@@ -44,9 +44,9 @@ if V_ENV then
     local _, KnownBlocks = table.unpack(a)
 
     Module.dictionary2 = {
-        ["s"] = KnownBlocks:getByLabel("Oak Sapling"),
-        ["c"] = KnownBlocks:getByLabel("Chest"),
-        ["d"] = KnownBlocks:getByLabel("Grass"),
+        ["s"] = KnownBlocks:getByLabel("Oak Sapling") or KnownBlocks:default(),
+        ["c"] = KnownBlocks:getByLabel("Chest") or KnownBlocks:default(),
+        ["d"] = KnownBlocks:getByLabel("Grass") or KnownBlocks:default(),
         ["|"] = 0,
     }
 end

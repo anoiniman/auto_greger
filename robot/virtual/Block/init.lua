@@ -1,13 +1,17 @@
 local deep_copy = require("deep_copy")
 local ItemInfo = require("virtual.item.ItemInfo")
 
+local oak_sapling = require("virtual.Block.oak_sapling")
+
 --[[local ViewportBehaviour = {
 
 }--]]
 
 local function newColor(name, r, g, b, a)
+    a = a or 212
     return {name, r, g, b, a}
 end
+
 
 -- In implementing sapling falling from leaves, orthographic projection into the floor
 -- and "fall" in the nearest possible item
@@ -23,12 +27,16 @@ local Block = {
     },
     dropped_items = {},
 
-    color = newColor("Default", 48, 212, 138, 212),
+    -- color = newColor("Default", 48, 212, 138, 212),
+    -- color = newColor("Default", 68, 140, 108, 212),
+    -- color = newColor("Default", 46, 81, 65, 212),
+    color = newColor("Default", 57, 117, 90, 212),
     passable = false,
     shape = "Cube",
 
     right_click = nil,
     block_break = nil,
+    tick = nil,
     -- viewport = ViewportBehaviour:default(),
 }
 
@@ -37,6 +45,7 @@ function Block:new(name, label, color, passable, meta_type, harvestTool, harvest
     new.item_info.name = name
     new.item_info.label = label
     new.color = color
+    -- print(label, passable)
     new.passable = passable or false
     new.meta_type = meta_type or "solid"
 
@@ -116,7 +125,8 @@ end
 -- TODO separate block declrations into separate files, maybe
 
 local gray1 = newColor("Gray1", 33, 33, 33, 246)
-local grass_green = newColor("GrassGreen", 164, 249, 149, 212)
+-- local grass_green = newColor("GrassGreen", 164, 249, 149, 212)
+local grass_green = newColor("GrassGreen", 71, 81, 64, 212)
 
 -- For now, placing things like saplings will not check if block below is grass/dirt etc.
 local known_blocks = {
@@ -125,9 +135,12 @@ local known_blocks = {
     BlockFactory:make("minecraft:dirt", "Dirt", grass_green),
     BlockFactory:make("minecraft:cobblestone", "Cobblestone", gray1),
 
-    BlockFactory:make("minecraft:chest", "Chest", newColor(120, 12, 42, 212)),
-    BlockFactory:make("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
-    BlockFactory:make("", "", newColor(133, 133, 133, 212)),
+    BlockFactory:make("minecraft:chest", "Chest", newColor("chest", 120, 12, 42, 212)),
+    -- BlockFactory:make("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
+    BlockFactory:make("", "", newColor("What", 133, 133, 133, 212)),
+
+    -- posteriorily group similar recipes together with the same name and table them together
+    table.unpack(oak_sapling:provideAndGet(Block, newColor)),
 }
 
 local KnownBlocks = {
