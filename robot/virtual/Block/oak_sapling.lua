@@ -26,6 +26,7 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
     local replace_white_list = {
         -- KnownBlocks:getByLabel("")
         KnownBlocks:air(),
+        KnownBlocks:getByLabel("Oak Leaves"),
         oak_sap,    
     }
 
@@ -46,7 +47,7 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         },
         {
         "-------",
-        "-/////-",
+        "-////--",
         "-/////-",
         "-//o//-",
         "-/////-",
@@ -96,7 +97,7 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         offset_table[3] = offset_table[3] - 1
 
         if state.growth_stage >= 2 then
-            print(pos[1], pos[2], pos[3])
+            -- print(pos[1], pos[2], pos[3])
             world.block_set:parseNativeSchematic(
                 tree_schematic,
                 tree_dictionary,
