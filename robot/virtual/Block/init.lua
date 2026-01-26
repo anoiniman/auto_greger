@@ -36,7 +36,9 @@ local Block = {
 
     right_click = nil,
     block_break = nil,
+
     tick = nil,
+    on_place = nil,
     -- viewport = ViewportBehaviour:default(),
 }
 
@@ -127,6 +129,7 @@ end
 local gray1 = newColor("Gray1", 33, 33, 33, 246)
 -- local grass_green = newColor("GrassGreen", 164, 249, 149, 212)
 local grass_green = newColor("GrassGreen", 71, 81, 64, 212)
+local leaf_green = newColor("LeafGreen", 49, 168, 43, 124)
 
 -- For now, placing things like saplings will not check if block below is grass/dirt etc.
 local known_blocks = {
@@ -138,14 +141,17 @@ local known_blocks = {
     BlockFactory:make("minecraft:chest", "Chest", newColor("chest", 120, 12, 42, 212)),
     -- BlockFactory:make("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
     BlockFactory:make("", "", newColor("What", 133, 133, 133, 212)),
-
-    -- posteriorily group similar recipes together with the same name and table them together
-    table.unpack(oak_sapling:provideAndGet(Block, newColor)),
+    BlockFactory:make("minecraft:oak_leaves", "Oak Leaves", leaf_green),
+    BlockFactory:make("minecraft:log", "Oak Log", newColor("LogBrown", 68, 53, 29, 212)),
 }
 
 local KnownBlocks = {
     blocks = known_blocks,
 }
+
+function KnownBlocks:air()
+    return 0
+end
 
 function KnownBlocks:default()
     return self.blocks[1]
@@ -166,5 +172,16 @@ function KnownBlocks:getByItemInfo(item_info)
         if iblock_info:isSame(item_info) then return block end
     end
 end
+
+local function unpackComplexBlock(meta_block)
+    local block_table = KnownBlocks.blocks
+    for _, block in ipairs(meta_block:provideAndGet(Block, KnownBlocks, newColor)) do
+        table.insert(block_table, block)
+    end
+end
+
+-- posteriorily group similar recipes together with the same name and table them together
+unpackComplexBlock(oak_sapling)
+
 
 return {Block, KnownBlocks}

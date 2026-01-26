@@ -32,14 +32,16 @@ local BlockSet = {
     size_z = nil,
     size_y = nil,
 
+    tick_array = {},
     block_array = nil,
+    world = nil
 }
 BlockSet.size_x = BlockSet.size_array[1]
 BlockSet.size_z = BlockSet.size_array[2]
 BlockSet.size_y = BlockSet.size_array[3]
 
 -- There is something wierd with the "fake pointers" that the value is not getting updated
-function BlockSet:new(size_x, size_z, size_y)
+function BlockSet:new(size_x, size_z, size_y, world)
     local pos_args = {size_x, size_z, size_y}
     local new = COPY(self)
     new.size_x = new.size_array[1]
@@ -59,6 +61,7 @@ function BlockSet:new(size_x, size_z, size_y)
         new.block_array[i] = 0
     end
 
+    new.world = world
     return new
 end
 
@@ -81,8 +84,26 @@ function BlockSet:getIndex(x, z, y)
     return index
 end
 
+function BlockSet:checkAndRemoveTickBlock(index)
+    local jindex
+    for j, entry in ipairs(self.tick_array) do
+        local i = entry[2]
+        if i == index then jindex = j end
+    end
+    if jindex == nil then return end
+    
+    -- self.tick_array[jindex] = nil
+    table.remove(self.tick_array, jindex)
+end
+
 function BlockSet:removeBlock(x, z, y)
     local index = self:getIndex(x, z, y)
+    
+    --[[local block = self.block_array[index]
+    print(block.item_info.label)--]]
+
+    if self.block_array[index].tick ~= nil then self:checkAndRemoveTickBlock(index) end
+
     self.block_array[index] = nil
 end
 
@@ -96,6 +117,11 @@ function BlockSet:addBlock(new_block, x, z, y)
         end
     end
 
+    local index = self:getIndex(x, z, y)
+    local old_block = self.block_array[index]
+    if type(old_block) ~= "number" then
+        self:removeBlock(x, z, y)
+    end
     self:addUnchecked(new_block, x, z, y)
 end
 
@@ -107,6 +133,12 @@ function BlockSet:addUnchecked(new_block, x, z, y)
     -- print(index)
     -- print(self:getCoords(index))
     -- io.read()
+
+    if type(new_block) ~= "number" and new_block.tick ~= nil then 
+        local state = new_block.on_place(self.world)
+        table.insert(self.tick_array, {new_block, index, state})
+    end
+    -- if type(new_block) ~= "number" then print(new_block.item_info.label) end
 
     self.block_array[index] = new_block
     -- render_api.setIntArray(self.block_array, index, new_block);
@@ -124,6 +156,19 @@ end
 
 function BlockSet:addPrism(block, y1, y2, z1, z2, x1, x2)
     for yindex = y1, y2, 1 do self:addRectangle(block, yindex, z1, z2, x1, x2) end
+end
+
+function BlockSet:tick(world)
+    -- print(#self.tick_array)
+    for _, entry in ipairs(self.tick_array) do
+        local block = entry[1]
+        local x, z, y = self:getCoords(entry[2])
+        local state = entry[3]
+
+        local pos = {x, z, y}
+
+        block.tick(world, state, pos)
+    end
 end
 
 local dic = {
@@ -145,11 +190,38 @@ local schem = {
     }
 }
 
-function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table)
+local function block_in_list(block, list)
+    if list == nil then return false end
+    if type(block) ~= "number" then
+        for _, other_block in ipairs(list) do
+            if  type(other_block) ~= "number"
+                and block.item_info:isSame(other_block.item_info) 
+            then 
+                return true 
+            end
+        end
+    else
+        for _, other_block in ipairs(list) do
+            if type(other_block) == "number" then return true end
+        end
+    end
+
+    return false
+end
+
+local function is_char_special(char)
+    return char == '-' or char == '*' or char == '+' or char == '?'
+end
+
+function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table, unchecked, replace_list, black_list)
     local x_offset, z_offset, y_offset = table.unpack(offset_table)
     x_offset = x_offset or 0
     z_offset = z_offset or 0
     y_offset = y_offset or 0
+
+    local add_function
+    if unchecked then add_function = self.addUnchecked
+    else add_function = self.addBlock end
 
     for yindex, slice in ipairs(schematic_table) do
         yindex = yindex + y_offset
@@ -160,7 +232,21 @@ function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table
             for char in string.gmatch(column, ".") do
                 local block = dictionary[char]
                 -- local block = Block:default()
-                if char ~= '-' then self:addUnchecked(block, xindex, zindex, yindex) end
+                if not is_char_special(char) then
+                    if block == nil then error(string.format("Dic entry for: \"%s\" is nil", char)) end
+
+                    local block_index = self:getIndex(xindex, zindex, yindex)
+                    local old_block = self.block_array[block_index]
+                    local in_list = block_in_list(old_block, replace_list)
+
+                    if black_list == nil then
+                        add_function(self, block, xindex, zindex, yindex)
+                    elseif black_list == true and not in_list then
+                        add_function(self, block, xindex, zindex, yindex)
+                    elseif black_list == false and in_list then -- white-list
+                        add_function(self, block, xindex, zindex, yindex)
+                    end
+                end
                 xindex = xindex + 1
             end
         end
@@ -179,29 +265,32 @@ function BlockSet:instantiateBuilding(name, chunk_tbl, height, quad_num)
     local offset_table = primitive.origin_block
 
     if dictionary == nil then error("Remember to adapt the building table you want to use: " .. name) end
-    self:parseNativeSchematic(schematic_table, dictionary, offset_table)
+    self:parseNativeSchematic(schematic_table, dictionary, offset_table, true)
 end
 
 -- How about we backport our bitmap map loader, with the height being mesured with the
 -- r: channel, and blocktype by the g:channel, and the b channel reserved for later,
 -- prob no need for an alpha channel
 local World = {
-    blocks = BlockSet:new(24, 24, 24),
+    -- block_set = BlockSet:new(24, 24, 24),
+    block_set = nil,
     test_conditions = nil,
     robot_rep = nil,
 
+    tick_num = 0,
     render_check = 0,
 }
 
 function World:default()
     local new = COPY(self)
-    new.blocks:addPrism(Block:default(), 0, 2, 0, 2, 0, 2)
+    new.block_set = BlockSet:new(24, 24, 24, self)
+    new.block_set:addPrism(Block:default(), 0, 2, 0, 2, 0, 2)
     return new
 end
 
 function World:empty(x_size, z_size, y_size, robot_rep)
     local new = COPY(self)
-    new.blocks = BlockSet:new(x_size, z_size, y_size)
+    new.block_set = BlockSet:new(x_size, z_size, y_size, self)
     new.robot_rep = robot_rep
     return new
 end
@@ -219,8 +308,8 @@ function World:fromSchematic(schematic, dictionary, robot_rep)
         end
     end
 
-    new.blocks = BlockSet:new(x_size, z_size, y_size)
-    new.blocks:parseNativeSchematic(schematic, dictionary)
+    new.block_set = BlockSet:new(x_size, z_size, y_size, self)
+    new.block_set:parseNativeSchematic(schematic, dictionary)
 
     new.robot_rep = robot_rep
     return new
@@ -292,8 +381,8 @@ end
 
 -- Added a cast in order to make sure that a number value is interpreted as nil
 function World:getBlockAbs(x, z, y)
-    local index = self.blocks:getIndex(x, z, y)
-    local block = self.blocks.block_array[index]
+    local index = self.block_set:getIndex(x, z, y)
+    local block = self.block_set.block_array[index]
     if type(block) == "number" then block = nil end
 
     --[[if block ~= nil then
@@ -304,25 +393,26 @@ function World:getBlockAbs(x, z, y)
 end
 
 function World:placeBlock(block, x, z, y)
-    self.blocks:addBlock(block, x, z, y)
+    self.block_set:addBlock(block, x, z, y)
 end
 
 function World:removeBlock(x, z, y)
-    self.blocks:removeBlock(x, z, y)
+    self.block_set:removeBlock(x, z, y)
 end
 
 
 function World:simulate()
-
+    self.tick_num = self.tick_num + 1
+    self.block_set:tick(self)
 end
 
 function World:render()
-    local blocks = self.blocks
+    local blocks = self.block_set
     for index, block in pairs(blocks.block_array) do
         -- print(index)
         if type(block) == "number" then goto continue end
-        local x, z, y = self.blocks:getCoords(index)
-        --print(x,z,y)
+        local x, z, y = self.block_set:getCoords(index)
+        -- print(x,z,y)
         --io.read()
 
         render_api.render_world(x, z, y, block.color)

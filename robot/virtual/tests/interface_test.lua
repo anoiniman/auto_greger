@@ -25,8 +25,8 @@ local robot_rep = RobotRep:new(world)
 world:setRobotRep(robot_rep)
 robot_rep:setPosition(8, 8, 4)
 
-world.blocks:addPrism(KnownBlocks:default(), 0, 3, 0, 15, 0, 15)
-world.blocks:instantiateBuilding("oak_tree_farm", {0, 0}, 3, 4)
+world.block_set:addPrism(KnownBlocks:default(), 0, 3, 0, 15, 0, 15)
+world.block_set:instantiateBuilding("oak_tree_farm", {0, 0}, 3, 4)
 
 local test = test_interface:addTest(world, __f_pass, __f_fail, command_list)
 test:trackObj(table.unpack(nav_tracking))

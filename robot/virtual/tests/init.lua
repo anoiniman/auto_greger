@@ -155,6 +155,8 @@ function Test:doStep(__f_robo_main)
     --[[for _, v in pairs(self.world.robot_rep.position) do
         print(v)
     end--]]
+
+    self.world:simulate()
 end
 
 function Test:initWorld()
