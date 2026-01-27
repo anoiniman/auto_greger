@@ -3,13 +3,26 @@ local comms = require("comms")
 
 -- local serialize = require("serialization")
 
-local MetaInventory, MetaItem = table.unpack(require("inventory.MetaExternalInventory"))
+local a = require("inventory.MetaExternalInventory")
+local MetaInventory, MetaItem = table.unpack(a)
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 
 -- local general_functions = require("build.general_functions")
 
 local Module = {parent = nil}
 Module.name = "sp_storeroom"
+
+if V_ENV then
+    local a = require("virtual.Block")
+    local _, KnownBlocks = table.unpack(a)
+
+    Module.dictionary2 = {
+        ["c"] = KnownBlocks:getByLabel("Chest") or KnownBlocks:default(),
+        ["p"] = KnownBlocks:getByLabel("Oak Plank") or KnownBlocks:default(),
+        ["l"] = KnownBlocks:getByLabel("Oak Log") or KnownBlocks:default(),
+        -- ["|"] = 0,
+    }
+end
 
 Module.dictionary = {
     c = {"Chest", "minecraft:chest"},
@@ -39,7 +52,7 @@ Module.base_table = {
     },
     {
     "--l-l--",
-    "-------",
+    "l-----l",
     "-------",
     "cc*-*cc", -- 7,8
     "-------",

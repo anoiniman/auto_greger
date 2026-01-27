@@ -1,4 +1,5 @@
 local oak_sapling = {}
+local tree_generator = require("virtual.schematics.oak_tree")
 
 -- local __d_growth_factor = "fast"
 local __d_growth_factor = "instant"
@@ -30,60 +31,9 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         oak_sap,    
     }
 
-    local tree_dictionary = {
-        ["o"] = KnownBlocks:getByLabel("Oak Log") or KnownBlocks:default(),
-        ["/"] = KnownBlocks:getByLabel("Oak Leaves") or KnownBlocks:default(),
-    }
 
-    local tree_schematic = {
-        {
-        "-------",
-        "-------",
-        "-------",
-        "---o---",
-        "-------",
-        "-------",
-        "-------",
-        },
-        {
-        "-------",
-        "-////--",
-        "-/////-",
-        "-//o//-",
-        "-/////-",
-        "-/////-",
-        "-------",
-        },
-        {
-        "-------",
-        "-/////-",
-        "-/////-",
-        "-//o//-",
-        "-/////-",
-        "-/////-",
-        "-------",
-        },
-        {
-        "-------",
-        "-------",
-        "--///--",
-        "-//o//-",
-        "--///--",
-        "-------",
-        "-------",
-        },
-        {
-        "-------",
-        "-------",
-        "--///--",
-        "--///--",
-        "--///--",
-        "-------",
-        "-------",
-        },
-    }
-
-    oak_sap.tick = function(world, state, pos)
+    local tree_schematic, tree_dictionary, tree_rel_offset = table.unpack(tree_generator.generate(KnownBlocks))
+    oak_sap.tick = function(world, state, offset_table)
         -- print(pos[1], pos[2], pos[3])
 
         if state.last_tick == -1 then state.last_tick = world.tick_num end
@@ -91,10 +41,9 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
             state.growth_stage = state.growth_stage + 1
         end
 
-        local offset_table = pos
-        offset_table[1] = offset_table[1] - 3
-        offset_table[2] = offset_table[2] - 4
-        offset_table[3] = offset_table[3] - 1
+        for k, v in ipairs(tree_rel_offset) do
+            offset_table[k] = offset_table[k] + v
+        end
 
         if state.growth_stage >= 2 then
             -- print(pos[1], pos[2], pos[3])
