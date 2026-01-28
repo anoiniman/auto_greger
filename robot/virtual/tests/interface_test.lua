@@ -41,7 +41,7 @@ world.block_set:parseNativeSchematic(
     oak_coords,
     true
 )
--- world.block_set:instantiateBuilding("oak_tree_farm", {0, 0}, 3, 4)
+world.block_set:instantiateBuilding("oak_tree_farm", {0, 0}, 3, 4)
 world.block_set:instantiateBuilding("sp_storeroom", {0, 0}, 3, 1)
 
 local test = test_interface:addTest(world, __f_pass, __f_fail, command_list)

@@ -134,9 +134,10 @@ function BlockSet:addUnchecked(new_block, x, z, y)
     -- print(self:getCoords(index))
     -- io.read()
 
+    new_block = COPY(new_block)
     if type(new_block) ~= "number" and new_block.tick ~= nil then 
-        local state = new_block.on_place(self.world)
-        table.insert(self.tick_array, {new_block, index, state})
+        new_block.on_place(self.world, new_block)
+        table.insert(self.tick_array, {new_block, index})
     end
     -- if type(new_block) ~= "number" then print(new_block.item_info.label) end
 
@@ -163,11 +164,11 @@ function BlockSet:tick(world)
     for _, entry in ipairs(self.tick_array) do
         local block = entry[1]
         local x, z, y = self:getCoords(entry[2])
-        local state = entry[3]
+        -- local state = entry[3]
 
         local pos = {x, z, y}
 
-        block.tick(world, state, pos)
+        block.tick(world, block, pos)
     end
 end
 

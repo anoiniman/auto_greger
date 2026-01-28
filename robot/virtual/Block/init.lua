@@ -38,6 +38,7 @@ local Block = {
     block_break = nil,
 
     tick = nil,
+    t_state = nil,
     on_place = nil,
     -- viewport = ViewportBehaviour:default(),
 }
@@ -58,7 +59,7 @@ function Block:new(name, label, color, passable, meta_type, harvestTool, harvest
 end
 
 function Block:default()
-    return deep_copy.copy(self)
+    return COPY(self)
 end
 
 function Block:pickUpOneItemStack()
@@ -82,6 +83,7 @@ function Block:use(with_what)
 
     return false
 end
+
 
 -- luacheck: push ignore
 -- TODO, maybe one day implement uhhh blocks being air idk maybe
@@ -161,7 +163,7 @@ end
 function KnownBlocks:getByLabel(label)
     for _, block in ipairs(self.blocks) do
         local iblock_info = block.item_info
-        if iblock_info.label == label then return block end
+        if iblock_info.label == label then return COPY(block) end
     end
 
     return nil
@@ -170,7 +172,7 @@ end
 function KnownBlocks:getByItemInfo(item_info)
     for _, block in ipairs(self.blocks) do
         local iblock_info = block.item_info
-        if iblock_info:isSame(item_info) then return block end
+        if iblock_info:isSame(item_info) then return COPY(block) end
     end
 end
 

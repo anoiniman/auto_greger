@@ -33,9 +33,11 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
 
 
     local tree_schematic, tree_dictionary, tree_rel_offset = table.unpack(tree_generator.generate(KnownBlocks))
-    oak_sap.tick = function(world, state, offset_table)
+    -- oak_sap.tick = function(world, state, offset_table)
+    oak_sap.tick = function(world, block, offset_table)
         -- print(pos[1], pos[2], pos[3])
 
+        local state = block.t_state
         if state.last_tick == -1 then state.last_tick = world.tick_num end
         if world.tick_num >= state.tick_threshold + state.last_tick then
             state.growth_stage = state.growth_stage + 1
@@ -61,14 +63,14 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         end
     end
 
-    oak_sap.on_place = function(world) 
+    oak_sap.on_place = function(world, block)
         local state = {
             growth_stage = 0,
             tick_threshold = new_threshold(),
             last_tick = world.tick_num,
         }
 
-        return state
+        block.t_state = state
     end
 
     return {oak_sap}
