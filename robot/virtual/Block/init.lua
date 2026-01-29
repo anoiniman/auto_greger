@@ -143,7 +143,7 @@ local known_blocks = {
     BlockFactory:make("minecraft:chest", "Chest", newColor("chest", 120, 12, 42, 212)),
     -- BlockFactory:make("minecraft:oak_sapling", "Oak Sapling", newColor(120, 12, 42, 212)),
     BlockFactory:make("", "", newColor("What", 133, 133, 133, 212)),
-    BlockFactory:make("minecraft:oak_leaves", "Oak Leaves", leaf_green),
+    -- BlockFactory:make("minecraft:oak_leaves", "Oak Leaves", leaf_green),
     BlockFactory:make("minecraft:log", "Oak Log", newColor("OakLogBrown", 68, 53, 29, 212)),
     BlockFactory:make("minecraft:plank", "Oak Plank", newColor("OakPlankBrown", 147, 135, 91, 212)),
 }

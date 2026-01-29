@@ -13,16 +13,6 @@ local render = require("librender")
 local robot_step = require("robo_main")
 local post_exit = require("post_exit")
 
-local function sleep(n)
-    n = tonumber(n)
-    if n == nil then return end
-    --[[local str = tostring(n) .. "s"
-    os.execute("sleep " .. str)--]]
-    local ntime = os.clock() + n
-    repeat until os.clock() > ntime
-end
--- luacheck push ignore
-os.sleep = sleep
 -- luacheck pop ignore
 
 local deep_copy = require("deep_copy")
@@ -32,6 +22,7 @@ local RobotRep = require("virtual.RobotRep")
 -- local TestInterface, tests = table.unpack{require("tests")}
 local test_interface = require("virtual.tests")
 local test_table = require("virtual.tests.test_table")
+
 
 
 --[[local world = World:default()
@@ -51,7 +42,32 @@ local test = require("virtual.tests.interface_test")
 test:initWorld()
 --world:init()
 
-local simulate_time = 0.5
+local function sleep(n)
+    n = tonumber(n)
+    if n == nil then return end
+    --[[local str = tostring(n) .. "s"
+    os.execute("sleep " .. str)--]]
+    local ntime = os.clock() + n
+    repeat
+        render.render(test.world.render, test.world, test.world.renderRobot, test.world)
+    until os.clock() > ntime
+end
+-- luacheck push ignore
+os.sleep = sleep
+
+
+local act_clock
+local act_time = 0.5
+function FORCE_RENDER()
+    act_clock = os.clock()
+
+    while act_clock + act_time > os.clock() do
+        render.render(test.world.render, test.world, test.world.renderRobot, test.world)
+    end
+end
+
+
+local simulate_time = 0.33
 local simulate_clock = os.clock()
 
 local step_ok

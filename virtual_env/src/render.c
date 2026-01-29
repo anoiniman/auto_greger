@@ -388,10 +388,15 @@ static int render(lua_State *L) {
 // Remember to create a custom camera movement behaviour soon
 static int init(lua_State *L) {
     SetConfigFlags(FLAG_VSYNC_HINT);
-    int screenWidth = 1280;
-    int screenHeight = 720;
+    /*int screenWidth = 1280;
+    int screenHeight = 720;*/
+    int screenWidth = 1664;
+    int screenHeight = 936;
     InitWindow(screenWidth, screenHeight, "VirtuCraft Renderer");
+
     SetTargetFPS(RENDER_FPS);
+    //SetWindowState(FLAG_WINDOW_RESIZABLE);
+    //MaximizeWindow();
 
     camera = (Camera){ 0 };
     camera.position =   (Vector3) { 0, 10, 10};

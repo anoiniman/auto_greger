@@ -13,6 +13,28 @@ local function new_threshold()
 end
 
 function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
+    local leaf_green = newColor("LeafGreen", 49, 168, 43, 124)
+    local oak_leaves = Block:new(
+        "minecraft:oak_leaves",
+        "Oak Leaves",
+        leaf_green,
+        false,
+        "solid",
+        "shovel",
+        0
+    )
+    oak_leaves.tick = function(world, block, offset_table)
+
+    end
+
+    oak_leaves.on_place = function(world, block)
+        local state = {
+        }
+
+        block.t_state = state
+    end
+
+
     local oak_sapling_blue = newColor("OakSaplingBlue", 90, 147, 143, 212)
     local oak_sap = Block:new(
         "minecraft:sapling",
@@ -27,7 +49,8 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
     local replace_white_list = {
         -- KnownBlocks:getByLabel("")
         KnownBlocks:air(),
-        KnownBlocks:getByLabel("Oak Leaves"),
+        COPY(oak_leaves),
+        -- KnownBlocks:getByLabel("Oak Leaves"),
         oak_sap,    
     }
 

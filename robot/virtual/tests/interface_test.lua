@@ -12,8 +12,8 @@ local oak_generator = require("virtual.schematics.oak_tree")
 local command_list = {
     "debug inv force add_all",
     "debug inv print internal",
-    -- "debug move east 4",
-    -- "debug move north 2",
+    "debug move east 4",
+    "debug move north 2",
 }
 
 local counter = 0
@@ -41,8 +41,8 @@ world.block_set:parseNativeSchematic(
     oak_coords,
     true
 )
-world.block_set:instantiateBuilding("oak_tree_farm", {0, 0}, 3, 4)
-world.block_set:instantiateBuilding("sp_storeroom", {0, 0}, 3, 1)
+-- world.block_set:instantiateBuilding("oak_tree_farm", {0, 0}, 3, 4)
+-- world.block_set:instantiateBuilding("sp_storeroom", {0, 0}, 3, 1)
 
 local test = test_interface:addTest(world, __f_pass, __f_fail, command_list)
 test:trackObj(table.unpack(nav_tracking))

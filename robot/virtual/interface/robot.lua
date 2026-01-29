@@ -179,6 +179,7 @@ local function sub_place(_side, _sneaky, dir)
     robot_rep.world:placeBlock(new_block, table.unpack(bpos))
     robot_rep.inventory:removeFromSlot(robot_rep.selected_slot, 1)
 
+    FORCE_RENDER()
     return true, nil
 end
 
@@ -222,6 +223,7 @@ local function sub_swing(_side, _sneak, dir)
     robot_rep.world:removeBlock(table.unpack(bpos))
 
     robot_rep.equiped_item:removeDurability(1)
+    FORCE_RENDER()
     return true
 end
 
@@ -244,6 +246,7 @@ local function sub_move(dir, move_func)
     local pass, info = sub_detect(dir)
     if not pass then return false, info end
 
+    FORCE_RENDER()
     return move_func(robot_rep)
 end
 
