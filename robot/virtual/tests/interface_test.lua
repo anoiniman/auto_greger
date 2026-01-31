@@ -12,8 +12,8 @@ local oak_generator = require("virtual.schematics.oak_tree")
 local command_list = {
     "debug inv force add_all",
     "debug inv print internal",
-    "debug move east 4",
-    "debug move north 2",
+    -- "debug move east 4",
+    -- "debug move north 2",
 }
 
 local counter = 0

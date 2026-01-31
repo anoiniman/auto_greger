@@ -1,5 +1,5 @@
 local tree_generator = require("virtual.schematics.oak_tree")
-local KnownItem = require("virtual.item.KnownItem")
+local KnownItems = require("virtual.item.KnownItems")
 
 local oak_sapling = {}
 
@@ -32,13 +32,19 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         if world.tick_num < state.tick_threshold + state.last_tick then return end
 
         local there_is_log = false
+        local log_example = KnownBlocks:getByLabel("Oak Wood").item_info
 
         for y = offset_table[3] - 2, offset_table[3] + 2, 1 do
         for z = offset_table[2] - 2, offset_table[2] + 2, 1 do
         for x = offset_table[1] - 2, offset_table[1] + 2, 1 do
-             
+            local block = world:getBlockAbs(x, z, y)
+            if block == nil then goto continue end
+            -- print(block.item_info.label)
+            if block.item_info:isSame(log_example) then there_is_log = true end
 
+            ::continue::
         end end end
+        -- if there_is_log then print("there is log"); return end
         if there_is_log then return end
 
         local drop_chance = 0.05 
@@ -49,7 +55,7 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         for y = offset_table[3] - 1, 0, -1 do
             local block = world:getBlockAbs(offset_table[1], offset_table[2], y)
             if block ~= nil then
-                local item = KnownItem:getByLabel("Oak Sapling")
+                local item = KnownItems:getByLabel("Oak Sapling")
                 item.size = 1
                 print(string.format(
                     "Dropped sapling (%s) into: %s (%d, %d, %d)",
@@ -142,7 +148,7 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         block.t_state = state
     end
 
-    return {oak_sap}
+    return {oak_sap, oak_leaves}
 end
 
 return oak_sapling

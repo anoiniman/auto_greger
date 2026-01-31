@@ -4,7 +4,7 @@ function module.generate(KnownBlocks)
     if KnownBlocks == nil then error("Known Blocks nil") end
 
     local tree_dictionary = {
-        ["o"] = KnownBlocks:getByLabel("Oak Log") or KnownBlocks:default(),
+        ["o"] = KnownBlocks:getByLabel("Oak Wood") or KnownBlocks:default(),
         ["/"] = KnownBlocks:getByLabel("Oak Leaves") or KnownBlocks:default(),
     }
 

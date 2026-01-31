@@ -97,6 +97,7 @@ function BlockSet:checkAndRemoveTickBlock(index)
     table.remove(self.tick_array, jindex)
 end
 
+-- TODO: when block is removed, items that are in its "dropped" "inventory" need to be further "dropped" down
 function BlockSet:removeBlock(x, z, y)
     local index = self:getIndex(x, z, y)
     
@@ -173,16 +174,18 @@ function BlockSet:tick(world)
         local result = block.tick(world, block, pos)
         if result ~= nil then
             if result == "destroy_self" then
-                
+                if delete_table == nil then delete_table = {} end
+                table.insert(delete_table, pos)
             else
                 error("result unknown: " .. result)
             end
         end
     end
 
-    -- TODO: continue from here
     if delete_table ~= nil then
-
+        for _, pos in ipairs(delete_table) do
+            self:removeBlock(table.unpack(pos))
+        end
     end
 
 end

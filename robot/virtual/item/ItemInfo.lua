@@ -5,8 +5,8 @@ local ItemInfo = {
     size = 0,
     maxSize = 64,
 
-    name = "nil",
-    label = "nil",
+    name = "default",
+    label = "default",
     equipment_data = {
         type = "none",
         level = -1,
@@ -35,6 +35,7 @@ function ItemInfo:defaultItem()
 end
 
 function ItemInfo:isSame(item_info)
+    if item_info.label == nil or item_info.name == nil then error("Bad Iteminfo") end
     return self.label == item_info.label and self.name == item_info.name
 end
 
