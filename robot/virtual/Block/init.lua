@@ -1,5 +1,6 @@
 local deep_copy = require("deep_copy")
 local ItemInfo = require("virtual.item.ItemInfo")
+local KnownItem = require("virtual.item.KnownItem")
 
 local oak_sapling = require("virtual.Block.oak_sapling")
 
@@ -16,7 +17,7 @@ end
 -- In implementing sapling falling from leaves, orthographic projection into the floor
 -- and "fall" in the nearest possible item
 local Block = {
-    item_info = ItemInfo:defaultBlock(),
+    item_info = ItemInfo:defaultItem(),
     ginfo = {
         color = 6666666,
         hardness = 0.66,
@@ -47,6 +48,8 @@ function Block:new(name, label, color, passable, meta_type, harvestTool, harvest
     local new = COPY(self)
     new.item_info.name = name
     new.item_info.label = label
+    KnownItem:register(new.item_info)
+
     new.color = color
     -- print(label, passable)
     new.passable = passable or false

@@ -1,5 +1,9 @@
-local oak_sapling = {}
 local tree_generator = require("virtual.schematics.oak_tree")
+local KnownItem = require("virtual.item.KnownItem")
+
+local oak_sapling = {}
+
+local __f_leaf_decay = function() return math.random(10, 20) end
 
 -- local __d_growth_factor = "fast"
 local __d_growth_factor = "instant"
@@ -24,11 +28,53 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         0
     )
     oak_leaves.tick = function(world, block, offset_table)
+        local state = block.t_state
+        if world.tick_num < state.tick_threshold + state.last_tick then return end
 
+        local there_is_log = false
+
+        for y = offset_table[3] - 2, offset_table[3] + 2, 1 do
+        for z = offset_table[2] - 2, offset_table[2] + 2, 1 do
+        for x = offset_table[1] - 2, offset_table[1] + 2, 1 do
+             
+
+        end end end
+        if there_is_log then return end
+
+        local drop_chance = 0.05 
+        if math.random() > drop_chance then return "destroy_self" end
+
+        -- Sapling falling to ground algorithm
+        local did_it = false
+        for y = offset_table[3] - 1, 0, -1 do
+            local block = world:getBlockAbs(offset_table[1], offset_table[2], y)
+            if block ~= nil then
+                local item = KnownItem:getByLabel("Oak Sapling")
+                item.size = 1
+                print(string.format(
+                    "Dropped sapling (%s) into: %s (%d, %d, %d)",
+                    item.label,
+                    block.item_info.label,
+                    offset_table[1],
+                    offset_table[2],
+                    y
+                ))
+
+                block:dropOneItemStack(item)
+                did_it = true
+                break
+            end
+        end
+
+        if not did_it then error("No floor???") end
+
+        return "destroy_self"
     end
 
     oak_leaves.on_place = function(world, block)
         local state = {
+            tick_threshold = __f_leaf_decay(),
+            last_tick = world.tick_num,
         }
 
         block.t_state = state

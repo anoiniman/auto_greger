@@ -59,6 +59,7 @@ function BlockSet:new(size_x, size_z, size_y, world)
     new.block_array = {}
     for i = 1, array_size, 1 do
         new.block_array[i] = 0
+        -- new.block_array[i] = 0
     end
 
     new.world = world
@@ -161,6 +162,7 @@ end
 
 function BlockSet:tick(world)
     -- print(#self.tick_array)
+    local delete_table = nil
     for _, entry in ipairs(self.tick_array) do
         local block = entry[1]
         local x, z, y = self:getCoords(entry[2])
@@ -168,8 +170,21 @@ function BlockSet:tick(world)
 
         local pos = {x, z, y}
 
-        block.tick(world, block, pos)
+        local result = block.tick(world, block, pos)
+        if result ~= nil then
+            if result == "destroy_self" then
+                
+            else
+                error("result unknown: " .. result)
+            end
+        end
     end
+
+    -- TODO: continue from here
+    if delete_table ~= nil then
+
+    end
+
 end
 
 local dic = {

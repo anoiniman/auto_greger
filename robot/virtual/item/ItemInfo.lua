@@ -27,7 +27,7 @@ function ItemInfo:fromPartialTable(table)
     return new
 end
 
-function ItemInfo:defaultBlock()
+function ItemInfo:defaultItem()
     local new = COPY(self)
     new.name = "minecraft:dirt"
     new.lable = "Dirt"
