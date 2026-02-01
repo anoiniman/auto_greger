@@ -38,7 +38,8 @@ print("------------ RAY LIB ---------------")
 print()
 
 
-local test = require("virtual.tests.interface_test")
+-- local test = require("virtual.tests.interface_test")
+local test = require("virtual.tests.2interdependent_tasks")
 test:initWorld()
 --world:init()
 
@@ -71,13 +72,17 @@ local simulate_time = 0.33
 local simulate_clock = os.clock()
 
 local step_ok
-local render_ok = 2
-while render_ok == 2 do
+while true do
     if os.clock() > simulate_clock + simulate_time then
         step_ok = test:doStep(robot_step)
         simulate_clock = os.clock()
     end
 
-    render_ok = render.render(test.world.render, test.world, test.world.renderRobot, test.world)
+    local render_result = render.render(test.world.render, test.world, test.world.renderRobot, test.world)
+    if render_result == 1 then break
+    elseif render_result == 2 then 
+        test.world.robot_rep:printInventory()
+        table.insert(test.command_list, "debug inv print internal") -- temp
+    end
 end
 

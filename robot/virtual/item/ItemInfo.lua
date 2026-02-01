@@ -22,7 +22,7 @@ end
 function ItemInfo:fromPartialTable(table)
     local new = COPY(self)
     for key, value in pairs(table) do
-        new.key = value
+        new[key] = value
     end
     return new
 end

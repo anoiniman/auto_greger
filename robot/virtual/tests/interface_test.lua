@@ -5,6 +5,7 @@ local test_interface = require("virtual.tests")
 
 local a = require("virtual.Block")
 local _, KnownBlocks = table.unpack(a)
+local KnownItems = require("virtual.item.KnownItems")
 
 local oak_generator = require("virtual.schematics.oak_tree")
 
@@ -19,7 +20,7 @@ local command_list = {
 local counter = 0
 local function __f_pass (test)
     if #test.command_list == 0 then counter = counter + 1 end
-    if counter == 20 then return true end
+    if counter == 4 then return true end
     return false
 end
 
@@ -46,5 +47,11 @@ world.block_set:parseNativeSchematic(
 
 local test = test_interface:addTest(world, __f_pass, __f_fail, command_list)
 test:trackObj(table.unpack(nav_tracking))
+
+local oak_sapling = KnownItems:getByLabel("Oak Sapling")
+local oak_wood = KnownItems:getByLabel("Oak Wood")
+if oak_sapling == nil then error() end
+robot_rep.inventory:addToSlot(oak_sapling, 4, 8)
+robot_rep.inventory:addToSlot(oak_wood, 8, 32)
 
 return test

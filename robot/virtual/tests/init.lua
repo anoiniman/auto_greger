@@ -76,6 +76,7 @@ function TrackObj:checkSelf()
         end
     end
 
+    print("self.obj_state: " .. self.obj_state)
     return self.obj_state
 end
 
@@ -93,6 +94,8 @@ local Test = {
     command_list = nil,
     interface = nil,
     world = nil,
+
+    step_count = 0,
 
     tracked_objects = {}, -- flat
     _f_pass = nil,
@@ -156,7 +159,11 @@ function Test:doStep(__f_robo_main)
         print(v)
     end--]]
 
+    if self.__f_pass ~= nil and self.__f_pass(self) then print("__f_pass") end
+    if self.__f_fail ~= nil and self.__f_fail(self) then print("__f_fail") end
+
     self.world:simulate()
+    self.step_count = self.step_count + 1
 end
 
 function Test:initWorld()

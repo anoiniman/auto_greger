@@ -27,6 +27,20 @@ function Inventory:special(size)
     return new
 end
 
+function Inventory:print()
+    print("Simulated Inventory:")
+    for slot_num, slot in ipairs(self.inner) do
+        if slot.is_empty then goto continue end
+        local item = slot.item    
+        print(string.format("[%d] (%s, %s) (%d)", slot_num, item.label, item.name, item.size))
+
+        ::continue::
+    end
+    print("-------")
+    print()
+end
+
+
 function Inventory:getSlot(slot_num)
     return self.inner[slot_num]
 end
@@ -58,6 +72,8 @@ function Inventory:addToSlot(item_info, slot_num, count)
     if entry == nil then return 0 end
     if entry.is_empty then
         local new_item_info = ItemInfo:fromPartialTable(item_info)
+        -- print(new_item_info.label, new_item_info.name)
+
         new_item_info.size = 0
         entry.item = new_item_info
         entry.is_empty = false
@@ -133,6 +149,9 @@ end
 
 function Inventory:isItemSame(item_info, slot_num)
     local eitem = self.inner[slot_num].item
+    -- print(eitem.label, eitem.name)
+    -- print(item_info.label, item_info.name)
+
     return eitem:isSame(item_info)
 end
 

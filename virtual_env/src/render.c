@@ -10,6 +10,7 @@
 // gcc getch.c -shared -o getch.so -fPIC -L/usr/include/lua5.4 -llua5.4
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #define RENDER_FPS 60
 
@@ -313,6 +314,8 @@ static int render_robot(lua_State *L) {
     return 1;
 }
 
+time_t key_timeout = 0.5;
+time_t key_time = 0;
 static int render(lua_State *L) {
     // expects first arg to be a function
     // and second arg to be the world table
@@ -376,17 +379,27 @@ static int render(lua_State *L) {
         EndShaderMode(); */
     EndDrawing();
 
+    int int_to_push = 0;
+    if (clock() / CLOCKS_PER_SEC > key_time / CLOCKS_PER_SEC + key_timeout) {
+        if (IsKeyDown(KEY_E)) {
+            key_time = clock();
+            int_to_push = 2;
+        }
+    }
+
+
     if (WindowShouldClose()) {
         close(L);
         lua_pushinteger(L, 1);
         return 1;
     }
-    lua_pushinteger(L, 2);
+    lua_pushinteger(L, int_to_push);
     return 1;
 }
 
 // Remember to create a custom camera movement behaviour soon
 static int init(lua_State *L) {
+    key_time = clock();
     SetConfigFlags(FLAG_VSYNC_HINT);
     /*int screenWidth = 1280;
     int screenHeight = 720;*/

@@ -30,6 +30,10 @@ function RobotRep:getPosition()
     return self.position[1], self.position[2], self.position[3]
 end
 
+function RobotRep:printInventory()
+    self.inventory:print()
+end
+
 function RobotRep:transferTo(slot_num, count)
     local from_entry = self.inventory:getSlot(self.selected_slot)
 
