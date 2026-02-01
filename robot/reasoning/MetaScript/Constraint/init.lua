@@ -2,8 +2,8 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 local ItemConstraint = require("reasoning.MetaScript.Constraint.ItemConstraint")
-local _, BuildingConstraint = table.unpack(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
-local OosConstraint, QuestObj = table.unpack(require("reasoning.MetaScript.Constraint.OosConstraint"))
+local _, BuildingConstraint = REQUIRE_UNPACK(require("reasoning.MetaScript.Constraint.BuildingConstraint"))
+local OosConstraint, QuestObj = REQUIRE_UNPACK(require("reasoning.MetaScript.Constraint.OosConstraint"))
 
 -- AKA, some sub-condition/way to alter the constraint condition, such that when met
 -- the force or the constraint is slackened, might be unimplemented for now

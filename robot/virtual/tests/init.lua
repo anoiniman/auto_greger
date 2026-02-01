@@ -160,7 +160,7 @@ function Test:doStep(__f_robo_main)
     end--]]
 
     if self.__f_pass ~= nil and self.__f_pass(self) then print("__f_pass") end
-    if self.__f_fail ~= nil and self.__f_fail(self) then print("__f_fail") end
+    if self.__f_fail ~= nil and self.__f_fail(self) == 1 then print("__f_fail") end
 
     self.world:simulate()
     self.step_count = self.step_count + 1

@@ -5,8 +5,8 @@ local oak_sapling = {}
 
 local __f_leaf_decay = function() return math.random(10, 20) end
 
--- local __d_growth_factor = "fast"
-local __d_growth_factor = "instant"
+local __d_growth_factor = "fast"
+-- local __d_growth_factor = "instant"
 
 local function new_threshold()
     -- average 920 ticks

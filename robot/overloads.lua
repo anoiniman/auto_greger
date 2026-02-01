@@ -34,3 +34,8 @@ function print (...) -- luacheck: ignore
     end
     OLD_PRINT(table.unpack(args));
 end
+
+function REQUIRE_UNPACK(one, two)
+    return table.unpack(one)
+end
+

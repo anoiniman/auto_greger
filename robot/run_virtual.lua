@@ -1,4 +1,9 @@
 -- luacheck globals V_ENV INV_SIZE
+local old_dofile = dofile
+function dofile (path)
+    path = string.gsub(path, "/home/robot/", "./")
+    return old_dofile(path)
+end
 
 package.path = "../shared/?.lua;" .. package.path
 package.path = "virtual/interface/?.lua;" .. package.path
@@ -24,6 +29,8 @@ local test_interface = require("virtual.tests")
 local test_table = require("virtual.tests.test_table")
 
 
+post_exit.do_presets()
+-- post_exit.load_state({})
 
 --[[local world = World:default()
 local robot_rep = RobotRep:new(world)
