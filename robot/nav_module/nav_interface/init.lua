@@ -153,7 +153,7 @@ function inward_facing.change_orientation(goal, nav_obj)
     nav_obj.orientation = goal
 end
 
-function to_export.c_orientation(goal, nav_obj)
+function to_export.change_orientation(goal, nav_obj)
     return inward_facing.change_orientation(goal, nav_obj)
 end
 

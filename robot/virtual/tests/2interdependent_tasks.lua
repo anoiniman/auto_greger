@@ -14,7 +14,7 @@ local reas = require("reasoning.reasoning_obj")
 local command_list = {
     "debug print nav",
     "debug inv force add_all",
-    -- "start_reason",
+    "start_reason",
     -- "debug inv print internal",
     -- "debug move east 4",
     -- "debug move north 2",

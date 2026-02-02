@@ -28,9 +28,6 @@ local Block = {
     },
     dropped_items = {},
 
-    -- color = newColor("Default", 48, 212, 138, 212),
-    -- color = newColor("Default", 68, 140, 108, 212),
-    -- color = newColor("Default", 46, 81, 65, 212),
     color = newColor("Default", 57, 117, 90, 212),
     passable = false,
     shape = "Cube",

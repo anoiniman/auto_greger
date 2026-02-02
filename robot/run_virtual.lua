@@ -63,18 +63,16 @@ os.sleep = sleep
 
 
 local act_clock
-local act_time = 0.5
+local simulate_time = 0.33
+local simulate_clock = os.clock()
 function FORCE_RENDER()
     act_clock = os.clock()
 
-    while act_clock + act_time > os.clock() do
+    while act_clock + simulate_time > os.clock() do
         render.render(test.world.render, test.world, test.world.renderRobot, test.world)
     end
 end
 
-
-local simulate_time = 0.33
-local simulate_clock = os.clock()
 
 local step_ok
 while true do
@@ -88,6 +86,10 @@ while true do
     elseif render_result == 2 then 
         test.world.robot_rep:printInventory()
         table.insert(test.command_list, "debug inv print internal") -- temp
+    elseif render_result == 3 then
+        simulate_time = simulate_time * 0.2
+    elseif render_result == 4 then
+        simulate_time = simulate_time * 5
     end
 end
 

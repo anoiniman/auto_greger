@@ -8,10 +8,6 @@ if V_ENV ~= nil then test_interface = require("virtual.tests") end
 local comms = require("comms") -- luacheck: ignore
 local deep_copy = require("deep_copy")
 
-local interface = require("nav_module.nav_interface")
-local chunk_move = require("nav_module.chunk_move")
-local rel_move = require("nav_module.rel_move")
-local door_move = require("nav_module.door_move")
 -----------------
 
 -- The robot will understand chunk boundries as movement highways in between chunks

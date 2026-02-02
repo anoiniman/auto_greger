@@ -174,7 +174,7 @@ end
 
 function BlockSet:addUncheckedPrism(new_block, x, z, y)
     local index = self:getIndex(x, z, y)
-    if x <= 0 or z <= 0 or x >= self.size_x() - 6 or z >= self.size_z() - 6 then
+    if x < 0 or z < 0 or x >= self.size_x() - 6 or z >= self.size_z() - 6 then
         new_block = Block:redBlock()
     end
 

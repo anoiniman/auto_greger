@@ -381,10 +381,14 @@ static int render(lua_State *L) {
 
     int int_to_push = 0;
     if (clock() / CLOCKS_PER_SEC > key_time / CLOCKS_PER_SEC + key_timeout) {
-        if (IsKeyDown(KEY_E)) {
-            key_time = clock();
-            int_to_push = 2;
-        }
+        int key_pressed = 1;
+
+        if (IsKeyDown(KEY_E)) int_to_push = 2;
+        else if (IsKeyDown(KEY_O)) int_to_push = 3;
+        else if (IsKeyDown(KEY_P)) int_to_push = 4;
+        else key_pressed = 0;
+
+        if (key_pressed) key_time = clock();
     }
 
 

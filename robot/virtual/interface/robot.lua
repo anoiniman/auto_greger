@@ -18,10 +18,10 @@ end
 
 local function sub_detect(dir)
     local block = robot_rep.world:getBlockRelSide(sides_api[dir])
-    if block == nil then return true, "passable" end -- its probabily air
+    if block == nil then return false, "passable" end -- its probabily air
 
     -- print(block.item_info.label)
-    return block.passable, block.meta_type
+    return not block.passable, block.meta_type
 end
 
 function robot.detect()
@@ -243,8 +243,8 @@ function robot.useDown(side, sneaky, duration) return sub_use(side, sneaky, dura
 
 
 local function sub_move(dir, move_func)
-    local pass, info = sub_detect(dir)
-    if not pass then return false, info end
+    local not_pass, info = sub_detect(dir)
+    if not_pass then return false, info end
 
     FORCE_RENDER()
     return move_func(robot_rep)

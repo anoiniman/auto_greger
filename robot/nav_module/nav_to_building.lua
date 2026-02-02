@@ -1,8 +1,11 @@
 local module = {}
 
 local comms = require("comms")
-local nav = require("nav_module.nav_obj")
 local map = require("nav_module.map_obj")
+
+local nav = require("nav_module.nav_obj")
+local chunk_move = require("nav_module.chunk_move")
+local door_move = require("nav_module.door_move")
 
 function module.need_move(what_chunk, door_info)
     local target_build = map.find_build(what_chunk, door_info) -- should be fine?
@@ -22,26 +25,27 @@ local chunk_moved = false
 
 -- false == continue, true == over
 function module.do_move(what_chunk, door_info)
+    local nav_obj = nav.get_obj()
     --------- CHUNK MOVE -----------
     if not chunk_moved then
         -- print("debug", "move_chunk")
-        if not nav.is_setup_navigate_chunk() then
-            nav.setup_navigate_chunk(what_chunk)
+        if not chunk_move.is_setup() then
+            chunk_move.setup_navigate_chunk(what_chunk, nav_obj)
         end
-        chunk_moved = nav.navigate_chunk("surface") -- for now surface move only
+        chunk_moved = chunk_move.navigate_chunk("surface", nav_obj) -- for now surface move only
         return false
     end
 
     -------- SANITY CHECK ---------
-    if nav.is_setup_navigate_chunk() then
+    if chunk_move.is_setup() then
         -- nav.force_reset_navigate_chunk()
         error(comms.robot_send("fatal", "eval, nav_and_build, did navigation not terminate gracefully?"))
     end
     -------- DO MOVE DOOR ----------
     if door_info ~= nil and #door_info ~= 0 then
         -- print("debug", "move_door")
-        if not nav.is_setup_door_move() then nav.setup_door_move(door_info) end
-        local result, err = nav.door_move()
+        if not door_move.is_setup() then door_move.setup_move(door_info, nav.get_rel()) end
+        local result, err = door_move.do_move()
 
         if result == 1 then
             if err == nil then err = "nil" end

@@ -172,7 +172,8 @@ end
 
 
 -- returns true if it is finished
-function module.navigate_chunk(what_kind, nav_obj, cur_building)
+function module.navigate_chunk(what_kind, nav_obj)
+    local cur_building = nav_obj.cur_building
     if is_setup == false then
         print(comms.robot_send("error", "tried to navigate without setting up first"))
         return false
