@@ -14,9 +14,7 @@ package.path = "virtual/def/?.lua;" .. package.path
 V_ENV = true
 INV_SIZE = 32
 local render = require("librender")
-
 local robot_step = require("robo_main")
-local post_exit = require("post_exit")
 
 -- luacheck pop ignore
 
@@ -29,7 +27,7 @@ local test_interface = require("virtual.tests")
 local test_table = require("virtual.tests.test_table")
 
 
-post_exit.do_presets()
+-- post_exit.do_presets()
 -- post_exit.load_state({})
 
 --[[local world = World:default()

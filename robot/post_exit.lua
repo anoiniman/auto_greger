@@ -163,6 +163,7 @@ end
 function module.do_presets()
     do_presets(map)
     do_presets(inv, map)
+    do_presets(reas)
 end
 
 

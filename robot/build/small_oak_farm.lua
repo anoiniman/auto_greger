@@ -38,6 +38,17 @@ Module.dictionary = {
     ["|"] = {"air", "shovel"},
 }
 
+if V_ENV then
+    local _, KnownBlocks = REQUIRE_UNPACK(require("virtual.Block"))
+
+    Module.dictionary2 = {
+        ["s"] = KnownBlocks:getByLabel("Oak Sapling") or KnownBlocks:default(),
+        ["c"] = KnownBlocks:getByLabel("Chest") or KnownBlocks:default(),
+        ["d"] = KnownBlocks:getByLabel("Grass") or KnownBlocks:default(),
+        ["|"] = 0,
+    }
+end
+
 -- No torches (so that it can be built in le early game)
 -- This more compact / more inteligent design needs to be in a specific quadrant in order to work with
 -- the current pathfinding techniques, since we try to go x first, this needs to be either north or south (?)
@@ -155,6 +166,12 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
 end
 
 
+local wait_time
+if not V_ENV then wait_time = 60 * 6 -- prev was 60 * 22
+else wait_time = 30 end
+
+wait_time = 2
+
 -- This is: 22 minutes for oak (1x1) farms -- and 11 minutes for spruce (2x2) farms
 Module.hooks = {
     -- flag determines if we are running a check or a determinate logistic action
@@ -163,7 +180,7 @@ Module.hooks = {
     -- luacheck: no unused args
     function(state, parent, flag, quantity_goal, state_table)
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
-            if computer.uptime() - state.last_checked < 60 * 6 then return "wait" end -- prev was 60 * 22
+            if computer.uptime() - state.last_checked < wait_time then return "wait" end -- prev was 60 * 22
 
             return "all_good"
         elseif flag ~= "raw_usage" then

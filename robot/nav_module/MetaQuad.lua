@@ -14,7 +14,7 @@ local MetaQuad = {
     doors = nil
 }
 function MetaQuad:new()
-    return deep_copy.copy_table(self, pairs)
+    return deep_copy.copy(self, pairs)
 end
 
 function MetaQuad:getName()

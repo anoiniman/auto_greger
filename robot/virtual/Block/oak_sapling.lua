@@ -106,7 +106,8 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         oak_sap,    
     }
 
-
+    
+    KnownBlocks:register(oak_leaves)
     local tree_schematic, tree_dictionary, tree_rel_offset = table.unpack(tree_generator.generate(KnownBlocks))
     -- oak_sap.tick = function(world, state, offset_table)
     oak_sap.tick = function(world, block, offset_table)

@@ -163,6 +163,13 @@ function KnownBlocks:default()
     return self.blocks[1]
 end
 
+function KnownBlocks:register(block)
+    local found_block = self:getByItemInfo(block.item_info)
+    if found_block == nil then
+        table.insert(KnownBlocks.blocks, block)
+    end
+end
+
 function KnownBlocks:getByLabel(label)
     for _, block in ipairs(self.blocks) do
         local iblock_info = block.item_info
@@ -180,9 +187,10 @@ function KnownBlocks:getByItemInfo(item_info)
 end
 
 local function unpackComplexBlock(meta_block)
-    local block_table = KnownBlocks.blocks
+    -- local block_table = KnownBlocks.blocks
     for _, block in ipairs(meta_block:provideAndGet(Block, KnownBlocks, newColor)) do
-        table.insert(block_table, block)
+        -- table.insert(block_table, block)
+        KnownBlocks:register(block)
     end
 end
 

@@ -114,7 +114,7 @@ local MetaChunk = {
 }
 
 function MetaChunk:new(real_chunk)
-    local new = deep_copy.copy_table(self, pairs)
+    local new = deep_copy.copy(self, pairs)
     new.chunk = real_chunk
     return new
 end
@@ -879,6 +879,17 @@ function module.load_preset()
     module.pretend_build("home", "oak_tree_farm", chunk, 3)
     module.pretend_build("home", "sp_storeroom", what_chunk, 1)
     module.pretend_build("home", "small_home", what_chunk, 4)--]]
+end
+
+if V_ENV then
+function module.virtual_preset()
+    module.gen_map_obj(HOME_CHUNK)
+
+    local name = "home"
+    if areas_table:getArea("home") == nil then
+        module.create_named_area("home", "green", 69, "Dirt")
+    end
+end
 end
 
 -- more temp

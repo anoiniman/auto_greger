@@ -63,6 +63,33 @@ function MetaScript:createTempDependency(wanted_output, recipe_mult)
     return nil
 end
 
+function MetaScript:completeGoal(goal_name)
+    local success = false
+    for _, goal in ipairs(self.goals) do
+        if goal.name == goal_name then
+            goal.constraint.const_obj.lock[1] = 3
+            success = true
+            break
+        end
+    end
+
+    if not success then error(string.format("Failed to complete goal (%s) -- name doesn't exist", goal_name)) end
+end
+
+function MetaScript:deleteGoal(goal_name)
+    local success = false
+    for _, goal in ipairs(self.goals) do
+        if goal.name == goal_name then
+            goal.constraint.const_obj.lock[1] = 3
+            goal.do_once = true
+            success = true
+            break
+        end
+    end
+
+    if not success then error(string.format("Failed to delete goal (%s) -- name doesn't exist", goal_name)) end
+end
+
 
 MetaScript.latest_dud = {"Nothing", computer.uptime()}
 function MetaScript:printLatestDud()

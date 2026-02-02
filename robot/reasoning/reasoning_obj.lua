@@ -141,6 +141,12 @@ function reason_obj.re_instantiate(big_table)
     try_load_script(cur_script, save_script_desc)
 end
 
+function reason_obj.load_preset()
+    if scripts[1] == nil then
+        scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua")
+        cur_script = scripts[1]
+    else print("Why are you calling reason_obj.load_preset()?"); print(debug.traceback()) end
+end
 
 function reason_obj.list_scripts()
     for index, script in ipairs(scripts) do
@@ -162,7 +168,6 @@ function reason_obj.reset_one_locks()
     end
 end
 
-
 function reason_obj.force_load(index)
     cur_script = scripts[index]
     if cur_script ~= nil then
@@ -179,11 +184,6 @@ function reason_obj.step_script()
     if not loaded then
         reason_obj.force_load(1)
         loaded = true
-    end
-
-    if scripts[1] == nil then -- change alter
-        scripts[1] = dofile("/home/robot/reasoning/scripts/stone_age/01.lua")
-        cur_script = scripts[1]
     end
 
     -- Dangerous Hack; but should do what we're looking for (reloading recipes)
@@ -213,6 +213,15 @@ end
 
 function reason_obj.create_temp_dependency(recipe_name, recipe_mult)
     return cur_script:createTempDependency(recipe_name, recipe_mult)
+end
+
+function reason_obj.complete_goal(goal_name)
+    cur_script:completeGoal(goal_name)
+end
+
+-- Not the best way to do what we want to do (because script reloads will undelete stuff) but go enough for now
+function reason_obj.delete_goal(goal_name)
+    cur_script:deleteGoal(goal_name)
 end
 
 return reason_obj
