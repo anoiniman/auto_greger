@@ -1,5 +1,6 @@
 require("deep_copy")
 local Inventory = require("virtual.Inventory")
+local nav_obj = require("nav_module.nav_obj")
 
 local RobotRep = {}
 function RobotRep:new(world)
@@ -24,6 +25,8 @@ function RobotRep:setPosition(x, z, y)
     self.position[1] = x
     self.position[2] = z
     self.position[3] = y
+    nav_obj.set_pos_auto(x, z, y)
+    nav_obj.set_orientation(self.orientation)
 end
 
 function RobotRep:getPosition()

@@ -34,19 +34,23 @@ local BlockSet = {
 
     tick_array = {},
     block_array = nil,
-    world = nil
+    world = nil,
+
+    shift = nil,
 }
 BlockSet.size_x = BlockSet.size_array[1]
 BlockSet.size_z = BlockSet.size_array[2]
 BlockSet.size_y = BlockSet.size_array[3]
 
--- There is something wierd with the "fake pointers" that the value is not getting updated
-function BlockSet:new(size_x, size_z, size_y, world)
+-- 'shift' value is what allows us to have negative coordinates
+function BlockSet:new(size_x, size_z, size_y, world, shift)
     local pos_args = {size_x, size_z, size_y}
     local new = COPY(self)
     new.size_x = new.size_array[1]
     new.size_z = new.size_array[2]
     new.size_y = new.size_array[3]
+
+    if shift == nil then shift = {0, 0, 0} end
 
     for index, size_ptr in ipairs(new.size_array) do
         if pos_args[index] ~= nil then fake_pointer.replace(size_ptr, pos_args[index])
@@ -63,7 +67,26 @@ function BlockSet:new(size_x, size_z, size_y, world)
     end
 
     new.world = world
+    new.shift = shift
     return new
+end
+
+function BlockSet:doShift(x, z, y)
+    local shift = self.shift
+    x = x + shift[1]
+    z = z + shift[2]
+    y = y + shift[3]
+
+    return x, z, y
+end
+
+function BlockSet:reverseShift(x, z, y)
+    local shift = self.shift
+    x = x - shift[1]
+    z = z - shift[2]
+    y = y - shift[3]
+
+    return x, z, y
 end
 
 function BlockSet:getCoords(index)
@@ -75,10 +98,12 @@ function BlockSet:getCoords(index)
     local z = math.floor(index / self.size_x())
     local x = (index % self.size_x())
 
-    return x, z, y
+    return self:reverseShift(x, z, y)
 end
 
 function BlockSet:getIndex(x, z, y)
+    x, z, y = self:doShift(x, z, y)
+
     -- local index = (x - 1) + (z - 1) * self.size_x() + (y - 1) * self.size_z() * self.size_x()
     local index = x + z * self.size_x() + y * self.size_z() * self.size_x()
     index = index + 1 -- lua shanenigans
@@ -147,10 +172,19 @@ function BlockSet:addUnchecked(new_block, x, z, y)
     -- render_api.setIntArray(self.block_array, index, new_block);
 end
 
+function BlockSet:addUncheckedPrism(new_block, x, z, y)
+    local index = self:getIndex(x, z, y)
+    if x <= 0 or z <= 0 or x >= self.size_x() - 6 or z >= self.size_z() - 6 then
+        new_block = Block:redBlock()
+    end
+
+    self:addUnchecked(new_block, x, z, y)
+end
+
 function BlockSet:addLine(block, z, y, x1, x2)
     if x1 == nil or x2 == nil then x1 = 1; x2 = self.size_x() end
     -- for xindex = x1, x2, 1 do self:addBlock(block, xindex, z, y) end
-    for xindex = x1, x2, 1 do self:addUnchecked(block, xindex, z, y) end
+    for xindex = x1, x2, 1 do self:addUncheckedPrism(block, xindex, z, y) end
 end
 
 function BlockSet:addRectangle(block, y, z1, z2, x1, x2)
@@ -302,19 +336,19 @@ local World = {
 
 function World:default()
     local new = COPY(self)
-    new.block_set = BlockSet:new(24, 24, 24, self)
+    new.block_set = BlockSet:new(24, 24, 24, self, 0)
     new.block_set:addPrism(Block:default(), 0, 2, 0, 2, 0, 2)
     return new
 end
 
-function World:empty(x_size, z_size, y_size, robot_rep)
+function World:empty(x_size, z_size, y_size, robot_rep, shift)
     local new = COPY(self)
-    new.block_set = BlockSet:new(x_size, z_size, y_size, self)
+    new.block_set = BlockSet:new(x_size, z_size, y_size, self, shift)
     new.robot_rep = robot_rep
     return new
 end
 
-function World:fromSchematic(schematic, dictionary, robot_rep)
+function World:fromSchematic(schematic, dictionary, robot_rep, shift)
     local new = COPY(self)
     local x_size, z_size, y_size
     x_size = -1
@@ -327,7 +361,7 @@ function World:fromSchematic(schematic, dictionary, robot_rep)
         end
     end
 
-    new.block_set = BlockSet:new(x_size, z_size, y_size, self)
+    new.block_set = BlockSet:new(x_size, z_size, y_size, self, shift)
     new.block_set:parseNativeSchematic(schematic, dictionary)
 
     new.robot_rep = robot_rep

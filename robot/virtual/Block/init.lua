@@ -65,6 +65,11 @@ function Block:default()
     return COPY(self)
 end
 
+local red_block = Block:new("red", "red", newColor("colorRed", 33, 0, 0, 222), false)
+function Block:redBlock()
+    return COPY(red_block)
+end
+
 function Block:pickUpOneItemStack()
     return table.remove(self.dropped_items)
 end

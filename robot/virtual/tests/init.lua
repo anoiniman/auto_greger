@@ -98,15 +98,17 @@ local Test = {
     step_count = 0,
 
     tracked_objects = {}, -- flat
-    _f_pass = nil,
-    _f_fail = nil,
+    __f_pass = nil,
+    __f_fail = nil,
+    __f_init = nil,
 }
-function Test:new(interface, world, __f_pass, __f_fail, command_list)
+function Test:new(interface, world, __f_pass, __f_fail, command_list, __f_init)
     local new = COPY(self)
     new.world = world
 
     new.__f_pass = __f_pass
     new.__f_fail = __f_fail
+    new.__f_init = __f_init
     new.interface = interface
     new.command_list = command_list
 
@@ -167,6 +169,7 @@ function Test:doStep(__f_robo_main)
 end
 
 function Test:initWorld()
+    self.__f_init()
     self.world:init()
 end
 
@@ -176,8 +179,8 @@ local testing_interface = {
     registered_objects = {}, -- hierarchical
 }
 
-function testing_interface:addTest(world, __f_pass, __f_fail, command_list)
-    local test = Test:new(self, world, __f_pass, __f_fail, command_list)
+function testing_interface:addTest(world, __f_pass, __f_fail, command_list, __f_init)
+    local test = Test:new(self, world, __f_pass, __f_fail, command_list, __f_init)
     table.insert(self.tests, test)
     return test -- returns handle to the test
 end

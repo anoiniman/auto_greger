@@ -115,10 +115,10 @@ local dictionary = {
 ------ GATHER DEF -----------
 local _, __r_ground_gather = dofile("/home/robot/reasoning/recipes/stone_age/gathering01.lua")
 --local __r_ore_gather, _ = table.unpack(dofile("/home/robot/reasoning/recipes/stone_age/gathering_ore.lua"))
-local __r_ore_gather, _ = table.unpack(require("reasoning.recipes.stone_age.gathering_ore"))
+local __r_ore_gather, _ = REQUIRE_UNPACK(require("reasoning.recipes.stone_age.gathering_ore"))
 
 local __r_log
-local __r_log01, _ = dofile("/home/robot/reasoning/recipes/stone_age/gathering_tree.lua")
+local __r_log01 = dofile("/home/robot/reasoning/recipes/stone_age/gathering_tree.lua")
 -----------------------------
 
 local output
