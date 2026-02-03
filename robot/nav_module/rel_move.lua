@@ -29,7 +29,9 @@ function module.is_setup()
     return navigation_setup
 end
 
-function module.setup_navigate_rel(x,z,y)
+function module.setup_navigate_rel(coords)
+    local x, z, y = table.unpack(coords)
+
     singleton_goal_rel[1] = x
     singleton_goal_rel[2] = z
     singleton_goal_rel[3] = y

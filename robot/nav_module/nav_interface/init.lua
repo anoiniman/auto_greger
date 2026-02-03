@@ -220,6 +220,10 @@ function to_export.debug_move(dir, distance, nav_obj)
     return result, err
 end
 
+function to_export.force_forward(nav_obj)
+    return interface.debug_move(nav_obj.orientation, 1, nav_obj)
+end
+
 function to_export.r_move(a,b,c,d)
     return inward_facing.real_move(a,b,c,d)
 end

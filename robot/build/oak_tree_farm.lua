@@ -14,12 +14,13 @@ local component = require("component")
 local serialize = require("serialization")
 
 -------- Other ------------
-local a = require("inventory.MetaExternalInventory")
-local MetaInventory, MetaItem = table.unpack(a)
+local MetaInventory, MetaItem = REQUIRE_UNPACK(require("inventory.MetaExternalInventory"))
 local MetaDoor = require("build.MetaBuild.MetaDoorInfo")
 
 local geolyzer = require("geolyzer_wrapper")
 local nav = require("nav_module.nav_obj")
+local navi = require("nav_module.nav_interface")
+
 local generic_hooks = require("build.generic_hooks")
 
 local inv = require("inventory.inv_obj")
@@ -137,6 +138,7 @@ local function something_added()
 end
 
 local function down_stroke()
+    local nav_obj = nav.get_obj()
     local err
     local result = true
     while result do
@@ -146,7 +148,7 @@ local function down_stroke()
         end
 
 
-        result, err = nav.debug_move("down", 1)
+        result, err = navi.debug_move("down", 1, nav_obj)
         if not result and err == "solid" then -- attempt to break a possibly placed block, or check if its dirt/grass
             local analysis = geolyzer.simple_return(sides_api.down)
             if analysis.harvestTool ~= "shovel" then -- aka, not dirt/grass
@@ -158,6 +160,7 @@ local function down_stroke()
 end
 
 local function up_stroke() -- add resolution to: we couldn't move up, impossible move
+    local nav_obj = nav.get_obj()
     local err
     local result = true
     while result do
@@ -170,7 +173,7 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
         result = inv.smart_swing("axe", "up", 0, something_added)
         if not result then break end -- if no break it means tree came to an end
 
-        result, err = nav.debug_move("up", 1)
+        result, err = nav.debug_move("up", 1, nav_obj)
         if not result and err == "impossible" then -- atempt to place block below us, hopefully it'll stick to leaves
             local could_place = inv.place_block("down", "Oak Wood", "lable", nil)
             if could_place then result = true end -- keep trying to go up
@@ -191,6 +194,7 @@ Module.hooks = {
 
     -- luacheck: no unused args
     function(state, parent, flag, quantity_goal, state_table)
+        local nav_obj = nav.get_obj()
         if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
             -- print(computer.uptime(), state.last_checked, wait_time)
             if computer.uptime() - state.last_checked < wait_time then return "wait" end
@@ -205,7 +209,7 @@ Module.hooks = {
 
         local go_next = generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "oak_tree_farm")
         if (state.fsm == 2 or state.fsm == 21) and not state.back_hack then -- go backwards
-            nav.debug_move("north", 2)
+            navi.debug_move("north", 2, nav_obj)
             state.back_hack = true
         end
 
@@ -223,31 +227,33 @@ Module.hooks = {
         return go_next
     end,
     function() -- only call this once the last_check is x minutes after uptime
+        local nav_obj = nav.get_obj()
+
         -- I think the orientation doesn't change as we mirror, so it's ok to define it in east-west
         local dir = "east" -- initial orientation
         for index = 1, 2, 1 do
             local old_dir = dir
             local new_dir
-            nav.change_orientation(dir)
+            navi.change_orientation(dir, nav_obj)
 
             local analysis = geolyzer.simple_return(sides_api.front)
 
             if geolyzer.sub_compare("log", "naive_contains", analysis) then -- aka ignore if it's still sapling
                 inv.smart_swing("axe", "front", 0, something_added)
-                nav.force_forward()
+                navi.force_forward(nav_obj)
 
                 up_stroke()
                 down_stroke() -- then plant sapling
 
-                new_dir = nav.get_opposite_orientation() -- something goes wrong here, it needs to spin around again
-                nav.debug_move(new_dir, 1)
-                nav.change_orientation(dir)
+                new_dir = navi.get_opposite_orientation(nav_obj) -- something goes wrong here, it needs to spin around again
+                navi.debug_move(new_dir, 1, nav_obj)
+                navi.change_orientation(dir, nav_obj)
                 inv.place_block("front", "Oak Sapling", "lable", nil)
 
                 dir = new_dir -- smily face
             end
             if old_dir == dir then -- makes sure we spin around even in failure
-                dir = nav.get_opposite_orientation()
+                dir = navi.get_opposite_orientation(nav_obj)
             end
 
         end -- only then try to suck-up saplings
@@ -261,7 +267,7 @@ Module.hooks = {
         inv.maybe_something_added_to_inv("Apple", nil)
         inv.maybe_something_added_to_inv(nil, "any:sapling")
         -- move in the z axis to not collide with the old trees
-        nav.debug_move("north", 2) -- hopefully doesn't make us change chunk, and if it does it handles it gracefully
+        navi.debug_move("north", 2, nav_obj) -- hopefully doesn't make us change chunk, and if it does it handles it gracefully
 
         return 1
     end,

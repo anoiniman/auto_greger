@@ -8,20 +8,24 @@ local comms = require("comms")
 
 local robot = require("robot")
 local nav = require("nav_module.nav_obj")
+local navi = require("nav_module.nav_interface")
+local rel_move = require("nav_module.rel_move")
+
 local nav_to_build = require("nav_module.nav_to_building")
 
 local general_functions = require("build.general_functions")
 
 ---------------------
 local function navigate_to_rel(target_coords, origin_fsm, target_jmp, target_fsm)
-    if not nav.is_setup_navigate_rel() then
-        nav.setup_navigate_rel(target_coords)
+    local nav_obj = nav.get_obj()
+    if not rel_move.is_setup() then
+        rel_move.setup_navigate_rel(target_coords)
     end
 
     local jmp_to_func
     local set_fsm = origin_fsm
 
-    local result = nav.navigate_rel()
+    local result = rel_move.navigate_rel(nav_obj)
     if result == 1 then -- just some basic stuff (might keep looping but that is a problem for future me TODO)
         os.sleep(1)
         jmp_to_func = 1
@@ -60,8 +64,7 @@ function module.std_hook1(state, parent, _flag, _state_init_func, name)
 
     -- after these checks and basic movement, we'll now rel move towards the cache (remember that x-move comes first)
     if state.fsm == 1 then
-
-        if not nav.is_setup_navigate_rel() then
+        if not rel_move.is_setup() then
             local target_coords, _ = count_occurence_of_symbol('?', 1, parent.special_blocks)
             -- print(comms.robot_send("debug", "target height of ? is: " .. target_coords[3]))
 
@@ -69,10 +72,10 @@ function module.std_hook1(state, parent, _flag, _state_init_func, name)
                 state.fsm = 2
                 return 1
             end
-            nav.setup_navigate_rel(target_coords)
+            rel_move.setup_navigate_rel(target_coords)
         end
 
-        local result = nav.navigate_rel()
+        local result = rel_move.navigate_rel()
         if result == 1 then
            -- error(comms.robot_send("fatal", "Couldn't rel_move \"" .. name .. "\" are we stupid?"))
            os.sleep(1)
@@ -81,11 +84,11 @@ function module.std_hook1(state, parent, _flag, _state_init_func, name)
         elseif result == -1 then -- we've arrived (face towards the chest and return)
             state.fsm = 2 -- aka, after function no.4 returns, function no.1 will be dealing with the '*' things
 
-            nav.change_orientation("east")
+            navi.change_orientation("east")
             local check, _ = robot.detect()
             if check then return 4 end
 
-            nav.change_orientation("west")
+            navi.change_orientation("west")
             check, _ = robot.detect()
             if not check then error(comms.robot_send("fatal", "Couldn't face chest, " .. name)) end
             return 4

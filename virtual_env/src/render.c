@@ -380,16 +380,16 @@ static int render(lua_State *L) {
     EndDrawing();
 
     int int_to_push = 0;
-    if (clock() / CLOCKS_PER_SEC > key_time / CLOCKS_PER_SEC + key_timeout) {
-        int key_pressed = 1;
 
-        if (IsKeyDown(KEY_E)) int_to_push = 2;
-        else if (IsKeyDown(KEY_O)) int_to_push = 3;
-        else if (IsKeyDown(KEY_P)) int_to_push = 4;
-        else key_pressed = 0;
+    if (IsKeyPressed(KEY_E)) int_to_push = 2;
+    else if (IsKeyPressed(KEY_ZERO)) int_to_push = 10;
+    else if (IsKeyPressed(KEY_ONE)) int_to_push = 11;
+    else if (IsKeyPressed(KEY_TWO)) int_to_push = 12;
+    else if (IsKeyPressed(KEY_THREE)) int_to_push = 13;
+    else if (IsKeyPressed(KEY_FOUR)) int_to_push = 14;
+    // else key_pressed = 0;
 
-        if (key_pressed) key_time = clock();
-    }
+    // if (key_pressed) key_time = clock();
 
 
     if (WindowShouldClose()) {

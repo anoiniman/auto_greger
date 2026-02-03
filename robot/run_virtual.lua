@@ -74,22 +74,30 @@ function FORCE_RENDER()
 end
 
 
+local paused = false
 local step_ok
 while true do
-    if os.clock() > simulate_clock + simulate_time then
+    if not paused and (os.clock() > simulate_clock + simulate_time) then
         step_ok = test:doStep(robot_step)
         simulate_clock = os.clock()
     end
 
     local render_result = render.render(test.world.render, test.world, test.world.renderRobot, test.world)
+
     if render_result == 1 then break
     elseif render_result == 2 then 
         test.world.robot_rep:printInventory()
         table.insert(test.command_list, "debug inv print internal") -- temp
-    elseif render_result == 3 then
-        simulate_time = simulate_time * 0.2
-    elseif render_result == 4 then
-        simulate_time = simulate_time * 5
+    elseif render_result == 10 then
+        paused = true
+    elseif render_result == 11 then
+        simulate_time = 1
+    elseif render_result == 12 then
+        simulate_time = 330 / 1000
+    elseif render_result == 13 then
+        simulate_time = 80 / 1000
+    elseif render_result == 14 then
+        simulate_time = 10 / 1000
     end
 end
 
