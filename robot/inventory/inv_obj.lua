@@ -689,7 +689,7 @@ function module.smart_swing(tool_name, dir, needed_level, maybe_added_func)
     end
 
     local detect, _ = detect_func()
-    if not detect then return true end
+    if not detect then return true, "air" end
 
     local result, _ = swing_func()
     if not result then

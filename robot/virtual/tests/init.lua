@@ -178,15 +178,20 @@ function Test:lateBindObj(track_tbl, track_name, obj_name, path)
     return track_obj
 end
 
-function Test:doStep(__f_robo_main)
-    local command_string = table.remove(self.command_list, 1)
-    local command_table = nil
-    if command_string ~= nil then
-        command_table = text.tokenize(command_string)
-        table.insert(command_table, 1, -1) -- insert priority number
+function Test:doStep(__f_robo_main, step_robot)
+    if step_robot == nil then step_robot = true end
+
+    if step_robot then
+        local command_string = table.remove(self.command_list, 1)
+        local command_table = nil
+        if command_string ~= nil then
+            command_table = text.tokenize(command_string)
+            table.insert(command_table, 1, -1) -- insert priority number
+        end
+
+        __f_robo_main(command_table)
     end
 
-    __f_robo_main(command_table)
     for _, obj in pairs(self.tracked_objects) do
         obj:checkSelf()
     end

@@ -394,11 +394,12 @@ function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
     end -- else
 
     local return_table = {prio, f_caller, self, flag, index, quantity_goal, prio, lock}
-        --[[local buffer = {"\n"}
-        recursive_append(return_table, buffer, 0)
-        table.insert(buffer, "press enter")
-        print(comms.robot_send("info", table.concat(buffer)))
-        io.read()--]]
+    --[[local buffer = {string.format("[%s] return_table = {", tostring(return_table))}
+    for k, v in pairs(return_table) do
+        table.insert(buffer, string.format("%s = %s, ", tostring(k), tostring(v)))
+    end
+    table.insert(buffer, "}")
+    print(table.concat(buffer))--]]
     return return_table
 end
 

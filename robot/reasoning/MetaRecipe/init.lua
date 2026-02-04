@@ -318,6 +318,7 @@ function MetaRecipe:returnCommand(priority, lock_ref, up_to_quantity, extra_info
 
         -- callee then determins how many inputs are needed and does all the inventory management
         -- reasoning should not be doing any invenotry management fr fr
+        print("Appear recipe_table")
         local r_table = {priority, build_eval.use_build, build, usage_flag, hook_exec_index, check_table, priority, lock_ref}
         --[[for k, v in pairs(r_table) do
             if v == nil then v = "nil"

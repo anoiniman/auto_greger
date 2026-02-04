@@ -157,8 +157,8 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
         end
 
 
-        result = inv.smart_swing("axe", "up", 0, something_added)
-        if not result then break end -- if no break it means tree came to an end
+        result, err = inv.smart_swing("axe", "up", 0, something_added)
+        if result and err == "air" then break end -- if no break it means tree came to an end
 
         result, err = navi.debug_move("up", 1, nav_obj)
         if not result and err == "impossible" then -- atempt to place block below us, hopefully it'll stick to leaves

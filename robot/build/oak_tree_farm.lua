@@ -164,18 +164,15 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
     local err
     local result = true
     while result do
-        print(nav_obj.rel[1], nav_obj.rel[2])
-
         if keyboard.isKeyDown(keyboard.keys.q) then
             print("force_stoped upstroke")
             break
         end
 
+        result, err = inv.smart_swing("axe", "up", 0, something_added)
+        if result and err == "air" then break end -- if no break it means tree came to an end
 
-        result = inv.smart_swing("axe", "up", 0, something_added)
-        if not result then break end -- if no break it means tree came to an end
-
-        result, err = nav.debug_move("up", 1, nav_obj)
+        result, err = navi.debug_move("up", 1, nav_obj)
         if not result and err == "impossible" then -- atempt to place block below us, hopefully it'll stick to leaves
             local could_place = inv.place_block("down", "Oak Wood", "lable", nil)
             if could_place then result = true end -- keep trying to go up

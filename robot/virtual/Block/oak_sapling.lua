@@ -5,12 +5,12 @@ local oak_sapling = {}
 
 local __f_leaf_decay = function() return math.random(10, 20) end
 
-local __d_growth_factor = "fast"
--- local __d_growth_factor = "instant"
+local __d_growth_factor = "slow"
 
 local function new_threshold()
     -- average 920 ticks
     if __d_growth_factor == "slow" then return math.random(330, 590)
+    elseif __d_growth_factor == "ok" then return math.random(120, 240)
     elseif __d_growth_factor == "fast" then return math.random(30, 60)
     elseif __d_growth_factor == "instant" then return math.random(1, 8)
     else error("__d_growth_factor is wrong womp womp") end

@@ -48,26 +48,26 @@ local test = require("virtual.tests.2interdependent_tasks")
 test:initWorld()
 --world:init()
 
--- TODO: when we sleep and force render, simulate without updating robot state (simulate world only)
--- also maybe artificially "speedup" sleep time someway so that our simulation isn't constraint by the
--- robot asking for "sleep" (since we control the simulation world here)
+local act_clock
+local simulate_time = 0.33
+local simulate_clock = os.clock()
 local function sleep(n)
     n = tonumber(n)
     if n == nil then return end
     --[[local str = tostring(n) .. "s"
     os.execute("sleep " .. str)--]]
-    local ntime = os.clock() + n
-    repeat
+    
+    local arbitrary_tick_rate = 12
+    local sim_steps = arbitrary_tick_rate * n
+    for i = 0, sim_steps, 1 do
+        step_ok = test:doStep(robot_step, false)
         render.render(test.world.render, test.world, test.world.renderRobot, test.world)
-    until os.clock() > ntime
+    end
 end
 -- luacheck push ignore
 os.sleep = sleep
 
 
-local act_clock
-local simulate_time = 0.33
-local simulate_clock = os.clock()
 function FORCE_RENDER()
     act_clock = os.clock()
 

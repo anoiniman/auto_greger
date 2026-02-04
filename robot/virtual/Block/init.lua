@@ -62,7 +62,7 @@ function Block:default()
     return COPY(self)
 end
 
-local red_block = Block:new("red", "red", newColor("colorRed", 33, 0, 0, 222), false)
+local red_block = {}
 function Block:redBlock()
     return COPY(red_block)
 end
@@ -126,6 +126,8 @@ function BlockFactory:update(tbl)
     end
 end
 
+local temp = Block:new("red", "red", newColor("colorRed", 33, 0, 0, 222), false)
+for k, v in pairs(temp) do red_block[k] = v end
 
 local function break_grass()
     error("TODO return dirt item")

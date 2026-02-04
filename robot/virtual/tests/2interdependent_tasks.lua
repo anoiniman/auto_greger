@@ -15,6 +15,7 @@ local command_list = {
     "debug print nav",
     "debug inv force add_all",
     "start_reason",
+    -- "debug move up 20",
     -- "debug inv print internal",
     -- "debug move east 4",
     -- "debug move north 2",

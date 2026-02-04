@@ -131,7 +131,7 @@ function BlockSet:removeBlock(x, z, y)
 
     if self.block_array[index].tick ~= nil then self:checkAndRemoveTickBlock(index) end
 
-    self.block_array[index] = nil
+    self.block_array[index] = 0
 end
 
 function BlockSet:addBlock(new_block, x, z, y)

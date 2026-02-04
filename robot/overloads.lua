@@ -32,6 +32,7 @@ function print (...) -- luacheck: ignore
     if (args[1] == "debug" or args[1] == "eval") and DO_DEBUG_PRINT ~= nil and not DO_DEBUG_PRINT then
         return
     end
+
     OLD_PRINT(table.unpack(args));
 end
 
