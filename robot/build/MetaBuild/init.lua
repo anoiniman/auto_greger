@@ -293,7 +293,6 @@ function Module:require(name, what_chunk)
     -- THIS WAS REMOVED IN ORDER TO PERSERVE RAM
     --primitive_cache[name] = build_table
     self:initPrimitive()
-
     return true
 end
 
@@ -310,6 +309,17 @@ function Module:finalizeBuild(doors)
     end
 
     self.s_interface = nil -- :)
+    
+    if V_ENV then
+        local test_interface = require("virtual.tests")
+        local num_of_builds = tostring(test_interface:getNumOfChildren({"build"}, self.name))
+
+        for index, state in ipairs(self.post_build_state) do
+            local path = {"build", self.name, num_of_builds, "pb_state"}
+            test_interface:registerObject(state, tostring(index), path)
+        end
+    end
+
     -- print(comms.robot_send("debug", "finalizedBuild"))
 end
 

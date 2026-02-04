@@ -7,11 +7,20 @@ function geolyzer.setRobotRep(robot_rep_)
     robot_rep = robot_rep_
 end
 
+air_ginfo = {
+    color = 6666666,
+    hardness = 0,
+    harvestLevel = 0,
+    harvestTool = "nil",
+    metadata = 0,
+    name = "minecraft:air",
+}
 -- I don't know what "options" option is supposed to do, but here it is in the parametres
 function geolyzer.analyze(side, _options)
     local block = robot_rep.world:getBlockRelSide(sides_api[side])
-    local ginfo = block.ginfo
+    if block == nil then return air_ginfo end
 
+    local ginfo = block.ginfo
     return ginfo
 end
 

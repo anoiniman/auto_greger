@@ -887,7 +887,7 @@ function module.virtual_preset()
 
     local name = "home"
     if areas_table:getArea("home") == nil then
-        module.create_named_area("home", "green", 69, "Dirt")
+        module.create_named_area("home", "green", 4, "Dirt")
     end
 end
 end

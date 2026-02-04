@@ -306,6 +306,9 @@ function BlockSet:parseNativeSchematic(schematic_table, dictionary, offset_table
     end
 end
 
+-- TODO: for some reason it seems like things are being instantiated 1 block south to what they
+-- really should be, why? I'm not really sure, why not 1 block south and 1 block east?
+-- We need to get to the bottom of that one day, for now I'll just kludge
 function BlockSet:instantiateBuilding(name, chunk_tbl, height, quad_num)
     local build = MetaBuild:new()
     build:require(name, chunk_tbl)
@@ -316,6 +319,7 @@ function BlockSet:instantiateBuilding(name, chunk_tbl, height, quad_num)
     local schematic_table = primitive.base_table
     local dictionary = primitive.dictionary2 -- special dicttionary just for this use
     local offset_table = primitive.origin_block
+    offset_table[2] = offset_table[2] - 1 -- kludge
 
     if dictionary == nil then error("Remember to adapt the building table you want to use: " .. name) end
     self:parseNativeSchematic(schematic_table, dictionary, offset_table, true)
@@ -379,6 +383,7 @@ function World:init()
 end
 
 function World:getBlockRelSide(side)
+    side = sides_api[side]
     local ori = self.robot_rep.orientation
 
     local cardinal_side

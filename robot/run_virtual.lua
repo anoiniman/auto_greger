@@ -48,6 +48,9 @@ local test = require("virtual.tests.2interdependent_tasks")
 test:initWorld()
 --world:init()
 
+-- TODO: when we sleep and force render, simulate without updating robot state (simulate world only)
+-- also maybe artificially "speedup" sleep time someway so that our simulation isn't constraint by the
+-- robot asking for "sleep" (since we control the simulation world here)
 local function sleep(n)
     n = tonumber(n)
     if n == nil then return end
@@ -88,6 +91,9 @@ while true do
     elseif render_result == 2 then 
         test.world.robot_rep:printInventory()
         table.insert(test.command_list, "debug inv print internal") -- temp
+    elseif render_result == 3 then 
+        print(test.world.robot_rep:getPosition())
+        table.insert(test.command_list, "debug print nav") -- temp
     elseif render_result == 10 then
         paused = true
     elseif render_result == 11 then

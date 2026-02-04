@@ -36,7 +36,11 @@ local TrackObj = {
     __f_pass = nil,
     __f_fail = nil,
 
-    obj_state = "undecided"
+    obj_state = "undecided",
+
+    obj_name = nil,
+    obj_path = nil,
+    late_binding = false,
 }
 function TrackObj:new(parent, obj, __f_pass, __f_fail)
     local new = COPY(self)
@@ -50,7 +54,9 @@ end
 function TrackObj:fromPartialTable(parent, partial_table)
     local new = COPY(self)
 
-    if partial_table.obj == nil then error("Invalid partial table, must at least have a .obj field") end
+    if partial_table.obj == nil and partial_table.obj_name == nil then 
+        error("Invalid partial table, must at least have a .obj field or .obj_name .obj_path .late_binding fields")
+    end
     for key, value in pairs(partial_table) do
         if new[key] == nil then new[key] = value end
     end
@@ -60,7 +66,17 @@ function TrackObj:fromPartialTable(parent, partial_table)
 end
 
 function TrackObj:checkSelf()
-    local robot_rep = self.parent.interface.robot_rep
+    if self.late_binding then
+        local obj = self.parent:getObj(self.obj_name, self.obj_path)
+        if obj ~= nil then
+            self.obj = obj
+            self.late_binding = false
+        else
+            return self.obj_state
+        end
+    end
+
+    local robot_rep = self.parent.world.robot_rep
 
     if self.__f_pass ~= nil then
         if self.__f_pass(robot_rep, self.obj) then self.obj_state = "pass" end
@@ -76,7 +92,7 @@ function TrackObj:checkSelf()
         end
     end
 
-    print("self.obj_state: " .. self.obj_state)
+    -- print("self.obj_state: " .. self.obj_state)
     return self.obj_state
 end
 
@@ -120,13 +136,19 @@ function Test:empty(interface)
     return new
 end
 
--- function Test:trackObj(obj_name, path, track_name, target, __f_pass, __f_fail)
-function Test:trackObj(track_tbl, track_name, obj_name, path)
-    local node = self.interface.registered_objects
+function Test:getObj(obj_name, path)
     path = path or {}
+    local node = self.interface.registered_objects
     for _, name in ipairs(path) do node = node[name] end
 
     local obj = node[obj_name]
+    return obj
+end
+
+-- function Test:trackObj(obj_name, path, track_name, target, __f_pass, __f_fail)
+function Test:trackObj(track_tbl, track_name, obj_name, path)
+    path = path or {}
+    local obj = self:getObj(obj_name, path)
     if obj == nil then -- Error
         error(string.format(
             "Required object of name: %s || path: %s <| doesn't exist",
@@ -135,13 +157,24 @@ function Test:trackObj(track_tbl, track_name, obj_name, path)
         ))
     end
 
-    if track_name == nil then track_name = obj_name end
     track_name = track_name or obj_name
 
     track_tbl.obj = obj
     local track_obj = TrackObj:fromPartialTable(self, track_tbl)
     self.tracked_objects[track_name] = track_obj
     
+    return track_obj
+end
+
+function Test:lateBindObj(track_tbl, track_name, obj_name, path)
+    track_name = track_name or obj_name
+    track_tbl.obj_name = obj_name
+    track_tbl.obj_path = path
+
+    local track_obj = TrackObj:fromPartialTable(self, track_tbl)
+    track_obj.late_binding = true
+    self.tracked_objects[track_name] = track_obj
+
     return track_obj
 end
 
@@ -154,7 +187,7 @@ function Test:doStep(__f_robo_main)
     end
 
     __f_robo_main(command_table)
-    for _, obj in ipairs(self.tracked_objects) do
+    for _, obj in pairs(self.tracked_objects) do
         obj:checkSelf()
     end
     --[[for _, v in pairs(self.world.robot_rep.position) do
@@ -176,6 +209,7 @@ end
 -- Singleton
 local testing_interface = {
     tests = {},
+    known_names = {},
     registered_objects = {}, -- hierarchical
 }
 
@@ -190,16 +224,74 @@ function testing_interface:registerObject(obj, obj_name, path)
     if obj == nil then error("Attempted to register nil object") end
     if path == nil then path = {} end
 
-    local node = nil
     local tree = self.registered_objects
+    local node = tree
     for _, name in ipairs(path) do
-        if tree[name] == nil then tree[name] = {} end
-        node = tree[name]
+        if node[name] == nil then 
+            node[name] = {}
+            table.insert(self.known_names, name)
+        end
+        node = node[name]
     end
-    if node == nil then node = tree end
 
     if node[obj_name] ~= nil then error("Attempted to register same name twice") end
     node[obj_name] = obj
+    table.insert(self.known_names, obj_name)
+
+    self:printTree()
+end
+
+local function num_of_keys(tbl)
+    local count = 0
+    for _, _ in pairs(tbl) do count = count + 1 end
+    return count
+end
+
+function testing_interface:getNumOfChildren(path, obj_name)
+    local tree = self.registered_objects
+    local node = tree
+    for _, name in ipairs(path) do
+        if node[name] == nil then return 0 end
+        node = node[name]
+    end
+    
+    if node[obj_name] == nil then return 0 end
+    return num_of_keys(node[obj_name]) 
+end
+
+function testing_interface:nameKnown(tbl)
+    for _, name in ipairs(self.known_names) do
+        for key, _ in pairs(tbl) do
+            if name == key then return true end
+        end
+    end
+    return false
+end
+
+function testing_interface:printTree()
+    local indent = 0
+    local buffer = {"T_INTERFACE = "}
+    local function recursive_buffer(tbl)
+        indent = indent + 4
+        table.insert(buffer, "{\n")
+        for key, value in pairs(tbl) do
+            -- if not self:nameKnown(key) then break end
+            for i = 1, indent, 1 do table.insert(buffer, " ") end
+            if not self:nameKnown(value) then 
+                table.insert(buffer, string.format("%s,\n", key))
+            else 
+                table.insert(buffer, string.format("%s = ", key))
+                recursive_buffer(value)
+            end
+        end
+
+        indent = indent - 4
+        for i = 1, indent, 1 do table.insert(buffer, " ") end
+        table.insert(buffer, "},\n")
+    end
+    local tree = self.registered_objects
+    recursive_buffer(tree)
+    print(table.concat(buffer))
 end
 
 function testing_interface:runTests()

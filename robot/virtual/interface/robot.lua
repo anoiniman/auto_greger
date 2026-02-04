@@ -222,7 +222,7 @@ local function sub_swing(_side, _sneak, dir)
     robot_rep.inventory:addItem(item_info)
     robot_rep.world:removeBlock(table.unpack(bpos))
 
-    robot_rep.equiped_item:removeDurability(1)
+    if robot_rep.equiped_item ~= nil then robot_rep.equiped_item:removeDurability(1) end
     FORCE_RENDER()
     return true
 end
@@ -244,7 +244,7 @@ function robot.useDown(side, sneaky, duration) return sub_use(side, sneaky, dura
 
 local function sub_move(dir, move_func)
     local not_pass, info = sub_detect(dir)
-    if not_pass then return false, info end
+    if not_pass then return nil, info end
 
     FORCE_RENDER()
     return move_func(robot_rep)

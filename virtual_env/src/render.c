@@ -382,6 +382,7 @@ static int render(lua_State *L) {
     int int_to_push = 0;
 
     if (IsKeyPressed(KEY_E)) int_to_push = 2;
+    if (IsKeyPressed(KEY_N)) int_to_push = 3;
     else if (IsKeyPressed(KEY_ZERO)) int_to_push = 10;
     else if (IsKeyPressed(KEY_ONE)) int_to_push = 11;
     else if (IsKeyPressed(KEY_TWO)) int_to_push = 12;

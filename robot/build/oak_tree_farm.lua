@@ -164,6 +164,8 @@ local function up_stroke() -- add resolution to: we couldn't move up, impossible
     local err
     local result = true
     while result do
+        print(nav_obj.rel[1], nav_obj.rel[2])
+
         if keyboard.isKeyDown(keyboard.keys.q) then
             print("force_stoped upstroke")
             break

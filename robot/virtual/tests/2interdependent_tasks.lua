@@ -71,7 +71,7 @@ local test = test_interface:addTest(world, __f_pass, __f_fail, command_list, __f
 test:trackObj(table.unpack(nav_tracking))
 test:trackObj(
     {
-        __f_pass = function (inv_obj)
+        __f_pass = function (_, inv_obj)
             local inv = inv_obj.virtual_inventory
             -- local log_num = inv:howMany("Oak Log", "any:log")
             local sap_num = inv:howMany("Oak Sapling", "any:sapling")
@@ -85,6 +85,17 @@ test:trackObj(
     "inv_track1",
     "inv_obj",
     nil
+)
+
+test:lateBindObj(
+    {
+        __f_pass = function (_, state)
+            -- for k, v in pairs(state) do print (k, v) end
+        end
+    },
+    "large_oak_state01",
+    "1",
+    {"build", "oak_tree_farm", "0", "pb_state"}
 )
 
 

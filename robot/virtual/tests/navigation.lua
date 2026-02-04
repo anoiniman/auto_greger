@@ -13,15 +13,15 @@ local function __f_nav_fail(robot_rep, nav_obj)
     end
 
     -- Check that relative coordinates are coordinated
-    if  robot_rep.position[1] % 15 ~= nav_obj.rel[1]
-        or robot_rep.position[2] % 15 ~= nav_obj.rel[2]
+    if  robot_rep.position[1] % 16 ~= nav_obj.rel[1]
+        or robot_rep.position[2] % 16 ~= nav_obj.rel[2]
     then
         return 2
     end
 
     -- Check that chunk coordinates are coordinated
-    if  math.floor(robot_rep.position[1] / 15) ~= nav_obj.chunk[1]
-        or math.floor(robot_rep.position[2] / 15) ~= nav_obj.chunk[2]
+    if  math.floor(robot_rep.position[1] / 16) ~= nav_obj.chunk[1]
+        or math.floor(robot_rep.position[2] / 16) ~= nav_obj.chunk[2]
     then
         return 3
     end
@@ -33,29 +33,38 @@ end
 
 local function __t_nav_fail(robot_rep, nav_obj, fail_value)
     LOG(
+        "error",
         "There has been a misalignement between the robot_rep positional state \z
         and the nav_obj state as it is self-tracked by the robot.\n\z
-        It is safe to suspect a failure in the navigation system, but it might be somewhere else.",
-        2
+        It is safe to suspect a failure in the navigation system, but it might be somewhere else."
     )
     if fail_value == 1 then
-        LOG(string.format(
-            "RobotRep ABS Position = {%d, %d, %d}, while nav_obj: abs = {%d, %d} height = %d",
-            robot_rep.position[1], robot_rep.position[2], robot_rep.position[3],
-            nav_obj.abs[1], nav_obj.abs[2], nav_obj.height
-        ))
+        LOG(
+            "error",
+            string.format(
+                "RobotRep ABS Position = {%d, %d, %d}, while nav_obj: abs = {%d, %d} height = %d",
+                robot_rep.position[1], robot_rep.position[2], robot_rep.position[3],
+                nav_obj.abs[1], nav_obj.abs[2], nav_obj.height
+            )
+        )
     elseif fail_value == 2 then
-        LOG(string.format(
-            "RobotRep REL Position = {%d, %d}, while nav_obj: rel = {%d, %d}",
-            robot_rep.position[1] % 15, robot_rep.position[2] % 15,
-            nav_obj.rel[1], nav_obj.rel[2]
-        ))
+        LOG(
+            "error",
+            string.format(
+                "RobotRep REL Position = {%d, %d}, while nav_obj: rel = {%d, %d}",
+                robot_rep.position[1] % 16, robot_rep.position[2] % 16,
+                nav_obj.rel[1], nav_obj.rel[2]
+            )
+        )
     elseif fail_value == 3 then
-        LOG(string.format(
-            "RobotRep CHUNK Position = {%d, %d}, while nav_obj: chunk = {%d, %d}",
-            math.floor(robot_rep.position[1] / 15), math.floor(robot_rep.position[2] % 15),
-            nav_obj.chunk[1], nav_obj.chunk[2]
-        ))
+        LOG(
+            "error",
+            string.format(
+                "RobotRep CHUNK Position = {%d, %d}, while nav_obj: chunk = {%d, %d}",
+                math.floor(robot_rep.position[1] / 15), math.floor(robot_rep.position[2] % 15),
+                nav_obj.chunk[1], nav_obj.chunk[2]
+            )
+        )
     end
 end
 

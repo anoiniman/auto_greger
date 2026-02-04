@@ -28,7 +28,6 @@ local inventory = component.getPrimary("inventory_controller")
 local generator = component.getPrimary("generator")
 
 --}}}
-local test_interface = require("virtual.tests")
 
 -- forbiden slots (because of crafting table) = 1,2,3 -- 5,6,7 -- 9,10,11
 -- this means actual internal inventory size while crafing mode is true is == 7
@@ -1335,6 +1334,9 @@ function module.load_preset(map)
     -- if not module.add_to_inventory(map, "sp_storeroom", 1, "Oak Wood", "any:log", 31, 1) then press_enter() end
 end
 
+if V_ENV then
+local test_interface = require("virtual.tests")
 test_interface:registerObject(module, "inv_obj", nil)
+end
 
 return module
