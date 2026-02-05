@@ -12,16 +12,18 @@ end
 -- of minecrafft entities are
 
 function tractor_beam.suck()
-    local x, z, y = table.unpack(robot_rep.position)
+    print("tried to suck")
+    local x, z, y = robot_rep:getPosition()
 
-    for yindex = y - 2, 5, 1 do
-    for zindex = z - 2, 5, 1 do
-    for xindex = x - 2, 5, 1 do
+    for yindex = y - 2, y + 2, 1 do
+    for zindex = z - 2, z + 2, 1 do
+    for xindex = x - 2, x + 2, 1 do
         local block = robot_rep.world:getBlockAbs(xindex, zindex, yindex)
         if block == nil then goto skip end
 
         local item = block:pickUpOneItemStack()
         if item ~= nil then
+            print("Sucked: " .. item.label)
             if not robot_rep:suckItem(item) then
                 block:dropOneItemStaack(item)
             end

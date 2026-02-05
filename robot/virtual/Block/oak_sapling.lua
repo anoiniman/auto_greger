@@ -86,6 +86,8 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         block.t_state = state
     end
 
+    oak_leaves.block_break = function () return 0 end
+
 
     local oak_sapling_blue = newColor("OakSaplingBlue", 90, 147, 143, 212)
     local oak_sap = Block:new(

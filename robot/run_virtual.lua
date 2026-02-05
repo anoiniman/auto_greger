@@ -48,47 +48,10 @@ local test = require("virtual.tests.2interdependent_tasks")
 test:initWorld()
 --world:init()
 
-local act_clock
 local simulate_time = 0.33
 local simulate_clock = os.clock()
-local function sleep(n)
-    n = tonumber(n)
-    if n == nil then return end
-    --[[local str = tostring(n) .. "s"
-    os.execute("sleep " .. str)--]]
-    
-    local arbitrary_tick_rate = 12
-    local sim_steps = arbitrary_tick_rate * n
-    for i = 0, sim_steps, 1 do
-        step_ok = test:doStep(robot_step, false)
-        render.render(test.world.render, test.world, test.world.renderRobot, test.world)
-    end
-end
--- luacheck push ignore
-os.sleep = sleep
-
-
-function FORCE_RENDER()
-    act_clock = os.clock()
-
-    while act_clock + simulate_time > os.clock() do
-        render.render(test.world.render, test.world, test.world.renderRobot, test.world)
-    end
-end
-
-
-local paused = false
-local step_ok
-while true do
-    if not paused and (os.clock() > simulate_clock + simulate_time) then
-        step_ok = test:doStep(robot_step)
-        simulate_clock = os.clock()
-    end
-
-    local render_result = render.render(test.world.render, test.world, test.world.renderRobot, test.world)
-
-    if render_result == 1 then break
-    elseif render_result == 2 then 
+local function evaluate_render(render_result)
+    if render_result == 2 then 
         test.world.robot_rep:printInventory()
         table.insert(test.command_list, "debug inv print internal") -- temp
     elseif render_result == 3 then 
@@ -105,5 +68,47 @@ while true do
     elseif render_result == 14 then
         simulate_time = 10 / 1000
     end
+end
+
+
+local function sleep(n)
+    n = tonumber(n)
+    if n == nil then return end
+    --[[local str = tostring(n) .. "s"
+    os.execute("sleep " .. str)--]]
+    
+    local arbitrary_tick_rate = 12
+    local sim_steps = arbitrary_tick_rate * n
+    for i = 0, sim_steps, 1 do
+        step_ok = test:doStep(robot_step, false)
+        if sim_steps % 100 == 0 then
+            evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
+        end
+    end
+    evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
+end
+-- luacheck push ignore
+os.sleep = sleep
+
+
+function FORCE_RENDER()
+    local act_clock = os.clock()
+    while act_clock + simulate_time > os.clock() do
+        evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
+    end
+end
+
+
+local paused = false
+local step_ok
+while true do
+    if not paused and (os.clock() > simulate_clock + simulate_time) then
+        step_ok = test:doStep(robot_step)
+        simulate_clock = os.clock()
+    end
+
+    local render_result = render.render(test.world.render, test.world, test.world.renderRobot, test.world)
+    if render_result == 1 then break
+    else evaluate_render(render_result) end
 end
 

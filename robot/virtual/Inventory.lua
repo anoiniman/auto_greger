@@ -106,7 +106,7 @@ function Inventory:addItem(item_info)
     -- look for occurences of item in inventory
     for slot, entry in ipairs(self.inner) do
         if entry.is_empty then goto continue end
-        if not self:isItemSame(entry.item, slot) then goto continue end
+        if not self:isItemSame(item_info, slot) then goto continue end
 
         local empty_space = entry.item.maxSize - entry.item.size
         local can_fit = empty_space - item_info.size

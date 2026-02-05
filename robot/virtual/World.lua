@@ -196,7 +196,7 @@ function BlockSet:addPrism(block, y1, y2, z1, z2, x1, x2)
 end
 
 function BlockSet:tick(world)
-    -- print(#self.tick_array)
+    print("Tick_array size: " .. #self.tick_array)
     local delete_table = nil
     for _, entry in ipairs(self.tick_array) do
         local block = entry[1]

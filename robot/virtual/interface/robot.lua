@@ -219,8 +219,11 @@ local function sub_swing(_side, _sneak, dir)
 
     -- If not silk-touch
     local item_info = block:getDrop()
-    robot_rep.inventory:addItem(item_info)
-    robot_rep.world:removeBlock(table.unpack(bpos))
+    if type(item_info) ~= "number" then
+        item_info.size = 1
+        robot_rep.inventory:addItem(item_info)
+        robot_rep.world:removeBlock(table.unpack(bpos))
+    end
 
     if robot_rep.equiped_item ~= nil then robot_rep.equiped_item:removeDurability(1) end
     FORCE_RENDER()
