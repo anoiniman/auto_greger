@@ -63,7 +63,7 @@ function robot.space(slot_num)
 end
 
 function robot.transferTo(slot_num, count)
-    if slot_num > INV_SIZE or slot_num < 1 then return false end
+    if slot_num > INV_SIZE or slot_num < 1 then print("transferTo return false") return false end
     count = count or 64
 
     return robot_rep:transferTo(slot_num, count)
@@ -245,10 +245,19 @@ function robot.useUp(side, sneaky, duration) return sub_use(side, sneaky, durati
 function robot.useDown(side, sneaky, duration) return sub_use(side, sneaky, duration, "down")  end
 
 
+local move_stuck_counter = 0
 local function sub_move(dir, move_func)
     local not_pass, info = sub_detect(dir)
-    if not_pass then return nil, info end
+    if not_pass then 
+        if move_stuck_counter > 20 then 
+            move_stuck_counter = -9999999
+            print("movement failed: " .. debug.traceback()) 
+        end
+        move_stuck_counter = move_stuck_counter + 1
+        return nil, info 
+    end
 
+    move_stuck_counter = 0
     FORCE_RENDER()
     return move_func(robot_rep)
 end

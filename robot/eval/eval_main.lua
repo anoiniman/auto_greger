@@ -29,7 +29,9 @@ function module.eval_command(command_arguments)
     local arguments = command_arguments
 
     if type(command) == "function" then
-        -- print(comms.robot_send("eval", "Attempting to Eval Internal Command...."))
+        local serial_arguments = serialize.serialize(arguments, 50)
+        if not V_ENV then print(comms.robot_send("eval", "Attempting to Eval Internal Command....")) end
+        -- if V_ENV then print(comms.robot_send("info", "Attempting to Eval Internal Command...." .. serial_arguments)) end
         return command(arguments)
     end
 

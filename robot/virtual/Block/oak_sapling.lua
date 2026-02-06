@@ -4,6 +4,7 @@ local KnownItems = require("virtual.item.KnownItems")
 local oak_sapling = {}
 
 local __f_leaf_decay = function() return math.random(10, 20) end
+local __d_leaf_decay = 8
 
 local __d_growth_factor = "slow"
 
@@ -29,7 +30,8 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
     )
     oak_leaves.tick = function(world, block, offset_table)
         local state = block.t_state
-        if world.tick_num < state.tick_threshold + state.last_tick then return end
+        if world.tick_num < state.check_threshold + state.last_check then return end
+        state.check = world.tick_num
 
         local there_is_log = false
         local log_example = KnownBlocks:getByLabel("Oak Wood").item_info
@@ -45,7 +47,17 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
             ::continue::
         end end end
         -- if there_is_log then print("there is log"); return end
-        if there_is_log then return end
+        if there_is_log then 
+            state.dying = false
+            return
+        end
+        if state.dying == false then
+            state.tick_threshold = __f_leaf_decay()
+            state.last_tick = world.tick_num
+        end
+        state.dying = true
+
+        if world.tick_num < state.tick_threshold + state.last_tick then return end
 
         local drop_chance = 0.05 
         if math.random() > drop_chance then return "destroy_self" end
@@ -81,6 +93,10 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         local state = {
             tick_threshold = __f_leaf_decay(),
             last_tick = world.tick_num,
+
+            check_threshold = __d_leaf_decay,
+            last_check = world.tick_num,
+            dying = false,
         }
 
         block.t_state = state
@@ -147,6 +163,7 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
             tick_threshold = new_threshold(),
             last_tick = world.tick_num,
         }
+        -- print(world.tick_num, state.last_tick, state.tick_threshold)
 
         block.t_state = state
     end

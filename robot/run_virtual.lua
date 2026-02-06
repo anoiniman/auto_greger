@@ -77,11 +77,11 @@ local function sleep(n)
     --[[local str = tostring(n) .. "s"
     os.execute("sleep " .. str)--]]
     
-    local arbitrary_tick_rate = 12
+    local arbitrary_tick_rate = 4
     local sim_steps = arbitrary_tick_rate * n
     for i = 0, sim_steps, 1 do
         step_ok = test:doStep(robot_step, false)
-        if sim_steps % 100 == 0 then
+        if sim_steps % 20 == 0 then
             evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
         end
     end

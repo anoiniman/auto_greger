@@ -15,9 +15,10 @@ function tractor_beam.suck()
     print("tried to suck")
     local x, z, y = robot_rep:getPosition()
 
-    for yindex = y - 2, y + 2, 1 do
-    for zindex = z - 2, z + 2, 1 do
-    for xindex = x - 2, x + 2, 1 do
+    local rad = 5
+    for yindex = y - rad, y + rad, 1 do
+    for zindex = z - rad, z + rad, 1 do
+    for xindex = x - rad, x + rad, 1 do
         local block = robot_rep.world:getBlockAbs(xindex, zindex, yindex)
         if block == nil then goto skip end
 
@@ -27,13 +28,15 @@ function tractor_beam.suck()
             if not robot_rep:suckItem(item) then
                 block:dropOneItemStaack(item)
             end
-            return -- early return to copy actual behaviour of this
+            return true -- early return to copy actual behaviour of this
         end
 
         ::skip::
     end
     end
     end
+
+    return false
 end
 
 

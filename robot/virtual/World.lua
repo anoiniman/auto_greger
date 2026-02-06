@@ -116,7 +116,10 @@ function BlockSet:checkAndRemoveTickBlock(index)
         local i = entry[2]
         if i == index then jindex = j end
     end
-    if jindex == nil then return end
+    if jindex == nil then 
+        print("couldn't find tick jindex to remove")
+        return 
+    end
     
     -- self.tick_array[jindex] = nil
     table.remove(self.tick_array, jindex)
@@ -126,8 +129,26 @@ end
 function BlockSet:removeBlock(x, z, y)
     local index = self:getIndex(x, z, y)
     
-    --[[local block = self.block_array[index]
-    print(block.item_info.label)--]]
+    local block = self.block_array[index]
+    if #block.dropped_items > 0 then
+        local target_block
+        for yindex = y - 1, 0, -1 do
+            local i = self:getIndex(x, z, yindex)
+            local o_block = self.block_array[i]
+            if type(o_block) ~= "number" then target_block = o_block; break end
+        end
+        if target_block == nil then 
+            print("unable to re-drop item")
+            goto skip_drop
+        end
+
+
+        for _, d_item in ipairs(block.dropped_items) do
+            print("re-droped something")
+            target_block:dropOneItemStack(d_item)
+        end
+    end
+    ::skip_drop::
 
     if self.block_array[index].tick ~= nil then self:checkAndRemoveTickBlock(index) end
 
@@ -196,7 +217,7 @@ function BlockSet:addPrism(block, y1, y2, z1, z2, x1, x2)
 end
 
 function BlockSet:tick(world)
-    print("Tick_array size: " .. #self.tick_array)
+    -- print("Tick_array size: " .. #self.tick_array)
     local delete_table = nil
     for _, entry in ipairs(self.tick_array) do
         local block = entry[1]
@@ -340,14 +361,14 @@ local World = {
 
 function World:default()
     local new = COPY(self)
-    new.block_set = BlockSet:new(24, 24, 24, self, 0)
+    new.block_set = BlockSet:new(24, 24, 24, new, 0)
     new.block_set:addPrism(Block:default(), 0, 2, 0, 2, 0, 2)
     return new
 end
 
 function World:empty(x_size, z_size, y_size, robot_rep, shift)
     local new = COPY(self)
-    new.block_set = BlockSet:new(x_size, z_size, y_size, self, shift)
+    new.block_set = BlockSet:new(x_size, z_size, y_size, new, shift)
     new.robot_rep = robot_rep
     return new
 end
@@ -365,7 +386,7 @@ function World:fromSchematic(schematic, dictionary, robot_rep, shift)
         end
     end
 
-    new.block_set = BlockSet:new(x_size, z_size, y_size, self, shift)
+    new.block_set = BlockSet:new(x_size, z_size, y_size, new, shift)
     new.block_set:parseNativeSchematic(schematic, dictionary)
 
     new.robot_rep = robot_rep

@@ -62,6 +62,8 @@ function module.std_hook1(state, parent, _flag, _state_init_func, name)
         return 1
     end
 
+    -- BUG with state.fsm == 1 -> related to rel_move not being closed correctly
+    local nav_obj = nav.get_obj()
     -- after these checks and basic movement, we'll now rel move towards the cache (remember that x-move comes first)
     if state.fsm == 1 then
         if not rel_move.is_setup() then
@@ -75,7 +77,7 @@ function module.std_hook1(state, parent, _flag, _state_init_func, name)
             rel_move.setup_navigate_rel(target_coords)
         end
 
-        local result = rel_move.navigate_rel()
+        local result = rel_move.navigate_rel(nav_obj)
         if result == 1 then
            -- error(comms.robot_send("fatal", "Couldn't rel_move \"" .. name .. "\" are we stupid?"))
            os.sleep(1)
@@ -84,13 +86,14 @@ function module.std_hook1(state, parent, _flag, _state_init_func, name)
         elseif result == -1 then -- we've arrived (face towards the chest and return)
             state.fsm = 2 -- aka, after function no.4 returns, function no.1 will be dealing with the '*' things
 
-            navi.change_orientation("east")
+            navi.change_orientation("east", nav_obj)
             local check, _ = robot.detect()
             if check then return 4 end
 
-            navi.change_orientation("west")
+            navi.change_orientation("west", nav_obj)
             check, _ = robot.detect()
-            if not check then error(comms.robot_send("fatal", "Couldn't face chest, " .. name)) end
+            if not V_ENV then if not check then error(comms.robot_send("fatal", "Couldn't face chest, " .. name)) end
+            else print(comms.robot_send("error", "Couldn't face chest, " .. name)) end
             return 4
         end
 

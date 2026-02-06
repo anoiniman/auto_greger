@@ -208,7 +208,10 @@ Module.hooks = {
 
         local go_next = generic_hooks.std_hook1(state, parent, flag, Module.state_init[1], "oak_tree_farm")
         if (state.fsm == 2 or state.fsm == 21) and not state.back_hack then -- go backwards
-            navi.debug_move("north", 2, nav_obj)
+            -- TODO: this simplistic movement hacks are not enough in order to successefully navigate
+            local rel_pos = nav.get_rel()
+            if rel_pos[2] >= 7 then navi.debug_move("south", 1, nav_obj)
+            else navi.debug_move("north", 1, nav_obj) end
             state.back_hack = true
         end
 
@@ -266,7 +269,11 @@ Module.hooks = {
         inv.maybe_something_added_to_inv("Apple", nil)
         inv.maybe_something_added_to_inv(nil, "any:sapling")
         -- move in the z axis to not collide with the old trees
-        navi.debug_move("north", 2, nav_obj) -- hopefully doesn't make us change chunk, and if it does it handles it gracefully
+        -- navi.debug_move("north", 2, nav_obj)
+        -- hopefully doesn't make us change chunk, and if it does it handles it gracefully
+        local rel_pos = nav.get_rel()
+        if rel_pos[2] >= 7 then navi.debug_move("south", 1, nav_obj)
+        else navi.debug_move("north", 1, nav_obj) end
 
         return 1
     end,

@@ -61,7 +61,7 @@ function Inventory:removeFromSlot(slot_num, count)
         removed = removed - entry.item.size
 
         entry.is_empty = true
-        entry.item = ItemInfo:empty()
+        entry.item = nil
     end
 
     return removed

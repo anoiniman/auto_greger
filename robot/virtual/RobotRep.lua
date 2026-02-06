@@ -38,12 +38,16 @@ function RobotRep:printInventory()
 end
 
 function RobotRep:transferTo(slot_num, count)
+    print("Attempted to transferTo")
     local from_entry = self.inventory:getSlot(self.selected_slot)
 
-    if from_entry.empty then return false end
+    if from_entry.empty then 
+        print(string.format("From Slot %d, was empty", self.selected_slot))
+        return true
+    end
 
     local item_info = from_entry.item
-    if not self.inventory:isItemSame(item_info, slot_num) then return false end
+    -- if not self.inventory:isItemSame(item_info, slot_num) then return false end
 
     local removed = self.inventory:removeFromSlot(self.selected_slot, count)
     local added = self.inventory:addToSlot(item_info, slot_num, removed)

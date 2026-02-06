@@ -59,8 +59,12 @@ builder:addGoal(__g_small_oak_farm01)
 
 
 -- right now we've lowered the priority of this goal, because it interacts weird with the plank/log goals (was 90, now 79)
+local __d_sap_priority
+if not V_ENV then __d_sap_priority = 79
+else __d_sap_priority = 90 end
+
 constraint = Constraint:newItemConstraint("any:sapling", "Oak Sapling", 10, 20)
-local __g_oak_sapling02 = Goal:new(__g_small_oak_farm01, constraint, 79, "__g_oak_sapling02", false)
+local __g_oak_sapling02 = Goal:new(__g_small_oak_farm01, constraint, __d_sap_priority, "__g_oak_sapling02", false)
 builder:addGoal(__g_oak_sapling02)
 
 
