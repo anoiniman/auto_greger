@@ -3,5 +3,8 @@ robot.transferTo is borken rn, see inv_obj line 1236
 If needed add the change chunk (rel -1, rel 16) check not only in chunk move but in base move as well
 Door move is being ignored when moving from building to building for some reason, are we not attempting to leave through doors?
 After seeing a certain bug -- related to robot trying to move in fsm.state == 1 -- generic_hooks -- even though the buildings in testing have no '?' I have become convinced that there is something weird happening in relation to rel_move, such that rel_move is not being appropriately reset -- probably through a mixture of bad designing from our part and the previously known task switching problem. There is no point in addressing this bug directly, only when we re-write the way we approach movement may this be improved.
+^^^^^^
+The bug we attributed to task switch might be this one instead. If true then it is truly insidious
+
 
 Fast-simulation we sucking -> leaf decay animation/graphics for vid what do?
