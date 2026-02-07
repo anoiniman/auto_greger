@@ -48,6 +48,7 @@ local test = require("virtual.tests.2interdependent_tasks")
 test:initWorld()
 --world:init()
 
+local paused = false
 local simulate_time = 0.33
 local simulate_clock = os.clock()
 local function evaluate_render(render_result)
@@ -58,7 +59,10 @@ local function evaluate_render(render_result)
         print(test.world.robot_rep:getPosition())
         table.insert(test.command_list, "debug print nav") -- temp
     elseif render_result == 10 then
-        paused = true
+        if paused then print("unpausing")
+        else print("pausing") end
+
+        paused = not paused
     elseif render_result == 11 then
         simulate_time = 1
     elseif render_result == 12 then
@@ -70,6 +74,28 @@ local function evaluate_render(render_result)
     end
 end
 
+local function fast_sleep(sim_steps)
+    for i = 0, sim_steps, 1 do
+        step_ok = test:doStep(robot_step, false)
+        if sim_steps % 20 == 0 then
+            evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
+        end
+    end
+end
+
+local function video_sleep(sim_steps)
+    local steps_done = 0
+    while true do
+        if steps_done > sim_steps then break end
+        if os.clock() > simulate_clock + simulate_time then
+            step_ok = test:doStep(robot_step, false)
+            simulate_clock = os.clock()
+            steps_done = steps_done + 1
+        end
+
+        evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
+    end
+end
 
 local function sleep(n)
     n = tonumber(n)
@@ -79,12 +105,8 @@ local function sleep(n)
     
     local arbitrary_tick_rate = 4
     local sim_steps = arbitrary_tick_rate * n
-    for i = 0, sim_steps, 1 do
-        step_ok = test:doStep(robot_step, false)
-        if sim_steps % 20 == 0 then
-            evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
-        end
-    end
+    video_sleep(sim_steps)
+    -- fast_sleep(sim_steps)
     evaluate_render(render.render(test.world.render, test.world, test.world.renderRobot, test.world))
 end
 -- luacheck push ignore
@@ -99,7 +121,6 @@ function FORCE_RENDER()
 end
 
 
-local paused = false
 local step_ok
 while true do
     if not paused and (os.clock() > simulate_clock + simulate_time) then

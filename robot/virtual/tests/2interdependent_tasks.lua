@@ -60,7 +60,7 @@ local function __f_init ()
     local oak_sapling = KnownItems:getByLabel("Oak Sapling")
     local oak_wood = KnownItems:getByLabel("Oak Wood")
     if oak_sapling == nil then error() end
-    -- robot_rep.inventory:addToSlot(oak_sapling, 4, 11)
+    --robot_rep.inventory:addToSlot(oak_sapling, 4, 11)
     robot_rep.inventory:addToSlot(oak_sapling, 4, 6)
     robot_rep.inventory:addToSlot(oak_wood, 8, 16)
 end

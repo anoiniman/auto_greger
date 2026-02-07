@@ -55,10 +55,11 @@ function Inventory:removeFromSlot(slot_num, count)
     if entry.is_empty then return 0 end
 
     local removed = count
+    local old_size = entry.item.size
     entry.item.size = entry.item.size - count
     if entry.item.size <= 0 then
         -- If count was bigger than actual slot size corrected the "removed" record
-        removed = removed - entry.item.size
+        removed = old_size
 
         entry.is_empty = true
         entry.item = nil

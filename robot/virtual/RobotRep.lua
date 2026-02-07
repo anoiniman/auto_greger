@@ -41,15 +41,14 @@ function RobotRep:transferTo(slot_num, count)
     print("Attempted to transferTo")
     local from_entry = self.inventory:getSlot(self.selected_slot)
 
-    if from_entry.empty then 
-        print(string.format("From Slot %d, was empty", self.selected_slot))
-        return true
-    end
-
+    if from_entry.is_empty then return true end
     local item_info = from_entry.item
     -- if not self.inventory:isItemSame(item_info, slot_num) then return false end
 
     local removed = self.inventory:removeFromSlot(self.selected_slot, count)
+    -- print("removed: " .. tostring(removed))
+    -- io.read()
+
     local added = self.inventory:addToSlot(item_info, slot_num, removed)
     local diff = math.abs(removed - added)
     self.inventory:addToSlot(self.selected_slot, diff)
