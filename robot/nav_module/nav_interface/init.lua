@@ -183,10 +183,7 @@ end
 -- Returning true means move sucesseful
 function inward_facing.real_move(strat_name, direction, nav_obj, extra_sauce)
     if extra_sauce == nil then extra_sauce = EMPTY_TABLE end -- nice hack!
-
-    if nav_obj == nil then
-        print(comms.robot_send("error", "No nav obj provided!"))
-    end
+    if nav_obj == nil then print(comms.robot_send("error", "No nav obj provided!")) end
 
     -- accept the direct injection without looking twice -- using this for other purposes is UB :>
     -- ('other' is defined as: not executing a movement strategy)

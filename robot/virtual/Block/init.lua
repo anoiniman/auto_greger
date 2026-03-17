@@ -14,8 +14,6 @@ local function newColor(name, r, g, b, a)
 end
 
 
--- In implementing sapling falling from leaves, orthographic projection into the floor
--- and "fall" in the nearest possible item
 local Block = {
     item_info = ItemInfo:defaultItem(),
     ginfo = {

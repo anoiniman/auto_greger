@@ -411,6 +411,7 @@ function World:getBlockRelSide(side)
     if side == sides_api["front"] then
         cardinal_side = ori
     elseif side == sides_api["back"] then
+    ---{{{ uninteresting code
         if ori == "north" then cardinal_side = "south"
         elseif ori == "east" then cardinal_side = "west"
         elseif ori == "south" then cardinal_side = "north"
@@ -443,7 +444,7 @@ function World:getBlockRelSide(side)
             tostring(side)
             ))
     end
-
+    ---}}}
 
     local x, z, y = self.robot_rep:getPosition()
     if      cardinal_side == "north"    then    z = z - 1

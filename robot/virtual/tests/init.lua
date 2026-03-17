@@ -145,7 +145,6 @@ function Test:getObj(obj_name, path)
     return obj
 end
 
--- function Test:trackObj(obj_name, path, track_name, target, __f_pass, __f_fail)
 function Test:trackObj(track_tbl, track_name, obj_name, path)
     path = path or {}
     local obj = self:getObj(obj_name, path)
@@ -207,7 +206,7 @@ function Test:doStep(__f_robo_main, step_robot)
 end
 
 function Test:initWorld()
-    self.__f_init()
+    if self.__f_init ~= nil then self.__f_init() end
     self.world:init()
 end
 

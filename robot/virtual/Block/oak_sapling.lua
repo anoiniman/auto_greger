@@ -17,6 +17,7 @@ local function new_threshold()
     else error("__d_growth_factor is wrong womp womp") end
 end
 
+local __d_dead_leaves = false
 function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
     local leaf_green = newColor("LeafGreen", 49, 168, 43, 124)
     local oak_leaves = Block:new(
@@ -28,6 +29,7 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         "shovel",
         0
     )
+    if not __d_dead_leaves then
     oak_leaves.tick = function(world, block, offset_table)
         local state = block.t_state
         if world.tick_num < state.check_threshold + state.last_check then return end
@@ -100,6 +102,9 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         }
 
         block.t_state = state
+    end
+    else
+        print("dead_leaves activated")
     end
 
     oak_leaves.block_break = function () return 0 end

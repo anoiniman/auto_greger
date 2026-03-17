@@ -151,14 +151,6 @@ static int render_world(lua_State *L) {
 
     DrawModel(*model, pos, 1, WHITE);
 
-    /*
-    Vector3 a_pos = (Vector3) {pos.x + BLOCK_SIZE/2 + SCALE, pos.y + BLOCK_SIZE/2, pos.z };
-    Vector3 o_pos = (Vector3) {a_pos.x, a_pos.y, a_pos.z};
-    DrawModel(outline_model, o_pos, 1, WHITE);
-    o_pos = (Vector3) {a_pos.x - BLOCK_SIZE, a_pos.y, a_pos.z};
-    if((int) pos.x <= 0) DrawModel(outline_model, o_pos, 1, WHITE);
-    */
-
     return 0;
 }
 
