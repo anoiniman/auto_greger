@@ -154,26 +154,26 @@ local known_blocks = {
     BlockFactory:make("minecraft:plank", "Oak Plank", newColor("OakPlankBrown", 147, 135, 91, 212)),
 }
 
-local KnownBlocks = {
-    blocks = known_blocks,
-}
+local record KnownBlocks
+    blocks: {Block}
+end
 
-function KnownBlocks:air()
+function KnownBlocks:air(): integer
     return 0
 end
 
-function KnownBlocks:default()
+function KnownBlocks:default(): Block
     return self.blocks[1]
 end
 
-function KnownBlocks:register(block)
+function KnownBlocks:register(block: Block)
     local found_block = self:getByItemInfo(block.item_info)
     if found_block == nil then
         table.insert(KnownBlocks.blocks, block)
     end
 end
 
-function KnownBlocks:getByLabel(label)
+function KnownBlocks:getByLabel(label: string)
     for _, block in ipairs(self.blocks) do
         local iblock_info = block.item_info
         if iblock_info.label == label then return COPY(block) end
@@ -188,12 +188,11 @@ function KnownBlocks:getByItemInfo(item_info)
         if iblock_info:isSame(item_info) then return COPY(block) end
     end
 end
+local known_blocks: KnownBlocks = {blocks = {}}
 
 local function unpackComplexBlock(meta_block)
-    -- local block_table = KnownBlocks.blocks
-    for _, block in ipairs(meta_block:provideAndGet(Block, KnownBlocks, newColor)) do
-        -- table.insert(block_table, block)
-        KnownBlocks:register(block)
+    for _, block in ipairs(meta_block:provideAndGet(block, known_blocks, newColor)) do
+        known_blocks:register(block)
     end
 end
 
@@ -201,4 +200,4 @@ end
 unpackComplexBlock(oak_sapling)
 
 
-return {Block, KnownBlocks}
+return {block, known_blocks}

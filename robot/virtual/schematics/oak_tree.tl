@@ -1,14 +1,19 @@
-local module = {}
+-- local KnownBlocks = require("virtual.items.KnownBlocks")
+local Position = require("virtual.Position")
+local BlockTypes = require("virtual.Block.declaration")
 
-function module.generate(KnownBlocks)
-    if KnownBlocks == nil then error("Known Blocks nil") end
+local Block = BlockTypes[1]
+local KnownBlocks = BlockTypes[2]
 
-    local tree_dictionary = {
-        ["o"] = KnownBlocks:getByLabel("Oak Wood") or KnownBlocks:default(),
-        ["/"] = KnownBlocks:getByLabel("Oak Leaves") or KnownBlocks:default(),
+local record module end
+
+function module.generate(known_blocks: KnownBlocks): {{string}}, {string : Block}, Position
+    local tree_dictionary: {string : Block} = {
+        ["o"] = known_blocks:getByLabel("Oak Wood") or known_blocks:default(),
+        ["/"] = known_blocks:getByLabel("Oak Leaves") or known_blocks:default(),
     }
 
-    local tree_schematic = {
+    local tree_schematic: {{string}} = {
         {
         "-------",
         "-------",
@@ -56,11 +61,7 @@ function module.generate(KnownBlocks)
         },
     }
 
-    local relative_offset = {
-        -3,
-        -4,
-        -1,
-    }
+    local relative_offset: Position = Position:new(-3, -4, -1)
 
     local return_table = {tree_schematic, tree_dictionary, relative_offset}
     return return_table
