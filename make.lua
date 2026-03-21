@@ -1,4 +1,6 @@
 local output_dir = "./output"
+local include_dir = ""
+
 local dry = false
 local debug_mode = false
 
@@ -18,7 +20,7 @@ for _, arg in ipairs(args) do
 end
 
 print("force_recompile: " .. tostring(force_recompile))
-print("only_check: " .. tostring(force_recompile))
+print("only_check: " .. tostring(only_check))
 if ask_for_permission then
     io.write("[y/N]? ")
     local reply = string.upper(io.read())
@@ -39,7 +41,7 @@ local function get_file_mod_date(file_name)
 end
 
 local function compile_file(i_file, o_file)
-    if tostring(i_file) == nil or tostring(o_file) == nil then 
+    if tostring(i_file) == nil or tostring(o_file) == nil then
         error(string.format("bad file name: %s, %s", i_file, o_file))
     end
 
@@ -51,8 +53,9 @@ local function compile_file(i_file, o_file)
     if not only_check and not force_recompile and o_time >= i_time then return end
 
     local str
-    if only_check then str = string.format("./tl check %s", i_file)
-    else str = string.format("./tl gen %s -c -o %s", i_file, o_file) end
+    -- if only_check then str = string.format("./tl check %s", i_file)
+    if only_check then str = string.format("./tl -p %s gen %s -c -o %s", include_dir, i_file, o_file)
+    else str = string.format("./tl %s gen %s -c -o %s", include_dir, i_file, o_file) end
 
     if not dry then os.execute(str) end
     print(str)
@@ -68,11 +71,27 @@ local function compile_dir(input_name)
 
     for file in io.popen("ls -- " .. input_dir):lines() do
         if string.find(file, ".lua") then compile_file(input_dir .. file, output_dir .. file)
-        elseif  not string.find(file, ".so") 
+        elseif  not string.find(file, ".so")
                 and not string.find(file, ".sh")
                 and not string.find(file, ".fs")
         then
             compile_dir(input_name .. "/" .. file)
+        end
+    end
+end
+
+local function prepare_include(dir_name)
+    local dir_path = string.format("./%s/", dir_name)
+    include_dir = string.format("%s -I %s ", include_dir, dir_path)
+
+    for file in io.popen("ls -- " .. dir_path):lines() do
+        if
+                not string.find(file, ".lua")
+                and not string.find(file, ".so")
+                and not string.find(file, ".sh")
+                and not string.find(file, ".fs")
+        then
+            prepare_include(dir_name .. "/" .. file)
         end
     end
 end
@@ -84,5 +103,6 @@ end
     end
 end--]]
 
-
+prepare_include("shared")
+prepare_include("robot")
 compile_dir("robot")

@@ -1,5 +1,5 @@
 -- luacheck globals V_ENV INV_SIZE
-local old_dofile = dofile
+local old_dofile: any = dofile
 function dofile (path)
     path = string.gsub(path, "/home/robot/", "./")
     return old_dofile(path)
