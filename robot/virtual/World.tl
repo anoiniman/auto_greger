@@ -22,22 +22,21 @@ local render_api = require("librender")
 --    x1,z2,y2, x2,z2,y2, x3,z2,y2
 --    x1,z3,y2, x2,z3,y2, x3,z3,y2
 
-local BlockSet = {
-    size_array = {
-        fake_pointer.mut(8), -- x
-        fake_pointer.mut(8), -- z
-        fake_pointer.mut(8), -- y
-    },
-    size_x = nil,
-    size_z = nil,
-    size_y = nil,
+local block = entry[1]
+local x, z, y = self:getCoords(entry[2])
 
-    tick_array = {},
+local interface BlockSet
+    size_array: {FakePointer<T>, FakePointer<T>, FakePointer<T>}
+    size_x: FakePointer<T>
+    size_z: FakePointer<T>
+    size_y: FakePointer<T>
+
+    tick_array: {Block, {FakePointer<T>, FakePointer<T>, FakePointer<T>}}
     block_array = nil,
     world = nil,
 
     shift = nil,
-}
+end
 BlockSet.size_x = BlockSet.size_array[1]
 BlockSet.size_z = BlockSet.size_array[2]
 BlockSet.size_y = BlockSet.size_array[3]

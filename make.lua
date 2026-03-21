@@ -1,7 +1,7 @@
 local output_dir = "./output"
 local include_dir = ""
 
-local dry = false
+local dry = true
 local debug_mode = false
 
 local force_recompile = false
@@ -19,6 +19,7 @@ for _, arg in ipairs(args) do
     elseif arg == "--ask" then ask_for_permission = true end
 end
 
+print("dry: " .. tostring(dry))
 print("force_recompile: " .. tostring(force_recompile))
 print("only_check: " .. tostring(only_check))
 if ask_for_permission then
@@ -26,6 +27,7 @@ if ask_for_permission then
     local reply = string.upper(io.read())
     if reply == "N" or reply ~= "Y" then return end
 end
+if dry then io.write("DRY RUN -> PRESS ENTER TO CONFIRM"); io.read() end
 
 local function dprint(...)
     if debug_mode or force then print(...) end
@@ -40,7 +42,7 @@ local function get_file_mod_date(file_name)
     return unix_time
 end
 
-local function compile_file(i_file, o_file)
+local function file_op(i_file, o_file, func)
     if tostring(i_file) == nil or tostring(o_file) == nil then
         error(string.format("bad file name: %s, %s", i_file, o_file))
     end
@@ -51,14 +53,30 @@ local function compile_file(i_file, o_file)
     dprint("o_time: " .. o_time)
 
     if not only_check and not force_recompile and o_time >= i_time then return end
+    func()
+end
 
-    local str
-    -- if only_check then str = string.format("./tl check %s", i_file)
-    if only_check then str = string.format("./tl -p %s gen %s -c -o %s", include_dir, i_file, o_file)
-    else str = string.format("./tl %s gen %s -c -o %s", include_dir, i_file, o_file) end
+local function compile_file(i_file, o_file)
+    local exec_str
+    if only_check then exec_str = string.format("./tl -p %s gen %s -c -o %s", include_dir, i_file, o_file)
+    else exec_str = string.format("./tl %s gen %s -c -o %s", include_dir, i_file, o_file) end
 
-    if not dry then os.execute(str) end
-    print(str)
+    local function func()
+        if not dry then os.execute(exec_str) end
+        print(exec_str)
+    end
+
+    file_op(i_file, o_file, func)
+end
+
+local function copy_file(i_file, o_file)
+    local exec_str = string.format("cp %s %s", i_file, o_file)
+    local function func()
+        if not only_check and not dry then os.execute(exec_str) end
+        print(exec_str)
+    end
+
+    file_op(i_file, o_file, func)
 end
 
 local function compile_dir(input_name)
@@ -70,7 +88,8 @@ local function compile_dir(input_name)
     else dir_handle:close() end
 
     for file in io.popen("ls -- " .. input_dir):lines() do
-        if string.find(file, ".lua") then compile_file(input_dir .. file, output_dir .. file)
+        if string.find(file, ".tl") then compile_file(input_dir .. file, output_dir .. file)
+        elseif string.find(file, ".lua") then copy_file(input_dir .. file, output_dir .. file)
         elseif  not string.find(file, ".so")
                 and not string.find(file, ".sh")
                 and not string.find(file, ".fs")
@@ -87,6 +106,7 @@ local function prepare_include(dir_name)
     for file in io.popen("ls -- " .. dir_path):lines() do
         if
                 not string.find(file, ".lua")
+                and not string.find(file, ".tl")
                 and not string.find(file, ".so")
                 and not string.find(file, ".sh")
                 and not string.find(file, ".fs")
@@ -106,3 +126,5 @@ end--]]
 prepare_include("shared")
 prepare_include("robot")
 compile_dir("robot")
+
+if dry then print("Dry run concluded") end

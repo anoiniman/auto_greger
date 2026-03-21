@@ -1,12 +1,8 @@
 -- local comms = require("comms")
-local module = {}
+local record module end
 
-function module.copy_table(old_table, iter_func)
-    LOG(1, "Used Old copy_table function in:\n" .. debug.traceback()) 
-    return module.copy(old_table, iter_func)
-end
-
-function module.copy(obj, iter_func) -- pair or ipair
+local type iter_func_type = function(any): (function, any, any)
+function module.copy(obj: {any:any}, iter_func: function(any): (function, any, any) ): {any:any} -- pair or ipair
     if obj == nil then return nil end
     if iter_func == nil then iter_func = pairs end
     if type(obj) ~= "table" then return obj end
@@ -20,7 +16,7 @@ function module.copy(obj, iter_func) -- pair or ipair
 
     for k, v in iter_func(obj) do
         if type(v) == "table" then
-            v = module.copy(v, iter_func)
+            v = module.copy(v as {any}, iter_func)
         end
 
         new_table[k] = v
@@ -28,10 +24,10 @@ function module.copy(obj, iter_func) -- pair or ipair
 
     return new_table
 end
-COPY = module.copy
-CLONE = module.copy
+global COPY: function({any:any}, iter_func_type): {any} = module.copy
+global CLONE: function({any:any}, iter_func_type): {any} = module.copy
 
-function module.copy_no_functions(old_table)
+function module.copy_no_functions(old_table: {any:any}): {any:any}
     if old_table == nil then return nil end
     local new_table = {}
 
@@ -42,7 +38,7 @@ function module.copy_no_functions(old_table)
 
     for k, v in pairs(old_table) do
         if type(v) == "table" then
-            v = module.copy_no_functions(v)
+            v = module.copy_no_functions(v as {any:any})
         end
 
         if type(v) ~= "function" then
