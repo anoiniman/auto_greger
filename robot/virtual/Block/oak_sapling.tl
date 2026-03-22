@@ -1,14 +1,27 @@
 local tree_generator = require("virtual.schematics.oak_tree")
 local KnownItems = require("virtual.item.KnownItems")
+local Position = require("virtual.Position")
 
-local oak_sapling = {}
+local dec_tbl = require("virtual.Block.declaration")
+local Block, KnownBlocks, BlockColor, InteractionState, World = table.unpack(dec_tbl)
 
-local __f_leaf_decay = function() return math.random(10, 20) end
-local __d_leaf_decay = 8
+local record oak_sapling end
 
-local __d_growth_factor = "slow"
+local function __f_leaf_decay(): integer
+    return math.random(10, 20)
+end
 
-local function new_threshold()
+local enum GrowthEnum
+    "slow"
+    "ok"
+    "fast"
+    "instant"
+end
+
+local __d_leaf_decay: integer = 8
+local __d_growth_factor: GrowthEnum = "slow"
+
+local function new_threshold(): integer
     -- average 920 ticks
     if __d_growth_factor == "slow" then return math.random(330, 590)
     elseif __d_growth_factor == "ok" then return math.random(120, 240)
@@ -17,9 +30,9 @@ local function new_threshold()
     else error("__d_growth_factor is wrong womp womp") end
 end
 
-local __d_dead_leaves = false
-function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
-    local leaf_green = newColor("LeafGreen", 49, 168, 43, 124)
+local __d_dead_leaves: boolean = false
+function oak_sapling:provideAndGet(): {Block}
+    local leaf_green = BlockColor.new("LeafGreen", 49, 168, 43, 124)
     local oak_leaves = Block:new(
         "minecraft:oak_leaves",
         "Oak Leaves",
@@ -30,13 +43,13 @@ function oak_sapling:provideAndGet(Block, KnownBlocks, newColor)
         0
     )
     if not __d_dead_leaves then
-    oak_leaves.tick = function(world, block, offset_table)
-        local state = block.t_state
+    oak_leaves.tick = function(world: World, block: Block, offset_table: Position)
+        local state: InteractionState = block.t_state
         if world.tick_num < state.check_threshold + state.last_check then return end
-        state.check = world.tick_num
+        state.last_check = world.tick_num
 
         local there_is_log = false
-        local log_example = KnownBlocks:getByLabel("Oak Wood").item_info
+        local log_example = (KnownBlocks:getByLabel("Oak Wood") as Block).item_info
 
         for y = offset_table[3] - 2, offset_table[3] + 2, 1 do
         for z = offset_table[2] - 2, offset_table[2] + 2, 1 do

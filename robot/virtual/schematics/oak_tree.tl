@@ -7,7 +7,7 @@ local KnownBlocks = BlockTypes[2]
 
 local record module end
 
-function module.generate(known_blocks: KnownBlocks): {{string}}, {string : Block}, Position
+function module.generate(known_blocks: KnownBlocks): { {{string}}, {string : Block}, Position }
     local tree_dictionary: {string : Block} = {
         ["o"] = known_blocks:getByLabel("Oak Wood") or known_blocks:default(),
         ["/"] = known_blocks:getByLabel("Oak Leaves") or known_blocks:default(),

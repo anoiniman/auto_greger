@@ -145,18 +145,18 @@ local function compile_dir(input_name)
     else dir_handle:close() end
 
     for file in io.popen("ls -- " .. input_dir):lines() do
-        if string.find(file, ".tl") then compile_file(input_dir .. file, output_dir .. file)
-        elseif string.find(file, ".lua") then copy_file(input_dir .. file, output_dir .. file)
-        elseif  not string.find(file, ".so")
-                and not string.find(file, ".sh")
-                and not string.find(file, ".fs")
+        if string.find(file, "%.tl") then compile_file(input_dir .. file, output_dir .. file)
+        elseif string.find(file, "%.lua") then copy_file(input_dir .. file, output_dir .. file)
+        elseif  not string.find(file, "%.so")
+                and not string.find(file, "%.sh")
+                and not string.find(file, "%.fs")
         then
             compile_dir(input_name .. "/" .. file)
         end
     end
 end
 
-local function prepare_include(dir_name)
+--[[local function prepare_include(dir_name)
     local dir_path = string.format("%s/%s/", root_dir, dir_name)
     include_dir = string.format("%s -I %s ", include_dir, dir_path)
 
@@ -171,7 +171,7 @@ local function prepare_include(dir_name)
             prepare_include(dir_name .. "/" .. file)
         end
     end
-end
+end--]]
 
 --[[local function clean_dir(dir_name)
     local dir_path = string.format("./%s/", dir_name)
@@ -180,8 +180,14 @@ end
     end
 end--]]
 
-prepare_include("shared")
-prepare_include("robot")
+local include_table = {"robot", "shared", "robot/virtual/interface", "robot/virtual/def"}
+for _, rel_path in ipairs(include_table) do
+    local dir_path = string.format("%s/%s/", root_dir, rel_path)
+    include_dir = string.format("%s -I %s ", include_dir, dir_path)
+end
+
+-- prepare_include("shared")
+-- prepare_include("robot")
 if file_mode == nil then
     compile_dir("robot")
 else

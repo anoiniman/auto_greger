@@ -2,17 +2,30 @@ local deep_copy = require("deep_copy")
 local ItemInfo = require("virtual.item.ItemInfo")
 local KnownItems = require("virtual.item.KnownItems")
 
+-- return {Block, KnownBlocks, BlockColor, InteractionState}
+local dec_tbl = require("virtual.Block.declaration")
+local Block, KnownBlocks, BlockColor, InteractionState, World = table.unpack(dec_tbl)
+
 local oak_sapling = require("virtual.Block.oak_sapling")
 
 --[[local ViewportBehaviour = {
 
 }--]]
 
-local function newColor(name, r, g, b, a)
+function BlockColor.new(name: string, r: integer, g: integer, b: integer, a?: integer): {string | integer}
     a = a or 212
     return {name, r, g, b, a}
 end
 
+local default_ginfo: GInfo = {
+    color = 6666666,
+    hardness = 0.66,
+    harvestLevel = 0,
+    harvestTool = "shovel",
+    metadata = 0,
+    name = "minecraft:grass",
+}
+local default_color = BlockColor:new("Default", 63, 121, 124, 212)
 
 local Block = {
     item_info = ItemInfo:defaultItem(),
@@ -40,6 +53,9 @@ local Block = {
     -- viewport = ViewportBehaviour:default(),
 }
 
+-- TODO: redesign this so that instead of giving name:label we give directly a UniversalItemInfo
+-- basically this involves reversing the current processes where regestering a block registers an item,
+-- instead we'd register an item BEFORE registering a block
 function Block:new(name, label, color, passable, meta_type, harvestTool, harvestLevel)
     local new = COPY(self)
     new.item_info.name = name
