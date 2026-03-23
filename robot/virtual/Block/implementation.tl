@@ -1,10 +1,11 @@
 local deep_copy = require("deep_copy")
+local UniversalInfo = require("virtual.item.UniversalInfo")
 local ItemInfo = require("virtual.item.ItemInfo")
 local KnownItems = require("virtual.item.KnownItems")
 
 -- return {Block, KnownBlocks, BlockColor, InteractionState}
 local dec_tbl = require("virtual.Block.declaration")
-local Block, KnownBlocks, BlockColor, InteractionState, World = table.unpack(dec_tbl)
+local Block, KnownBlocks, BlockColor, BlockColorHelper, InteractionState, World = table.unpack(dec_tbl)
 
 local oak_sapling = require("virtual.Block.oak_sapling")
 
@@ -12,9 +13,14 @@ local oak_sapling = require("virtual.Block.oak_sapling")
 
 }--]]
 
-function BlockColor.new(name: string, r: integer, g: integer, b: integer, a?: integer): {string | integer}
+function BlockColorHelper.new(name: string, r: integer, g: integer, b: integer, a?: integer): BlockColor
     a = a or 212
     return {name, r, g, b, a}
+end
+
+local default_color <const>: BlockColor = BlockColorHelper.new("Default", 63, 121, 124, 212)
+function BlockColorHelper.default(): BlockColor
+    return default_color
 end
 
 local default_ginfo: GInfo = {
@@ -25,22 +31,13 @@ local default_ginfo: GInfo = {
     metadata = 0,
     name = "minecraft:grass",
 }
-local default_color = BlockColor:new("Default", 63, 121, 124, 212)
 
-local Block = {
-    item_info = ItemInfo:defaultItem(),
-    ginfo = {
-        color = 6666666,
-        hardness = 0.66,
-        harvestLevel = 0,
-        harvestTool = "shovel",
-        metadata = 0,
-        name = "minecraft:grass",
-    },
+local default_block: Block = {
+    item_info = UniversalInfo:defaultUniversalInfo(),
+    ginfo = default_ginfo,
     dropped_items = {},
 
-    -- color = newColor("Default", 57, 117, 90, 212),
-    color = newColor("Default", 63, 121, 124, 212),
+    color = default_color,
     passable = false,
     shape = "Cube",
 

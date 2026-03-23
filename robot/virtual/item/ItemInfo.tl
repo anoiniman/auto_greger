@@ -16,20 +16,7 @@ local default_item_info <total>: ItemInfo = {
         damage = -1,
         size = 0,
     },
-
-    uni = {
-        maxDamage = -1,
-        maxSize = 64,
-
-        name = "default",
-        label = "default",
-        equipment_data = {
-            e_type = "none",
-            level = -1,
-        },
-
-        use = nil,
-    }
+    uni = UniversalInfo:defaultUniversalInfo()
 }
 
 function ItemInfo:empty(): ItemInfo
@@ -44,8 +31,7 @@ end
 
 function ItemInfo:defaultItem(): ItemInfo
     local new = self:empty()
-    new.uni.name = "minecraft:dirt"
-    new.uni.label = "Dirt"
+    new.uni = UniversalInfo:defaultUniversalInfo()
     return new
 end
 
@@ -54,7 +40,7 @@ function ItemInfo:newInstance(): ItemInfo
 end
 
 function ItemInfo:isSame(item_info: ItemInfo): boolean
-    return self.uni.label == item_info.uni.label and self.uni.name == item_info.uni.name
+    return self.uni:isSame(item_info.uni)
 end
 
 function ItemInfo:removeDurability(amount: integer)

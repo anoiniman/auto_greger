@@ -1,9 +1,11 @@
+local ItemInfo = require("virtual.item.ItemInfo")
+
 local tree_generator = require("virtual.schematics.oak_tree")
 local KnownItems = require("virtual.item.KnownItems")
 local Position = require("virtual.Position")
 
 local dec_tbl = require("virtual.Block.declaration")
-local Block, KnownBlocks, BlockColor, InteractionState, World = table.unpack(dec_tbl)
+local Block, KnownBlocks, BlockColor, _BlockColorHelper, InteractionState, World = table.unpack(dec_tbl)
 
 local record oak_sapling end
 
@@ -30,6 +32,21 @@ local function new_threshold(): integer
     else error("__d_growth_factor is wrong womp womp") end
 end
 
+local interface OakLeavesState is InteractionState
+    tick_threshold: integer
+    last_tick: integer
+
+    check_threshold: integer
+    last_check: integer
+    dying: boolean
+end
+
+local interface OakSaplingState is InteractionState
+    growth_stage: integer
+    tick_threshold: integer
+    last_tick: integer
+end
+
 local __d_dead_leaves: boolean = false
 function oak_sapling:provideAndGet(): {Block}
     local leaf_green = BlockColor.new("LeafGreen", 49, 168, 43, 124)
@@ -43,8 +60,8 @@ function oak_sapling:provideAndGet(): {Block}
         0
     )
     if not __d_dead_leaves then
-    oak_leaves.tick = function(world: World, block: Block, offset_table: Position)
-        local state: InteractionState = block.t_state
+    oak_leaves.tick = function(world: World, block: Block, offset_table: Position): string
+        local state: OakLeavesState = block.t_state as OakLeavesState
         if world.tick_num < state.check_threshold + state.last_check then return end
         state.last_check = world.tick_num
 
@@ -54,10 +71,10 @@ function oak_sapling:provideAndGet(): {Block}
         for y = offset_table[3] - 2, offset_table[3] + 2, 1 do
         for z = offset_table[2] - 2, offset_table[2] + 2, 1 do
         for x = offset_table[1] - 2, offset_table[1] + 2, 1 do
-            local block = world:getBlockAbs(x, z, y)
-            if block == nil then goto continue end
+            local block_to_check = world:getBlockAbs(x, z, y)
+            if block_to_check == nil then goto continue end
             -- print(block.item_info.label)
-            if block.item_info:isSame(log_example) then there_is_log = true end
+            if block_to_check.item_info:isSame(log_example) then there_is_log = true end
 
             ::continue::
         end end end
@@ -80,20 +97,23 @@ function oak_sapling:provideAndGet(): {Block}
         -- Sapling falling to ground algorithm
         local did_it = false
         for y = offset_table[3] - 1, 0, -1 do
-            local block = world:getBlockAbs(offset_table[1], offset_table[2], y)
-            if block ~= nil then
+            local block_to_check = world:getBlockAbs(offset_table[1], offset_table[2], y)
+            if block_to_check ~= nil then
                 local item = KnownItems:getByLabel("Oak Sapling")
-                item.size = 1
+                if item == nil then error() end
+                item = item as ItemInfo
+
+                item.parti.size = 1
                 print(string.format(
                     "Dropped sapling (%s) into: %s (%d, %d, %d)",
-                    item.label,
-                    block.item_info.label,
+                    item.uni.label,
+                    block_to_check.item_info.label,
                     offset_table[1],
                     offset_table[2],
                     y
                 ))
 
-                block:dropOneItemStack(item)
+                block_to_check:dropOneItemStack(item)
                 did_it = true
                 break
             end
@@ -104,7 +124,7 @@ function oak_sapling:provideAndGet(): {Block}
         return "destroy_self"
     end
 
-    oak_leaves.on_place = function(world, block)
+    oak_leaves.on_place = function(world: World, block: Block)
         local state = {
             tick_threshold = __f_leaf_decay(),
             last_tick = world.tick_num,
@@ -120,10 +140,9 @@ function oak_sapling:provideAndGet(): {Block}
         print("dead_leaves activated")
     end
 
-    oak_leaves.block_break = function () return 0 end
+    oak_leaves.block_break = function () return end
 
-
-    local oak_sapling_blue = newColor("OakSaplingBlue", 90, 147, 143, 212)
+    local oak_sapling_blue = BlockColor.new("OakSaplingBlue", 90, 147, 143, 212)
     local oak_sap = Block:new(
         "minecraft:sapling",
         "Oak Sapling",
@@ -146,17 +165,17 @@ function oak_sapling:provideAndGet(): {Block}
     KnownBlocks:register(oak_leaves)
     local tree_schematic, tree_dictionary, tree_rel_offset = table.unpack(tree_generator.generate(KnownBlocks))
     -- oak_sap.tick = function(world, state, offset_table)
-    oak_sap.tick = function(world, block, offset_table)
+    oak_sap.tick = function(world: World, block: Block, offset_table: Position): nil
         -- print(pos[1], pos[2], pos[3])
 
-        local state = block.t_state
+        local state = block.t_state as OakSaplingState
         if state.last_tick == -1 then state.last_tick = world.tick_num end
         if world.tick_num >= state.tick_threshold + state.last_tick then
             state.growth_stage = state.growth_stage + 1
         end
 
-        for k, v in ipairs(tree_rel_offset) do
-            offset_table[k] = offset_table[k] + v
+        for k, v in ipairs(tree_rel_offset.arr) do
+            offset_table.arr[k] = offset_table.arr[k] + v
         end
 
         if state.growth_stage >= 2 then
@@ -173,9 +192,11 @@ function oak_sapling:provideAndGet(): {Block}
             state.last_tick = world.tick_num
             state.tick_threshold = new_threshold()
         end
+
+        return nil
     end
 
-    oak_sap.on_place = function(world, block)
+    oak_sap.on_place = function(world: World, block: Block)
         local state = {
             growth_stage = 0,
             tick_threshold = new_threshold(),

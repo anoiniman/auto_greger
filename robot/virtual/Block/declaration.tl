@@ -3,8 +3,10 @@ local type ETypeEnum = require("virtual.item.ETypeEnum")
 local Position = require("virtual.Position")
 local ItemInfo = require("virtual.item.ItemInfo")
 
-local record BlockColor is {string | integer} 
-    new: function(string, integer, integer, integer, ? integer): {string | integer}
+local type BlockColor = {string, integer, integer, integer, integer}
+local record BlockColorHelper is {string | integer} 
+    new: function(string, integer, integer, integer, ? integer): BlockColor
+    default: function(): BlockColor
 end
 
 local interface GInfo
@@ -30,10 +32,7 @@ local enum BlockMetaTypeEnum
     "air"
 end
 
-local interface InteractionState
-    check_threshold: integer
-    last_check: integer
-end
+local interface InteractionState end
 -- TODO: redisign whole ass thing, so that the interaction between blocks and world can actually be modelled
 -- by the type system, for now we simply declare a fake World type to fool teal, not great
 
@@ -59,21 +58,21 @@ local record Block
     right_click: Interactable
     block_break: Interactable
     on_place: Interactable
-    tick: function(?any, ?Block, Position)
+    tick: function(?any, ?Block, Position): string | nil
 
     t_state: InteractionState
 
 
     new: function(Block, string, string, BlockColor, boolean, BlockMetaTypeEnum, ETypeEnum, integer): Block
-    default: function(): Block
-    redBlock: function(): Block
+    default: function(Block): Block
+    redBlock: function(Block): Block
     
-    pickUpOneItemStack: function()
-    dropOneItemStack: function(ItemInfo)
-    getDrop: function(): UniversalItemInfo
+    pickUpOneItemStack: function(Block)
+    dropOneItemStack: function(Block, ItemInfo)
+    getDrop: function(Block): UniversalItemInfo
 
-    use: function(ItemInfo): boolean
-    isAir: function(): boolean
+    use: function(Block, ItemInfo): boolean
+    isAir: function(Block): boolean
 end
 -- viewport = ViewportBehaviour:default(),
 
@@ -86,4 +85,5 @@ local record KnownBlocks
     getByItemInfo: function(KnownBlocks, ItemInfo): Block | nil
 end
 
-return {Block, KnownBlocks, BlockColor, InteractionState, World}
+-- return {Block, KnownBlocks, BlockColor, BlockColorHelper, InteractionState, World}
+return Block, KnownBlocks, BlockColor, BlockColorHelper, InteractionState, World
