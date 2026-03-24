@@ -51,4 +51,8 @@ function ItemInfo:removeDurability(amount: integer)
     end
 end
 
+function ItemInfo:use()
+    error("TODO!")
+end
+
 return ItemInfo

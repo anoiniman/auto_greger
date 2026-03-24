@@ -1,27 +1,27 @@
-local ItemInfo = require("virtual.item.ItemInfo")
+local UniversalInfo = require("virtual.item.UniversalInfo")
 local record KnownItems
-    known_items: {ItemInfo} 
-    getByLabel: function (KnownItems, string): ItemInfo | nil
-    getByItemInfo: function (KnownItems, ItemInfo): ItemInfo | nil
+    known_items: {UniversalInfo} 
+    getByLabel: function (KnownItems, string): UniversalInfo | nil
+    getByItemInfo: function (KnownItems, UniversalInfo): UniversalInfo | nil
 end
 
-function KnownItems:register(new: ItemInfo)
+function KnownItems:register(new: UniversalInfo)
     local found_item = self:getByItemInfo(new)
     if not (found_item is nil) then return end
     table.insert(self.known_items, new)
 end
 
-function KnownItems:getByLabel(label: string): ItemInfo | nil
+function KnownItems:getByLabel(label: string): UniversalInfo | nil
     for _, item_info in ipairs(self.known_items) do
-        if item_info.uni.label == label then return item_info:newInstance() end
+        if item_info.label == label then return item_info end
     end
 
     return nil
 end
 
-function KnownItems:getByItemInfo(i_item_info: ItemInfo): ItemInfo | nil
+function KnownItems:getByItemInfo(i_item_info: UniversalInfo): UniversalInfo | nil
     for _, item_info in ipairs(self.known_items) do
-        if item_info:isSame(i_item_info) then return item_info:newInstance() end
+        if item_info:isSame(i_item_info) then return item_info end
     end
     return nil
 end

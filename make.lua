@@ -115,7 +115,10 @@ local function compile_file(i_file, o_file)
     if only_check then 
         exec_str = string.format("%s/tl -p %s gen %s -c -o %s", root_dir, include_dir, i_file, o_file)
     else 
-        exec_str = string.format("%s/tl %s gen %s -c -o %s", root_dir, include_dir, i_file, o_file) 
+        exec_str = string.format(
+            "%s/tl --gen-compat=off --gen-target=5.4 \z
+            %s gen %s -c -o %s", root_dir, include_dir, i_file, o_file
+        )
     end
 
     local function func()

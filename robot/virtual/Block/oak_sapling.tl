@@ -1,13 +1,14 @@
 local ItemInfo = require("virtual.item.ItemInfo")
+local UniversalItemInfo = require("virtual.item.UniversalInfo")
 
 local tree_generator = require("virtual.schematics.oak_tree")
 local KnownItems = require("virtual.item.KnownItems")
 local Position = require("virtual.Position")
 
-local dec_tbl = require("virtual.Block.declaration")
-local Block, KnownBlocks, BlockColor, _BlockColorHelper, InteractionState, World = table.unpack(dec_tbl)
-
-local record oak_sapling end
+local implementation = require("virtual.Block.implementation")
+local declaration = require("virtual.Block.declaration")
+local Block, KnownBlocks, BlockColorHelper, World = table.unpack(implementation)
+local BlockColor, InteractionState, MetaBlock = table.unpack(declaration)
 
 local function __f_leaf_decay(): integer
     return math.random(10, 20)
@@ -47,9 +48,11 @@ local interface OakSaplingState is InteractionState
     last_tick: integer
 end
 
+local record oak_sapling is MetaBlock end
+
 local __d_dead_leaves: boolean = false
-function oak_sapling:provideAndGet(): {Block}
-    local leaf_green = BlockColor.new("LeafGreen", 49, 168, 43, 124)
+function oak_sapling.getBlockArray(_self: any): {any}
+    local leaf_green: BlockColor = BlockColorHelper.new("LeafGreen", 49, 168, 43, 124)
     local oak_leaves = Block:new(
         "minecraft:oak_leaves",
         "Oak Leaves",
@@ -99,10 +102,11 @@ function oak_sapling:provideAndGet(): {Block}
         for y = offset_table[3] - 1, 0, -1 do
             local block_to_check = world:getBlockAbs(offset_table[1], offset_table[2], y)
             if block_to_check ~= nil then
-                local item = KnownItems:getByLabel("Oak Sapling")
-                if item == nil then error() end
-                item = item as ItemInfo
+                local uni_item = KnownItems:getByLabel("Oak Sapling")
+                if uni_item == nil then error() end
+                uni_item = uni_item as UniversalItemInfo
 
+                local item = ItemInfo:fromUniversal(uni_item)
                 item.parti.size = 1
                 print(string.format(
                     "Dropped sapling (%s) into: %s (%d, %d, %d)",
@@ -142,7 +146,7 @@ function oak_sapling:provideAndGet(): {Block}
 
     oak_leaves.block_break = function () return end
 
-    local oak_sapling_blue = BlockColor.new("OakSaplingBlue", 90, 147, 143, 212)
+    local oak_sapling_blue:BlockColor = BlockColorHelper.new("OakSaplingBlue", 90, 147, 143, 212)
     local oak_sap = Block:new(
         "minecraft:sapling",
         "Oak Sapling",
@@ -161,7 +165,7 @@ function oak_sapling:provideAndGet(): {Block}
         oak_sap,    
     }
 
-    
+
     KnownBlocks:register(oak_leaves)
     local tree_schematic, tree_dictionary, tree_rel_offset = table.unpack(tree_generator.generate(KnownBlocks))
     -- oak_sap.tick = function(world, state, offset_table)

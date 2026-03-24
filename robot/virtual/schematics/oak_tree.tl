@@ -1,6 +1,6 @@
 -- local KnownBlocks = require("virtual.items.KnownBlocks")
 local Position = require("virtual.Position")
-local BlockTypes = require("virtual.Block.declaration")
+local BlockTypes = require("virtual.Block.implementation")
 
 local Block = BlockTypes[1]
 local KnownBlocks = BlockTypes[2]
