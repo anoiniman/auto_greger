@@ -148,11 +148,16 @@ local function compile_dir(input_name)
     else dir_handle:close() end
 
     for file in io.popen("ls -- " .. input_dir):lines() do
-        if string.find(file, "%.tl") then compile_file(input_dir .. file, output_dir .. file)
-        elseif string.find(file, "%.lua") then copy_file(input_dir .. file, output_dir .. file)
-        elseif  not string.find(file, "%.so")
-                and not string.find(file, "%.sh")
-                and not string.find(file, "%.fs")
+        if string.find(file, "%.tl") and not string.find(file, "%.d%.tl") then 
+            local dot_lua = string.gsub(file, "%..*", ".lua")
+            compile_file(input_dir .. file, output_dir .. dot_lua)
+        elseif  string.find(file, "%.lua") 
+                or string.find(file, "%.so")
+                or string.find(file, "%.sh")
+                or string.find(file, "%.fs")
+        then 
+            copy_file(input_dir .. file, output_dir .. file)
+        elseif not string.find(file, "%.d%.tl")
         then
             compile_dir(input_name .. "/" .. file)
         end
@@ -192,6 +197,7 @@ end
 -- prepare_include("shared")
 -- prepare_include("robot")
 if file_mode == nil then
+    compile_dir("shared")
     compile_dir("robot")
 else
     local file_i_path = string.format("%s/%s", pwd, file_mode)

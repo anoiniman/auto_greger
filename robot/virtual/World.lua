@@ -1,7 +1,8 @@
 -- luacheck: globals COPY, ignore deep_copy
 local deep_copy = require("deep_copy")
 local component = require("component")
-local fake_pointer = require("fake_pointer")
+local fTbl = require("fake_pointer")
+local _, fake_pointer = table.unpack(fTbl)
 
 local a = require("virtual.Block")
 local Block, KnownBlocks = table.unpack(a)

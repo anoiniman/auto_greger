@@ -13,9 +13,19 @@ local record UniversalInfo
     equipment_data: EquipmentData
 
     use: function ()
+    defaultUniversalInfo: function(UniversalInfo): UniversalInfo
+    isSame: function(UniversalInfo, UniversalInfo): boolean
+end
+local default_universal_info: UniversalInfo = { } as UniversalInfo
+function UniversalInfo:defaultUniversalInfo(): UniversalInfo
+    return default_universal_info
 end
 
-local default_universal_info = {
+function UniversalInfo:isSame(other: UniversalInfo): boolean
+    return self.label == other.label and self.name == other.name
+end
+
+default_universal_info = {
     maxDamage = -1,
     maxSize = 64,
 
@@ -27,14 +37,9 @@ local default_universal_info = {
     },
 
     use = nil,
+    defaultUniversalInfo = UniversalInfo.defaultUniversalInfo,
+    isSame = UniversalInfo.isSame,
 }
 
-function UniversalInfo:defaultUniversalInfo(): UniversalInfo
-    return default_universal_info
-end
-
-function UniversalInfo:isSame(other: UniversalInfo): boolean
-    return self.label == other.label and self.name == other.name
-end
 
 return UniversalInfo

@@ -160,7 +160,7 @@ function Block:default(): Block
     return COPY(default_block) as Block
 end
 
-local red_block: Block
+local red_block: Block = {} as Block
 function Block:redBlock(): Block
     return COPY(red_block) as Block
 end
@@ -274,9 +274,9 @@ end
 
 function KnownBlocks:register(block: Block): nil
     local found_block = self:getByItemInfo(block.item_info)
-    if found_block == nil then
-        table.insert(KnownBlocks.blocks, block)
-    end
+    if not (found_block is nil) then return end
+
+    table.insert(self.blocks, block)
     return nil
 end
 

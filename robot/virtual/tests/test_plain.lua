@@ -27,7 +27,7 @@ local test = test_interface:addTest(world, __f_pass, __f_fail, command_list, __f
 
 local oak_schematic, oak_dictionary, oak_rel_offset = table.unpack(oak_generator.generate(KnownBlocks))
 local function geco(coords)
-    for k, v in ipairs(oak_rel_offset) do
+    for k, v in ipairs(oak_rel_offset:asIntArr()) do
         coords[k] = coords[k] + v
     end
 

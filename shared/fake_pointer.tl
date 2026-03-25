@@ -1,6 +1,5 @@
 require("deep_copy")
 require("universal_compare")
-local comms = require("comms")
 
 local record fake_pointer end
 
@@ -42,7 +41,7 @@ function fake_pointer.get_value<T>(f_pointer: FakePointer<T>): T
 end
 
 function fake_pointer.replace<T>(f_pointer: FakePointer<T>, new_inner: T): T
-    if not f_pointer.mut then error(comms.robot_send("fatal", "Attempted to mutate immutable pointer")) end
+    if not f_pointer.mut then error(NLOG("fatal", "Attempted to mutate immutable pointer")) end
     if new_inner == nil then new_inner = NONE as T end
 
     local old = f_pointer.inner_value

@@ -45,7 +45,7 @@ print()
 
 -- local test = require("virtual.tests.interface_test")
 -- local test = require("virtual.tests.2interdependent_tasks")
-DBG()
+-- DBG()
 local test = require("virtual.tests.test_plain")
 test:initWorld()
 --world:init()

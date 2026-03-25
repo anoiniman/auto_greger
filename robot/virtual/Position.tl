@@ -1,9 +1,11 @@
+require("deep_copy")
 require("overloads")
 local tbl = require("fake_pointer")
 local FakePointer, fake_pointer = tbl[1], tbl[2]
 
+local type posTuple = {FakePointer<integer>, FakePointer<integer>, FakePointer<integer>}
 local record Position
-    arr: {FakePointer<integer>}
+    arr: posTuple
 
     x: FakePointer<integer>
     z: FakePointer<integer>
@@ -20,19 +22,26 @@ mt = {
 }
 setmetatable(Position, mt)
 
-function Position:new(x: integer, z: integer, y: integer)
-    self.arr = {
+function Position:new(x: integer, z: integer, y: integer): Position
+    local new = COPY(self) as Position
+    new.arr = {
         fake_pointer.new(x),
         fake_pointer.new(z),
-        fake_pointer.new(y)
+        fake_pointer.new(y),
     }
-    self.x = self.arr[1]
-    self.z = self.arr[2]
-    self.y = self.arr[3]
+    new.x = new.arr[1]
+    new.z = new.arr[2]
+    new.y = new.arr[3]
+
+    return new
 end
 
 function Position:unpack(): integer, integer, integer
     return self.x(), self.z(), self.y()
+end
+
+function Position:asIntArr(): {integer}
+    return {self:unpack()}
 end
 
 return Position

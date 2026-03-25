@@ -4,10 +4,11 @@ local record KnownItems
     getByLabel: function (KnownItems, string): UniversalInfo | nil
     getByItemInfo: function (KnownItems, UniversalInfo): UniversalInfo | nil
 end
+KnownItems.known_items = {}
 
 function KnownItems:register(new: UniversalInfo)
     local found_item = self:getByItemInfo(new)
-    if not (found_item is nil) then return end
+    if found_item is nil then return end
     table.insert(self.known_items, new)
 end
 
