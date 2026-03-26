@@ -179,7 +179,7 @@ function oak_sapling.getBlockArray(_self: any): {any}
         end
 
         for k, v in ipairs(tree_rel_offset.arr) do
-            offset_table.arr[k] = offset_table.arr[k] + v
+            offset_table.arr[k].inner_value = offset_table.arr[k].inner_value + v.inner_value
         end
 
         if state.growth_stage >= 2 then

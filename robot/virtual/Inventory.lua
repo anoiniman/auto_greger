@@ -32,7 +32,7 @@ function Inventory:print()
     for slot_num, slot in ipairs(self.inner) do
         if slot.is_empty then goto continue end
         local item = slot.item    
-        print(string.format("[%d] (%s, %s) (%d)", slot_num, item.label, item.name, item.size))
+        print(string.format("[%d] (%s, %s) (%d)", slot_num, item.uni.label, item.uni.name, item.parti.size))
 
         ::continue::
     end
@@ -55,9 +55,9 @@ function Inventory:removeFromSlot(slot_num, count)
     if entry.is_empty then return 0 end
 
     local removed = count
-    local old_size = entry.item.size
-    entry.item.size = entry.item.size - count
-    if entry.item.size <= 0 then
+    local old_size = entry.item.parti.size
+    entry.item.parti.size = entry.item.parti.size - count
+    if entry.item.parti.size <= 0 then
         -- If count was bigger than actual slot size corrected the "removed" record
         removed = old_size
 
@@ -69,13 +69,15 @@ function Inventory:removeFromSlot(slot_num, count)
 end
 
 function Inventory:addToSlot(item_info, slot_num, count)
+    -- for k,v in pairs(item_info) do print(k,v) end
+
     local entry = self.inner[slot_num]
     if entry == nil then return 0 end
     if entry.is_empty then
-        local new_item_info = ItemInfo:fromPartialTable(item_info)
+        local new_item_info = ItemInfo:fromUniversal(item_info)
         -- print(new_item_info.label, new_item_info.name)
 
-        new_item_info.size = 0
+        new_item_info.parti.size = 0
         entry.item = new_item_info
         entry.is_empty = false
     end
@@ -83,11 +85,11 @@ function Inventory:addToSlot(item_info, slot_num, count)
     if not self:isItemSame(item_info, slot_num) then error("CHECK ITEMSAME BEFORE TRYING TO ADD TO SLOT STUPID BAKA") end
 
     local added = count
-    entry.item.size = entry.item.size + count
-    if entry.item.size > entry.item.maxSize then
+    entry.item.parti.size = entry.item.parti.size + count
+    if entry.item.parti.size > entry.item.uni.maxSize then
         -- If count was bigger than actual slot size corrected the "added" record
-        added = added - (entry.item.size - entry.item.maxSize)
-        entry.item.size = entry.item.maxSize
+        added = added - (entry.item.parti.size - entry.item.uni.maxSize)
+        entry.item.parti.size = entry.item.uni.maxSize
     end
 
     return added
@@ -102,25 +104,25 @@ end
 
 -- As is obvious can only fit 1 stack at the time
 function Inventory:addItem(item_info)
-    local initial_size = item_info.size
+    local initial_size = item_info.parti.size
 
     -- look for occurences of item in inventory
     for slot, entry in ipairs(self.inner) do
         if entry.is_empty then goto continue end
         if not self:isItemSame(item_info, slot) then goto continue end
 
-        local empty_space = entry.item.maxSize - entry.item.size
-        local can_fit = empty_space - item_info.size
+        local empty_space = entry.item.uni.maxSize - entry.item.parti.size
+        local can_fit = empty_space - item_info.parti.size
 
         if can_fit >= 0 then
-            entry.item.size = entry.item.size + item_info.size
+            entry.item.parti.size = entry.item.parti.size + item_info.parti.size
             item_info.size = 0
         else
-            entry.item.size = entry.item.size + item_info.size + can_fit
-            item_info.size = item_info.size - item_info.size - can_fit
+            entry.item.parti.size = entry.item.parti.size + item_info.parti.size + can_fit
+            item_info.parti.size = item_info.parti.size - item_info.parti.size - can_fit
         end
 
-        if item_info.size == 0 then return true, 0 end
+        if item_info.parti.size == 0 then return true, 0 end
         ::continue::
     end
 
@@ -150,10 +152,12 @@ end
 
 function Inventory:isItemSame(item_info, slot_num)
     local eitem = self.inner[slot_num].item
+    -- for k, v in pairs(item_info) do print(k,v) end
+    -- for k, v in pairs(eitem) do print(k,v) end
     -- print(eitem.label, eitem.name)
     -- print(item_info.label, item_info.name)
 
-    return eitem:isSame(item_info)
+    return eitem.uni:isSame(item_info)
 end
 
 function Inventory:isSlotEmpty(slot_num)

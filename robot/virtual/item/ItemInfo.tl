@@ -11,16 +11,14 @@ local record ItemInfo
     uni: UniversalInfo
 end
 
-local default_item_info <total>: ItemInfo = {
-    parti = {
+function ItemInfo:empty(): ItemInfo
+    local new = COPY(self) as ItemInfo
+    new.parti = {
         damage = -1,
         size = 0,
-    },
-    uni = UniversalInfo:defaultUniversalInfo()
-}
-
-function ItemInfo:empty(): ItemInfo
-    return COPY(default_item_info) as ItemInfo
+    }
+    new.uni = UniversalInfo:defaultUniversalInfo()
+    return new
 end
 
 function ItemInfo:fromUniversal(uni: UniversalInfo): ItemInfo
@@ -47,7 +45,7 @@ function ItemInfo:removeDurability(amount: integer)
     self.parti.damage = self.parti.damage + amount
 
     if self.parti.damage > self.uni.maxDamage then
-        self.uni = default_item_info.uni
+        self.uni = UniversalInfo:defaultUniversalInfo()
     end
 end
 

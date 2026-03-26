@@ -8,7 +8,7 @@ KnownItems.known_items = {}
 
 function KnownItems:register(new: UniversalInfo)
     local found_item = self:getByItemInfo(new)
-    if found_item is nil then return end
+    if not (found_item is nil) then return end
     table.insert(self.known_items, new)
 end
 

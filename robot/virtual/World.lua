@@ -4,6 +4,8 @@ local component = require("component")
 local fTbl = require("fake_pointer")
 local _, fake_pointer = table.unpack(fTbl)
 
+local Position = require("virtual.Position")
+
 local a = require("virtual.Block")
 local Block, KnownBlocks = table.unpack(a)
 local sides_api = require("sides")
@@ -225,7 +227,7 @@ function BlockSet:tick(world)
         local x, z, y = self:getCoords(entry[2])
         -- local state = entry[3]
 
-        local pos = {x, z, y}
+        local pos = Position:new(x, z, y)
 
         local result = block.tick(world, block, pos)
         if result ~= nil then
