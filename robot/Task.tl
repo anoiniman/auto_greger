@@ -1,4 +1,5 @@
 local record task_helper end
+global type TaskState = {any : any}
 
 local interface BlockName
     known_names: {string} 
@@ -11,20 +12,25 @@ local interface Task
     priority: integer
     yield_block: BlockName | nil
 
+    state: TaskState
     coroutine: thread -- basically a funcpointer
 end
 
-local interface TaskHandle
+global interface TaskHandle
     task: Task -- reference to a task in await_queue or other such long-lived and active value
 end
 
-local type TaskState = {any : any}
-local interface TaskPrototype
+global interface TaskPrototype
     priority: integer
     func: function(TaskState): TaskState
 end
 
-function task_helper.new_prototype(): TaskPrototype
+function task_helper.new_prototype(priority: integer, func: function(TaskState): TaskState): TaskPrototype
+    local new: TaskPrototype = {
+        priority = priority,
+        func = func
+    }
+    return new
 end
 
 function task_helper.instantiate(prototype: TaskPrototype): TaskHandle

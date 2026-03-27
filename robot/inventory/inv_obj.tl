@@ -1,4 +1,6 @@
 -- luacheck: globals EMPTY_STRING
+local Task = require("Task")
+
 local module = {}
 --imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
@@ -1044,7 +1046,10 @@ end
 
 -- WARNING: WILL have some problems with tools breaking and so on, let's just hope it is able of self-cleaning!
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
-local function self_craft(dictionary, recipe, output, how_much_to_craft)
+function module.craft(taskState: {any : any})
+    --function module.craft(dictionary, recipe, output, how_much_to_craft)
+    if not module.isCraftActive() then error(comms.robot_send("fatal", "Craft is not active")) end
+
     if not crafting_table_clear then
         print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
         return false
@@ -1086,8 +1091,8 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
         local how_many_in_inv = module.virtual_inventory:howMany(lable, name)
         local how_many_can_craft = math.floor(how_many_in_inv / how_many_needed)
         if how_many_can_craft < how_much_to_craft then -- no bueno
-            print(comms.robot_send("error", "how many can craft: " .. how_many_can_craft .. " || \z
-                                    how much to craft: " .. how_much_to_craft))
+            print(comms.robot_send("error", "how many can craft: " .. how_many_can_craft .. " || " ..
+                                   "how much to craft: " .. how_much_to_craft))
             local print_name = name
             local print_lable = lable
             if print_name == nil then print_name = "nil" end
@@ -1200,21 +1205,6 @@ local function self_craft(dictionary, recipe, output, how_much_to_craft)
 
     robot.select(1)
     return true
-end
-
--- It seems that we we self_craft this is done in one execution cycle!
-function module.craft(arguments)
-    local dictionary = arguments[1]
-    local recipe_grid = arguments[2]
-    local output = arguments[3]
-    local how_much = arguments[4]
-    local lock_ref = arguments[5]
-
-    if use_self_craft then
-        self_craft(dictionary, recipe_grid, output, how_much) -- this returns a result, but we don't care?
-        lock_ref[1] = 2
-        return nil
-    else error(comms.robot_send("fatal", "TODO!")) end
 end
 
 ---}}}

@@ -31,6 +31,21 @@ local interface MetaRecipe
     task_prototype: TaskPrototype,
 end
 
+local function new_meta_recipe(
+    output: ItemDefinition,
+    output_quantity: integer,
+    dependencies: {MetaDependency},
+    task_prototype: TaskPrototype
+): MetaRecipe
+    return {
+        output = output,
+        output_quantity = output_quantity,
+        dependencies = dependencies,
+
+        task_prototype = task_prototype
+    }
+end
+
 local type ToolLevel = integer
 local type ToolTuple = {ToolType, ToolLevel}
 local interface Gathering is MetaRecipe
@@ -42,16 +57,40 @@ end
 -- fully relies on the base's crafting areas, because of the possible "caching" effect, and freeing up
 -- robot internal inventory space this might be an amazing idea
 local type charNil = string | nil
-local interface CraftingTable
+local type craftingGrid = {
+        charNil, charNil, charNil
+        charNil, charNil, charNil
+        charNil, charNil, charNil
+}
+
+local interface CraftingTable is MetaRecipe
     dictionary_ref: {string : ItemDefinition}
-    crafting_recipe: {
-        charNil, charNil, charNil
-        charNil, charNil, charNil
-        charNil, charNil, charNil
-    }
+    crafting_recipe: craftingGrid
 end
 
-local interface BuildingUser
+local function craft_function(state: TaskState): TaskState
+
+end
+
+function module.new_crafting_table(
+    output: ItemDefinition,
+    output_quantity: integer,
+    dependencies: {MetaDependency},
+    -- task_prototype: TaskPrototype,
+
+    dictionary_ref: {string: ItemDefinition},
+    crafting_recipe: craftingGrid
+): CraftingTable
+    local parent = module.new_meta_recipe(output, output_quantity, dependencies, crafting_prototype)
+    local new: CraftingTable = {} as CraftingTable
+    for k, v in pairs(parent as {any : any}) do new[k] = v end
+    new.dictionary_ref = dictionary_ref
+    new.crafting_recipe = crafting_recipe
+    
+    return new
+end
+
+local interface BuildingUser is MetaRecipe
     bd_name: string
     usage_flag: string
 end
