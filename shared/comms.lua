@@ -77,6 +77,7 @@ function comms.controller_send(any)
     return message_table
 end
 
+-- post_exit is a module :P
 local post_exit = nil
 function comms.inject_post_exit(obj)
     post_exit = obj
