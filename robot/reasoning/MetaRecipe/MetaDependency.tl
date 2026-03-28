@@ -11,7 +11,7 @@ end
 
 global type MetaRecipe;
 global interface MetaDependency
-    inlying_recipe: Recipe
+    inlying_recipe: MetaRecipe
 
     quantity_needed: integer
     dep_type: DependencyType

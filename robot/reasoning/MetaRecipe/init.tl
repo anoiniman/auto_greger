@@ -1,3 +1,4 @@
+require("reasoning.MetaRecipe.__h_MetaRecipe")
 local MetaDependency = require("reasoning.MetaRecipe.MetaDependency")
 local MetaRecipe = require("reasoning.MetaRecipe.MetaRecipe")
 

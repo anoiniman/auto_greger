@@ -1,35 +1,17 @@
--- luacheck: globals REASON_WAIT_LIST
+require("reasoning.MetaRecipe.__h_MetaRecipe")
 
 local deep_copy = require("deep_copy")
 local comms = require("comms")
 
--- luacheck: push ignore
-local serialize = require("serialization")
--- luacheck: pop
+-- local serialize = require("serialization")
 local computer = require("computer")
 
 local build_eval = require("eval.build")
-local inv = require("inventory.inv_obj")
+-- local inv = require("inventory.inv_obj")
+local crafting = require("inventory.crafting")
 local item_buckets = require("inventory.item_buckets")
 
 local record module end
-
--- This state_primitive bullshitery and what not seems quite poorly designed, we'll need to revise that for v2
--- only gathering uses that stupid crap anyway
-
--- Whole recipe get copied/cloned by the caller so that state is not changed in the primitive object for a given recipe
--- this decouples the definition of behaviour and data structure from its execution and state-change when in-vivo.
--- Of course, this relies on the caller properly clonning us, but we don't really have a good way to enforce this
--- from within MetaRecipe itself, so just be very very careful ok?
---
--- output must be ItemDefinition
-local interface MetaRecipe
-    output: ItemDefinition,
-    output_quantity: integer,
-    dependencies: {MetaDependency},
-
-    task_prototype: TaskPrototype,
-end
 
 local function new_meta_recipe(
     output: ItemDefinition,
@@ -46,42 +28,17 @@ local function new_meta_recipe(
     }
 end
 
-local type ToolLevel = integer
-local type ToolTuple = {ToolType, ToolLevel}
-local interface Gathering is MetaRecipe
-    tools: {ToolTuple},
-end
-
--- Maybe make it so that once there is a crafting area in the base (maybe with a "cache"-like storage included
--- in such an area) the robot will no longer use/keep empty reserved it's internal crafting slot, and instead
--- fully relies on the base's crafting areas, because of the possible "caching" effect, and freeing up
--- robot internal inventory space this might be an amazing idea
-local type charNil = string | nil
-local type craftingGrid = {
-        charNil, charNil, charNil
-        charNil, charNil, charNil
-        charNil, charNil, charNil
-}
-
-local interface CraftingTable is MetaRecipe
-    dictionary_ref: {string : ItemDefinition}
-    crafting_recipe: craftingGrid
-end
-
-local function craft_function(state: TaskState): TaskState
-
-end
-
 function module.new_crafting_table(
     output: ItemDefinition,
     output_quantity: integer,
     dependencies: {MetaDependency},
-    -- task_prototype: TaskPrototype,
 
-    dictionary_ref: {string: ItemDefinition},
+    dictionary_ref: {string : ItemDefinition},
     crafting_recipe: craftingGrid
 ): CraftingTable
+    local crafting_prototype = coroutine.create(crafting.craft)
     local parent = module.new_meta_recipe(output, output_quantity, dependencies, crafting_prototype)
+
     local new: CraftingTable = {} as CraftingTable
     for k, v in pairs(parent as {any : any}) do new[k] = v end
     new.dictionary_ref = dictionary_ref
@@ -90,19 +47,9 @@ function module.new_crafting_table(
     return new
 end
 
-local interface BuildingUser is MetaRecipe
-    bd_name: string
-    usage_flag: string
-end
-
-local record RecipeSpecification
-    priority: integer
-    up_to_quantity: integer
-end
-
 -- function module.returnCommand(priority: integer, lock_ref: SharedLock, up_to_quantity: integer)
 function module.returnTaskHandle(recipe_template: MetaRecipe, recipe_specification: RecipeSpecification): TaskHandle
-
+    local handle = task_helper.instantiate(recipe_template.task_prototype)
 end
 
 function module.returnCommand(priority, lock_ref, up_to_quantity, extra_info, dictionary):

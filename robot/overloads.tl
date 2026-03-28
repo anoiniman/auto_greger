@@ -45,12 +45,11 @@ print = function (...: any)
 end
 _G.print = print
 
-global function REQUIRE_UNPACK(name: string | {any}): any...
-    if name is string then 
-        local a = require(name) as {any}
+global function REQUIRE_UNPACK(nor_tbl: string | {any}): any...
+    if nor_tbl is string then 
+        local a = require(nor_tbl) as {any}
         return table.unpack(a)
-    elseif name is {any} then
-        return table.unpack(name)
+    elseif nor_tbl is {any} then
+        return table.unpack(nor_tbl)
     end
 end
-

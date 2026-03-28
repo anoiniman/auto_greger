@@ -1,0 +1,172 @@
+require("Task")
+require("reasoning.MetaRecipe.__h_MetaRecipe")
+
+local use_self_craft = true
+
+function module.isCraftActive()
+    return use_self_craft
+end
+
+-- WARNING: WILL have some problems with tools breaking and so on, let's just hope it is able of self-cleaning!
+-- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
+function module.craft(taskState: CraftingState)
+    local dictionary: {string : ItemDefinition} = taskState.dictionary
+    --function module.craft(dictionary, recipe, output, how_much_to_craft)
+    if not module.isCraftActive() then error(comms.robot_send("fatal", "Craft is not active")) end
+
+    if not crafting_table_clear then
+        print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
+        return false
+    end
+
+    local ingredient_table = {}
+    local occurence_table = {} -- = {slot_a, slob_b, .... slot_c}
+    for slot, char in ipairs(recipe) do
+        if char == 0 then goto continue end
+        if occurence_table[char] == nil then
+            occurence_table[char] = {slot}
+            local ingredient = dictionary[char]
+            ingredient_table[char] = ingredient
+        else
+            table.insert(occurence_table[char], slot)
+        end
+
+        ::continue::
+    end
+
+    local clean_up = false
+    for stbl_index, sub_table in pairs(occurence_table) do
+        local lable, name
+        local ingredient = ingredient_table[stbl_index]
+
+        if ingredient == nil then
+            error(comms.robot_send("fatal", "assertion failed"))
+        end
+
+        if type(ingredient) == "table" then -- select strict search (or permissive is ingredient[1] is nil)
+            lable = ingredient[1]
+            name = ingredient[2]
+        else -- select lable-only search
+            lable = ingredient
+            name = nil --> "generic" (remember than "generic" will match any other name)
+        end
+
+        local how_many_needed = #sub_table
+        local how_many_in_inv = module.virtual_inventory:howMany(lable, name)
+        local how_many_can_craft = math.floor(how_many_in_inv / how_many_needed)
+        if how_many_can_craft < how_much_to_craft then -- no bueno
+            print(comms.robot_send("error", "how many can craft: " .. how_many_can_craft .. " || " ..
+                                   "how much to craft: " .. how_much_to_craft))
+            local print_name = name
+            local print_lable = lable
+            if print_name == nil then print_name = "nil" end
+            if print_lable == nil then print_lable = "nil" end
+
+            print(comms.robot_send("error", "lable was: " .. print_lable .. " || name was: " .. print_name))
+            print(comms.robot_send("error", "how many in inv was: " .. how_many_in_inv .. " || how many needed was: " .. how_many_needed))
+            clean_up = true
+            break
+        end
+
+        for _, c_table_slot in ipairs(sub_table) do
+            -- this correction needs to be done because crafting table is 3 slots wide, but robot inventory is 4 slots wide
+            if c_table_slot > 6 then c_table_slot = c_table_slot + 2
+            elseif c_table_slot > 3 then c_table_slot = c_table_slot + 1 end
+
+            local ingredient_slots = {}
+            local accumulator = 0
+            local i_slot_tbl = module.virtual_inventory:getAllSlots(lable, name)
+            sort_table_indexed(i_slot_tbl, false, 2)
+            if i_slot_tbl == nil then -- there has been an woopsie in the crafting/recipe/scripting
+                print(comms.robot_send(
+                    "error", string.format("While Crafting i_slot_tbl was nil, this means we didn't " .. 
+                    "have what we expected inside of the inventory: (l,n) -> (%s, %s)", lable, name)
+                ))
+                clean_up = true
+                break
+            end
+
+            for _, inner_slot_obj in ipairs(i_slot_tbl) do
+                local inner_slot = inner_slot_obj[1]
+                local slot_size = module.virtual_inventory:howManySlot(inner_slot)
+                accumulator = accumulator + slot_size
+                table.insert(ingredient_slots, inner_slot)
+
+                if accumulator >= how_much_to_craft then
+                    break
+                end
+            end
+            if accumulator < how_much_to_craft then
+                clean_up = true
+                break
+            end
+
+            local reverse_accumulator = how_much_to_craft
+            local do_break = false
+            for _, i_slot in ipairs(ingredient_slots) do -- usually we'll only iterate once, but we never know!
+                local slot_size = module.virtual_inventory:howManySlot(i_slot)
+                local to_transfer = math.min(reverse_accumulator, slot_size)
+
+                local result = robot.select(i_slot)
+                if result ~= i_slot or not robot.transferTo(c_table_slot, to_transfer) then
+                    print(comms.robot_send("error", "something went wrong in self_crafting"))
+                    clean_up = true
+                    do_break = true
+                    break
+                end -- else we succeded! (yay!)
+                module.virtual_inventory:removeFromSlot(i_slot, to_transfer) -- it's ok to overshoot!
+                -- reverse_accumulator = reverse_accumulator - slot_size
+                reverse_accumulator = reverse_accumulator - to_transfer
+            end
+            if reverse_accumulator ~= 0 then print(comms.robot_send("warning", "r_accumulator was: " .. reverse_accumulator)) end
+            if do_break then break end
+        end
+    end -- Then check for errors
+    if clean_up then
+        print(comms.robot_send("error", "Error while crafting, cleaning up"))
+        module.force_update_vinv()
+        for index = 1, 12, 1 do
+            if index % 4 ~= 0 then module.simple_slot_check(index) end
+        end
+        return false
+    end
+
+    -- Now the virtual crafting-table should be assembled, lets do the thing!
+    local output_slot = module.virtual_inventory:getSmallestSlot(output.lable, output.name)
+    if  output_slot == nil
+        or module.virtual_inventory:howManySlot(output_slot) + how_much_to_craft > 64
+    then
+        output_slot = module.virtual_inventory:getEmptySlot(get_forbidden_table())
+    end
+
+    if output_slot == nil then error(comms.robot_send("fatal", "assert failed!")) end
+
+    robot.select(output_slot)
+    local result = crafting_component.craft(64)     -- craft as many as possible, in case of gross oversight
+                                                    -- this should at least crash hard
+
+    if not result then
+        print(comms.robot_send("error", "failed to craft :("))
+        module.force_update_vinv() -- last hurah-ass
+        for index = 1, 12, 1 do
+            if index % 4 ~= 0 then module.simple_slot_check(index) end
+        end
+
+        return false
+    end
+
+    -- TODO make it not use getStackInInternalSlot se we're a bit faster (it'll require better recipe programming)
+    local stack_rep = inventory.getStackInInternalSlot(output_slot)
+    local new_quantity = stack_rep.size
+
+    local update_name = output.name
+    local update_lable = output.lable
+    if update_name == nil then update_name = stack_rep.name end
+    if update_lable == nil then update_lable = stack_rep.label end
+
+    -- Optimistically Update the thingy-majig
+    module.virtual_inventory:forceUpdateSlot(update_lable, update_name, new_quantity, output_slot)
+
+    robot.select(1)
+    return true
+end
