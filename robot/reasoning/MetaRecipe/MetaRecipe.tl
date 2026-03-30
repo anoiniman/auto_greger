@@ -34,7 +34,7 @@ function module.new_crafting_table(
     dependencies: {MetaDependency},
 
     dictionary_ref: {string : ItemDefinition},
-    crafting_recipe: craftingGrid
+    crafting_grid: craftingGrid
 ): CraftingTable
     local crafting_routine = coroutine.create(crafting.craft)
     local crafting_prototype = 
@@ -42,13 +42,23 @@ function module.new_crafting_table(
 
     local new: CraftingTable = {} as CraftingTable
     for k, v in pairs(parent as {any : any}) do new[k] = v end
-    new.dictionary_ref = dictionary_ref
-    new.crafting_recipe = crafting_recipe
+
+    local recipe_grid = {}
+    for index, char in ipairs(crafting_grid) do
+        local char = crafting_grid[index]
+
+        local item_def
+        if char == nil then item_def = nil
+        else item_def = dictionary_ref[char] end
+
+        recipe_grid[index] = item_def
+    end
+    new.recipe_grid = recipe_grid
     
     return new
 end
 
--- function module.returnCommand(priority: integer, lock_ref: SharedLock, up_to_quantity: integer)
+-- Need to add: scaling with needed output
 function module.instantiate(recipe_template: MetaRecipe, recipe_specification: RecipeSpecification): TaskHandle
     task_helper.instantiate(recipe_template.task_prototype)
 end

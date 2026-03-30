@@ -1,17 +1,20 @@
-local module = {}
-local search_table = require("search_table")
+local record module end
 local comms = require("comms")
+local search_table = require("search_table")
+
+require("inventory.__h_Item")
 
 -- make sure that you write conversions that are self-stable [aka the identify of "any:log" is "any:log"
 -- returns a name
-function module.identify(name, lable)
-    if name == nil then name = "nil" end
-    if lable == nil then lable = "nil" end
+function module.identify(item_def: ItemDefinition): string
+    local copy = COPY(item_def) as ItemDefinition
+    if copy.name is nil then copy.name = "nil"
+    if copy.label is nil then copy.label = "nil" end
 
     local function fname(hole) return string.find(name , hole) end
-    local function flabl(hole) return string.find(lable, hole) end
+    local function flabl(hole) return string.find(label, hole) end
 
-    if lable == "Dirt" or lable == "Grass" or name == "any:grass" then
+    if label == "Dirt" or label == "Grass" or name == "any:grass" then
         return "any:grass"
     end
 
@@ -31,7 +34,7 @@ function module.identify(name, lable)
     if fname ("axe")                then return     "tool:axe"          end
     if fname ("shovel")             then return     "tool:shovel"       end
 
-    -- to define these things as tools is necessary so their custom lable is not erased by an update
+    -- to define these things as tools is necessary so their custom label is not erased by an update
     if flabl ("Mallet")
     or flabl ("Soft Hammer")        then return     "tool:mallet"       end
 
@@ -98,16 +101,7 @@ function module.identify(name, lable)
     return "generic"
 end
 
---[[local function concat(tbl1, tbl2)
-    for index, element in ipairs(tbl2) do
-        local offset = #tbl1 + index
-        tbl1[offset] = element
-    end
-
-    return tbl1
-end--]]
-
-local function capitalise(str)
+local function capitalise(str: string): string
     return string.upper(string.sub(str, 1, 1)) .. string.sub(str, 2)
 end
 
@@ -115,7 +109,7 @@ end
 local req_tbl = require("inventory.tool_definition")
 local tm_table, tt_table = table.unpack(req_tbl)
 local max_tool_level = 3
--- returns {lable} table, organized from most preferential to least preferential
+-- returns {label} table, organized from most preferential to least preferential
 function module.id_equipment(tool_type, tool_level)
     if tool_type == "empty" or tool_type == "unequip" then
         return {} -- returning this exploits the control logic of the caller function to unequip the tool :)
@@ -127,35 +121,35 @@ function module.id_equipment(tool_type, tool_level)
     end
 
     -- print("start")
-    local possible_lables = {}
+    local possible_labels = {}
     for level, inner_tbl in ipairs(tm_table) do
-        table.insert(possible_lables, {})
+        table.insert(possible_labels, {})
         if level < tool_level then goto continue end
         for _, material in ipairs(inner_tbl) do
             local material = capitalise(material) -- luacheck: ignore material
             local tool_name = capitalise(tool_type)
             local hopefully_good_name = table.concat({material, " ", tool_name})
-            table.insert(possible_lables[level], hopefully_good_name)
+            table.insert(possible_labels[level], hopefully_good_name)
             -- print(hopefully_good_name)
         end
         ::continue::
     end
-    if #possible_lables == 0 then
+    if #possible_labels == 0 then
         print(comms.robot_send("error", "Found Nothing in id_equipment?" .. tool_type .. tool_level))
         return nil
     end
     -- io.read()
 
-    return possible_lables
+    return possible_labels
 end
 
 -- There is a teeny-tiny possibility that we'll find iron that is from a magnetite vein rather than a copper
 -- one, but magnetite veins are so rare that it is a sacrifice I'm willing to make, overall, managing ore
 -- gathering routines this way is somewhat stupid, but hey, if it'll work it'll work
-function module.normalise_ore(lable)
-    lable = tostring(lable)
-    if lable == nil then lable = "Nil Lable" end
-    local function flabl(hole) return string.find(lable, hole) end
+function module.normalise_ore(label: string): string, integer
+    label = tostring(label)
+    if label == nil then label = "Nil label" end
+    local function flabl(hole) return string.find(label, hole) end
 
     if flabl("Copper") or flabl("Chalcopyrite") or flabl("Raw Iron") or flabl("Pyrite") then
         return "Raw Copper Ore", 1
@@ -216,7 +210,7 @@ function module.normalise_ore(lable)
         return "Raw Oil Sand Ore", 2
     end
 
-    print(comms.robot_send("error", string.format("Woops, I don't know this ore: \"%s\"", lable)))
+    print(comms.robot_send("error", string.format("Woops, I don't know this ore: \"%s\"", label)))
     return "Unrecognised Ore"
 end
 

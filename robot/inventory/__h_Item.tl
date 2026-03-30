@@ -4,6 +4,15 @@ global enum ToolType
     "shovel"
     "sword"
     "hoe"
+
+    "__gt_mallet"
+    "__gt_hammer"
+    "__gt_wrench"
+    "__gt_file"
+    "__gt_screwdriver"
+    "__gt_saw"
+    "__gt_crowbar"
+    "__gt_soldering_iron"
 end
 
 global enum ToolLevel
@@ -19,6 +28,8 @@ global interface ItemDefinition
     label: string | nil
     name: string | nil
     size: integer | nil
+
+    stack_size: integer
 end
 
 global interface FullDefinition is ItemDefinition
@@ -42,3 +53,6 @@ where self.disc == 12
     size: nil
 end
 
+local record helper end
+
+return helper

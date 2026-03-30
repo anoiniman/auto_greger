@@ -1,5 +1,6 @@
 require("Task")
 require("reasoning.MetaRecipe.__h_MetaRecipe")
+local type InvObj = require("inventory.__h_InvObj")
 local comms = require("comms")
 
 local use_self_craft = true
@@ -11,7 +12,30 @@ end
 
 -- WARNING: WILL have some problems with tools breaking and so on, let's just hope it is able of self-cleaning!
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
-function module.craft(taskState: CraftingState, crafting_table_clear: boolean): boolean
+function module.craft(taskState: CraftingState, inv: InvObj): boolean
+    local dictionary: {string : ItemDefinition} = taskState.dictionary
+    local recipe_grid: recipeGrid = taskState.crafting_grid
+    local output: ItemDefinition = taskState.output
+    local repeats: integer = taskState.repeats
+
+    --function module.craft(dictionary, recipe, output, how_much_to_craft)
+    if not module.isCraftActive() then error(comms.robot_send("fatal", "Craft is not active")) end
+
+    if not inv.is_crafting_clear() then
+        print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
+        return false
+    end
+
+    for slot, item_def in ipairs(recipe_grid) do
+        if slot > 3 then slot = slot + 1 end
+        if slot > 6 then slot = slot + 2 end
+
+        -- this should be writting to return a priority queue VVVV
+        local i_slot_tbl = module.virtual_inventory:getAllSlots(lable, name)
+    end
+end
+
+--[[function module.craft(taskState: CraftingState, crafting_table_clear: boolean): boolean
     local dictionary: {string : ItemDefinition} = taskState.dictionary
     local recipe: craftingGrid = taskState.crafting_recipe
     local output: ItemDefinition = taskState.output
@@ -175,4 +199,4 @@ function module.craft(taskState: CraftingState, crafting_table_clear: boolean): 
 
     robot.select(1)
     return true
-end
+end--]]

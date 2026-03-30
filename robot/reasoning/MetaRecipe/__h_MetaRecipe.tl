@@ -36,14 +36,19 @@ global type craftingGrid = {
         charNil, charNil, charNil
 }
 
+global type ItemDefOrNil = ItemDefinition | nil
+global type recipeGrid = {
+    ItemDefOrNil, ItemDefOrNil, ItemDefOrNil,
+    ItemDefOrNil, ItemDefOrNil, ItemDefOrNil,
+    ItemDefOrNil, ItemDefOrNil, ItemDefOrNil
+}
+
 global interface CraftingTable is MetaRecipe
-    dictionary_ref: {string : ItemDefinition}
-    crafting_recipe: craftingGrid
+    crafting_grid: recipeGrid
 end
 
 global interface CraftingState is TaskState
-    dictionary: {string : ItemDefinition}
-    crafting_recipe: craftingGrid
+    recipe_grid: recipeGrid
     output: ItemDefinition
     repeats: integer
 end
