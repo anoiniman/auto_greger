@@ -1,16 +1,22 @@
 require("Task")
 require("reasoning.MetaRecipe.__h_MetaRecipe")
+local comms = require("comms")
 
 local use_self_craft = true
 
-function module.isCraftActive()
+local record module end
+function module.isCraftActive(): boolean
     return use_self_craft
 end
 
 -- WARNING: WILL have some problems with tools breaking and so on, let's just hope it is able of self-cleaning!
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
-function module.craft(taskState: CraftingState)
+function module.craft(taskState: CraftingState, crafting_table_clear: boolean): boolean
     local dictionary: {string : ItemDefinition} = taskState.dictionary
+    local recipe: craftingGrid = taskState.crafting_recipe
+    local output: ItemDefinition = taskState.output
+    local repeats: integer = taskState.repeats
+
     --function module.craft(dictionary, recipe, output, how_much_to_craft)
     if not module.isCraftActive() then error(comms.robot_send("fatal", "Craft is not active")) end
 
@@ -22,7 +28,7 @@ function module.craft(taskState: CraftingState)
     local ingredient_table = {}
     local occurence_table = {} -- = {slot_a, slob_b, .... slot_c}
     for slot, char in ipairs(recipe) do
-        if char == 0 then goto continue end
+        if char is nil then goto continue end
         if occurence_table[char] == nil then
             occurence_table[char] = {slot}
             local ingredient = dictionary[char]
@@ -36,7 +42,7 @@ function module.craft(taskState: CraftingState)
 
     local clean_up = false
     for stbl_index, sub_table in pairs(occurence_table) do
-        local lable, name
+        local label, name: string, string
         local ingredient = ingredient_table[stbl_index]
 
         if ingredient == nil then
@@ -44,10 +50,10 @@ function module.craft(taskState: CraftingState)
         end
 
         if type(ingredient) == "table" then -- select strict search (or permissive is ingredient[1] is nil)
-            lable = ingredient[1]
+            label = ingredient[1]
             name = ingredient[2]
         else -- select lable-only search
-            lable = ingredient
+            label = ingredient
             name = nil --> "generic" (remember than "generic" will match any other name)
         end
 

@@ -1,4 +1,5 @@
 require("Task")
+require("inventory.__h_Item")
 
 -- This state_primitive bullshitery and what not seems quite poorly designed, we'll need to revise that for v2
 -- only gathering uses that stupid crap anyway

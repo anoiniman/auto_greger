@@ -615,7 +615,6 @@ end
 
 ----}}}
 
-
 --->>-- Tool Use --<<-----{{{
 
 -- Assume that the tools are in their correct slots at all the times, it is not the responsibility
@@ -754,6 +753,13 @@ function module.blind_swing_up(pre_analysis)
 end
 ---}}}
 
+--->>- Crafting --<<--{{{
+
+function module.craft(taskState: craftingState, crafting_table_clear)
+    return crafting.craft()
+end
+
+----}}}
 
 --->>-- Block Placing --<<----{{{
 

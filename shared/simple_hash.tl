@@ -1,5 +1,5 @@
 -- I copied this from chat GPT mini, with the singular and only purpose of getting jimmers twisted
-local function fnv1a_hash(str)
+local function fnv1a_hash(str: string): integer
     if str == nil then return nil end
 
     local hash_value = -3750763034362895579  -- FNV offset basis

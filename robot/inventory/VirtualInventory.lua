@@ -104,7 +104,7 @@ function Module:reInstantiate(unserial)
     local new = deep_copy.copy(self, pairs)
 
     if #unserial % 3 ~= 0 then
-        print(comms.robot_send("warning", "reinstantiated inv_table that is not deviseable by 3:\n" .. debug.traceback()))
+        print(comms.robot_send("warning", "reinstantiated inv_table that is not divisable by 3:\n" .. debug.traceback()))
     end
 
     new.inv_size = (#unserial / 3)

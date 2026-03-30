@@ -1,6 +1,7 @@
 require("deep_copy")
 local tbl = require("PriorityQueue")
 local pqueue, PriorityQueue, Prioritizable = table.unpack(tbl)
+local simple_hash = require("simple_hash")
 
 local record task_helper end
 global interface TaskState end
@@ -11,46 +12,59 @@ local interface BlockName
     is_valid: function(string): boolean
 end
 
--- Should read {Task} instead of {any}
-local await_queue: PriorityQueue<any>
-function task_helper.next_task<S is TaskState>(): TaskHandle<S>
-
-end
-
-local interface Task<S is TaskState> is Prioritizable
+local interface Task is Prioritizable
+    prototype_uuid: integer
     yield_block: BlockName | nil
 
-    state: S
+    state: TaskState
     coroutine: thread -- basically a funcpointer
 end
 
-global interface TaskHandle<S>
-    task: Task<S> -- reference to a task in await_queue or other such long-lived and active value
+global interface TaskHandle
+    task: Task -- reference to a task in await_queue or other such long-lived and active value
 end
 
 global interface TaskPrototype<S is TaskState>
     priority: integer
     state: S
     func: function(S): S
+
+    uuid: integer
 end
 
-function task_helper.new_prototype<S is TaskState>(priority: integer, func: function(S): S): TaskPrototype<S>
+local active_task: Task
+local await_queue: PriorityQueue<Task> = pqueue.new()
+function task_helper.next_task(): TaskHandle | nil
+    local task: Task = pqueue.peek(await_queue, #await_queue.inner)
+    if task is nil or task.priority <= active_task.priority then return nil end
+
+    pqueue.insert(await_queue, active_task)
+    active_task = task
+    return {task = active_task}
+end
+
+function task_helper.new_prototype<S is TaskState>(priority: integer, state: S, func: function(S): S): TaskPrototype<S>
     local new: TaskPrototype<S> = {
         priority = priority,
-        func = func
+        state = state,
+        func = func,
     }
+    new.uuid = simple_hash(tostring(os.clock()) .. tostring(new))
     return new
 end
 
 function task_helper.instantiate<S is TaskState>(prototype: TaskPrototype<S>): boolean
-    local new: Task<S> = {
+    local func = function(a: Task, x: TaskPrototype<S>): boolean return a.prototype_uuid == x.uuid end
+    if pqueue.find(await_queue as PriorityQueue<Task>, func, prototype) then return false end
+
+    local new: Task = {
         priority = prototype.priority,
         yield_block = nil,
 
-        state = CLONE(prototype.state) as S,
+        state = CLONE(prototype.state) as TaskState,
         coroutine = coroutine.create(prototype.func)
     }
-    pqueue.insert(await_queue as PriorityQueue<Task<S>>, new)
+    pqueue.insert(await_queue, new)
 
     return true
 end

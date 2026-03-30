@@ -7,6 +7,28 @@ local interface PriorityQueue<T is Prioritizable>
 end
 
 local record module end
+function module.new<T is Prioritizable>(): PriorityQueue<T>
+    local new: PriorityQueue<T> = { inner = {} }
+    return new
+end
+
+function module.find<T is Prioritizable, Q>(queue: PriorityQueue<T>, func: function(T, Q): boolean, other: Q): T | nil
+    for _, t in ipairs(queue.inner) do
+        if func(t, other) then return t end
+    end
+    return nil
+end
+
+function module.remove<T is Prioritizable>(queue: PriorityQueue<T>, index?: integer): T | nil
+    if index is nil then return table.remove(queue.inner) end -- removes last element
+    return table.remove(queue.inner, index)
+end
+
+function module.peek<T is Prioritizable>(queue: PriorityQueue<T>, index?: integer): T | nil
+    if index is nil then return queue.inner[#queue.inner] end -- removes last element
+    return queue.inner[index]
+end
+
 -- prio_insert modified for "named" priorities
 function module.insert<T is Prioritizable>(queue: PriorityQueue<T>, to_add: T)
     local inner = queue.inner
