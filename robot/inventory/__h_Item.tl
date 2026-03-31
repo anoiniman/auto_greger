@@ -15,12 +15,15 @@ global enum ToolType
     "__gt_soldering_iron"
 end
 
-global enum ToolLevel
+--[[global enum ToolLevel
     "1"
     "2"
     "3"
     "4"
-end
+end--]]
+global type ToolLevel = integer
+
+local record helper end
 
 global interface ItemDefinition
     disc: integer 
@@ -49,10 +52,41 @@ end
 global interface ItemQuery is ItemDefinition
 where self.disc == 12
     label: string
-    name:  nil
+    name: nil
     size: nil
 end
+function helper.new_item_query(label: string): ItemQuery
+    return {label = label} 
+end
 
-local record helper end
+global interface EquipmentInfo is ItemDefinition
+    label: string
+    name: string
+    size: integer
+
+    equiped_level: integer
+    stack_size: integer
+end
+
+local record tool_materials is {{string}} end
+for i = 1, 4, 1 do
+    tool_materials[i] = {}
+end
+tool_materials[1] = {
+    "flint"
+}
+tool_materials[2] = {
+    "bronze",
+    "iron",
+    "copper",
+}
+tool_materials[3] = {
+    "obzinite",
+    "steel",
+}
+
+function helper.get_tool_materials(): tool_materials
+    return tool_materials
+end
 
 return helper

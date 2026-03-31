@@ -1,18 +1,18 @@
 local record module end
+require("deep_copy")
 local comms = require("comms")
-local search_table = require("search_table")
 
-require("inventory.__h_Item")
+local __h_item = require("inventory.__h_Item")
 
 -- make sure that you write conversions that are self-stable [aka the identify of "any:log" is "any:log"
 -- returns a name
 function module.identify(item_def: ItemDefinition): string
-    local copy = COPY(item_def) as ItemDefinition
-    if copy.name is nil then copy.name = "nil"
-    if copy.label is nil then copy.label = "nil" end
+    local label, name: string, string
+    if item_def.label == nil then label = "nil" end
+    if item_def.name == nil then name = "nil"   end
 
-    local function fname(hole) return string.find(name , hole) end
-    local function flabl(hole) return string.find(label, hole) end
+    local function fname(hole: string): integer, integer, string return string.find(name , hole) end
+    local function flabl(hole: string): integer, integer, string return string.find(label, hole) end
 
     if label == "Dirt" or label == "Grass" or name == "any:grass" then
         return "any:grass"
@@ -106,30 +106,30 @@ local function capitalise(str: string): string
 end
 
 -- tool materials and tool types
-local req_tbl = require("inventory.tool_definition")
-local tm_table, tt_table = table.unpack(req_tbl)
-local max_tool_level = 3
 -- returns {label} table, organized from most preferential to least preferential
-function module.id_equipment(tool_type, tool_level)
+function module.id_equipment(tool_type: string, tool_level: integer): {{ItemQuery}}
     if tool_type == "empty" or tool_type == "unequip" then
         return {} -- returning this exploits the control logic of the caller function to unequip the tool :)
     end
 
-    if not search_table.ione(tt_table, tool_type) then
+    if not tool_type is ToolType then
         print(comms.robot_send("error", "Unidentified tool_type: " .. tool_type))
         return nil
     end
+    tool_type = tool_type as ToolType
 
     -- print("start")
-    local possible_labels = {}
-    for level, inner_tbl in ipairs(tm_table) do
+    local possible_labels: {{ItemQuery}} = {}
+    for level, inner_tbl in ipairs(__h_item.get_tool_materials()) do
         table.insert(possible_labels, {})
         if level < tool_level then goto continue end
         for _, material in ipairs(inner_tbl) do
-            local material = capitalise(material) -- luacheck: ignore material
+            material = capitalise(material)
             local tool_name = capitalise(tool_type)
             local hopefully_good_name = table.concat({material, " ", tool_name})
-            table.insert(possible_labels[level], hopefully_good_name)
+            local item_query = __h_item.new_item_query(hopefully_good_name)
+
+            table.insert(possible_labels[level], item_query)
             -- print(hopefully_good_name)
         end
         ::continue::
@@ -149,7 +149,7 @@ end
 function module.normalise_ore(label: string): string, integer
     label = tostring(label)
     if label == nil then label = "Nil label" end
-    local function flabl(hole) return string.find(label, hole) end
+    local function flabl(hole: string): integer, integer, string return string.find(label, hole) end
 
     if flabl("Copper") or flabl("Chalcopyrite") or flabl("Raw Iron") or flabl("Pyrite") then
         return "Raw Copper Ore", 1

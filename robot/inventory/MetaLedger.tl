@@ -5,15 +5,22 @@ local comms = require("comms")
 -- local SpecialDefinition = require("inventory.SpecialDefinition")
 local item_bucket = require("inventory.item_buckets")
 
+local record helper end
+
 -- It is assumed this will never be used for the robots own inventory
 
 -- this will be a virtual inventory without fixed buckets and initialised lazily, achieving good item compression
 -- the format now still 3 based {lable, name, quantity}
+local virtual_inventory = require("inventory.VirtualInventory")
+local interface Module is VirtualInventory
 
-local VirtualInventory = require("inventory.VirtualInventory")
-local Module = VirtualInventory:new(-1)
+end
 
 -- (new) function is unchanged from VirtualInventory (except for the fact that the table is not pre-inited)
+function helper.new(max_size: integer)
+    local new = virtual_inventory.new()
+end
+
 function Module:new(max_size)
     local new = deep_copy.copy(self, pairs)
     new.max_size = max_size

@@ -324,31 +324,6 @@ function module.how_many_total(lable, name)
     return quantity
 end
 
-local function smaller_than(a,b) return a < b end
-local function bigger_than(a,b) return a > b end
-
--- In place (insertion?) sort, smallest to biggest!
-local function sort_table_indexed(tbl, reverse, cmp_index)
-    -- reverse == false then smallest to biggest
-    -- reverse == true then biggest to smallest
-
-    local cmp
-    if reverse == nil or reverse == false then cmp = bigger_than
-    else cmp = smaller_than end
-
-    for head = 2, #tbl do
-        local key = tbl[head]
-
-        local t_index = head - 1
-        while t_index >= 1 and cmp(tbl[t_index][cmp_index], key[cmp_index]) do
-            tbl[t_index + 1] = tbl[t_index]
-            t_index = t_index - 1
-        end
-
-        tbl[t_index + 1] = key
-    end
-end
-
 local max_combined_travel = 512 + 128
 -- The ammount of free space in the inventory should also be determinant
 function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
