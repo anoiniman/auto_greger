@@ -15,7 +15,7 @@
     Left: east, posx
 --]]
 
-local sides = {
+local sides: {string | integer : integer} = {
     bottom = 0,
     top = 1,
     back = 2,
