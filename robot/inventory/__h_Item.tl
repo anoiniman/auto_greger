@@ -1,4 +1,5 @@
 global enum ToolType
+    ""
     "pickaxe"
     "axe"
     "shovel"
@@ -49,21 +50,33 @@ where self.disc == 11
     name: string
 end
 
-global interface ItemQuery is ItemDefinition
+global interface LabelQuery is ItemDefinition
 where self.disc == 12
     label: string
     name: nil
     size: nil
 end
-function helper.new_item_query(label: string): ItemQuery
+function helper.new_label_query(label: string): LabelQuery
     return {label = label} 
 end
+
+global interface ItemQuery is ItemDefinition
+where self.disc == 13
+    label: string
+    name: string
+    size: nil
+end
+function helper.new_item_query(label: string, name: string): ItemQuery
+    return {label = label, name = name}
+end
+
 
 global interface EquipmentInfo is ItemDefinition
     label: string
     name: string
     size: integer
 
+    tool_type: ToolType
     equiped_level: integer
     stack_size: integer
 end

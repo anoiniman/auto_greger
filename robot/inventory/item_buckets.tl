@@ -107,7 +107,7 @@ end
 
 -- tool materials and tool types
 -- returns {label} table, organized from most preferential to least preferential
-function module.id_equipment(tool_type: string, tool_level: integer): {{ItemQuery}}
+function module.id_equipment(tool_type: string, tool_level: integer): {{LabelQuery}}
     if tool_type == "empty" or tool_type == "unequip" then
         return {} -- returning this exploits the control logic of the caller function to unequip the tool :)
     end
@@ -119,7 +119,7 @@ function module.id_equipment(tool_type: string, tool_level: integer): {{ItemQuer
     tool_type = tool_type as ToolType
 
     -- print("start")
-    local possible_labels: {{ItemQuery}} = {}
+    local possible_labels: {{LabelQuery}} = {}
     for level, inner_tbl in ipairs(__h_item.get_tool_materials()) do
         table.insert(possible_labels, {})
         if level < tool_level then goto continue end
@@ -127,9 +127,9 @@ function module.id_equipment(tool_type: string, tool_level: integer): {{ItemQuer
             material = capitalise(material)
             local tool_name = capitalise(tool_type)
             local hopefully_good_name = table.concat({material, " ", tool_name})
-            local item_query = __h_item.new_item_query(hopefully_good_name)
+            local label_query = __h_item.new_label_query(hopefully_good_name)
 
-            table.insert(possible_labels[level], item_query)
+            table.insert(possible_labels[level], label_query)
             -- print(hopefully_good_name)
         end
         ::continue::

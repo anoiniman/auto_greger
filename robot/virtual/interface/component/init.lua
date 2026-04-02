@@ -50,6 +50,8 @@ function component.setRobotRep(robot_rep)
 end
 
 function component.getPrimary(name)
+    local comp = component_list[name]
+    if comp == nil then error(string.format("Component: %s has no implementation", tostring(name))) end
     return component_list[name]
 end
 

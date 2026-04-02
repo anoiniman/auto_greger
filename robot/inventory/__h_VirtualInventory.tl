@@ -10,7 +10,7 @@ global interface VirtualInventory
 end
 
 global interface ComparisonDiff
-    item: ItemDefinition
+    item: ItemQuery
     diff: integer
 end
 

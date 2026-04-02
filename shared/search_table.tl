@@ -1,16 +1,18 @@
 local comms = require("comms")
-local module = {}
+local record module end
 
-local function print_buffer(tbl, buffer, ref_buffer)
+local type AnyTable = {string | integer : any}
+local function print_buffer(tbl: AnyTable, buffer: {string}, ref_buffer: AnyTable): {string}
     for key, value in pairs(tbl) do
         if ref_buffer[key] ~= nil then -- this loop detection is terrible, we really ought to build trees
-            for _, o_value in ipairs(ref_buffer[key]) do
+            local inner = ref_buffer[key] as {any}
+            for _, o_value in ipairs(inner) do
                 if value == o_value then -- loop detected
-                    table.insert(buffer, key .. " = Loop Detected\n")
+                    table.insert(buffer, tostring(key) .. " = Loop Detected\n")
                     return buffer
                 end
             end
-            table.insert(ref_buffer[key], value)
+            table.insert(ref_buffer[key] as {any}, value)
         else
             ref_buffer[key] = {value}
         end
@@ -29,23 +31,23 @@ local function print_buffer(tbl, buffer, ref_buffer)
     return buffer
 end
 
-function module.print_structure(obj, name)
+function module.print_structure<T>(obj: T, name: string)
     if name == nil then name = "DEFAULT NAME" end
 
-    if type(obj) == "string" then print(comms.robot_send("info", name .. "(string): " .. obj)); return end
-    if type(obj) == "number" then print(comms.robot_send("info", name .. "(number): " .. obj)); return end
-    if type(obj) == "boolean" then print(comms.robot_send("info", name .. "(boolean): " .. obj)); return end
+    if type(obj) == "string" then print(comms.robot_send("info", name .. "(string): " .. obj as string)); return end
+    if type(obj) == "number" then print(comms.robot_send("info", name .. "(number): " .. obj as string)); return end
+    if type(obj) == "boolean" then print(comms.robot_send("info", name .. "(boolean): " .. obj as string)); return end
     if type(obj) == "function" then print(comms.robot_send("info", name .. "(function): ")); return end
 
     if type(obj) == "table" then
-        local buffer = print_buffer(obj, {"\n"}, {obj})
+        local buffer = print_buffer(obj as AnyTable, {"\n"}, {obj as AnyTable} as AnyTable)
         print(comms.robot_send("info", name .. table.concat(buffer)))
         return
     end
 end
 
 -- it's le recursive! totally not a cludge! (this means this can't compare tables together :P)
-function module.ione(tbl, particle)
+function module.ione<T>(tbl: {any}, particle: T): boolean
     if tbl == nil then return false end
     if type(tbl) ~= "table" then
         if type(particle) == "table" then
@@ -57,13 +59,13 @@ function module.ione(tbl, particle)
     for _, element in ipairs(tbl) do
         if type(element) == "table" then
             LOG("error", "Attempted recursion on table_check on:\n" .. debug.traceback())
-            if module.ione(element, particle) then return true end
+            if module.ione(element as {any}, particle) then return true end
         end
         if particle == element then return true end
     end
     return false
 end
-CMP_OTT = module.ione -- Compare Object to Table
+global CMP_OTT: function<T>({any}, T): boolean = module.ione -- Compare Object to Table
 
 
 return module

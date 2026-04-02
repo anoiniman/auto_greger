@@ -1,31 +1,45 @@
 require("__h_VirtualInventory")
+local __h_Item = require("__h_Item")
 
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
 local component = require("component")
 local sides_api = require("sides")
 
-local deep_copy = require("deep_copy")
 local comms = require("comms")
 local search_table = require("search_table")
 local PPObj = require("common_pp_format")
 
 local item_bucket = require("inventory.item_buckets")
-local inventory = component.getPrimary("inventory_controller")
+local inventory = component.getPrimary("inventory_controller") as InventoryController
 
 -- luacheck: globals EMPTY_STRING
 global EMPTY_STRING: string = ""
 
-local record helper end
+local type CheckFunc = function(VirtualInventory, string, string | integer | nil, ?integer): boolean
+local record helper
+    how_many: function(VirtualInventory, string, string): integer
+    new: function(integer): VirtualInventory
+
+    get_all_slots_internal:
+    function(
+        VirtualInventory,
+        string,
+        string,
+        CheckFunc,
+        integer
+    ): {SlotEntry}
+    force_update_general: function(VirtualInventory, boolean)
+end
 
 -- We are going to be using a modulo 3 to determine trios of item_label/item_name/quantity, and the floor div 3
 -- of the array will be the select
 
-function helper.get_compressed_fmt_obj(vinv: VirtualInventory)
+function helper.get_compressed_fmt_obj(vinv: VirtualInventory): PPObj
     local print_table = PPObj:new()
     print_table:setTitle("Default VInventory cfmtObj:")
 
-    local label_table = {}
-    local name_table = {}
+    local label_table: {string} = {}
+    local name_table: {string} = {}
 
     for index = 1, #vinv.inv_table, 3 do
         local label = vinv.inv_table[index]
@@ -38,8 +52,8 @@ function helper.get_compressed_fmt_obj(vinv: VirtualInventory)
             goto continue
         end
 
-        table.insert(label_table, label)
-        table.insert(name_table, name)
+        table.insert(label_table, label as string)
+        table.insert(name_table, name as string)
 
         ::continue::
     end
@@ -50,7 +64,7 @@ function helper.get_compressed_fmt_obj(vinv: VirtualInventory)
         :addString(", ")
         :addString(name)
         :addString(" (")
-        :addString(helper.how_many(vinv, label, name))
+        :addString(tostring(helper.how_many(vinv, label, name)))
         :addString(")")
         :newLine()
     end
@@ -59,7 +73,7 @@ function helper.get_compressed_fmt_obj(vinv: VirtualInventory)
     return print_table
 end
 
-function helper.getFmtObj(vinv: VirtualInventory)
+function helper.getFmtObj(vinv: VirtualInventory): PPObj
     local print_table = PPObj:new()
     print_table:setTitle("Default VInventory fmtObj:")
 
@@ -70,14 +84,14 @@ function helper.getFmtObj(vinv: VirtualInventory)
 
         local slot = (index + 2) / 3
         print_table:addString("(Slot: ")
-                   :addString(slot)
+                   :addString(tostring(slot))
                    :addString(")")
                    :newLine()
-        print_table:addString(vinv.inv_table[index + 0])
+        print_table:addString(vinv.inv_table[index + 0] as string)
                    :addString(", ")
-                   :addString(vinv.inv_table[index + 1])
+                   :addString(vinv.inv_table[index + 1] as string)
                    :addString(" (")
-                   :addString(vinv.inv_table[index + 2])
+                   :addString(tostring(vinv.inv_table[index + 2]))
                    :addString(")")
                    :newLine()
 
@@ -98,14 +112,14 @@ function helper.get_data(vinv: VirtualInventory): {string | integer}
     return vinv.inv_table
 end
 
-function helper.reinstantiate(unserial): VirtualInventory
-    local new = deep_copy.copy(self, pairs)
+function helper.reinstantiate(unserial: {string | integer}): VirtualInventory
+    local new = helper.new(-1)
 
     if #unserial % 3 ~= 0 then
         print(comms.robot_send("warning", "reinstantiated inv_table that is not divisable by 3:\n" .. debug.traceback()))
     end
 
-    new.inv_size = (#unserial / 3)
+    new.inv_size = (#unserial / 3) as integer
     new.table_size = #unserial
     new.inv_type = "virtual_inventory"
 
@@ -114,10 +128,10 @@ function helper.reinstantiate(unserial): VirtualInventory
 end
 
 function helper.initTable(vinv: VirtualInventory) -- eager initialization
-    for index = 1, self.table_size, 3 do
-        self.inv_table[index] = EMPTY_STRING
-        self.inv_table[index + 1] = EMPTY_STRING
-        self.inv_table[index + 2] = 0
+    for index = 1, vinv.table_size, 3 do
+        vinv.inv_table[index] = EMPTY_STRING
+        vinv.inv_table[index + 1] = EMPTY_STRING
+        vinv.inv_table[index + 2] = 0
     end
 end
 
@@ -141,8 +155,8 @@ function helper.check_entry(vinv: VirtualInventory, label: string, name: string,
     return label == i_label and (name == "generic" or name == i_name)
 end
 
-function helper:check_entry_permissive(vinv: VirtualInventory, _: any, name: string, at_index: integer): boolean
-    local i_name = self.inv_table[at_index + 1]
+function helper.check_entry_permissive(vinv: VirtualInventory, _: any, name: string, at_index: integer): boolean
+    local i_name = vinv.inv_table[at_index + 1]
     return name == i_name
 end
 
@@ -165,7 +179,7 @@ function helper.add_to_empty(
     to_be_added: integer,
     forbidden_slots: {integer}
 ): integer
-    name = item_bucket.identify(name, label)
+    name = item_bucket.identify(__h_Item.new_item_query(label, name))
     if to_be_added <= 0 then return 0 end
 
     for index = 1, vinv.table_size, 3 do
@@ -176,7 +190,7 @@ function helper.add_to_empty(
         vinv.inv_table[index] = label
         vinv.inv_table[index + 1] = name
 
-        local cur_add = calc_add_to_stack(vinv.inv_table[index + 2], to_be_added)
+        local cur_add = calc_add_to_stack(vinv.inv_table[index + 2] as integer, to_be_added)
         vinv.inv_table[index + 2] = cur_add
         to_be_added = to_be_added - cur_add
 
@@ -196,21 +210,23 @@ function helper.add_or_create(
     to_be_added: integer,
     forbidden_slots: {integer}
 ): integer
-    name = item_bucket.identify(name, label)
+    name = item_bucket.identify(__h_Item.new_item_query(label, name))
     if to_be_added <= 0 then return 0 end
 
     -- do valid stack growth according to the rules of opencomputers (reduce left-first)
     for index = 1, vinv.table_size, 3 do
         local slot = (index + 2) / 3
         if search_table.ione(forbidden_slots, slot) then goto continue end
-        if not vinv:checkEntry(label, name, index) then goto continue end
+        if not helper.check_entry(vinv, label, name, index) then goto continue end
 
-        local current = vinv.inv_table[index + 2]
+        local current: integer = vinv.inv_table[index + 2] as integer
         if current == 64 then goto continue end -- stack is already full
 
         local cur_add = calc_add_to_stack(current, to_be_added)
         vinv.inv_table[index + 2] = current + cur_add
-        if vinv.inv_table[index + 2] > 64 then error(comms.robot_send("fatal", "assert failed: " .. vinv.inv_table[index + 2])) end
+        if vinv.inv_table[index + 2] as integer > 64 then 
+            error(comms.robot_send("fatal", "assert failed: " .. tostring(vinv.inv_table[index + 2])))
+        end
 
         to_be_added = to_be_added - cur_add
         if to_be_added == 0 then break end
@@ -219,19 +235,24 @@ function helper.add_or_create(
     end
 
     -- something might have remained, simply add to empty slot
-    local remainder = vinv:addToEmpty(label, name, to_be_added, forbidden_slots)
+    local remainder = helper.add_to_empty(vinv, label, name, to_be_added, forbidden_slots)
     if remainder > 0 then
         print(comms.robot_send("error", "remainder > 0, error in updating virtual inventory, inventory is prob full"))
     end
     return remainder
 end
 
+local interface SlotEntry
+    slot: integer
+    quantity: integer
+end
+
 -- of label is left nil, the behaviour will be identical to getAllSlotsPermissive,
 -- if you want Strict mode only (return nil on nil label), use "getAllSlotsStrict"
-function helper.get_all_slots(vinv: VirtualInventory, label: string, name: string, up_to: integer): {SlotEntry}
-    local check_func
-    if label ~= nil and label ~= "nil" and label ~= "nil_label" then check_func = vinv.check_entry
-    else check_func = vinv.check_entry_permissive end
+function helper.get_all_slots(vinv: VirtualInventory, label: string, name?: string, up_to?: integer): {SlotEntry}
+    local check_func: function(vinv, string, string | integer | nil, ?integer): boolean
+    if label ~= nil and label ~= "nil" and label ~= "nil_label" then check_func = helper.check_entry
+    else check_func = helper.check_entry_permissive end
 
     return helper.get_all_slots_internal(vinv, label, name, check_func, up_to)
 end
@@ -242,18 +263,18 @@ function helper.get_all_slots_strict(vinv: VirtualInventory, label: string, name
 end
 
 function helper.get_all_slots_permissive(vinv: VirtualInventory, name: string, up_to: integer): {SlotEntry}
-    return helper.get_AllSlotsInternal(vinv, nil, name, helper.check_entry_permissive, up_to)
+    return helper.get_all_slots_internal(vinv, nil, name, helper.check_entry_permissive, up_to)
 end
 
 function helper.get_all_slots_internal(
     vinv: VirtualInventory,
     label: string,
     name: string,
-    check_func,
+    check_func: CheckFunc,
     up_to: integer
 ): {SlotEntry}
     if up_to == nil then up_to = 100000 end
-    name = item_bucket.identify(name, label)
+    name = item_bucket.identify(__h_Item.new_item_query(label, name))
 
     local slot_table = {}
     for index = 1, vinv.table_size, 3 do
@@ -261,15 +282,15 @@ function helper.get_all_slots_internal(
             goto continue
         end
 
-        local slot = (index + 2) / 3
-        local quantity = vinv.inv_table[index + 2]
+        local slot: integer = ((index + 2) / 3) as integer
+        local quantity: integer = vinv.inv_table[index + 2] as integer
 
         -- this code segment works to return only as many slots as you need to get the x quantity
         up_to = up_to - quantity
         if up_to < 0 then quantity = quantity + up_to end
         if quantity <= 0 then break end
 
-        local new_entry = {slot, quantity}
+        local new_entry = {slot = slot, quantity = quantity}
         table.insert(slot_table, new_entry)
 
         ::continue::
@@ -283,7 +304,7 @@ function helper.get_empty_slot(vinv: VirtualInventory, forbidden_slots: {integer
         local empty = vinv.inv_table[index] == EMPTY_STRING
         if not empty then goto continue end
 
-        local slot = (index + 2) / 3
+        local slot: integer = ((index + 2) / 3) as integer
         if search_table.ione(forbidden_slots, slot) then goto continue end
 
         if true then return slot end
@@ -298,10 +319,10 @@ function helper.get_all_empty_slots(vinv: VirtualInventory, forbidden_slots: {in
         local empty = vinv.inv_table[index] == EMPTY_STRING
         if not empty then goto continue end
 
-        local slot = (index + 2) / 3
+        local slot: integer = ((index + 2) / 3) as integer
         if search_table.ione(forbidden_slots, slot) then goto continue end
 
-        local new_entry = {slot, 0}
+        local new_entry = {slot = slot, quantity = 0}
         if true then table.insert(matching_slots, new_entry) end
         ::continue::
     end
@@ -311,13 +332,13 @@ function helper.get_all_empty_slots(vinv: VirtualInventory, forbidden_slots: {in
 end
 
 function helper.how_many(vinv: VirtualInventory, label: string, name: string): integer
-    local slot_table = helper.get_all_slots(label, name)
+    local slot_table = helper.get_all_slots(vinv, label, name)
     if slot_table == nil then return 0 end
 
     local total = 0
     for _, element in ipairs(slot_table) do
         -- local slot = element[1]
-        local quantity = element[2]
+        local quantity = element.quantity
         total = total + quantity
     end
     return total
@@ -325,12 +346,12 @@ end
 
 function helper.how_many_slot(vinv: VirtualInventory, slot: integer): integer
     local index = (slot * 3) - 2
-    return vinv.inv_table[index + 2]
+    return (vinv.inv_table[index + 2]) as integer
 end
 
 function helper.get_slot_info(vinv: VirtualInventory, slot: integer): string, string, integer
-    local index = (slot * 3) - 2
-    return vinv.inv_table[index], vinv.inv_table[index + 1], vinv.inv_table[index + 2]
+    local index: integer = ((slot * 3) - 2) as integer
+    return vinv.inv_table[index] as string, vinv.inv_table[index + 1] as string, vinv.inv_table[index + 2] as integer
 end
 
 -- One Day VVVVV
@@ -338,7 +359,7 @@ end
 end--]]
 
 function helper.get_smallest_slot(vinv: VirtualInventory, label: string, name: string): integer | nil -- returns a slot num
-    name = item_bucket.identify(name, label)
+    name = item_bucket.identify(__h_Item.new_item_query(label, name))
 
     local slot_table = helper.get_all_slots(vinv, label, name)
     if slot_table == nil then return nil end
@@ -346,8 +367,8 @@ function helper.get_smallest_slot(vinv: VirtualInventory, label: string, name: s
     local smallest_slot = -1
     local smallest_stack = 65
     for _, inner_table in ipairs(slot_table) do
-        local slot = inner_table[1]
-        local stack_size = inner_table[2]
+        local slot = inner_table.slot
+        local stack_size = inner_table.quantity
         if slot <= 0 then error(comms.robot_send("fatal", "slot assert failed")) end
         if type(stack_size) ~= "number" or stack_size <= 0 or stack_size > 64 then
             error(comms.robot_send("fatal", "stack_size assert failed"))
@@ -364,16 +385,16 @@ function helper.get_smallest_slot(vinv: VirtualInventory, label: string, name: s
 end
 
 function helper.get_largest_slot(vinv: VirtualInventory, label: string, name: string): integer | nil
-    name = item_bucket.identify(name, label)
+    name = item_bucket.identify(__h_Item.new_item_query(label, name))
 
-    local slot_table = helper.get_all_slots(label, name)
+    local slot_table = helper.get_all_slots(vinv, label, name)
     if slot_table == nil then return nil end
 
     local largest_slot = -1
     local largest_stack = 0
     for _, inner_table in ipairs(slot_table) do
-        local slot = inner_table[1]
-        local stack_size = inner_table[2]
+        local slot = inner_table.slot
+        local stack_size = inner_table.quantity
         if slot <= 0 then error(comms.robot_send("fatal", "slot assert failed")) end
         if type(stack_size) ~= "number" or stack_size <= 0 or stack_size > 64 then
             error(comms.robot_send("fatal", "stack_size assert failed"))
@@ -392,13 +413,13 @@ end
 -- 1 stack at the time obvs
 function helper.remove_from_slot(vinv: VirtualInventory, what_slot: integer, how_much: integer): integer
     -- returns how much was actually removed
-    local offset = (what_slot * 3) - 2
+    local offset: integer = ((what_slot * 3) - 2) as integer
 
-    vinv.inv_table[offset + 2] = vinv.inv_table[offset + 2] - how_much
-    local excess = -vinv.inv_table[offset + 2]
+    vinv.inv_table[offset + 2] = (vinv.inv_table[offset + 2] as integer) - how_much
+    local excess = -(vinv.inv_table[offset + 2] as integer)
     local real_removed = how_much - excess
 
-    if vinv.inv_table[offset + 2] <= 0 then
+    if (vinv.inv_table[offset + 2] as integer) <= 0 then
         vinv.inv_table[offset] = EMPTY_STRING
         vinv.inv_table[offset + 1] = EMPTY_STRING
         vinv.inv_table[offset + 2] = 0
@@ -440,7 +461,7 @@ function helper.force_update_slot(
         return
     end
 
-    name = item_bucket.identify(name, label)
+    name = item_bucket.identify(__h_Item.new_item_query(label, name))
 
     local index = (slot * 3) - 2
     if vinv.inv_table[index] == nil then
@@ -463,19 +484,19 @@ function helper.forceUpdateInternal(vinv: VirtualInventory)
 end
 
 function helper.force_update_general(vinv: VirtualInventory, is_internal: boolean)
-    local temp = Module:new(vinv.inv_size)
+    local temp = helper.new(vinv.inv_size)
     for slot = 1, vinv.inv_size, 1 do
-        local stack_info
+        local stack_info: StackInfo
         if is_internal then stack_info = inventory.getStackInInternalSlot(slot)
         else stack_info = inventory.getStackInSlot(sides_api.front, slot) end
 
         if stack_info == nil then goto continue end
 
-        local name = item_bucket.identify(stack_info.name, stack_info.label)
+        local name = item_bucket.identify(__h_Item.new_item_query(stack_info.label, stack_info.name))
         if string.find(name, "tool:")then
             local offset = (slot * 3) - 2
-            local o_label = vinv.inv_table[offset]
-            local o_name = vinv.inv_table[offset + 1]
+            local o_label: string = vinv.inv_table[offset] as string
+            local o_name: string = vinv.inv_table[offset + 1] as string
 
             if o_label ~= "" and string.find(o_name, "tool:") then
                 helper.force_update_slot(temp, o_label, o_name, 1, slot)
@@ -512,11 +533,12 @@ function helper.equip_something(
     local label_table = item_bucket.id_equipment(tool_type, tool_level)
     if label_table == nil then return nil end
 
-    local from_slot, from_label, from_level
+    local from_slot, from_label, from_level: integer, string, integer
     -- this only works because the tables are already pre-sorted from best to worst
     for level_offset, sub_tbl in ipairs(label_table) do
-        for _, label in ipairs(sub_tbl) do
-            local possible_slot = helper.get_largest_slot(label)
+        for _, label_query in ipairs(sub_tbl) do
+            local label = label_query.label
+            local possible_slot = helper.get_largest_slot(vinv, label, nil)
             if possible_slot ~= nil then
                 from_label = label
                 from_slot = possible_slot
@@ -533,7 +555,7 @@ function helper.equip_something(
             print(comms.robot_send("warning", "label_table was not empty, but even so we failed to get/find tool"))
             return nil
         end -- else we just make sure we are holding nothing :)
-        from_slot = helper.get_empty_slot(forbidden_slots)
+        from_slot = helper.get_empty_slot(vinv, forbidden_slots)
         from_label = EMPTY_STRING
 
         do_empty = true
@@ -552,7 +574,7 @@ function helper.equip_something(
         vinv.equip_info.tool_type = tool_type
         vinv.equip_info.name = "tool:" .. tool_type
     else
-        vinv.equip_info.tool_type = EMPTY_STRING
+        vinv.equip_info.tool_type = EMPTY_STRING as ToolType
         vinv.equip_info.name = EMPTY_STRING
     end
 
@@ -575,7 +597,7 @@ function helper.report_equiped_break(vinv: VirtualInventory)
     vinv.equip_info.label = EMPTY_STRING
     vinv.equip_info.name = EMPTY_STRING
 
-    vinv.equip_info.tool_type = EMPTY_STRING
+    vinv.equip_info.tool_type = EMPTY_STRING as ToolType
     vinv.equip_info.equiped_level = -1
 end
 
@@ -583,7 +605,7 @@ function helper.get_equiped_info(vinv: VirtualInventory): string, ToolType, inte
     return vinv.equip_info.label, vinv.equip_info.tool_type, vinv.equip_info.equiped_level
 end
 
-local function comparison_new(item: ItemDefinition, diff: integer): ComparisonDiff
+local function comparison_new(item: ItemQuery, diff: integer): ComparisonDiff
     local new: ComparisonDiff = {
         item = item,
         diff = diff
@@ -595,20 +617,20 @@ end
 -- it is generally better for the smaller table to be "other" rather than "self"
 -- strict matches only
 function helper.compare_with_ledger(self: VirtualInventory, other: VirtualInventory): {ComparisonDiff}
-    if other == nil then error(comms.robot_send("assert_failed")) end
+    if other == nil then error(comms.robot_send("fatal", "assert_failed")) end
 
-    local diff_table = {}
+    local diff_table: {ComparisonDiff} = {}
     for index = 1, #other.inv_table, 3 do
         local o_table = other.inv_table
 
         local slot_quantity = o_table[index + 2]
         if slot_quantity == 0 then goto continue end
 
-        local o_label = o_table[index]
-        local o_name = o_table[index + 1]
+        local o_label: string = o_table[index] as string
+        local o_name: string = o_table[index + 1] as string
 
         for _, c_diff in ipairs(diff_table) do -- skip things already added
-            if c_diff.label == o_label and c_diff.name == o_name then goto continue end
+            if c_diff.item.label == o_label and c_diff.item.name == o_name then goto continue end
         end
 
         local other_quantity = helper.how_many(other, o_label, o_name)
@@ -616,7 +638,7 @@ function helper.compare_with_ledger(self: VirtualInventory, other: VirtualInvent
 
         local diff = own_quantity - other_quantity
         if diff ~= 0 then
-            local diff_obj = comparison_new(o_label, o_name, diff)
+            local diff_obj = comparison_new(__h_Item.new_item_query(o_label, o_name), diff)
             table.insert(diff_table, diff_obj)
         end
 
