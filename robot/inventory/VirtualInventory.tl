@@ -1,4 +1,7 @@
 require("__h_VirtualInventory")
+local a_tbl = require("PriorityQueue")
+local pqueue, PriorityQueue, Prioritizable = table.unpack(a_tbl)
+
 local __h_Item = require("__h_Item")
 
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
@@ -15,6 +18,11 @@ local inventory = component.getPrimary("inventory_controller") as InventoryContr
 -- luacheck: globals EMPTY_STRING
 global EMPTY_STRING: string = ""
 
+global interface SlotEntry is Prioritizable
+    slot: integer
+    quantity: integer
+end
+
 local type CheckFunc = function(VirtualInventory, string, string | integer | nil, ?integer): boolean
 local record helper
     how_many: function(VirtualInventory, string, string): integer
@@ -27,7 +35,7 @@ local record helper
         string,
         CheckFunc,
         integer
-    ): {SlotEntry}
+    ): PriorityQueue<SlotEntry> | nil
     force_update_general: function(VirtualInventory, boolean)
 end
 
@@ -242,14 +250,9 @@ function helper.add_or_create(
     return remainder
 end
 
-local interface SlotEntry
-    slot: integer
-    quantity: integer
-end
-
 -- of label is left nil, the behaviour will be identical to getAllSlotsPermissive,
 -- if you want Strict mode only (return nil on nil label), use "getAllSlotsStrict"
-function helper.get_all_slots(vinv: VirtualInventory, label: string, name?: string, up_to?: integer): {SlotEntry}
+function helper.get_all_slots(vinv: VirtualInventory, label: string, name?: string, up_to?: integer): PriorityQueue<SlotEntry>
     local check_func: function(vinv, string, string | integer | nil, ?integer): boolean
     if label ~= nil and label ~= "nil" and label ~= "nil_label" then check_func = helper.check_entry
     else check_func = helper.check_entry_permissive end
@@ -257,12 +260,13 @@ function helper.get_all_slots(vinv: VirtualInventory, label: string, name?: stri
     return helper.get_all_slots_internal(vinv, label, name, check_func, up_to)
 end
 
-function helper.get_all_slots_strict(vinv: VirtualInventory, label: string, name: string, up_to: integer): {SlotEntry}
+function helper.get_all_slots_strict(vinv: VirtualInventory, label: string, name: string, up_to: integer): 
+PriorityQueue<SlotEntry> | nil
     if label == nil then return nil end
     return helper.get_all_slots_internal(vinv, label, name, helper.check_entry, up_to)
 end
 
-function helper.get_all_slots_permissive(vinv: VirtualInventory, name: string, up_to: integer): {SlotEntry}
+function helper.get_all_slots_permissive(vinv: VirtualInventory, name: string, up_to: integer): PriorityQueue<SlotEntry> | nil
     return helper.get_all_slots_internal(vinv, nil, name, helper.check_entry_permissive, up_to)
 end
 
@@ -272,11 +276,11 @@ function helper.get_all_slots_internal(
     name: string,
     check_func: CheckFunc,
     up_to: integer
-): {SlotEntry}
+): PriorityQueue<SlotEntry> | nil
     if up_to == nil then up_to = 100000 end
     name = item_bucket.identify(__h_Item.new_item_query(label, name))
 
-    local slot_table = {}
+    local slot_table: PriorityQueue<SlotEntry> = pqueue.new()
     for index = 1, vinv.table_size, 3 do
         if not check_func(vinv, label, name, index) then
             goto continue
@@ -290,12 +294,12 @@ function helper.get_all_slots_internal(
         if up_to < 0 then quantity = quantity + up_to end
         if quantity <= 0 then break end
 
-        local new_entry = {slot = slot, quantity = quantity}
-        table.insert(slot_table, new_entry)
+        local new_entry = {slot = slot, quantity = quantity, priority = quantity}
+        pqueue.insert(slot_table, new_entry)
 
         ::continue::
     end
-    if #slot_table == 0 then return nil end
+    if pqueue.size(slot_table) == 0 then return nil end
     return slot_table
 end
 
@@ -336,7 +340,8 @@ function helper.how_many(vinv: VirtualInventory, label: string, name: string): i
     if slot_table == nil then return 0 end
 
     local total = 0
-    for _, element in ipairs(slot_table) do
+    -- for _, element in pqueue.iter(slot_table) do
+    for _, element in ipairs(slot_table.inner) do
         -- local slot = element[1]
         local quantity = element.quantity
         total = total + quantity
@@ -366,7 +371,7 @@ function helper.get_smallest_slot(vinv: VirtualInventory, label: string, name: s
 
     local smallest_slot = -1
     local smallest_stack = 65
-    for _, inner_table in ipairs(slot_table) do
+    for _, inner_table in ipairs(slot_table.inner) do
         local slot = inner_table.slot
         local stack_size = inner_table.quantity
         if slot <= 0 then error(comms.robot_send("fatal", "slot assert failed")) end
@@ -392,7 +397,7 @@ function helper.get_largest_slot(vinv: VirtualInventory, label: string, name: st
 
     local largest_slot = -1
     local largest_stack = 0
-    for _, inner_table in ipairs(slot_table) do
+    for _, inner_table in ipairs(slot_table.inner) do
         local slot = inner_table.slot
         local stack_size = inner_table.quantity
         if slot <= 0 then error(comms.robot_send("fatal", "slot assert failed")) end

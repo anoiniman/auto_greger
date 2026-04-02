@@ -57,4 +57,12 @@ function module.insert<T is Prioritizable>(queue: PriorityQueue<T>, to_add: T)
     table.insert(inner, to_add)
 end
 
+function module.size<T is Prioritizable>(queue: PriorityQueue<T>): integer
+    return #queue.inner
+end
+
+--[[function module.iter<T is Prioritizable>(queue: PriorityQueue<T>): function(): function({T}, integer), {T}, integer
+    return function(): function({T}, integer), {T}, integer return ipairs(queue.inner) end
+end--]]
+
 return {module, PriorityQueue, Prioritizable}

@@ -1,6 +1,13 @@
+local robot = require("robot")
+
 require("Task")
 require("reasoning.MetaRecipe.__h_MetaRecipe")
 local type InvObj = require("inventory.__h_InvObj")
+local vinv_helper = require("inventory.VirtualInventory")
+
+local a_tbl = require("PriorityQueue")
+local pqueue, PriorityQueue, Prioritizable = table.unpack(a_tbl)
+
 local comms = require("comms")
 
 local use_self_craft = true
@@ -12,26 +19,61 @@ end
 
 -- WARNING: WILL have some problems with tools breaking and so on, let's just hope it is able of self-cleaning!
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64
+-- NOTE: We expect that crafting quantities and so on are pre-calculated by reasoning, failure to do so will be
+-- reported but it will result in a full system crash that is not to be handled
 function module.craft(taskState: CraftingState, inv: InvObj): boolean
-    local dictionary: {string : ItemDefinition} = taskState.dictionary
-    local recipe_grid: recipeGrid = taskState.crafting_grid
+    local recipe_grid: recipeGrid = taskState.recipe_grid
     local output: ItemDefinition = taskState.output
     local repeats: integer = taskState.repeats
 
     --function module.craft(dictionary, recipe, output, how_much_to_craft)
     if not module.isCraftActive() then error(comms.robot_send("fatal", "Craft is not active")) end
 
-    if not inv.is_crafting_clear() then
+    if not inv:is_crafting_clear() then
         print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
         return false
     end
 
-    for slot, item_def in ipairs(recipe_grid) do
-        if slot > 3 then slot = slot + 1 end
-        if slot > 6 then slot = slot + 2 end
+    local failed: boolean = false
+    for grid_slot, item_def in ipairs(recipe_grid) do
+        if item_def is nil then goto continue end
+        item_def = item_def as ItemDefinition
 
-        -- this should be writting to return a priority queue VVVV
-        local i_slot_tbl = module.virtual_inventory:getAllSlots(lable, name)
+        if grid_slot > 3 then grid_slot = grid_slot + 1 end
+        if grid_slot > 6 then grid_slot = grid_slot + 2 end
+
+        local label, name: string, string | nil
+        label = item_def.label as string
+        name = item_def.name
+
+        local i_slot_tbl = vinv_helper.get_all_slots(inv.virtual_inventory, label, name)
+        if i_slot_tbl is nil then
+            failed = false
+            foiajfja
+            break
+        end
+        i_slot_tbl = i_slot_tbl as PriorityQueue<SlotEntry>
+
+        local remaining = repeats
+        while remaining > 0 do
+            local biggest = pqueue.remove(i_slot_tbl)
+            if biggest is nil then failed = "biggest"; break end
+            biggest = biggest as SlotEntry
+
+            local quantity = biggest.quantity
+
+            local result = robot.select(biggest.slot)
+            if result ~= biggest.slot or not robot.transferTo(grid_slot, remaining) then
+                print(comms.robot_send("error", "something went wrong in self_crafting"))
+                failed = "robot.select"
+                break
+            end -- else we succeded! (yay!)
+            vinv_helper(inv.virtual_inventory, i_slot, remaining) -- it's ok to overshoot!
+
+            remaining = remaining - quantity
+        end
+
+        ::continue::
     end
 end
 
@@ -109,7 +151,7 @@ end
             sort_table_indexed(i_slot_tbl, false, 2)
             if i_slot_tbl == nil then -- there has been an woopsie in the crafting/recipe/scripting
                 print(comms.robot_send(
-                    "error", string.format("While Crafting i_slot_tbl was nil, this means we didn't " .. 
+                    "error", string.format("While Crafting i_slot_tbl was nil, this means we didn't " ..
                     "have what we expected inside of the inventory: (l,n) -> (%s, %s)", lable, name)
                 ))
                 clean_up = true
