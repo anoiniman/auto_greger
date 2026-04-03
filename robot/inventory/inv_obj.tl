@@ -39,6 +39,7 @@ local used_up_capacity = 0 -- has become useless because of better inventory man
 local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 
 local crafting_table_clear = true
+function module:is_crafting_clear() return crafting_table_clear end
 
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger

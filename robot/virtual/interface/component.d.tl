@@ -22,6 +22,10 @@ end
 -- store(side:number, slot:number, dbAddress:string, dbSlot:number):boolean
 -- etc.
 
+global interface Crafting is ComponentType
+    craft: function(integer): boolean
+end
+
 local record Component 
     getPrimary: function(string): ComponentType
 end

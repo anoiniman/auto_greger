@@ -1,4 +1,5 @@
 local robot = require("robot")
+local component = require("component")
 
 require("Task")
 require("reasoning.MetaRecipe.__h_MetaRecipe")
@@ -6,10 +7,12 @@ local type InvObj = require("inventory.__h_InvObj")
 local vinv_helper = require("inventory.VirtualInventory")
 
 local a_tbl = require("PriorityQueue")
-local pqueue, PriorityQueue, Prioritizable = table.unpack(a_tbl)
+local pqueue, PriorityQueue, _Prioritizable = table.unpack(a_tbl)
 
 local comms = require("comms")
 
+-- local inventory_controller: InventoryController = component.getPrimary("inventory_controller") as InventoryController
+local crafting_component: Crafting = component.getPrimary("crafting") as Crafting
 local use_self_craft = true
 
 local record module end
@@ -29,12 +32,11 @@ function module.craft(taskState: CraftingState, inv: InvObj): boolean
     --function module.craft(dictionary, recipe, output, how_much_to_craft)
     if not module.isCraftActive() then error(comms.robot_send("fatal", "Craft is not active")) end
 
-    if not inv:is_crafting_clear() then
+    if not inv.is_crafting_clear() then
         print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
         return false
     end
 
-    local failed: boolean = false
     for grid_slot, item_def in ipairs(recipe_grid) do
         if item_def is nil then goto continue end
         item_def = item_def as ItemDefinition
@@ -48,8 +50,7 @@ function module.craft(taskState: CraftingState, inv: InvObj): boolean
 
         local i_slot_tbl = vinv_helper.get_all_slots(inv.virtual_inventory, label, name)
         if i_slot_tbl is nil then
-            failed = false
-            foiajfja
+            error(comms.robot_send("fatal", "Woops no slots with what we want"))
             break
         end
         i_slot_tbl = i_slot_tbl as PriorityQueue<SlotEntry>
@@ -57,24 +58,55 @@ function module.craft(taskState: CraftingState, inv: InvObj): boolean
         local remaining = repeats
         while remaining > 0 do
             local biggest = pqueue.remove(i_slot_tbl)
-            if biggest is nil then failed = "biggest"; break end
+            if biggest is nil then 
+                error(comms.robot_send("fatal", "Woops no slots left in queue"))
+                break
+            end
             biggest = biggest as SlotEntry
 
             local quantity = biggest.quantity
 
             local result = robot.select(biggest.slot)
             if result ~= biggest.slot or not robot.transferTo(grid_slot, remaining) then
-                print(comms.robot_send("error", "something went wrong in self_crafting"))
-                failed = "robot.select"
-                break
+                error(comms.robot_send("fatal", "something went wrong in self_crafting (transferTo)"))
             end -- else we succeded! (yay!)
-            vinv_helper(inv.virtual_inventory, i_slot, remaining) -- it's ok to overshoot!
+            vinv_helper.remove_from_slot(inv.virtual_inventory, biggest.slot, remaining) -- it's ok to overshoot!
 
             remaining = remaining - quantity
         end
 
         ::continue::
     end
+    
+    -- Now the virtual crafting-table should be assembled, lets do the thing!
+    local output_slot = vinv_helper.get_smallest_slot(inv.virtual_inventory, output.label, output.name)
+    if  output_slot is nil
+        or vinv_helper.how_many_slot(inv.virtual_inventory, output_slot) + repeats > 64
+    then
+        output_slot = vinv_helper.get_empty_slot(inv.virtual_inventory, inv.get_forbidden_table())
+    end
+
+    if output_slot == nil then error(comms.robot_send("fatal", "assert failed!")) end
+
+    robot.select(output_slot)
+    local result = crafting_component.craft(64)     -- craft as many as possible, in case of gross oversight
+                                                    -- this should at least crash hard
+
+    if not result then
+        print(comms.robot_send("error", "failed to craft :("))
+        inv.force_update_vinv() -- last hurah-ass
+        for index = 1, 12, 1 do
+            if index % 4 ~= 0 then inv.simple_slot_check(index) end
+        end
+
+        return false
+    end
+
+    -- Optimistically Update the thingy-majig
+    vinv_helper.force_update_slot(inv.virtual_inventory, output.label, output.name, repeats, output_slot)
+
+    robot.select(1)
+    return true
 end
 
 --[[function module.craft(taskState: CraftingState, crafting_table_clear: boolean): boolean
