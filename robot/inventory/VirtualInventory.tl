@@ -1,8 +1,8 @@
-require("__h_VirtualInventory")
+require("inventory.__h_VirtualInventory")
 local a_tbl = require("PriorityQueue")
 local pqueue, PriorityQueue, Prioritizable = table.unpack(a_tbl)
 
-local __h_Item = require("__h_Item")
+local __h_Item = require("inventory.__h_Item")
 
 -- WARNING, COLLISION RESOLUTION CODE IS UNTESTED, MIGHT NOT WORK
 local component = require("component")

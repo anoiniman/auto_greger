@@ -1,8 +1,9 @@
-local deep_copy = require("deep_copy")
-local comms = require("comms")
+--[[local deep_copy = require("deep_copy")
+local comms = require("comms")--]]
 
 -- replaced input multiplier, by a less hacky and safer quantity needed directive, it'll make resolution
 -- of recipes harder to write, but it'll be written better
+require("Task")
 
 global enum DependencyType
     "Normal"
@@ -18,7 +19,11 @@ global interface MetaDependency
 end
 
 local record module end
-function module.new(inlying_recipe: MetaRecipe, quantity_needed: integer, dep_type: DependencyType): MetaDependency
+function module.new<S is TaskState>(
+    inlying_recipe: MetaRecipe<S>,
+    quantity_needed: integer,
+    dep_type: DependencyType
+): MetaDependency
     local new: MetaDependency = {
         inlying_recipe = inlying_recipe,
         quantity_needed = quantity_needed,
@@ -27,7 +32,7 @@ function module.new(inlying_recipe: MetaRecipe, quantity_needed: integer, dep_ty
     return new
 end
 
-function module.new_normal(inlying_recipe: MetaRecipe, quantity_needed: integer): MetaDependency
+function module.new_normal<S is TaskState>(inlying_recipe: MetaRecipe<S>, quantity_needed: integer): MetaDependency
     return module.new(inlying_recipe, quantity_needed, "Normal")
 end
 

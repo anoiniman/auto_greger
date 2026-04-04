@@ -1,4 +1,4 @@
-require("__h_Item")
+require("inventory.__h_Item")
 
 global interface VirtualInventory
     equip_info: EquipmentInfo

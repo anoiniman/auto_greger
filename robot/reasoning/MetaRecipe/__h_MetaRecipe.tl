@@ -11,17 +11,17 @@ require("inventory.__h_Item")
 --
 -- output must be ItemDefinition
 global type MetaDependency;
-global interface MetaRecipe
+global interface MetaRecipe<S is TaskState> is StateGenerator<S>
     output: ItemDefinition
     output_quantity: integer
     dependencies: {MetaDependency}
 
-    task_prototype: TaskPrototype
+    task_prototype: TaskPrototype<S>
 end
 
 -- global type ToolLevel = integer
 global type ToolTuple = {ToolType, ToolLevel}
-global interface Gathering is MetaRecipe
+global interface Gathering<S is TaskState> is MetaRecipe<S>
     tools: {ToolTuple}
 end
 
@@ -43,17 +43,16 @@ global type recipeGrid = {
     ItemDefOrNil, ItemDefOrNil, ItemDefOrNil
 }
 
-global interface CraftingTable is MetaRecipe
-    crafting_grid: recipeGrid
+global interface CraftingTable<S is TaskState> is MetaRecipe<S>
+    recipe_grid: recipeGrid
 end
 
 global interface CraftingState is TaskState
     recipe_grid: recipeGrid
-    output: ItemDefinition
-    repeats: integer
+    output: FullerDefinition
 end
 
-global interface BuildingUser is MetaRecipe
+global interface BuildingUser<S is TaskState> is MetaRecipe<S>
     bd_name: string
     usage_flag: string
 end

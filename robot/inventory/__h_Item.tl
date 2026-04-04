@@ -33,14 +33,17 @@ global interface ItemDefinition
     name: string | nil
     size: integer | nil
 
-    stack_size: integer
+    stack_size: integer | nil
 end
 
-global interface FullDefinition is ItemDefinition
+global interface FullerDefinition is ItemDefinition
 where self.disc == 10
     label: string
-    name: string
+    name: string | nil
     size: integer
+end
+function helper.new_fuller_definition(label: string, name: string | nil, size: integer, stack_size?: integer): FullerDefinition
+    return {label = label, name = name, size = size, stack_size = stack_size, disc = 10}
 end
 
 global interface CategoryQuery is ItemDefinition
@@ -57,7 +60,7 @@ where self.disc == 12
     size: nil
 end
 function helper.new_label_query(label: string): LabelQuery
-    return {label = label} 
+    return {label = label, disc = 12} 
 end
 
 global interface ItemQuery is ItemDefinition
@@ -67,7 +70,7 @@ where self.disc == 13
     size: nil
 end
 function helper.new_item_query(label: string, name: string): ItemQuery
-    return {label = label, name = name}
+    return {label = label, name = name, disc = 13}
 end
 
 

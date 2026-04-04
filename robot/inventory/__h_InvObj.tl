@@ -1,4 +1,4 @@
-require("__h_VirtualInventory")
+require("inventory.__h_VirtualInventory")
 
 local record InvObj
     virtual_inventory: VirtualInventory

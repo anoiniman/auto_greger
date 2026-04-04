@@ -226,6 +226,9 @@ local function robot_main2(venv_message)
     process_messages(cron_message, venv_message)
 end
 
+local late_bind = require("late_bind")
+late_bind.do_binds()
+
 -- Execution into main function always has to occur in the end due to how lua works
 if not V_ENV then robot_main() end
 return robot_main2
