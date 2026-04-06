@@ -10,6 +10,7 @@ local crafting = require("inventory.crafting")
 
 local record module end
 
+global type MetaDependency;
 local function new_meta_recipe<S is TaskState, T is MetaRecipe<S>>(
     output: ItemDefinition,
     output_quantity: integer,
@@ -39,7 +40,7 @@ function module.new_crafting_table(
     dictionary_ref: {string : ItemDefinition},
     crafting_grid: craftingGrid
 ): CraftingTable
-    local recipe_grid = {}
+    local recipe_grid: {ItemDefinition | nil} = {}
     for index, char in ipairs(crafting_grid) do
         local item_def: ItemDefinition
         if char == nil then item_def = nil
@@ -73,8 +74,10 @@ function module.new_crafting_table(
     return new
 end
 
--- Need to add: scaling with needed output
-function module.instantiate<S is TaskState>(recipe_template: MetaRecipe<S>, quantity: integer): TaskHandle
+-- output_quantity field needs to do something for when we are "calculating" how many repetitions are needed for
+-- crafting table action, will a simple math.floor be enough, or should the task of doing this be relegated to
+-- recipe tree resolution? Probably here?
+function module.instantiate<S is TaskState>(recipe_template: MetaRecipe<S>, quantity: integer)
     task_helper.instantiate(recipe_template.task_prototype, recipe_template, quantity)
 end
 

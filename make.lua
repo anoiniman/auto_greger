@@ -164,23 +164,6 @@ local function compile_dir(input_name)
     end
 end
 
---[[local function prepare_include(dir_name)
-    local dir_path = string.format("%s/%s/", root_dir, dir_name)
-    include_dir = string.format("%s -I %s ", include_dir, dir_path)
-
-    for file in io.popen("ls -- " .. dir_path):lines() do
-        if
-                not string.find(file, ".lua")
-                and not string.find(file, ".tl")
-                and not string.find(file, ".so")
-                and not string.find(file, ".sh")
-                and not string.find(file, ".fs")
-        then
-            prepare_include(dir_name .. "/" .. file)
-        end
-    end
-end--]]
-
 --[[local function clean_dir(dir_name)
     local dir_path = string.format("./%s/", dir_name)
     for file in io.popen("ls -- " .. dir_path):lines() do
