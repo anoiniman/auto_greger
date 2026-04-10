@@ -39,7 +39,7 @@ function module.new_crafting_table(
 
     dictionary_ref: {string : ItemDefinition},
     crafting_grid: craftingGrid
-): CraftingTable
+): CraftingTable<CraftingState>
     local recipe_grid: {ItemDefinition | nil} = {}
     for index, char in ipairs(crafting_grid) do
         local item_def: ItemDefinition
@@ -49,7 +49,7 @@ function module.new_crafting_table(
         recipe_grid[index] = item_def
     end
 
-    local function s_generator<S is TaskState>(crafting_table: CraftingTable<S>, repeats: integer): CraftingState
+    local function s_generator(crafting_table: CraftingTable<CraftingState>, repeats: integer): CraftingState
         local old_output = crafting_table.output
         local new_output = item_helper.new_fuller_definition(
             old_output.label,
@@ -70,7 +70,28 @@ function module.new_crafting_table(
 
     for k, v in pairs(parent as {any : any}) do (new as {any : any})[k] = v end
     new.recipe_grid = recipe_grid
+    new.recipe_type = "crafting_table"
     
+    return new
+end
+
+function module.new_gathering<S is TaskState>(
+    priority: integer,
+
+    output: ItemDefinition,
+    output_quantity: integer,
+    dependencies: {MetaDependency},
+
+    gather_func: function(S): S, boolean,
+    s_generator: function(Gathering<S>, integer): S
+): Gathering<S>
+    local gathering_prototype = task_helper.new_prototype(priority, gather_func)
+    local parent = new_meta_recipe(output, output_quantity, dependencies, gathering_prototype, s_generator)
+    local new: Gathering<S> = {} as Gathering<S>
+
+    for k, v in pairs(parent as {any : any}) do (new as {any : any})[k] = v end
+    new.recipe_type = "gathering"
+
     return new
 end
 

@@ -12,6 +12,8 @@ require("inventory.__h_Item")
 -- output must be ItemDefinition
 global type MetaDependency;
 global interface MetaRecipe<S is TaskState> is StateGenerator<S>
+    recipe_type: string
+
     output: ItemDefinition
     output_quantity: integer
     dependencies: {MetaDependency}
@@ -19,10 +21,8 @@ global interface MetaRecipe<S is TaskState> is StateGenerator<S>
     task_prototype: TaskPrototype<S>
 end
 
--- global type ToolLevel = integer
-global type ToolTuple = {ToolType, ToolLevel}
 global interface Gathering<S is TaskState> is MetaRecipe<S>
-    tools: {ToolTuple}
+where self.recipe_type == "gathering"
 end
 
 -- Maybe make it so that once there is a crafting area in the base (maybe with a "cache"-like storage included
@@ -44,6 +44,7 @@ global type recipeGrid = {
 }
 
 global interface CraftingTable<S is TaskState> is MetaRecipe<S>
+where self.recipe_type == "crafting_table"
     recipe_grid: recipeGrid
 end
 
@@ -53,6 +54,7 @@ global interface CraftingState is TaskState
 end
 
 global interface BuildingUser<S is TaskState> is MetaRecipe<S>
+where self.recipe_type == "building_user"
     bd_name: string
     usage_flag: string
 end
