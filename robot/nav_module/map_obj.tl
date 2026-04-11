@@ -1,9 +1,8 @@
-local module = {}
-
 ------- Sys Requires -------
 local serialize = require("serialization")
 
 ------- Own Requires -------
+local helper = require("__h_map_obj")
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
@@ -14,59 +13,27 @@ local interactive = require("interactive")
 local MetaQuad = require("nav_module.MetaQuad")
 local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 
-
-local AreasTable = {}
-function AreasTable:new()
-    local new = deep_copy.copy(self, pairs)
-    return new
+local record module end
+local interface Area
+    chunk_coords: {ChunkCoord}
 end
-
-function AreasTable:addArea(new_area)
-    for _, area in ipairs(self) do -- checks if the area is already added
-        if area.name == new_area.name then return end
-    end
-
-    table.insert(self, new_area)
-end
-
-function AreasTable:isInArea(what_chunk) -- luacheck: ignore
-    for _, area in ipairs(self) do
-        for _, area_chunk in ipairs(area.chunks) do
-            if what_chunk[1] == area_chunk[1] and what_chunk[2] == area_chunk[2] then
-                return true
-            end
-        end
-    end
-    return false
-end
-function AreasTable:getArea(name) -- luacheck: ignore
-    for _, area in ipairs(self) do
-        if area.name == name then return area end
-    end
-    return nil
-end
-local areas_table = AreasTable:new()
 
 -- Names MUST be unique, they are ID's, IDENTIFIERS!
 -- We do NOT store REFERENCES to child chunks, we only store their INDICES!
-local NamedArea = {
-    name = nil,
-    colour = nil,
-    height = nil,
-    floor_block = nil,
-    chunks = nil
-}
-function NamedArea:new(name, colour, height, floor_block)
+local interface NamedArea
+    name: string
+    color: string
+    height: integer
+    floor_block: ItemDefinition
+end
+
+function NamedArea:new(name: string, colour: string, height: integer, floor_block: ItemDefinition): NamedArea
     if height == nil or height < 0 or height > 255 then
         print(comms.robot_send("error", "NamedArea:new -- invalid height"))
         return nil
     end
-    --[[if MapColours[colour] == nil then
-        print(comms.robot_send("error", "NamedArea:new -- inavlid colour"))
-        return nil
-    end--]]
 
-    local new = deep_copy.copy(self, pairs)
+    local new = COPY(self)
     new.name = name
     new.colour = colour
     new.height = height
@@ -74,13 +41,42 @@ function NamedArea:new(name, colour, height, floor_block)
     new.chunks = {}
     return new
 end
-function NamedArea:addChunkToSelf(what_chunk)
-    for _, o_chunk in ipairs(self.chunks) do -- checks if chunk is already added
-        if what_chunk[1] == o_chunk[1] and what_chunk[2] == o_chunk[2] then return end
+function NamedArea:addChunkToSelf(what_chunk: ChunkCoord)
+    for _, o_chunk in ipairs(self.chunk_coords) do -- checks if chunk is already added
+        if helper.cmp_ccords(what_chunk, o_chunk) then return end
+    end
+    table.insert(self.chunk_coords, what_chunk)
+end
+
+
+local interface AreasTable<T is Area> is {T} end
+function AreasTable:new<T is Area>(): AreasTable<T>
+    return COPY(self) as AreasTable<T>
+end
+
+function AreasTable:addArea<T is Area>(new_area: T)
+    for _, area in ipairs(self) do -- checks if the area is already added
+        if area.name == new_area.name then return end
     end
 
-    table.insert(self.chunks, what_chunk)
+    table.insert(self, new_area)
 end
+
+function AreasTable:isInArea(what_chunk: ChunkCoord): boolean
+    for _, area in ipairs(self) do
+        for _, area_chunk in ipairs(area.chunk_coords) do
+            if helper.cmp_ccoords(what_chunk, area_chunk) then return true end
+        end
+    end
+    return false
+end
+function AreasTable:getArea(name): Area | nil
+    for _, area in ipairs(self) do
+        if area.name == name then return area end
+    end
+    return nil
+end
+local areas_table = AreasTable<NamedArea>:new()
 
 
 -- THIS IS A GREAT READ: https://poga.github.io/lua53-notes/table.html,
@@ -89,34 +85,16 @@ end
 -- Speaking of reading: https://web.engr.oregonstate.edu/~erwig/papers/DeclScripting_SLE09.pdf is this peak chat?
 -- and smart accessing of disc and remote stored data eventually, so I'll not use string indeces.
 -- is_home basically means: is a part of the base
-local UnderlyingChunk = {
-    x = 0,
-    z = 0,
-    marks = nil,
 
-    parent_area = nil,
-    height_override = nil,
-    meta_quads = nil,
-    roads_cleared = false   -- this property and methods that mess with it will have to be changed when
-                            -- multi-level areas become a thing, unless we simply "layer" MetaChunks
-                            -- like cake, that might be the obvious thing
-}
+-- If I want to avoid eager initialising the chunks I'll have to disconnect array index from chunk coordinate,
+-- Which means using a sorted tree instead, yippie!
 
-function UnderlyingChunk:new(x, z) -- lazy initialization :I (one day :) )
-    local new = deep_copy.copy(self, pairs)
-    new.x = x
-    new.z = z
-    return new
+function module.new_chunk()
+
 end
 
-local MetaChunk = {
-    chunk = nil
-}
-
-function MetaChunk:new(real_chunk)
-    local new = deep_copy.copy(self, pairs)
-    new.chunk = real_chunk
-    return new
+function module.addTag(str: string)
+    if
 end
 
 function MetaChunk:addMark(str)
@@ -338,6 +316,11 @@ function module.gen_map_obj(o_offset)
     end
     return true
 end
+
+function helper.get_chunk_handle(x: integer, z: integer)
+
+end
+
 
 local function chunk_is_unique(chunk)
     return  chunk.marks ~= nil or chunk.parent_area ~= nil
