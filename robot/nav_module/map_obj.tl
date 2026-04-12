@@ -87,7 +87,7 @@ local areas_table = AreasTable<NamedArea>:new()
 -- is_home basically means: is a part of the base
 
 -- If I want to avoid eager initialising the chunks I'll have to disconnect array index from chunk coordinate,
--- Which means using a sorted tree instead, yippie!
+-- We'll be using [x,z] -> map_map (lol) = {}; map_map[tostring(x) .. "," .. tostrong(z)] = chunk
 
 function module.new_chunk()
 
