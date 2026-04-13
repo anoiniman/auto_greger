@@ -2,6 +2,17 @@
 -- script instructions rather than as part of a build?
 local deep_copy = require("deep_copy")
 local comms = require("comms")
+require("Position")
+
+global interface DoBuildInfo
+    rel_coords: Pos3D    
+    what_chunk: Pos3D
+    build_ref: Build
+    block_info: ItemDefinition
+
+    extra_instruction: {ExtraInstruction} | nil
+    foundation_filled: boolean
+end
 
 local Module = {
     what_base_type = nil,

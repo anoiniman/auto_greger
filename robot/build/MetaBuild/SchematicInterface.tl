@@ -5,102 +5,107 @@ local io = require("io")
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
-local MetaSchematic = require("build.MetaBuild.MetaSchematic")
+local meta_schematic = require("build.MetaBuild.MetaSchematic")
 local BuildInstruction = require("build.MetaBuild.BuildInstruction")
+require("Position")
 
-local BuildStack = { -- reading head maxxed printer pilled state machine adjacent
-    logical_x = 1,
-    logical_z = 1,
-    logical_y = 1
-}
-function BuildStack:new()
-    return deep_copy.copy(self, pairs)
+local type BuildStack = Pos3D
+local type C = CoordinateType
+
+local function build_stack_new(): BuildStack
+    return {1 as C.X, 1 as C.Z, 1 as C.Y}
 end
 
--- adds bounding box and ref to child.dictionary to MetaSchematic
-local SchematicInterface = {
-    schematic = MetaSchematic:new(),
-    dictionary = nil, -- {}
-    origin_block = {
-        x = 0,
-        z = 0,
-        y = 0
-    },
-    special_blocks = {},
+local record Module end
 
-    build_stack = BuildStack:new()
-}
-function SchematicInterface:new()
-    return deep_copy.copy(self, pairs)
+local interface SchematicInterface
+    schematic: MetaSchematic
+    dictionary: {any} | nil
+    origin_block: Pos3D
+    special_blocks: {SpecialChunk}
+
+    build_stack: BuildStack
 end
 
-function SchematicInterface:init(dict, origin)
-    self.origin_block = origin
-    self.dictionary = dict
+function module.new(): SchematicInterface
+    return {
+        schematic = meta_schematic_new(),
+        dictionary = nil, -- {}
+        origin_block = {
+            x = 0,
+            z = 0,
+            y = 0
+        },
+        special_blocks = {},
+
+        build_stack = BuildStack:new()
+    }
 end
 
-function SchematicInterface:getSpecialBlocks()
-    return self.special_blocks
+function module.init(sinterface: SchematicInterface, dict: {any}, origin: Pos3D)
+    sinterface.origin_block = origin
+    sinterface.dictionary = dict
 end
 
-function SchematicInterface:parseStringArr(string_array, square_index)
-    local special_blocks = self.schematic:parseStringArr(string_array, square_index)
+function module.get_special_blocks(sinterface: SchematicInterface)
+    return sinterface.special_blocks
+end
+
+function module.parse_string_arr(sinterface: SchematicInterface, string_array: {string}, square_index: integer)
+    local special_blocks = meta_schematic.parse_string_arr(sinterface.schematic, string_array, square_index)
     if special_blocks ~= nil then
         for _, special in ipairs(special_blocks) do
-            table.insert(self.special_blocks, special)
+            table.insert(sinterface.special_blocks, special)
         end
     end
 
-    if #self.schematic == 0 then print(comms.robot_send("error", "we ballsd up good :(")) end
+    if #sinterface.schematic == 0 then print(comms.robot_send("error", "we ballsd up good :(")) end
 end
 
-function SchematicInterface:advanceY(top_down)
-    local b_stack = self.build_stack
+function module.advance_y(sinterface: SchematicInterface, top_down: boolean): boolean
+   local b_stack = sinterface.build_stack
     if top_down then
-        return b_stack.logical_y > 1
+        return b_stack[3] > 1
     end
-    return b_stack.logical_y <= #self.schematic
+    return b_stack[3] <= #sinterface.schematic
 end
 
-function SchematicInterface:forceAdvanceHead(top_down)
-    local b_stack = self.build_stack
+function module.force_advance_head(sinterface: SchematicInterface, top_down: boolean): boolean
+    local b_stack = sinterface.build_stack
 
-    if b_stack.logical_z <= 7 then -- try and read every line
-        b_stack.logical_x = 1
-        b_stack.logical_z = b_stack.logical_z + 1
-    elseif self:advanceY(top_down) then -- only then move-up in height
-        b_stack.logical_x = 1
-        b_stack.logical_z = 1
+    if b_stack[2] <= 7 then -- try and read every line
+        b_stack[1] = 1
+        b_stack[2] = b_stack[2] + 1
+    elseif module.advance_y(sinterface, top_down) then -- only then move-up in height
+        b_stack[1] = 1
+        b_stack[2] = 1
 
         if not top_down then
-            b_stack.logical_y = b_stack.logical_y + 1
+            b_stack[3] = b_stack[3] + 1
         else
-            b_stack.logical_y = b_stack.logical_y - 1
+            b_stack[3] = b_stack[3] - 1
         end
-    else -- we can only assume there is nothing left to process, let's mark ourself as built
+    else -- we can only assume there is nothing left to process, let's mark oursinterface as built
         return true
     end
 
     return false -- aka continue
 end
 
-local function is_special_symbol(symbol)
-    return symbol == '*' or symbol == '+' or symbol == '?'
-end
-
+-- Maybe this doing builds thing needs to be redesing. And by maybe I mean: it does forcefully
 -- chunk.dist && chunk.symbol
-function SchematicInterface:doBuild(top_down)
-    local b_stack = self.build_stack
+function module.do_build(top_down: boolean): boolean, string, Instruction | nil
+    local b_stack = sinterface.build_stack
 
-    local function get_instruction(chunk)
-        b_stack.logical_x = b_stack.logical_x + 1 -- prepare the advance to next column element
+    local function get_instruction(chunk: MSChunk): Instruction
+        b_stack[1] = b_stack[1] + 1 -- prepare the advance to next column element
 
         local rel = {0, 0, 0}
-        rel[3] = self.origin_block[3] + (b_stack.logical_y - 1) -- (-1) compensates for array access being on 1
-        rel[2] = self.origin_block[2] + (b_stack.logical_z - 1)
-        rel[1] = self.origin_block[1] + chunk.x
+        rel[3] = sinterface.origin_block[3] + (b_stack[3] - 1) -- (-1) compensates for array access being on 1
+        rel[2] = sinterface.origin_block[2] + (b_stack[1] - 1)
+        rel[1] = sinterface.origin_block[1] + chunk.x
 
-        return self:InstructionConstruction(chunk, rel)
+        return module.instruction_construction(sinterface, chunk, rel)
     end
 
     --[[if DO_DEBUG_PRINT then
@@ -109,29 +114,29 @@ function SchematicInterface:doBuild(top_down)
         io.read()
     end--]]
 
-    --[[local print_schematic = sierialize.serialize(self.schematic, true)
-    print(comms.robot_send("info", "self.schematic is: \n" .. print_a))--]]
+    --[[local print_schematic = sierialize.serialize(sinterface.schematic, true)
+    print(comms.robot_send("info", "sinterface.schematic is: \n" .. print_a))--]]
 
-    --local chunk = self.schematic.lookUp(b_stack.logical_y, b_stack.logical_z, b_stack.logical_x)
+    --local chunk = sinterface.schematic.lookUp(b_stack.logical_y, b_stack.logical_z, b_stack.logical_x)
 
-    local chunk = nil --luacheck: ignore
-    local line = nil --luacheck: ignore
-    local square = nil --luacheck: ignore
+    local chunk: MSChunk = nil
+    local line: {MSChunk} = nil
+    local square: {{MSChunk}} = nil
 
-    square = self.schematic[b_stack.logical_y]
+    square = sinterface.schematic[b_stack[3]]
     if square == nil then goto very_funny end
 
-    line = square[b_stack.logical_z]
+    line = square[b_stack[2]]
     if line == nil then goto very_funny end
 
-    chunk = line[b_stack.logical_x]
+    chunk = line[b_stack[1]]
 
     ::very_funny::
     if chunk == nil then
-        if self:forceAdvanceHead(top_down) then
-            return true, "done"
+        if module.force_advance_head(sinterface, top_down) then
+            return true, "done", nil
         end
-        return self:doBuild(top_down)
+        return module.do_build(sinterface, top_down)
     end
 
     local instruction = get_instruction(chunk)
@@ -161,7 +166,7 @@ local function interpret_element(element, index, do_error)
 end
 
 function SchematicInterface:InstructionConstruction(chunk, rel)
-    local translated_symbol = self.dictionary[chunk.symbol]
+    local translated_symbol = sinterface.dictionary[chunk.symbol]
     if translated_symbol == nil then
         if is_special_symbol(chunk.symbol) then
             translated_symbol = {"air", "shovel"}
@@ -213,4 +218,4 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
     return instruction
 end
 
-return SchematicInterface
+return module

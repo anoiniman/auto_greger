@@ -6,17 +6,13 @@ local simple_hash = require("simple_hash")
 local record task_helper end
 global interface TaskState end
 
-global interface StateGenerator<S is TaskState>
-    state_generator: function(self, integer): S 
-end
-
 local interface BlockName
     known_names: {string} 
     name: string
     is_valid: function(string): boolean
 end
 
-local interface Task is Prioritizable
+global interface Task is Prioritizable
     prototype_uuid: integer
     yield_block: BlockName | nil
 
@@ -33,6 +29,11 @@ global interface TaskPrototype<S is TaskState>
     func: function(S): S, boolean
 
     uuid: integer
+end
+
+global interface StateGenerator<S is TaskState>
+    state_generator: function(self, integer): S
+    task_prototype: TaskPrototype<S>
 end
 
 local active_task: Task
@@ -69,6 +70,7 @@ function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
     local state: S = base_obj:state_generator(quantity)
     local new: Task = {
         priority = prototype.priority,
+        prototype_uuid = prototype.uuid
         yield_block = nil,
 
         state = state,

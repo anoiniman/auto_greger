@@ -17,8 +17,6 @@ global interface MetaRecipe<S is TaskState> is StateGenerator<S>
     output: ItemDefinition
     output_quantity: integer
     dependencies: {MetaDependency}
-
-    task_prototype: TaskPrototype<S>
 end
 
 global interface Gathering<S is TaskState> is MetaRecipe<S>
