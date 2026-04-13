@@ -5,40 +5,46 @@
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
-local MetaBuild = require("build.MetaBuild")
+local build_helper = require("build.MetaBuild")
+
+local record helper end
 
 -- make a convert rel to quad and back function somewhere
-local MetaQuad = {
-    quad = 0, -- if quad = 0 it is because we still haven't been neither "marked", nor "build"
-    build = MetaBuild:new(), -- if build.isBuilt() returns false.....
-    doors = nil
-}
-function MetaQuad:new()
-    return deep_copy.copy(self, pairs)
+-- we need to review if we still want to use doors like this or no. My idea is: no.
+global interface Quad
+    quad: integer,
+    build: Build | nil,
+    doors: {Door} | nil,
 end
 
-function MetaQuad:getName()
-    return self.build:getName()
+function helper.new()
+    return {
+        quad = 0,
+    }
 end
 
-function MetaQuad:getNum()
-    return self.quad
+function helper.get_name(quad: Quad): string
+    return build_helper.get_name(quad.build)
 end
 
-function MetaQuad:getBuild()
-    return self.build
+function helper.get_num(quad: Quad): integer
+    return quad.quad
 end
 
-function MetaQuad:getDoors()
-    return self.doors
+function helper.get_build(quad: Quad): Build
+    return quad.build
 end
 
-function MetaQuad:isInit()
-    return self.quad ~= 0
+function helper.get_doors(quad: Quad): {Door}
+    return quad.doors
 end
 
-function MetaQuad:isBuilt()
-    return self.build:isBuilt()
+function helper.is_init(quad: Quad)
+    return quad.quad ~= 0
+end
+
+function helper:is_built(quad: Quad): boolean
+    return build_helper.is_built(quad.build)
 end
 
 function MetaQuad:actualizeDoors() -- Transform the door definition into actual rel coordinates

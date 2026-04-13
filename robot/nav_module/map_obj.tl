@@ -88,28 +88,56 @@ local areas_table = AreasTable<NamedArea>:new()
 
 -- If I want to avoid eager initialising the chunks I'll have to disconnect array index from chunk coordinate,
 -- We'll be using [x,z] -> map_map (lol) = {}; map_map[tostring(x) .. "," .. tostrong(z)] = chunk
+-- maybe integer packing will be gooe enough?
+
+local type Chunk;
+local map_map = {}
+--[[local function get_chunk(coord: ChunkCoord): Chunk
+    local packed = (coord[1] << 32) | coord[2]
+    return map_map[packed]
+end--]]
+local macroexp get_chunk(coord: ChunkCoord)
+    return map_map[(coord[1] << 32) | coord[2]]
+end
+
+-- CHUNK:
+--  x: integer
+--  z: integer
+--  tags: nil | {Tag} (?)
+--  parent_area: nil | Area
+--  height_override: nil | integer (deprecated for sure with update of how buildings will be instantiated)
+--  meta_quads: {MetaQuad}
+--  roads_cleared: boolean (deprecated?) --> if it still exists it'll just be another tag, but rather, maybe
+                                         -- we should have a "roads" array that holds Type Road objects
+-- //////
+global enum ChunkTag
+
+end
+
+global interface Chunk
+    tags: {ChunkTag} | nil
+    parent_area: Area | nil
+    meta_quads:  {MetaQuad} | nil
+end
 
 function module.new_chunk()
 
 end
 
-function module.addTag(str: string)
-    if
+function module.add_tag(chunk: Chunk, str: ChunkTag)
+    if chunk.tags == nil then chunk.tags = {} end
+    for _, tag in ipairs(chunk.tags as {ChunkTag}) do
+        if tag == str then return end     
+    end
+    table.insert(chunk.tags, str)
 end
 
-function MetaChunk:addMark(str)
-    if self.chunk.marks == nil then self.chunk.marks = {} end
-    if self:checkMarks(str) then return end
-
-    table.insert(self.chunk.marks, str)
-end
-
-function MetaChunk:tryRemoveMark(str, ok_to_fail)
-    if ok_to_fail == nil then ok_to_fail = false end
+function module.try_remove_tag(chunk: Chunk, str: ChunkTags, ok_to_fail?: boolean): boolean
+    if ok_to_fail is nil then ok_to_fail = false end
     local was_able_to_remove = false
-    for index, mark in ipairs(self.chunk.marks) do
-        if mark == str then
-            self.chunk.marks[index] = nil
+    for index, tag in ipairs(chunk.tags) do
+        if tag == str then
+            chunk.tags[index] = nil
             was_able_to_remove = true
             break
         end
@@ -118,39 +146,35 @@ function MetaChunk:tryRemoveMark(str, ok_to_fail)
     if not was_able_to_remove then
         if not ok_to_fail then
             print(comms.robot_send("warning", "Attempted to remove a mark that is not present: \"" .. str  .. "\""))
-            return false
         end
+        return false
     end
     return true
 end
 
-function MetaChunk:checkMarks(str)
-    if self.chunk.marks == nil then return false end
-
-    for _, mark in ipairs(self.chunk.marks) do
-        if mark == str then
-            return true
-        end
+function module.check_marks(chunk: Chunk, str: ChunkTag): boolean
+    if chunk.tags is nil then return false end
+    for _, tag in ipairs(chunk.tags) do
+        if tag == str then return true end
     end
     return false
 end
 
-function MetaChunk:getName(what_quad)
-    if self.chunk.meta_quads == nil then return nil end
-    local quad_in_question = self.chunk.meta_quads[what_quad]
+function module.get_name(chunk: Chunk, what_quad: integer): string
+    if chunk.meta_quads == nil then return nil end
+    local quad_in_question = chunk.meta_quads[what_quad]
     if quad_in_question == nil or not quad_in_question:isInit() then return nil end
     return quad_in_question:getName()
 end
 
-function MetaChunk:getHeight()
-    if self.chunk.height_override ~= nil then return self.chunk.height_override end
-    if self.chunk.parent_area ~= nil then return self.chunk.parent_area.height end
+function module.get_height(chunk: Chunk): integer
+    if chunk.parent_area ~= nil then return chunk.parent_area.height end
     print(comms.robot_send("error", "MetaChunk:getHeight -- could not getHeight"))
-    return nil
+    return nil as integer
 end
 
-function MetaChunk:getBuildRef(what_quad)
-    if self.chunk.meta_quads == nil then return nil end
+function module.get_build_ref(what_quad: integer): Build
+    if chunk.meta_quads == nil then return nil end
     local quad_in_question = self.chunk.meta_quads[what_quad]
     if quad_in_question == nil or not quad_in_question:isInit() then return nil end
     return quad_in_question:getBuild()
@@ -263,59 +287,6 @@ end
 module.all_builds = known_buildings
 
 -->>-----------------------------------<<--
-
-local default_map_size = 31 -- generate 31x31 square of chunks
-local current_map_size = default_map_size
-local map_obj = {}
-local map_obj_offsets = {1,1}   -- offsets logical 0,0 in the array in order to translate it to "real" 0,0
-                                -- what this means is that if set the "origin", the "map centre" of the robot
-                                -- à posteriori then we don't need to re-alloc the array
-                                -- 1,1 is default since array acess in lua is [1][1] rather than [0][0]
-                                -- so "real" [0][0] is logical [1][1]
-
-if default_map_size % 2 == 0 then
-    error(comms.robot_send("fatal", "default_map_size is divisble by 2"))
-end
-
--- x = rx + offset <=> rx = x - offset; simplest algebra (?) in the market
-
--- keep in mind that offset is inversed, a positive offset manifests itself by mapping logical offsets
--- to lower "real coordinates",
--- for example: when off = {1, 1} lx = 1, rx = 0;
--- but when off = {2, 2} lx = 1, rx = -1 [example written without taking into account negative offset],
--- so lx = 1 may be thought of the center, rather than leftmost edge
-function module.gen_map_obj(o_offset)
-    local offset = deep_copy.copy(o_offset)
-
-    if map_obj[1] ~= nil then
-        print(comms.robot_send("warning", "map_obj was already generated"))
-        map_obj = {}
-    end
-
-    if offset ~= nil then
-        offset[1] = offset[1] + 1
-        offset[2] = offset[2] + 1
-        map_obj_offsets = offset
-    end
-
-    -- (necessary offset so that we can load negative numbers)
-    local negative_offset = math.floor(current_map_size / 2)
-    map_obj_offsets[1] = map_obj_offsets[1] + negative_offset
-    map_obj_offsets[2] = map_obj_offsets[2] + negative_offset
-
-    local size = default_map_size
-    for x = 1, size, 1 do
-        -- when we derive logical from real, rx + offset, when real from logical x - offset
-
-        map_obj[x] = {}
-        local real_x = x - map_obj_offsets[1];
-        for z = 1, size, 1 do
-            local real_z = z - map_obj_offsets[2];
-            map_obj[x][z] = UnderlyingChunk:new(real_x, real_z)
-        end
-    end
-    return true
-end
 
 function helper.get_chunk_handle(x: integer, z: integer)
 

@@ -1,5 +1,4 @@
--- luacheck: globals INTERACTED
-local module = {}
+local record module end
 -- Just noticed that this is basically a fancy future/promise implementation :sob:
 
 local deep_copy = require("deep_copy")
