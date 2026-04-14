@@ -12,9 +12,15 @@ local inv = require("inventory.inv_obj")
 -- 4 == Blocked for waiting
 
 
-
 -- Possible filters = "strict", "loose", <!"gt_ore"!> (maybe not anymore)
 -- perfect string match, imperfect match, item_name is actually a table
+global interface ItemConstraint
+    item: ItemDefinition
+
+    set_count: integer
+    reset_count: integer
+end
+
 local ItemConstraint = {
     item_lable = nil,
     item_name = nil,
