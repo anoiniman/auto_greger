@@ -1,3 +1,4 @@
+require("deep_copy")
 global enum ToolType
     ""
     "pickaxe"
@@ -35,6 +36,9 @@ global interface ItemDefinition
 
     stack_size: integer | nil
 end
+function helper.new_item_definition(label: string | nil, name: string | nil, size?: integer, stack_size?: integer): ItemDefinition
+    return {label = label, name = name, size = size, stack_size = stack_size, disc = 0}
+end
 
 global interface FullerDefinition is ItemDefinition
 where self.disc == 10
@@ -45,6 +49,12 @@ end
 function helper.new_fuller_definition(label: string, name: string | nil, size: integer, stack_size?: integer): FullerDefinition
     return {label = label, name = name, size = size, stack_size = stack_size, disc = 10}
 end
+
+global interface FullDefinition is FullerDefinition
+where self.disc == 9
+    name: string
+end
+
 
 global interface CategoryQuery is ItemDefinition
 where self.disc == 11
@@ -103,6 +113,31 @@ tool_materials[3] = {
 
 function helper.get_tool_materials(): tool_materials
     return tool_materials
+end
+
+local function nil_to_nil<T is ItemDefinition>(a: T): FullDefinition
+    local function to_nil(thing: {any : any}, key: string)
+        local str = thing[key]
+        if str == nil or str == "" then thing[key] = "nil" end
+    end
+
+    local b = COPY(a) as T
+
+    to_nil(b as {any : any}, "label")
+    to_nil(b as {any : any}, "name")
+    return b as FullDefinition
+end
+
+function helper.item_def_eq<T is ItemDefinition>(a: T, b: T): boolean
+    a = nil_to_nil(a)
+    b = nil_to_nil(b)
+    return a.label == b.label and a.name == b.name
+end
+
+function helper.item_def_perm_eq<T is ItemDefinition>(a: T, b: T): boolean
+    a = nil_to_nil(a)
+    b = nil_to_nil(b)
+    return a.name == b.name
 end
 
 return helper

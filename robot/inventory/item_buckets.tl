@@ -6,7 +6,7 @@ local __h_item = require("inventory.__h_Item")
 
 -- make sure that you write conversions that are self-stable [aka the identify of "any:log" is "any:log"
 -- returns a name
-function module.identify(item_def: ItemDefinition): string
+local function id_to_str<T is ItemDefinition>(item_def: T): string
     local label, name: string, string
     if item_def.label == nil then label = "nil" end
     if item_def.name == nil then name = "nil"   end
@@ -100,6 +100,14 @@ function module.identify(item_def: ItemDefinition): string
 
     return "generic"
 end
+
+function module.identify<T is ItemDefinition>(item_def: T): T
+    local new_name = id_to_str(item_def)
+    local copy = COPY(item_def) as T
+    copy.name = new_name
+    return copy
+end
+
 
 local function capitalise(str: string): string
     return string.upper(string.sub(str, 1, 1)) .. string.sub(str, 2)

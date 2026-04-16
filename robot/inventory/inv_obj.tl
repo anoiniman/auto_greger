@@ -23,7 +23,7 @@ local search_table = require("search_table")
 
 local item_bucket = require("inventory.item_buckets")
 --local MetaLedger = require("inventory.MetaLedger")
-local VirtualInventory = require("inventory.VirtualInventory")
+local vinv_helper = require("inventory.VirtualInventory")
 
 local crafting_component = component.getPrimary("crafting")
 local inventory = component.getPrimary("inventory_controller")
@@ -33,22 +33,22 @@ local generator = component.getPrimary("generator")
 
 -- forbiden slots (because of crafting table) = 1,2,3 -- 5,6,7 -- 9,10,11
 -- this means actual internal inventory size while crafing mode is true is == 7
-local inventory_size = 32
-local used_up_capacity = 0 -- has become useless because of better inventory management schemes, remove in future
+local inventory_size: integer = 32
+local used_up_capacity: integer = 0 -- has become useless because of better inventory management schemes, remove in future
 
-local crafting_table_slots = {1,2,3, -1, 5,6,7, -1, 9,10,11}
+local crafting_table_slots: {integer} = {1,2,3, -1, 5,6,7, -1, 9,10,11}
 
-local crafting_table_clear = true
-function module:is_crafting_clear() return crafting_table_clear end
+local crafting_table_clear: boolean = true
+function module:is_crafting_clear(): boolean return crafting_table_clear end
 
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
-module.virtual_inventory = VirtualInventory:new(inventory_size)
+module.virtual_inventory = vinv_helper.new(inventory_size)
 module.virtual_inventory.equip_tbl = {}
-module.virtual_inventory:reportEquipedBreak() -- smart?
+vinv_helper.report_equiped_break(module.virtual_inventory) -- smart?
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
-local external_inventories = {}
+local external_inventories: MetaExternalInventory = {}
 
 -- It is difficult to serialize by building, since their references changes as the programme is loaded/unloaded,
 -- and storing enough information to know what building is what is unwieldy, so this table needs to
