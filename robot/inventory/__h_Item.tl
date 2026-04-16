@@ -123,4 +123,10 @@ function helper.item_def_perm_eq<T is ItemDefinition>(a: T, b: T): boolean
     return tostring(a.name) == tostring(b.name)
 end
 
+function helper.item_def_wildcard_eq<T is ItemDefinition>(wild: T, other: T): boolean
+    return  (helper.item_def_eq(wild, other))
+            or (tostring(wild.name) == "nil" and tostring(wild.label) == tostring(other.label))
+            or (tostring(wild.label) == "nil" and tostring(wild.name) == tostring(other.name))
+end
+
 return helper

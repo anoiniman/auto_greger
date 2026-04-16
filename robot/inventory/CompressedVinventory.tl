@@ -2,12 +2,12 @@ require("deep_copy")
 local vinv_helper = require("inventory.VirtualInventory")
 local record module end
 
-global interface CompressedVinv
+global interface CompressedVinventory
     original_size: integer
     inv_table: {string | integer}
 end
 
-function module.compress(vinv: VirtualInventory): CompressedVinv
+function module.compress(vinv: VirtualInventory): CompressedVinventory
     local table_size: integer = vinv.table_size
     local pivot_point: integer = 0
 
@@ -29,7 +29,7 @@ function module.compress(vinv: VirtualInventory): CompressedVinv
     }
 end
 
-function module.decompress(cvinv: CompressedVinv): VirtualInventory
+function module.uncompress(cvinv: CompressedVinventory): VirtualInventory
     return vinv_helper.from_partial(cvinv.inv_table, cvinv.original_size) 
 end
 
