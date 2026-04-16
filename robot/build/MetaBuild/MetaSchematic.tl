@@ -4,7 +4,7 @@
 
 local record module end
 
-local enum SpecialSymbol
+global enum SpecialSymbol
     "0"
     "*"
     "+"
@@ -22,7 +22,7 @@ local interface MSChunk
     symbol: string
 end
 
-local type SpecialChunk = {SpecialSymbol, integer, integer, integer}
+global type SpecialChunk = {SpecialSymbol, integer, integer, integer}
 
 local function ms_chunk_new(x: integer, symbol: string): MSChunk
     return {x = x, symbol = symbol}

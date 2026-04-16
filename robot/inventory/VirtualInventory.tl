@@ -141,7 +141,6 @@ function helper.initTable(vinv: VirtualInventory) -- eager initialization
     end
 end
 
--- internal, aka is this the robots own inventory?
 function helper.new(inv_size: integer): VirtualInventory
     local new: VirtualInventory = {
         inv_size = inv_size,
@@ -154,6 +153,30 @@ function helper.new(inv_size: integer): VirtualInventory
     helper.initTable(new)
     return new
 end
+
+function helper.from_partial(partial: {string | integer}, inv_size: integer): VirtualInventory
+    local new: VirtualInventory = {
+        inv_size = inv_size,
+        table_size = inv_size * 3,
+
+        inv_type = "virtual_inventory",
+        inv_table = {},
+    }
+
+    for index = 1, new.table_size, 3 do
+        if partial[index] == nil then
+            new.inv_table[index] = EMPTY_STRING
+            new.inv_table[index + 1] = EMPTY_STRING
+            new.inv_table[index + 2] = 0
+        else
+            new.inv_table[index] = partial[index]
+            new.inv_table[index + 1] = partial[index + 1]
+            new.inv_table[index + 2] = partial[index + 2]
+        end
+    end
+    return new
+end
+
 
 function helper.check_entry(vinv: VirtualInventory, other: ItemDefinition, at_index: integer): boolean
     local item = item_helper.new_item_definition(vinv.inv_table[at_index] as string, vinv.inv_table[at_index + 1] as string)

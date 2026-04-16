@@ -3,32 +3,40 @@ local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 -- local MetaLedger = require("inventory.MetaLedger")
+require("inventory.__h_Item")
 local map = require("nav_module.map_obj")
-local VirtualInventory = require("inventory.VirtualInventory")
 local inv = require("inventory.inv_obj")
+
+local vinv_helper = require("inventory.VirtualInventory")
+local cvinv_helper = require("inventory.CompressedVinventory")
+
+local record meta_item end
 
 -- as obvious, if it is an item inside a static storage it has no output
 -- permissive matters no more, because to be permissive we simple have to have a "name with no lable" association,
--- but I guess it is important right now because some checks depend on this :tf:
-local MetaItem = {
-    name = nil,
-    lable = nil,
-    permissive = false,
-
-    output = nil
-}
-function MetaItem:new(name, lable, permissive, output)
-    local new = deep_copy.copy(self, pairs)
-    new.name = name
-    new.lable = lable
-    new.permissive = permissive or false
-    new.output = output
-
-    return new
+local record MetaItem
+    item: ItemDefinition
+    output: ItemDefinition
 end
 
-local function get_storage_size(storage_type)
-    if storage_type == nil or storage_type == "chest" or storage_type == "normal_chest" then
+function meta_item.new(item: ItemDefinition, output: ItemDefinition): MetaItem
+    return {
+        item = item,
+        output = output
+    }
+end
+
+local enum StorageType
+    "chest"
+    "double_chest"
+    "iron_chest"
+
+    "furnace"
+    "coke_oven"
+end
+
+local function get_storage_size(storage_type?: StorageType): integer
+    if storage_type == nil or storage_type == "chest" then
         return 27
     elseif storage_type == "double_chest" then
         return 54
@@ -38,40 +46,47 @@ local function get_storage_size(storage_type)
         return 2
     elseif storage_type == "iron_chest" then
         error(comms.robot_send("fatal", "unimplemented"))
-    else
-        error(comms.robot_send("fatal", "unimplemented"))
     end
+    error(comms.robot_send("fatal", "unimplemented"))
 end
 
-local Module = {
-    parent_build = nil,
+-- storage compared to being a production inventory that consumes items
+-- long_term_storage compared to being an inventory associated with this 1 specific building
+global interface ExternalInventory
+    parent_build: Build | nil
+    
+    item_defs: MetaItem
+    storage: boolean | nil
+    long_term_storage: boolean | nil
 
-    item_defs = nil,
-    storage = false, -- compared to being a production inventory that consumes items
-    long_term_storage = false, -- compared to being an inventory associated with this 1 specific building
+    ledger: CompressedVinventory
+    symbol: string
+    special_block_index: integer
+end
+local record module end
 
-    ledger = nil,
-    symbol = nil,
-    special_block_index = nil,
-}
-
-function Module:new(item_defs, parent_build, is_cache, symbol, index, storage_type)
+function module.new(
+    item_defs: {ItemDefinition},
+    parent_build: Build | nil,
+    is_cache: boolean,
+    symbol: SpecialSymbol,
+    index: integer,
+    storage_type: StorageType
+): ExternalInventory
     if not is_cache and parent_build == nil then
         print(comms.robot_send("error", "MetaExtInventory, parent_build is nil"))
         print(comms.robot_send("stack", debug.traceback()))
     end
 
-    local new = deep_copy.copy(self, pairs)
-    if item_defs ~= nil and item_defs.lable ~= nil then item_defs = {item_defs} end
-    new.item_defs = item_defs
+    local new: ExternalInventory = {
+        parent_build = parent_build,
 
-    local storage_size = get_storage_size(storage_type)
-    new.ledger = VirtualInventory:new(storage_size)     -- for now we'll do everything as a vinv to make things
-                                                        -- easier for us. If we start running out of ram then woops
-    new.parent_build = parent_build
-    new.symbol = symbol
-    new.special_block_index = index
+        item_defs = item_defs,
 
+        ledger = cvinv_helper.compress(vinv_helper.new(storage_size)),
+        symbol = symbol 
+        special_block_index = index
+    }
     if not is_cache then
         inv.register_ledger(new) -- important
     end

@@ -115,29 +115,12 @@ function helper.get_tool_materials(): tool_materials
     return tool_materials
 end
 
-local function nil_to_nil<T is ItemDefinition>(a: T): FullDefinition
-    local function to_nil(thing: {any : any}, key: string)
-        local str = thing[key]
-        if str == nil or str == "" then thing[key] = "nil" end
-    end
-
-    local b = COPY(a) as T
-
-    to_nil(b as {any : any}, "label")
-    to_nil(b as {any : any}, "name")
-    return b as FullDefinition
-end
-
 function helper.item_def_eq<T is ItemDefinition>(a: T, b: T): boolean
-    a = nil_to_nil(a)
-    b = nil_to_nil(b)
-    return a.label == b.label and a.name == b.name
+    return tostring(a.label) == tostring(b.label) and tostring(a.name) == tostring(b.name)
 end
 
 function helper.item_def_perm_eq<T is ItemDefinition>(a: T, b: T): boolean
-    a = nil_to_nil(a)
-    b = nil_to_nil(b)
-    return a.name == b.name
+    return tostring(a.name) == tostring(b.name)
 end
 
 return helper
