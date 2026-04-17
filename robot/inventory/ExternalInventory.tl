@@ -7,25 +7,10 @@ local item_helper = require("inventory.__h_Item")
 local map = require("nav_module.map_obj")
 -- local inv = require("inventory.inv_obj")
 
+local einv_item = require("inventory.eInvItem")
 local vinv_helper = require("inventory.VirtualInventory")
 local cvinv_helper = require("inventory.CompressedVinventory")
 local meta_build = require("build.MetaBuild")
-
-local record meta_item end
-
--- as obvious, if it is an item inside a static storage it has no output
--- permissive matters no more, because to be permissive we simple have to have a "name with no lable" association,
-local record MetaItem
-    item: ItemDefinition
-    output: ItemDefinition
-end
-
-function meta_item.new(item: ItemDefinition, output: ItemDefinition): MetaItem
-    return {
-        item = item,
-        output = output
-    }
-end
 
 local enum StorageType
     "chest"
@@ -56,7 +41,7 @@ end
 global interface ExternalInventory
     parent_build: Build | nil
     
-    item_defs: {MetaItem}
+    item_defs: {eInvItem}
     storage: boolean
     long_term_storage: boolean
 
@@ -74,7 +59,7 @@ function module.new_cache(storage_type?: StorageType): ExternalInventory
 end
 
 function module.new(
-    item_defs: {MetaItem},
+    item_defs: {eInvItem},
     parent_build: Build | nil,
     is_cache: boolean,
     symbol: SpecialSymbol,
@@ -155,7 +140,7 @@ function module.reinstantiate(big_table: {any}): ExternalInventory
         real_build = map.get_build_ref(parent_chunk, what_quad)
     end
 
-    local item_defs = big_table[3] as {MetaItem}
+    local item_defs = big_table[3] as {eInvItem}
     local storage = big_table[4] as boolean
     local long_term_storage = big_table[5] as boolean
 
@@ -225,7 +210,7 @@ function module.can_any(einv: ExternalInventory): boolean
     return false
 end
 
-function module.item_def_iter(einv: ExternalInventory): function(): integer | nil, MetaItem | nil
+function module.item_def_iter(einv: ExternalInventory): function(): integer | nil, eInvItem | nil
     local iteration = 0
 
     return function()
@@ -239,7 +224,7 @@ end
 
 
 function module.new_long_term_storage(
-    item_defs: {MetaItem},
+    item_defs: {eInvItem},
     parent_build: Build,
     symbol: SpecialSymbol,
     index: integer,
@@ -259,7 +244,7 @@ function module.new_einv_cache(storage_type?: StorageType): ExternalInventory
 end
 
 function module.new_storage(
-    item_defs: {MetaItem},
+    item_defs: {eInvItem},
     parent_build: Build,
     symbol: SpecialSymbol,
     index: integer,
@@ -271,7 +256,7 @@ function module.new_storage(
 end
 
 function module.new_machine(
-    item_defs: {MetaItem},
+    item_defs: {eInvItem},
     parent_build: Build,
     symbol: SpecialSymbol,
     index: integer,
@@ -286,4 +271,5 @@ function module.new_machine(
     return new
 end
 
-return {module, meta_item}
+global EInvModuleMetaType = module
+return module

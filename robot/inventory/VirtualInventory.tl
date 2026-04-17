@@ -129,7 +129,7 @@ function helper.reinstantiate(unserial: {any}): VirtualInventory
     new.inv_size = (#unserial / 3) as integer
     new.table_size = #unserial
 
-    new.inv_table = unserial
+    new.inv_table = unserial as {string | integer}
     return new
 end
 

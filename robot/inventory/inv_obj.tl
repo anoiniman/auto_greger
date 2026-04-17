@@ -21,6 +21,7 @@ local geolyzer = require("geolyzer_wrapper")
 local search_table = require("search_table")
 -- local PPObj = require("common_pp_format")
 
+local late_bind = require("late_bind")
 local item_bucket = require("inventory.item_buckets")
 --local MetaLedger = require("inventory.MetaLedger")
 local vinv_helper = require("inventory.VirtualInventory")
@@ -47,8 +48,8 @@ module.virtual_inventory = vinv_helper.new(inventory_size)
 module.virtual_inventory.equip_tbl = {}
 vinv_helper.report_equiped_break(module.virtual_inventory) -- smart?
 
--- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, MetaExternalInventory)
-local external_inventories: MetaExternalInventory = {}
+-- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, does not hold MetaExternalInventory)
+local external_inventories: {ExternalInventory} = {}
 
 -- It is difficult to serialize by building, since their references changes as the programme is loaded/unloaded,
 -- and storing enough information to know what building is what is unwieldy, so this table needs to
@@ -56,13 +57,13 @@ local external_inventories: MetaExternalInventory = {}
 -- variety of reasons, mainly when you are interested in putting certain things in specific buildings
 -- local short_lived_ordered_inventories = {}
 
-
-function module.get_data()
-    local virtual_inventory = module.virtual_inventory:getData()
+local einv_helper: EInvModuleMetaType = late_bind.new_bind<EInvModuleMetaType>("inventory.ExternalInventory")
+function module.get_data(): {any}
+    local virtual_inventory = vinv_helper.get_data(module.virtual_inventory)
     local external_table = {}
     for _name, inner_table in pairs(external_inventories) do
-        for _, fat_ledger in ipairs(inner_table) do
-            local vinv = fat_ledger:getData()
+        for _, einv in ipairs(inner_table) do
+            local vinv = einv_helper.get_data(einv)
             table.insert(external_table, vinv)
         end
     end
@@ -81,36 +82,38 @@ function module.get_data()
     return big_table
 end
 
-local MetaExternalInventory = nil
-function module.re_instantiate(big_table) -- WARNING: reInstantiate will DELETE equip_tbl, you need to reinstantiate equiptbl in separate for now
-    module.virtual_inventory = VirtualInventory:reInstantiate(big_table[1])
+-- WARNING: reInstantiate will DELETE equip_tbl, you need to reinstantiate equiptbl in separate for now
+function module.re_instantiate(big_table: {any})
+    module.virtual_inventory = vinv_helper.reinstantiate(big_table[1] as {any})
     if big_table[2] ~= nil then
-        module.virtual_inventory.equip_tbl = big_table[2] -- it's ok to do this directly since only primitives are "in there"
+        -- it's ok to do this directly since only primitives are "in there"
+        module.virtual_inventory.equip_tbl = big_table[2] as {string | integer}
     else
         module.virtual_inventory.equip_tbl = {}
-        module.virtual_inventory:reportEquipedBreak() -- smart?
+        vinv_helper.report_equiped_break(module.virtual_inventory) -- smart?
     end
 
     external_inventories = {}
     for _, entry in ipairs(big_table[3]) do -- entry is fat ledger, remember
-        -- another wholesome hack TODO (fix this shit)
-        if MetaExternalInventory == nil then MetaExternalInventory = require("inventory.MetaExternalInventory")[1] end
-
-        local external = MetaExternalInventory:reInstantiate(entry)
+        local external = einv_helper.reinstantiate(entry as {any})
         if external.parent_build ~= nil then -- because it might just be a self-cache duh
             module.register_ledger(external)
         end
     end
 
-    used_up_capacity = big_table[4]
+    used_up_capacity = big_table[4] as integer
 
-    crafting_table_clear = big_table[5]
-    use_self_craft = big_table[6]
+    crafting_table_clear = big_table[5] as boolean
+    use_self_craft = big_table[6] as boolean
 end
 
 --->>-- Check on the ledgers --<<-----{{{
 
-local function get_fat_ledger(table_name, index)
+local interface FatLedger
+
+end
+
+local function get_fat_ledger(table_name: string, index: integer): FatLedger
     if table_name == nil or index == nil  then
         print(comms.robot_send("error", "couldn't get fat_ledger, you have nils blud" ))
         return nil
