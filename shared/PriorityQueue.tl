@@ -19,6 +19,15 @@ function module.find<T is Prioritizable, Q>(queue: PriorityQueue<T>, func: funct
     return nil
 end
 
+function module.iter<T is Prioritizable>(queue: PriorityQueue<T>): function(PriorityQueue<T>): integer | nil, T | nil
+    local iteration = 1
+    return function()
+        local value = queue.inner[iteration]
+        if value == nil then return nil, nil end
+        return iteration, value
+    end
+end
+
 function module.remove<T is Prioritizable>(queue: PriorityQueue<T>, index?: integer): T | nil
     if index is nil then return table.remove(queue.inner) end -- removes last element
     return table.remove(queue.inner, index)

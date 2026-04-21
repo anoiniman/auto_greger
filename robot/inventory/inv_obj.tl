@@ -197,7 +197,7 @@ local function iter_external_inv<T>(build_name): (function (?{T}): integer | nil
                 return iteration, inner[iteration]
             else
                 next_index, inner = next(tbl, next_index)
-                if inner == nil then return nil end
+                if inner == nil then return nil, nil end
 
                 iteration = 0
                 return real_next(tbl)
@@ -213,12 +213,19 @@ local function iter_external_inv<T>(build_name): (function (?{T}): integer | nil
     return ipairs(external_inventories[build_name])
 end
 
-local function prepare_pp_print(uncompressed, fat_ledger, index, size, large_pp)
+-- All this pretty print code is the work of a madman
+local function prepare_pp_print(
+    uncompressed: boolean,
+    fat_ledger: ExternalInventory,
+    index: integer,
+    size: integer,
+    large_pp: PPObj
+)
     local pp_obj
     if uncompressed then
-        pp_obj = fat_ledger.ledger:getFmtObj()
+        pp_obj = vinv_helper.get_fmt_obj(fat_ledger.ledger)
     else
-        pp_obj = fat_ledger.ledger:getCompressedFmtObj()
+        pp_obj = vinv_helper.get_compressed_fmt_obj(fat_ledger.ledger)
     end
 
     local title_string = {"<External Inventory> (", index, "/", size, ")"}
@@ -234,17 +241,19 @@ local function prepare_pp_print(uncompressed, fat_ledger, index, size, large_pp)
 end
 
 local interactive_print = true
-local function do_pp_print(large_pp)
+local function do_pp_print(large_pp: PPObj)
     large_pp:printPage(false)
     local castrated_object = deep_copy.copy_no_functions(large_pp)
-    comms.send_command("ppObj", "printPage", castrated_object, interactive_print) -- this is ok to do because they'll simple be queued
+    -- this is ok to do because they'll simple be queued
+    comms.send_command("ppObj", "printPage", castrated_object, interactive_print)
 end
 
-function module.print_external_inv(name, index, uncompressed)
+function module.print_external_inv(name: string, index: integer, uncompressed: boolean)
     comms.cls_nself()
     local le_next, tbl, num = iter_external_inv(name)
 
-    -- TODO we'll prob have to concat the internal inventories or have alterante view modes or whatever, for now just a simple print
+    -- TODO we'll prob have to concat the internal inventories or have alterante view modes or whatever,
+    -- for now just a simple print
     if name ~= nil and index ~= nil then
         local fat_ledger = tbl[index]
         local pp_obj = {}
@@ -273,8 +282,9 @@ function module.print_external_inv(name, index, uncompressed)
     else print(comms.robot_send("info", "Empty")) end
 end
 
+--- }}}
 
-function module.register_ledger(fat_ledger)
+function module.register_ledger(fat_ledger: ExternalInventory)
     local build_name = fat_ledger.parent_build.name
     if build_name == nil then print(comms.send_unexpected()); return end
 
@@ -285,22 +295,22 @@ function module.register_ledger(fat_ledger)
     table.insert(external_inventories[build_name], fat_ledger)
 end
 
-function module.find_largest_slot(lable, name)
-    return module.virtual_inventory:getLargestSlot(lable, name)
+function module.find_largest_slot(item: ItemDefinition): integer
+    return vinv_helper.get_largest_slot(module.virtual_inventory, item)
 end
 
-function module.how_many_internal(lable, name)
-    local quantity = module.virtual_inventory:howMany(lable, name)
-
-    local empty_slot = module.virtual_inventory:getEmptySlot()
+function module.how_many_internal(item: ItemDefinition): integer
+    local quantity = vinv_helper.how_many(module.virtual_inventory, item)
+    local empty_slot = vinv_helper.module.get_empty_slot(virtual_inventory)
     if empty_slot == nil then return quantity end
 
-    if name == "any:plank" or name == "any:fuel" or lable == "Charcoal" then
+    -- TODO -> make this less hackish
+    if item.name == "any:plank" or item.name == "any:fuel" or item.label == "Charcoal" then
         robot.select(empty_slot)
         generator.remove(generator.count())
         local what_is = inventory.getStackInInternalSlot(empty_slot)
         if  what_is ~= nil and
-            (what_is.label == lable or (what_is.name == name and (lable == nil or lable == "nil" or lable == "nil_lable"))) then
+            (what_is.label == label or (what_is.name == name and (label == nil or label == "nil" or label == "nil_label"))) then
             quantity = quantity + what_is.size
         end
 
@@ -311,38 +321,44 @@ function module.how_many_internal(lable, name)
     return quantity
 end
 
-function module.how_many_total(lable, name)
-    local quantity = module.virtual_inventory:howMany(lable, name)
+function module.how_many_total(item: ItemDefinition): integer
+    local quantity = vinv_helper.how_many(module.virtual_inventory)
     for _, fat_ledger in iter_external_inv() do
         local ledger = fat_ledger.ledger
-        quantity = quantity + ledger:howMany(lable, name)
+        quantity = quantity + vinv_helper.how_many(ledger)
     end
     return quantity
 end
 
-local max_combined_travel = 512 + 128
+local interface PriorityEInv is Prioritizeable
+    einv: ExternalInventory
+end
+local max_combined_travel: integer = 512 + 128
 -- The ammount of free space in the inventory should also be determinant
-function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
+function module.get_nearest_inv_by_definition(item: ItemDefinition, empty_slots_needed?: integer): ExternalInventory | nil
     if empty_slots_needed == nil then empty_slots_needed = 1 end
 
-    local function check_and_add_to_tbl(tbl, fat_inv)
-        local v_distance = fat_inv:getDistance() / max_combined_travel
+    local function check_and_add_to_queue(queue: PriorityQueue<PriorityEInv>, fat_inv: ExternalInventory)
+        local v_distance = einv_helper.get_distance(fat_inv) / max_combined_travel
         if v_distance > 1 then return end
 
         --[[local v_inv_space = fat_inv.ledger:getNumOfEmptySlots() / fat_inv.ledger.inv_size
 
         local cmp_value = d_distance * 0.80 + v_inv_space * 0.20
         if cmp_value > 1 then cmp_value = 1.0 end--]]
-        if empty_slots_needed > fat_inv.ledger:getNumOfEmptySlots() then return end
+        if empty_slots_needed > vinv_helper.get_num_of_empty_slots(fat_inv.ledger) then return end
 
         local cmp_value = v_distance
-        local cmp_pair = {fat_inv, cmp_value}
-        table.insert(tbl, cmp_pair)
+        local new: PriorityEInv = {
+            priority = cmp_value,
+            einv = fat_inv
+        }
+
+        pqueue_helper.insert(queue, new)
     end
 
-
-    local unsorted_inv_table_misc = {}
-    local unsorted_inv_table = {}
+    local inv_table_misc = pqueue_helper.new<PriorityEInv>
+    local inv_table = pqueue_helper.new<PriorityEInv>
     for _, fat_inv in iter_external_inv() do
         if not fat_inv.long_term_storage or not fat_inv.storage then
             goto continue
@@ -360,37 +376,38 @@ function module.get_nearest_inv_by_definition(lable, name, empty_slots_needed)
         ::continue::
     end
 
-    -- Now we sort by the cmp value, a scaled value of distance and inventory space
-    local sorted_inv_table
-    if #unsorted_inv_table > 0 then
-        sort_table_indexed(unsorted_inv_table, false, 2)
-        sorted_inv_table = unsorted_inv_table
-    elseif #unsorted_inv_table_misc > 0 then
-        sort_table_indexed(unsorted_inv_table_misc, false, 2)
-        sorted_inv_table = unsorted_inv_table_misc
-    else
-        return nil
+    if pqueue_helper.size(inv_table) == 0 then
+        if pqueue_helper.size(inv_table_misc) == 0 then return nil end
+        inv_table = inv_table_misc
     end
-
-    local first_entry = sorted_inv_table[1]
-    return first_entry[1]
+    return inv_table.einv[1]
 end
 
 -- No, I'm not going to solve the travelling salesman problem
-function module.get_nearest_external_inv(lable, name, min_quantity, total_needed_quantity)
+function module.get_nearest_external_inv(
+    item: ItemDefinition,
+    min_quantity: integer,
+    total_needed_quantity: integer
+): ExternalInventory | nil
     -- ordered with biggest in the top position (#size - 1)
-    local ref_quant_table = {}
+    local ref_quant_queue: PriorityQueue<PriorityEInv> = pqueue_helper.new<PriorityEInv>()
     for _, fat_inv in iter_external_inv() do
         local pinv = fat_inv.ledger
 
-        local quantity = pinv:howMany(lable, name)
+        local quantity = vinv_helper.how_many(pinv, item)
         if quantity == nil or quantity < min_quantity then goto continue end
-        local new_ref_quant = {quantity, fat_inv}
+        local new_ref_quant = {
+            priority = quantity,
+            einv = fat_inv
+        }
 
-        if #ref_quant_table == 0 then table.insert(ref_quant_table, new_ref_quant); goto continue end
-        local distance = fat_inv:getDistance()
+        if pqueue_helper.size(ref_quant_queue) == 0 then
+            pqueue_helper.insert(ref_quant_queue, new_ref_quant)
+            goto continue
+        end
+        local distance = einv_helper.get_distance(fat_inv)
 
-        for index, entry in ipairs(ref_quant_table) do
+        for index, entry in ipairs(ref_quant_queue) do
             -- local i_quantity = entry[1]
             local i_inv = entry[2]
 
@@ -401,15 +418,15 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
             end
         end -- else, we da biggest ork
 
-        table.insert(ref_quant_table, new_ref_quant)
+        pqueue_helper.insert(ref_quant_queue, new_ref_quant)
         ::continue::
     end
-    if #ref_quant_table == 0 then return nil end
+    if pqueue.size(ref_quant) == 0 then return nil end
 
     local dist_sum = 0
     local quant_sum = 0
     -- check if we aren't going to do too much travelling
-    for index, entry in ipairs(ref_quant_table) do
+    for index, entry in pqueue_helper.iter(ref_quant_queue) do
         local i_quantity = entry[1]
         local i_inv = entry[2]
         local i_distance = i_inv:getDistance()
@@ -423,10 +440,17 @@ function module.get_nearest_external_inv(lable, name, min_quantity, total_needed
     if dist_sum > max_combined_travel or quant_sum < total_needed_quantity then return nil end
 
     -- we'll be recomputing the table for everystep but who cares?
-    return ref_quant_table[#ref_quant_table][2] -- returns a MetaExternalInventory object
+    return pqueue_helper.remove(ref_quant_queue).einv
 end
 
-function module.print_build_inventory(map, uncompressed, name, index)
+-- TODO: make an actual __h_map_obj.tl file, and a __h_MetaBuild.tl
+local interface FakeMapType
+    get_buildings: function(string): {Build} | nil
+end
+
+-- map_obj depends on this file, yet, we need to access it in order to look through buildings, bummer
+-- I mean we could just store buildings in another object, we maybe should do that? TODO
+function module.print_build_inventory(map: FakeMapType, uncompressed: boolean, name: string, index: integer)
     local build_table = map.get_buildings(name)
     if build_table == nil then
         print(comms.robot_send("error", "No building with such a name exists/is built: " .. name))
@@ -442,7 +466,7 @@ function module.print_build_inventory(map, uncompressed, name, index)
 
     local looped = false
     local pp_obj = {}
-    local inv_table = build:getInventories()
+    local inv_table = build_helper.get_inventories(build)
     for i, inv in ipairs(inv_table) do
         looped = true
         prepare_pp_print(uncompressed, inv, i, #inv_table, pp_obj)
@@ -460,7 +484,14 @@ end
 -- through this interface, but rather directly through direct building interaction and building
 -- agnostic direct inventory interaction, no point messing around with the data structuring just to
 -- help out this very minor debug-ish function
-function module.add_to_inventory(map, build_name, index, lable, name, quantity, slot_num)
+function module.add_to_inventory(
+    map: FakeMapType,
+    build_name: string,
+    index: integer,
+    item: ItemDefinition,
+    quantity: integer,
+    slot_num: integer
+): boolean
     local build_table = map.get_buildings(build_name)
     if build_table == nil then
         print(comms.robot_send("error", "No building exists with such a name: " .. build_name))
