@@ -49,7 +49,7 @@ module.virtual_inventory.equip_tbl = {}
 vinv_helper.report_equiped_break(module.virtual_inventory) -- smart?
 
 -- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, does not hold MetaExternalInventory)
-local external_inventories: {ExternalInventory} = {}
+local external_inventories: {string : {ExternalInventory}} = {}
 
 -- It is difficult to serialize by building, since their references changes as the programme is loaded/unloaded,
 -- and storing enough information to know what building is what is unwieldy, so this table needs to
@@ -109,16 +109,8 @@ end
 
 --->>-- Check on the ledgers --<<-----{{{
 
-local interface FatLedger
 
-end
-
-local function get_fat_ledger(table_name: string, index: integer): FatLedger
-    if table_name == nil or index == nil  then
-        print(comms.robot_send("error", "couldn't get fat_ledger, you have nils blud" ))
-        return nil
-    end
-
+local function get_fat_ledger(table_name: string, index: integer): ExternalInventory | nil
     local name_table = external_inventories[table_name]
     if name_table == nil then
         print(comms.robot_send("error", "couldn't add item to external, table_name has no table: " .. table_name))
@@ -135,31 +127,31 @@ local function get_fat_ledger(table_name: string, index: integer): FatLedger
 end
 
 
-function module.add_item_to_external(table_name, index, lable, name, to_be_added)
+function module.add_item_to_external(
+    table_name: string,
+    index: integer,
+    label: string,
+    name: string,
+    to_be_added: integer
+): boolean
     local fat_ledger = get_fat_ledger(table_name, index)
-    if fat_ledger == nil or lable == nil or name == nil or to_be_added == nil then
-        print(comms.robot_send("error", "couldn't add item to external, you have nils blud" ))
-        return false
-    end
+    if fat_ledger == nil then return false end
 
-    local ledger = fat_ledger.ledger
-    ledger:addOrCreate(lable, name, to_be_added)
+    local ledger = (fat_ledger as ExternalInventory).ledger
+    vinv_helper.add_or_create(ledger, lable, name, to_be_added)
 
     return true
 end
 
-function module.remove_stack_from_external(table_name, index, slot, how_much)
+function module.remove_stack_from_external(table_name: string, index: integer, slot: integer, how_much: integer): boolean
     local fat_ledger = get_fat_ledger(table_name, index)
-    if fat_ledger == nil or slot == nil or how_much == nil or how_much < 0 then
-        print(comms.robot_send("error", "couldn't add item to external, you have nils blud" ))
-        return false
-    end
+    if fat_ledger == nil then return false end
 
     if how_much == 0 then return true end
     if how_much > 64 then how_much = 64 end
 
     local ledger = fat_ledger.ledger
-    ledger:removeFromSlot(slot, how_much)
+    vinv_helper.remove_from_slot(ledger, slot, how_much)
 
     return true
 end
@@ -183,7 +175,7 @@ function module.list_external_inv()
 
         table.insert(other_buffer, "   -- ")
         table.insert(other_buffer, "quad = ")
-        local quad_str = tostring(fat_buffer:getQuadNum())
+        local quad_str = tostring(einv_helper.get_quad_num(fat_buffer))
         table.insert(other_buffer, quad_str)
         table.insert(other_buffer, "\n")
 
@@ -193,7 +185,7 @@ function module.list_external_inv()
     print(comms.robot_send("info", str))
 end
 
-local function iter_external_inv(build_name)
+local function iter_external_inv<T>(build_name): (function (?{T}): integer | nil, T | nil), {string : {ExternalInventory}} | nil
     if build_name == nil then
         local inner, next_index
         local iteration = math.max

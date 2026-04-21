@@ -365,6 +365,17 @@ function module.debug(arguments)
                 local name = arguments[7]
                 local to_add = tonumber(arguments[8])
 
+                -- TODO: do general input normalization where string == "nil" -> string = nil, or string = "" idk
+                
+                if table_name == nil or index == nil  then
+                    print(comms.robot_send("error", "couldn't get fat_ledger, you have nils blud" ))
+                    return nil
+                end
+                if lable == nil or name == nil or to_be_added == nil then
+                    print(comms.robot_send("error", "couldn't add item to external, you have nils blud" ))
+                    return nil
+                end
+
                 inv.add_item_to_external(table_name, index, lable, name, to_add)
             elseif arguments[3] == "set" then
                 local slot = tonumber(arguments[4])
@@ -391,6 +402,12 @@ function module.debug(arguments)
                 local index = tonumber(arguments[5])
                 local slot = tonumber(arguments[6])
                 local to_remove = tonumber(arguments[7])
+
+                if slot == nil or how_much == nil or how_much < 0 then
+                    print(comms.robot_send("error", "couldn't add item to external, you have nils blud" ))
+                    return nil
+                end
+
 
                 inv.remove_stack_from_external(table_name, index, slot, to_remove)
             elseif arguments[3] == "reload_loadout" or arguments[3] == "rl" then
