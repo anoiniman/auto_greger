@@ -568,7 +568,8 @@ function module.get_inv_pos(
         print(comms.robot_send("error", "No building of such a name with such an index: " .. bd_index))
         return false
     end
-
+    
+    -- TODO: start editing from here
     local state = build.post_build_state[state_index]
     if state == nil or type(state) ~= "table" or type(state[1]) ~= "table" then
         print(comms.robot_send("error", "No such state index: " .. state_index))

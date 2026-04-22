@@ -60,9 +60,9 @@ function module.init_primitive(build: Build)
 end
 
 function module.rotate_and_translate_primitive(build: Build, quad_num: integer, logical_chunk_height: integer): boolean
-    local base_table = self.primitive.base_table
-    local segments = self.primitive.segments
-    local origin_block = self.primitive.origin_block
+    local base_table = build.primitive.base_table
+    local segments = build.primitive.segments
+    local origin_block = build.primitive.origin_block
 
     origin_block[3] = origin_block[3] + logical_chunk_height -- y
 
@@ -93,7 +93,7 @@ function module.rotate_and_translate_primitive(build: Build, quad_num: integer, 
 end
 
 -- no need to rotate since they are already pre-rotated from before
-function Module:translateSpecial(quad_num, logical_chunk_height, primitive_offset)
+function module.translate_special(quad_num: integer, logical_chunk_height: integer, primitive_offset: Pos3D): boolean
     local special_table = self.special_blocks
 
     --[[print(string.format("Name is: %s", self.name))
@@ -156,11 +156,12 @@ end
 
 end--]]
 
-function Module:dumpPrimitive()
-    self.primitive = nil
+function module.dump_primitive(build: Build)
+    build.primitive = nil
 end
 
-function Module:setupBuild(what_quad, chunk_height)
+-- TODO from here
+function module.setup_build(what_quad: integer, chunk_height: integer)
     local old_origin_block = deep_copy.copy(self.primitive.origin_block, ipairs)
     local result = self:rotateAndTranslatePrimitive(what_quad, chunk_height)
     if not result then return false end
