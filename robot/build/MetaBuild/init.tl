@@ -15,79 +15,34 @@ local VirtualInventory = require("inventory.VirtualInventory")
 local primitive_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
                             -- so it exists as a singleton all "inheritors" of the MetaTable have the same
                             -- reference for "build_cache"
+local record module end
 
-local Module = {
-    name = nil,
-    extra_sauce = nil,
-    what_chunk = nil, -- It's not a ref, they're coordinates to the chunk
+local enum BuildOption end
+global interface Build
+    name: string
+    options: {BuildOption}
+    what_chunk: Pos2D
 
-    post_build_s_init = nil,
-    post_build_hooks = nil,
-    post_build_state = nil,
+    build_task: BuildTask
+    not_init: boolean
+    doors: {Door}
+    special_blocks: {SpecialSchematicChunk}
 
-    is_nil = true,
-    built = false,
-    doors = nil,
-    special_blocks = nil,
-
-    primitive = {},
-    s_interface = nil
-}
-
-function Module:new()
-    return deep_copy.copy(self, pairs)
+    primitive: BuildPrimitive
+    s_interface: SchematicInteface
 end
 
-function Module:doBuild()
-    if self.s_interface == nil then
-        print(comms.robot_send("error", "MetaBuild, doBuild, attempted to build with nil s_interface, init plz"))
-        return false
-    end
-
-    local reverse = self:is_extra("top_to_bottom")
-    local result, status, instruction = self.s_interface:doBuild(reverse) -- string, 3d-coords, symbol
-
-    if instruction ~= nil and self.extra_sauce ~= nil then -- for now this is fine
-        for _, str_name in ipairs(self.extra_sauce) do
-            instruction:addExtra(str_name, nil)
-        end
-    end
-
-    return result, status, instruction
+local type C = CoordinateType
+function module.get_special_coords(build: Build, what_symbol: SpecialSymbol, index: integer): Pos3D
+    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
+    return {coords[1] as C.X, coords[2] as C.Z, coords[3] as C.Y} -- this is effectifly a deep_copy
 end
 
-function Module:is_extra(str)
-    if self.extra_sauce == nil then return false end
-
-    local result = false
-    for _, sauce in ipairs(self.extra_sauce) do
-        if type(sauce) == "table" then
-            error(comms.robot_send("fatal", "not implemented yet, MetaBuild is_extra (use the included method in the instruction?)"))
-            if sauce[1] == "do_wall" then
-                error("shutup the luacheck")
-            end -- etc
-        end
-
-        if sauce == str then
-            result = true
-            break
-        end
-
-        --::continue::
-    end
-    return result
-end
-
-function Module:getSpecialCoords(what_symbol, index)
-    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
-    return {coords[1], coords[2], coords[3]} -- this is effectifly a deep_copy
-end
-
-function Module:getDistToSpecial(what_symbol, index)
-    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, self.special_blocks)
+function module.get_dist_to_special(build: Build, what_symbol: SpecialSymbol, index: integer): integer
+    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
     local x, z, y = coords[1], coords[2], coords[3]
-    local cabs_x = self.what_chunk[1] * 16
-    local cabs_z = self.what_chunk[2] * 16
+    local cabs_x = build.what_chunk[1] * 16
+    local cabs_z = build.what_chunk[2] * 16
 
     x = x + cabs_x
     z = z + cabs_z
@@ -100,12 +55,11 @@ function Module:getDistToSpecial(what_symbol, index)
     return man_dist
 end
 
-
-function Module:initPrimitive()
-    self.primitive.parent = self
+function module.init_primitive(build: Build)
+    module.primitive.parent = build
 end
 
-function Module:rotateAndTranslatePrimitive(quad_num, logical_chunk_height)
+function module.rotate_and_translate_primitive(build: Build, quad_num: integer, logical_chunk_height: integer): boolean
     local base_table = self.primitive.base_table
     local segments = self.primitive.segments
     local origin_block = self.primitive.origin_block

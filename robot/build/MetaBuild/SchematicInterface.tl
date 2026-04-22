@@ -1,4 +1,8 @@
--- luacheck: ignore io
+-- building index is relative to distance to building, where <1 is the nearest and #size> is the furthest
+-- this is like this because I cannot be arsed to do better, and most additions/removings will not happen
+-- through this interface, but rather directly through direct building interaction and building
+-- agnostic direct inventory interaction, no point messing around with the data structuring just to
+-- help out this very minor debug-ish function-- luacheck: ignore io
 local serialize = require("serialization")
 local io = require("io")
 
@@ -22,7 +26,7 @@ local interface SchematicInterface
     schematic: MetaSchematic
     dictionary: {any} | nil
     origin_block: Pos3D
-    special_blocks: {SpecialChunk}
+    special_blocks: {SpecialSchematicChunk}
 
     build_stack: BuildStack
 end
@@ -94,7 +98,8 @@ end
 
 -- Maybe this doing builds thing needs to be redesing. And by maybe I mean: it does forcefully
 -- chunk.dist && chunk.symbol
-function module.do_build(top_down: boolean): boolean, string, Instruction | nil
+function module.do_build(state: ConstructBuildState): ConstructBuildState
+    local top_down = state.top_down
     local b_stack = sinterface.build_stack
 
     local function get_instruction(chunk: MSChunk): Instruction

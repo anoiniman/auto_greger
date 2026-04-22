@@ -1,6 +1,4 @@
 -- luacheck: globals EMPTY_STRING
-local Task = require("Task")
-
 local module = {}
 --imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
@@ -21,7 +19,10 @@ local geolyzer = require("geolyzer_wrapper")
 local search_table = require("search_table")
 -- local PPObj = require("common_pp_format")
 
+local Task = require("Task")
 local late_bind = require("late_bind")
+local build_register = require("build.build_register")
+
 local item_bucket = require("inventory.item_buckets")
 --local MetaLedger = require("inventory.MetaLedger")
 local vinv_helper = require("inventory.VirtualInventory")
@@ -284,6 +285,8 @@ end
 
 --- }}}
 
+--- {{{ --->>-- Manipulate ledgers & stuff --<<---
+
 function module.register_ledger(fat_ledger: ExternalInventory)
     local build_name = fat_ledger.parent_build.name
     if build_name == nil then print(comms.send_unexpected()); return end
@@ -443,15 +446,8 @@ function module.get_nearest_external_inv(
     return pqueue_helper.remove(ref_quant_queue).einv
 end
 
--- TODO: make an actual __h_map_obj.tl file, and a __h_MetaBuild.tl
-local interface FakeMapType
-    get_buildings: function(string): {Build} | nil
-end
-
--- map_obj depends on this file, yet, we need to access it in order to look through buildings, bummer
--- I mean we could just store buildings in another object, we maybe should do that? TODO
-function module.print_build_inventory(map: FakeMapType, uncompressed: boolean, name: string, index: integer)
-    local build_table = map.get_buildings(name)
+function module.print_build_inventory(uncompressed: boolean, name: string, index: integer)
+    local build_table = build_register.get_buildings(name)
     if build_table == nil then
         print(comms.robot_send("error", "No building with such a name exists/is built: " .. name))
         return
@@ -485,14 +481,13 @@ end
 -- agnostic direct inventory interaction, no point messing around with the data structuring just to
 -- help out this very minor debug-ish function
 function module.add_to_inventory(
-    map: FakeMapType,
     build_name: string,
     index: integer,
     item: ItemDefinition,
     quantity: integer,
     slot_num: integer
 ): boolean
-    local build_table = map.get_buildings(build_name)
+    local build_table = build_register.get_buildings(build_name)
     if build_table == nil then
         print(comms.robot_send("error", "No building exists with such a name: " .. build_name))
         return false
@@ -506,6 +501,7 @@ function module.add_to_inventory(
 
     local misc_list = {}
     local can_add_inv = nil
+    -- TODO this will have to be changed because we will no longer use that stupid post_build_state hack, maybe
     for i = 2, #build.post_build_state, 1 do
         local state = build.post_build_state[i]
         if state == nil then goto continue end
@@ -553,10 +549,15 @@ function module.add_to_inventory(
 end
 
 -- inv_index is optional
-function module.get_inv_pos(map, bd_name, bd_index, state_index, inv_index)
+function module.get_inv_pos(
+    bd_name: string,
+    bd_index: index,
+    state_index: index,
+    inv_index?: index
+): boolean
     state_index = state_index + 1 -- because no.1 is always facking reserved
 
-    local build_table = map.get_buildings(bd_name)
+    local build_table = build_register.get_buildings(bd_name)
     if build_table == nil then
         print(comms.robot_send("error", "No building with such a name exists/is built: " .. bd_name))
         return false
@@ -610,7 +611,7 @@ end
 
 --->>-- Local Functions --<<-----{{{
 
-local function get_forbidden_table()
+local function get_forbidden_table(): {integer} | nil
     if use_self_craft then return crafting_table_slots end
     return nil
 end

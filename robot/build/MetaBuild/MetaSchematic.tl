@@ -22,7 +22,7 @@ local interface MSChunk
     symbol: string
 end
 
-global type SpecialChunk = {SpecialSymbol, integer, integer, integer}
+global type SpecialSchematicChunk = {SpecialSymbol, integer, integer, integer}
 
 local function ms_chunk_new(x: integer, symbol: string): MSChunk
     return {x = x, symbol = symbol}

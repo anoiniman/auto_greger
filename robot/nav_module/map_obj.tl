@@ -564,48 +564,6 @@ function module.pretend_build(area_name, build_name, what_chunk, what_quad) -- I
     return 0
 end
 
-function module.find_quad(what_chunk, door_info)
-    local quads = module.get_chunk(what_chunk).chunk.meta_quads
-    local cur_quad = nil
-    for _, quad in ipairs(quads) do
-        -- if not quad:isBuilt() then goto continue end
-        local doors = quad:getDoors()
-        if doors == door_info then -- checks if references match
-            cur_quad = quad
-            break
-        end
-
-        --[[for _, door in ipairs(doors) do
-            if door == door_info then -- checks if references match
-                cur_quad = quad
-                break
-            end
-        end --]]
-
-        ::continue::
-    end
-    return cur_quad
-end
-
-function module.find_build(what_chunk, door_info)
-    local cur_quad = module.find_quad(what_chunk, door_info)
-    if cur_quad ~= nil then
-        return cur_quad:getBuild()
-    end
-    return nil
-end
-
-
-function module.get_buildings(name)
-    return known_buildings[name]
-end
-
-function module.get_buildings_num(name)
-    if known_buildings[name] == nil then return 0 end
-
-    return #known_buildings[name]
-end
-
 
 function module.get_area(name)
     return areas_table:getArea(name)
