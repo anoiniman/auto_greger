@@ -15,24 +15,86 @@ local VirtualInventory = require("inventory.VirtualInventory")
 local primitive_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
                             -- so it exists as a singleton all "inheritors" of the MetaTable have the same
                             -- reference for "build_cache"
-local record module end
 
-local enum BuildOption end
+local enum BuildOption
+    "top_to_bottom"
+end
+
+local record module end
 global interface Build
     name: string
-    options: {BuildOption}
+    options: {BuildOption} | nil
     what_chunk: Pos2D
 
-    build_task: BuildTask
-    not_init: boolean
+    build_task: BuildTask | nil
     doors: {Door}
     special_blocks: {SpecialSchematicChunk}
 
     primitive: BuildPrimitive
-    s_interface: SchematicInteface
+    sinterface: SchematicInteface
+end
+
+function module.contains_option(build: Build, check: BuildOption): boolean
+    if build.options == nil then return false end
+    for _, value in ipairs(build.options as {BuildOption}) do
+        if value == check then return true end
+    end
+    return false
 end
 
 local type C = CoordinateType
+--[[function module.new(): Build
+    return {
+        name = "NONE",
+        option = nil,
+        what_chunk = nil as Pos2D,
+
+        build_task = nil,
+        doors = nil as {Door}
+        special_blocks = nil as {SpecialSchematicChunk},
+    }
+end--]]
+
+function module.require(name: string, what_chunk: Pos2D): Build
+    local new: Build = {} as Build
+
+    if primitive_cache[name] ~= nil then
+        new.primitive = primitive_cache[name]:new() -- very important
+        module.initPrimitive(build)
+        return true
+    end
+    if name == nil then name = "nil" end
+
+    local path
+    if V_ENV then path = "./build/" .. name .. ".lua"
+    else path = "/home/robot/build/" .. name .. ".lua" end
+    local build_table = nil -- luacheck: ignore
+
+    local conditional
+    if V_ENV then conditional = filesystem.exists(path)
+    else conditional = filesystem.exists(path) and not filesystem.isDirectory(path) end
+
+    if conditional then
+        build_table = dofile(path)
+    else
+        print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
+        return false
+    end
+
+    new.primitive = new_table:new() -- very important
+    new.name = new.primitive.name
+    new.extra_sauce = new.primitive.extra_sauce -- effective change of ownership
+    new.new_task = new.primitive.new_task
+
+    new.what_chunk = what_chunk
+
+    -- THIS WAS REMOVED IN ORDER TO PERSERVE RAM
+    --primitive_cache[name] = build_table
+    module.init_primitive(new)
+    return true
+end
+
+
 function module.get_special_coords(build: Build, what_symbol: SpecialSymbol, index: integer): Pos3D
     local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
     return {coords[1] as C.X, coords[2] as C.Z, coords[3] as C.Y} -- this is effectifly a deep_copy
@@ -160,22 +222,21 @@ function module.dump_primitive(build: Build)
     build.primitive = nil
 end
 
--- TODO from here
-function module.setup_build(what_quad: integer, chunk_height: integer)
-    local old_origin_block = deep_copy.copy(self.primitive.origin_block, ipairs)
-    local result = self:rotateAndTranslatePrimitive(what_quad, chunk_height)
+function module.setup_build(build: Build, what_quad: integer, chunk_height: integer): boolean
+    local old_origin_block = COPY(self.primitive.origin_block, ipairs)
+    local result = module.rotate_and_translate_primitive(build, what_quad, chunk_height)
     if not result then return false end
 
-    local base_table = self.primitive.base_table
+    local base_table = build.primitive.base_table
 
-    if self.s_interface == nil then
-        self.s_interface = SchematicInterface:new()
+    if build.sinterface == nil then
+        build.sinterface = sinterface_helper.new()
     end
     -- its ok to retain this after dumping the primitive because of GC, I think
-    self.s_interface:init(self.primitive.dictionary, self.primitive.origin_block)
-    self.special_blocks = self.s_interface:getSpecialBlocks()
+    sinterface_helper.init(build.sinterface, build.primitive.dictionary, build.primitive.origin_block)
+    build.special_blocks = sinterface_helper.get_special_blocks(build.sinterface)
 
-    if self:checkHumanMap(base_table, self.primitive.name) ~= 0 then -- sanity check
+    if module.check_human_map(build, base_table, build.primitive.name) ~= 0 then -- sanity check
         return false
     end
 
@@ -184,136 +245,80 @@ function module.setup_build(what_quad: integer, chunk_height: integer)
     -- ATTENTION: VVVVVVVVVVVVVVVVVVVVVVVVV
     -- if returning the length of the MetaSchematic tables is faulty, we'll need to count the height of buildings here
     -- thanks to the magic of lua bogus arguments are ok!
-    if self.primitive.iter == nil then
-        for index, table_obj in ipairs(base_table) do -- it is expected that table object does not include meta-table
-            self.s_interface:parseStringArr(table_obj, index)
+    if module.primitive.iter == nil then
+        for index, table_obj in ipairs(base_table) do
+            sinterface_helper.parse_string_arr(build.sinterface, table_obj, index)
             --max_index = max_index + 1
         end
     else
-        for index, table_obj in self.primitive:iter(base_table) do -- it is expected that table object does not include meta-data
-            self.s_interface:parseStringArr(table_obj, index)
+        for index, table_obj in build.primitive:iter(base_table) do -- it is expected that table object does not include meta-data
+            sinterface_helper.parse_string_arr(build.sinterface, table_obj, index)
             -- print(comms.robot_send("debug", "MetaBuild:setupBuild() we looped once m8"))
             --max_index = max_index + 1
         end
     end
 
-    if self:is_extra("top_to_bottom") then -- TODO move this to its own little function when appropriate
+    -- TODO move this to its own little function when appropriate
+    if module.contains_option(build, "top_to_bottom") then
         print("top_bottomed")
-        self.s_interface.build_stack.logical_y = #self.s_interface.schematic
+        build.sinterface.build_stack.logical_y = #build.sinterface.schematic
     end
-    -- print(comms.robot_send("debug", "we facking did it m8!"))
 
-    self.is_nil = false
+    build.is_nil = false
 
-    local result = self:translateSpecial(what_quad, chunk_height, old_origin_block)
+    local result = module.translate_special(build, what_quad, chunk_height, old_origin_block)
     if not result then return false end
 
     return true
 end
 
-function Module:require(name, what_chunk)
-    if primitive_cache[name] ~= nil then
-        self.primitive = primitive_cache[name]:new() -- very important
-        self:initPrimitive()
-        return true
-    end
-    if name == nil then name = "nil" end
-
-    local path
-    if V_ENV then path = "./build/" .. name .. ".lua"
-    else path = "/home/robot/build/" .. name .. ".lua" end
-    local build_table = nil -- luacheck: ignore
-
-    local conditional
-    if V_ENV then conditional = filesystem.exists(path)
-    else conditional = filesystem.exists(path) and not filesystem.isDirectory(path) end
-
-    if conditional then
-        build_table = dofile(path)
-    else
-        print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
-        return false
-    end
-
-    self.primitive = build_table:new() -- very important
-    self.name = self.primitive.name
-    self.extra_sauce = self.primitive.extra_sauce -- effective change of ownership
-    self.post_build_s_init = self.primitive.state_init
-    self.post_build_hooks = self.primitive.hooks
-
-    self.what_chunk = what_chunk
-
-    if self.post_build_state == nil then self.post_build_state = {} end
-
-    -- THIS WAS REMOVED IN ORDER TO PERSERVE RAM
-    --primitive_cache[name] = build_table
-    self:initPrimitive()
-    return true
-end
-
 
 -- build state == 1 chunk wide state
-function Module:finalizeBuild(doors)
-    self.built = true
-    self.doors = doors -- lame cludge for now, fix later
-
-    if self.post_build_state[1] == nil then self.post_build_state[1] = {} end
+function module.finalize_build(build: Build, doors: {Door})
+    build.doors = doors -- lame cludge for now, fix later TODO
 
     for index, func in ipairs(self.post_build_s_init) do
         self.post_build_state[index] = func(self)
     end
 
-    self.s_interface = nil -- :)
+    build.sinterface = nil -- :)
     
     if V_ENV then
         local test_interface = require("virtual.tests")
-        local num_of_builds = tostring(test_interface:getNumOfChildren({"build"}, self.name))
+        local num_of_builds = tostring(test_interface:getNumOfChildren({"build"}, build.name))
 
-        for index, state in ipairs(self.post_build_state) do
+        -- TODO: uh oh, this needs to be handled differently now
+        if true then
+            print("Warning -- this is outdated, this code needs to be updated" .. debug.traceback())
+            return
+        end
+        for index, state in ipairs(build.post_build_state) do
             local path = {"build", self.name, num_of_builds, "pb_state"}
             test_interface:registerObject(state, tostring(index), path)
         end
     end
-
     -- print(comms.robot_send("debug", "finalizedBuild"))
 end
 
-
-function Module:getInventories()
-    local all_inventories = {}
-    for index = 2, #self.post_build_state, 1 do
-        local state = self.post_build_state[index]
-        if state == nil then goto continue end
-
-        -- checks for the format I've been using for inventories
-        if state[1] == nil then goto continue end
-
-        for _, entry in ipairs(state[1]) do
-            if entry.storage == nil then goto short_continue end
-            table.insert(all_inventories, entry)
-            ::short_continue::
-        end
-        ::continue::
-    end
-    if #all_inventories == 0 then return nil end
-    return all_inventories
+function module.get_inventories(build: Build): {ExternalInventory} | nil
+    if build.build_task == nil then return nil end
+    return bt_helper.get_attached_inventories(build.build_task)
 end
 
-
-function Module:runBuildCheck(quantity_goal) -- quantity goal = {input (lable name), quantity}
+function module.run_build_check(build: Build, quantity_goal: integer): CheckResult
     -- self:useBuilding(nil, "only_check", nil, quantity_goal, nil, nil)
-    return self.post_build_hooks[1](self.post_build_state[1], self, "only_check", quantity_goal, self.post_build_state)
+    return bt_helper.run_check(build.build_task)
 end
 
-local max_depth = 3
-local function recursive_append(tbl, buffer, depth)
+local max_depth: integer = 3
+local function recursive_append(tbl: {any}, buffer: {string}, depth: integer)
     if depth >= max_depth then return end
     depth = depth + 1
     table.insert(buffer, "{\n")
     for key, value in pairs(tbl) do
         table.insert(buffer, string.format("%s = ", tostring(key)))
 
-        if type(value) == "table" then recursive_append(value, buffer, depth); goto skip_comma
+        if type(value) == "table" then recursive_append(value as {any}, buffer, depth); goto skip_comma
         elseif type(value) == "function" then table.insert(buffer, "function")
         elseif type(value) == "boolean" or type(value) == "string" or type(value) == "number" then
             table.insert(buffer, tostring(value))
@@ -325,49 +330,16 @@ local function recursive_append(tbl, buffer, depth)
     table.insert(buffer, "}\n")
 end
 
--- flag determines if we are running a check or a determinate logistic action
--- (i.e -> picking up stuff from the output chest into the robot, or moving stuff to the input chest etc.)
-function Module:useBuilding(f_caller, flag, index, quantity_goal, prio, lock)
-    -- print("used_building")
-    -- print(comms.robot_send("info", string.format("bd activated: %s, index: %s", self.name, index)))
 
-    if index == nil then
-        print(comms.robot_send("warning", "this shouldn't happen under any circunstance, useBuilding"))
-        return nil
-    end
-
-    if index == 1 then
-        -- first hook must correspond to this pattern
-        index = self.post_build_hooks[1](self.post_build_state[1], self, flag, quantity_goal, self.post_build_state)
-    else
-        index = self.post_build_hooks[index](self.post_build_state[index])
-    end
-
-    if index == nil then
-        lock[1] = 2
-        return nil
-    end -- else
-
-    local return_table = {prio, f_caller, self, flag, index, quantity_goal, prio, lock}
-    --[[local buffer = {string.format("[%s] return_table = {", tostring(return_table))}
-    for k, v in pairs(return_table) do
-        table.insert(buffer, string.format("%s = %s, ", tostring(k), tostring(v)))
-    end
-    table.insert(buffer, "}")
-    print(table.concat(buffer))--]]
-    return return_table
-end
-
-
-function Module:createAndReturnLedger()
-    -- We could try to pre-add-up every block by looping through the s_interface multiple times, and only
+function module.create_and_return_ledger(build: Build): VirtualInventory
+    -- We could try to pre-add-up every block by looping through the sinterface multiple times, and only
     -- then increment the ledger entries, or we could just loop once and increment the ledger entries
     -- 1-by-1, I don't know what solution is best, so I'll just use the easier one
-    local tmp_ledger = VirtualInventory:new(64)
-
+    local tmp_ledger = vinv_helper.new(64)
 
     local result, status, instruction
-    while true do
+    while true do -- TODO got to think about this
+        error("TODO")
         result, status, instruction = self:doBuild()
         if not result then error(comms.robot_send("fatal", "Failed to doBuild in createLedger, name is -- " .. self.name)) end
         if status == "done" then break end
@@ -381,20 +353,7 @@ function Module:createAndReturnLedger()
     return tmp_ledger
 end
 
-function Module:getName()
-    return self.name
-end
-
-function Module:getSchematicInterface()
-    return self.s_interface
-end
-
-function Module:isBuilt()
-    return self.built
-end
-
--- luacheck: no unused args
-function Module:checkHumanMap(base_table, name)
+function module.check_human_map(base_table: {{string}}, name: string): integer
     local watch_dog = false
     for _, base in pairs(base_table) do
         if base[1] == "def" then -- I wish there was a re-usable way to write this logic, but no pass by ref, no luck
@@ -424,9 +383,4 @@ function Module:checkHumanMap(base_table, name)
     return 0
 end
 
-function Module:getPrimitiveDoors()
-    return self.primitive.doors
-end
-
-
-return Module
+return module

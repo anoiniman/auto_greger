@@ -10,7 +10,6 @@ local comms = require("comms")
 local deep_copy = require("deep_copy")
 
 local meta_schematic = require("build.MetaBuild.MetaSchematic")
-local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 require("Position")
 
 local type BuildStack = Pos3D
@@ -20,7 +19,7 @@ local function build_stack_new(): BuildStack
     return {1 as C.X, 1 as C.Z, 1 as C.Y}
 end
 
-local record Module end
+local record module end
 
 local interface SchematicInterface
     schematic: MetaSchematic

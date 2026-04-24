@@ -46,7 +46,7 @@ local function return_or_init_table_table<T>(tbl: {{T}}, index: integer): {T}
     return tbl[index] -- returns ref to inner table
 end
 
-local function record_special(symbol: string, x: integer, z: integer, y: integer, tbl: {SpecialChunk})
+local function record_special(symbol: string, x: integer, z: integer, y: integer, tbl: {SpecialSchematicChunk})
     if symbol is SpecialSymbol then
         local full_obj = {symbol, x, z, y}
         table.insert(tbl, full_obj)
@@ -56,9 +56,9 @@ end
 
 -- I hope no return needed, we're modifying self (a ref) anyhow
 -- 2d slice of height 1, where 1 string is 1 line (x,z)
-function module.parse_string_arr(ms: MetaSchematic, string_array: {string}, y_coord: integer): {SpecialChunk}
+function module.parse_string_arr(ms: MetaSchematic, string_array: {string}, y_coord: integer): {SpecialSchematicChunk}
     local square: {{MSChunk}} = return_or_init_table_table(ms, y_coord)
-    local special_table: {SpecialChunk} = {}
+    local special_table: {SpecialSchematicChunk} = {}
 
     local z_coord = 0
     for _, str in ipairs(string_array) do
