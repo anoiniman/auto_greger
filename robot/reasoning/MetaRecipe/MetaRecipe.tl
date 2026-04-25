@@ -30,6 +30,21 @@ local function new_meta_recipe<S is TaskState, T is MetaRecipe<S>>(
     }
 end
 
+local function ct_s_generator(crafting_table: CraftingTable<CraftingState>, repeats: integer): CraftingState
+    local old_output = crafting_table.output
+    local new_output = item_helper.new_fuller_definition(
+        old_output.label,
+        old_output.name,
+        repeats,
+        old_output.stack_size
+    )
+
+    return {
+        recipe_grid = crafting_table.recipe_grid,
+        output = new_output,
+    }
+end
+
 function module.new_crafting_table(
     priority: integer,
 
@@ -49,23 +64,8 @@ function module.new_crafting_table(
         recipe_grid[index] = item_def
     end
 
-    local function s_generator(crafting_table: CraftingTable<CraftingState>, repeats: integer): CraftingState
-        local old_output = crafting_table.output
-        local new_output = item_helper.new_fuller_definition(
-            old_output.label,
-            old_output.name,
-            repeats,
-            old_output.stack_size
-        )
-
-        return {
-            recipe_grid = crafting_table.recipe_grid,
-            output = new_output,
-        }
-    end
-
     local crafting_prototype = task_helper.new_prototype(priority, crafting.craft)
-    local parent = new_meta_recipe(output, output_quantity, dependencies, crafting_prototype, s_generator)
+    local parent = new_meta_recipe(output, output_quantity, dependencies, crafting_prototype, ct_s_generator)
     local new: CraftingTable<CraftingState> = {} as CraftingTable<CraftingState>
 
     for k, v in pairs(parent as {any : any}) do (new as {any : any})[k] = v end

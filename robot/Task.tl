@@ -9,8 +9,18 @@ global interface TaskState end
 local interface BlockName
     known_names: {string} 
     name: string
-    is_valid: function(string): boolean
 end
+
+local function good_name(tbl: {string}, name: string): boolean
+    for _, k_name in ipairs(tbl) do
+        if k_name == name then return true end
+    end
+    return false
+end
+function task_helper.block_name_is_valid(bn: BlockName): boolean
+    return good_name(bn.known_names, bn.name)
+end
+
 
 global interface Task is Prioritizable
     prototype_uuid: integer
@@ -26,7 +36,7 @@ end
 
 global interface TaskPrototype<S is TaskState>
     priority: integer
-    func: function(S): S, boolean
+    func: function(S): S, string
 
     uuid: integer
 end
@@ -59,6 +69,23 @@ function task_helper.new_prototype<S is TaskState>(
     return new
 end
 
+function task_helper.new_task<S is TaskState, T is StateGenerator<S>>(
+    prototype: TaskPrototype<S>,
+    base_obj: T,
+    quantity: integer
+): Task
+    local state: S = base_obj:state_generator(quantity)
+    return {
+        priority = prototype.priority,
+        prototype_uuid = prototype.uuid
+        yield_block = nil,
+
+        state = state,
+        coroutine = coroutine.create(prototype.func)
+    }
+end
+
+
 function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
     prototype: TaskPrototype<S>,
     base_obj: T,
@@ -67,19 +94,12 @@ function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
     local func = function(a: Task, x: TaskPrototype<S>): boolean return a.prototype_uuid == x.uuid end
     if pqueue.find(await_queue as PriorityQueue<Task>, func, prototype) then return false end
 
-    local state: S = base_obj:state_generator(quantity)
-    local new: Task = {
-        priority = prototype.priority,
-        prototype_uuid = prototype.uuid
-        yield_block = nil,
-
-        state = state,
-        coroutine = coroutine.create(prototype.func)
-    }
-    pqueue.insert(await_queue, new)
-
+    pqueue.insert(await_queue, task_helper.new(prototype, base_obj, quantity))
     return true
 end
 
+function task_helper.yield<S is TaskState>(block_name: string)
+    coroutine.yield(block_name)
+end
 
 return task_helper
