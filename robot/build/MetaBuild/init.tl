@@ -15,24 +15,7 @@ local VirtualInventory = require("inventory.VirtualInventory")
 local primitive_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
                             -- so it exists as a singleton all "inheritors" of the MetaTable have the same
                             -- reference for "build_cache"
-
-local enum BuildOption
-    "top_to_bottom"
-end
-
 local record module end
-global interface Build
-    name: string
-    options: {BuildOption} | nil
-    what_chunk: Pos2D
-
-    build_task: BuildTask | nil
-    doors: {Door}
-    special_blocks: {SpecialSchematicChunk}
-
-    primitive: BuildPrimitive
-    sinterface: SchematicInteface
-end
 
 function module.contains_option(build: Build, check: BuildOption): boolean
     if build.options == nil then return false end

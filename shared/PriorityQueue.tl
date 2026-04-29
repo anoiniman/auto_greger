@@ -19,9 +19,9 @@ function module.find<T is Prioritizable, Q>(queue: PriorityQueue<T>, func: funct
     return nil
 end
 
-function module.iter<T is Prioritizable>(queue: PriorityQueue<T>): function(PriorityQueue<T>): integer | nil, T | nil
-    local iteration = 1
-    return function()
+function module.iter<T is Prioritizable>(queue: PriorityQueue<T>): function(): integer | nil, T | nil
+    local iteration: integer = 1
+    return function(): integer | nil, T | nil
         local value = queue.inner[iteration]
         if value == nil then return nil, nil end
         return iteration, value

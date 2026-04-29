@@ -1,6 +1,6 @@
 require("deep_copy")
-local tbl = require("PriorityQueue")
-local pqueue, PriorityQueue, Prioritizable = table.unpack(tbl)
+local a_tbl = require("PriorityQueue")
+local pqueue, PriorityQueue, Prioritizable = table.unpack(a_tbl)
 local simple_hash = require("simple_hash")
 
 local record task_helper end
@@ -59,7 +59,7 @@ end
 
 function task_helper.new_prototype<S is TaskState>(
     priority: integer,
-    func: function(S): S, boolean
+    func: function(S): S, string
 ): TaskPrototype<S>
     local new: TaskPrototype<S> = {
         priority = priority,
@@ -77,7 +77,7 @@ function task_helper.new_task<S is TaskState, T is StateGenerator<S>>(
     local state: S = base_obj:state_generator(quantity)
     return {
         priority = prototype.priority,
-        prototype_uuid = prototype.uuid
+        prototype_uuid = prototype.uuid,
         yield_block = nil,
 
         state = state,
@@ -94,11 +94,11 @@ function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
     local func = function(a: Task, x: TaskPrototype<S>): boolean return a.prototype_uuid == x.uuid end
     if pqueue.find(await_queue as PriorityQueue<Task>, func, prototype) then return false end
 
-    pqueue.insert(await_queue, task_helper.new(prototype, base_obj, quantity))
+    pqueue.insert(await_queue, task_helper.new_task(prototype, base_obj, quantity))
     return true
 end
 
-function task_helper.yield<S is TaskState>(block_name: string)
+function task_helper.yield(block_name: string)
     coroutine.yield(block_name)
 end
 

@@ -1,7 +1,13 @@
 local task_helper = require("Task")
 require("Position")
+require("build.MetaBuild.__h_init")
+require("inventory.__h_Item")
 
 local record module end
+
+local enum ExtraInstruction
+
+end
 
 local interface BuildInstruction
     rel_coords: Pos3D    
@@ -51,20 +57,24 @@ local function state_generator(gen: ConstructBuildGenerator<ConstructBuildState>
     }
 end
 
+-- forward declaration
+local c_main_function: function(ConstructBuildState): ConstructBuildState, string
+
 function module.new_construct_task(
     what_chunk: Pos3D,
     what_quad: integer,
+    priority: integer,
     c_options: {ConstructionOption}
 ): Task
-    local gen_obj: ConstructBuildGenerator = {
+    local prototype = task_helper.new_prototype(priority, c_main_func)
+    local gen_obj: ConstructBuildGenerator<ConstructBuildState> = {
         what_chunk = what_chunk,
-        what_quad = what_chunk
+        what_quad = what_quad,
         c_options = c_options,
 
         state_generator = state_generator,
         task_prototype = prototype,
     }
-    local prototype = task_helper.new_prototype(priority, c_main_func)
     return task_helper.new_task(prototype, state_generator, -1)
 end
 

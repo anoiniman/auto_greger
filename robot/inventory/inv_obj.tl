@@ -190,7 +190,7 @@ local function iter_external_inv<T>(build_name): (function (?{T}): integer | nil
     if build_name == nil then
         local inner, next_index
         local iteration = math.max
-        local function real_next(tbl)
+        local function real_next(tbl: {T})
             if inner ~= nil and iteration <= #inner then
                 iteration = iteration + 1
                 local value = inner[iteration]
