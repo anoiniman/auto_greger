@@ -1,4 +1,4 @@
-require("build.MetaBuild.SchematicInterface")
+-- require("build.MetaBuild.SchematicInterface")
 local enum BuildOption
     "top_to_bottom"
 end
