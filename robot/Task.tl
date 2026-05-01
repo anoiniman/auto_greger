@@ -6,9 +6,11 @@ local simple_hash = require("simple_hash")
 local record task_helper end
 global interface TaskState end
 
+local type BlockType = string | integer
+global type TaskBlockType = BlockType
 local interface BlockName
-    known_names: {string} 
-    name: string
+    known_names: {BlockType} 
+    name: BlockType
 end
 
 local function good_name(tbl: {string}, name: string): boolean
@@ -36,7 +38,7 @@ end
 
 global interface TaskPrototype<S is TaskState>
     priority: integer
-    func: function(S): S, string
+    func: function(S, BlockType): string | nil
 
     uuid: integer
 end
@@ -59,7 +61,7 @@ end
 
 function task_helper.new_prototype<S is TaskState>(
     priority: integer,
-    func: function(S): S, string
+    func: function(S, BlockType): S, string
 ): TaskPrototype<S>
     local new: TaskPrototype<S> = {
         priority = priority,
@@ -98,7 +100,7 @@ function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
     return true
 end
 
-function task_helper.yield(block_name: string)
+function task_helper.yield(block_name: string | integer)
     coroutine.yield(block_name)
 end
 

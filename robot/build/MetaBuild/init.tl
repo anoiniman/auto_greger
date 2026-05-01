@@ -38,7 +38,7 @@ local type C = CoordinateType
     }
 end--]]
 
-function module.require(name: string, what_chunk: Pos2D): Build
+function module.require(name: string, what_chunk: Pos2D, what_quad: integer): Build
     local new: Build = {} as Build
 
     if primitive_cache[name] ~= nil then
@@ -70,6 +70,7 @@ function module.require(name: string, what_chunk: Pos2D): Build
     new.new_task = new.primitive.new_task
 
     new.what_chunk = what_chunk
+    new.what_quad = what_quad
 
     -- THIS WAS REMOVED IN ORDER TO PERSERVE RAM
     --primitive_cache[name] = build_table

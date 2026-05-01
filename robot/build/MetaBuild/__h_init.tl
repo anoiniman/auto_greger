@@ -7,6 +7,7 @@ global interface Build
     name: string
     options: {BuildOption} | nil
     what_chunk: Pos2D
+    what_quad: integer
 
     build_task: BuildTask | nil
     doors: {Door}
