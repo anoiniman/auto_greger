@@ -4,6 +4,8 @@ local enum ValidLevel
     "warning"
     "error"
     "fatal"
+
+    "start-request"
 end
 
 local record comms_def
