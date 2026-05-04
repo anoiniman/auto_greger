@@ -6,11 +6,12 @@
 local serialize = require("serialization")
 local io = require("io")
 
+require("deep_copy")
 local comms = require("comms")
-local deep_copy = require("deep_copy")
 
 local meta_schematic = require("build.MetaBuild.MetaSchematic")
 require("Position")
+require("build.MetaBuild.__h_ConstructBuildTask")
 
 local type BuildStack = Pos3D
 local type C = CoordinateType
@@ -97,7 +98,7 @@ end
 
 -- Maybe this doing builds thing needs to be redesing. And by maybe I mean: it does forcefully
 -- chunk.dist && chunk.symbol
-function module.do_build(state: ConstructBuildState): ConstructBuildState
+function module.do_build(state: ConstructBuildState, sinterface: SchematicInterface): ConstructBuildState
     local top_down = state.top_down
     local b_stack = sinterface.build_stack
 
@@ -143,8 +144,8 @@ function module.do_build(state: ConstructBuildState): ConstructBuildState
         return module.do_build(sinterface, top_down)
     end
 
-    local instruction = get_instruction(chunk)
-    return true, "continue", instruction
+    local state.build_instruction = get_instruction(chunk)
+    return state
 end
 
 -- place for the side argument in place
@@ -169,10 +170,10 @@ local function interpret_element(element, index, do_error)
     end
 end
 
-function SchematicInterface:InstructionConstruction(chunk, rel)
-    local translated_symbol = sinterface.dictionary[chunk.symbol]
+function module.instruction_construction(chunk: MSChunk, rel: Pos3D)
+    local translated_symbol: TransSymbol = sinterface.dictionary[chunk.symbol]
     if translated_symbol == nil then
-        if is_special_symbol(chunk.symbol) then
+        if chunk.symbol is SpecialSymbol then
             translated_symbol = {"air", "shovel"}
             goto skip01
         end
@@ -194,7 +195,7 @@ function SchematicInterface:InstructionConstruction(chunk, rel)
         --print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))
     end
 
-    local coords = deep_copy.copy(rel, ipairs)
+    local coords = COPY(rel, ipairs)
 
     if type(translated_symbol) ~= "table" then
         return BuildInstruction:newBasic(coords, translated_symbol)

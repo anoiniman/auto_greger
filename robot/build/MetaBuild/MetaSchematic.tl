@@ -1,7 +1,7 @@
 --local math = require("math")
 
 --local comms = require("comms")
-
+require("inventory.__h_Item")
 local record module end
 
 global enum SpecialSymbol
@@ -11,15 +11,24 @@ global enum SpecialSymbol
     "?"
 end
 
--- Chunks are 16 by 16, roads includes they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chunks
+-- Chunks are 16 by 16, roads included they become 14 by 14, this is then sub devided into 4 - 7 by 7 sub-chunks
 -- Builds (tm) will occupy marked sub-chunks inside a chunk instead of arbitrary rectangles, for ease of navigation
 -- and they'll always be accessed through the "outside", this is to say, through the "road-blocks/lines"
 -- if we want to get fancy, we can mark-down door locations and shit, so that we can have walls and enclosed buildigs etc
 
 -- Meta schematic chunk
-local interface MSChunk
+global interface MSChunk
     x: integer
     symbol: string
+end
+
+global enum TSymbolExtra
+
+end
+
+global interface TransSymbol
+    item: ItemDefinition
+    extra: {TSymbolExtra}
 end
 
 global type SpecialSchematicChunk = {SpecialSymbol, integer, integer, integer}
