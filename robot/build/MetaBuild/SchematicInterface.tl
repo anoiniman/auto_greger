@@ -6,12 +6,12 @@
 local serialize = require("serialization")
 local io = require("io")
 
+require("Position")
 require("deep_copy")
 local comms = require("comms")
 
 local meta_schematic = require("build.MetaBuild.MetaSchematic")
-require("Position")
-require("build.MetaBuild.__h_ConstructBuildTask")
+local cbuild_task_helper = require("build.MetaBuild.__h_ConstructBuildTask")
 
 local type BuildStack = Pos3D
 local type C = CoordinateType
@@ -174,7 +174,7 @@ function module.instruction_construction(chunk: MSChunk, rel: Pos3D)
     local translated_symbol: TransSymbol = sinterface.dictionary[chunk.symbol]
     if translated_symbol == nil then
         if chunk.symbol is SpecialSymbol then
-            translated_symbol = {"air", "shovel"}
+            translated_symbol = {item_definition = item_helper.get_air_def()}
             goto skip01
         end
 
@@ -183,22 +183,10 @@ function module.instruction_construction(chunk: MSChunk, rel: Pos3D)
     end
     ::skip01::
 
-    --print(comms.robot_send("debug", "coords: " .. rel[1] .. ", " .. rel[2] .. ", " .. rel[3]))
-    if type(translated_symbol) ~= "table" then
-        --print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. translated_symbol))
-    else -- if it IS a table
-        translated_symbol = deep_copy.copy(translated_symbol, ipairs) -- Yes I should do this in place, no I don't care for now
-
-        -- luacheck: push ignore serial
-        local serial = serialize.serialize(translated_symbol, true)
-        -- luacheck: pop
-        --print(comms.robot_send("debug", "symbol: " .. chunk.symbol .. " -- " .. serial))
-    end
-
     local coords = COPY(rel, ipairs)
 
     if type(translated_symbol) ~= "table" then
-        return BuildInstruction:newBasic(coords, translated_symbol)
+        return cbuild_task_helper.new_instruction(coords, translated_symbol)
     end
 
     local instruction

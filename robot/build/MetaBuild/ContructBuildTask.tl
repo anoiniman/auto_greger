@@ -11,7 +11,6 @@ local function unpack_state(state: ConstructBuildState): Pos2D, integer, integer
     return state.what_chunk, state.what_quad, state.interaction_id, state.build_ref
 end
 
-
 local function state_generator(gen: ConstructBuildGenerator<ConstructBuildState>, _: integer): ConstructBuildState
     return {
         build_instruction = nil as BuildInstruction,
@@ -29,7 +28,6 @@ end
 
 -- forward declaration
 local c_main_function: function(ConstructBuildState): ConstructBuildState, string
-
 function module.new_construct_task(
     build_ref: Build,
     priority: integer,

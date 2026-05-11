@@ -1,16 +1,14 @@
 require("Position")
-require("build.MetaBuild.__h_init")
 require("inventory.__h_Item")
-
-local enum ExtraInstruction
-
-end
+require("build.MetaBuild.__h_init")
+require("build.MetaBuild.MetaSchematic")
+local item_helper = require("inventory.__h_Item")
 
 global interface ConstructBuildInstruction
     rel_coords: Pos3D    
     block_info: ItemDefinition
 
-    extra_instruction: {ExtraInstruction} | nil
+    extra_instruction: {TSymbolExtra} | nil
 end
 
 global enum ConstructionOption
@@ -37,3 +35,27 @@ global interface ConstructBuildGenerator<S is ConstructBuildState> is StateGener
     build_ref: Build
     c_options: {ConstructionOption}
 end
+
+
+function module.new_instruction(rel_coords: Pos3D, trans_symbol: TransSymbol): ConstructBuildInstruction
+    if trans_symbol is InnerTransSymbol then
+        return {
+            rel_coords = rel_coords,
+            block_definition = trans_symbol.item,
+
+            extra_instruction = trans_symbol.extra
+        }
+    elseif trans_symbol is string then
+        return {
+            rel_coords = rel_coords,
+            block_definition = item_helper.new_item_definition(trans_symbol, nil),
+
+            extra_instruction = nil
+        }
+    else
+        error(comms.robot_send("Fatal", "Unexpected"))
+    end
+end
+
+
+return module
