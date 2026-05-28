@@ -1,17 +1,20 @@
+-- RESERVED
+-- RESERVED
+
 local os = require("os")
-local filesystem = require("filesystem")
-local io = require("io")
+local filesystem
 
 local args = {...}
 local counter = 0
 local branch = "master"
 
+local dry_mode = false
+local function execute(str)
+    if dry_mode == true then print(string.format("os.execute(%s)", str))
+    else os.execute(str) end
+end
 
-local function simple_hash(path)
-    local file = io.open(path, "r")
-    local str = file:read("*a")
-    file:close()
-
+local function simple_hash(str)
     local hash_value = -3750763034362895579  -- FNV offset basis
     local fnv_prime = 1099511628211     -- FNV prime
     for i = 1, #str do
@@ -22,11 +25,108 @@ local function simple_hash(path)
     return hash_value
 end
 
+local function file_hash(path)
+    local file = io.open(path, "r")
+    local str = file:read("*a")
+    file:close()
+    return simple_hash(str)
+end
+
+local function self_hash()
+    local file = io.open("./installer.lua", "r")
+    file:read("l")
+
+    local str = file:read("*a")
+    file:close()
+    return simple_hash(str)
+end
+
+
+-- values: "gen" and "install"
+local command_pos
+local do_what
+
+for index, arg in ipairs(args) do
+    command_pos = index
+    if arg == "--dry" then
+        dry_mode = true
+    end
+
+    if arg == "gen" then 
+        do_what = "gen" 
+        break
+    end
+
+    if arg == "install" then
+        local err_state
+        err_state, filesystem = pcall(require, "filesystem")
+        if err_state == false or filesystem == nil then error("Cannot Install -- Not in OpenComputers Environment") end
+        do_what = "install"
+        break
+    end
+end
+
+if do_what == nil then
+    print(
+       "\z
+        auto_gregger installer utility \n\n\z
+        Usage: ./installer [P-OPTIONS] [COMMAND] [C-OPTIONS]\n\n\z
+
+        P-OPTIONS:\n\z
+        \0 -h, --help .. Print help\n\z
+        \0 --dry .. Do a dry run
+
+        Commands:\n\z
+        \t gen .. Generate dynamic download+check code (to be used from development environemnt)\n\z
+        \t install .. Download files into opencomputers computer/robot whatever\n\n\z
+
+        See './installer help <command>' for more information on a specific command.
+       "
+    )
+    return
+end
+
+if do_what == "gen" then
+    local cmp_string = "local module = {};"
+
+    local known_file_paths = {}
+    local function recursive_append_dir(input_dir)
+        for file in io.popen("ls -- " .. input_dir):lines() do
+            if string.find(file, "%.lua$") then 
+                table.insert(known_file_paths, input_dir .. "/" .. file)
+            elseif not string.find(file, "%..*$") then
+                recursive_append_dir(input_dir .. "/" .. file)
+            end
+        end
+    end
+
+    cmp_string = cmp_string .. "module.files = {"
+    for _, file_path in ipairs(known_file_paths) do
+        cmp_string = cmp_string .. file .. ","
+    end
+    cmp_string = cmp_string .. "};"
+
+    cmp_string = cmp_string .. "module.file_hashes = {"
+    for _, file_path in ipairs(known_file_paths) do
+        cmp_string = cmp_string .. file_hash(file_path) .. ","
+    end
+    cmp_string = cmp_string .. "};"
+
+    cmp_string = cmp_string .. "return module"
+
+    -- local dyn_hash = "local cmp_string_hash = " .. simple_hash(cmp_string)
+    cmp_string = "local compile_string = \"" .. cmp_string .. "\""
+
+    os.execute(string.format("sed -i '2c%s' ./installer.lua", cmp_string))
+    local s_hash_str = "local s_hash = " .. tostring(self_hash())
+    os.execute(string.format("sed -i '1c%s' ./installer.lua", s_hash_str))
+end
+
 local function download(origin, where)
     local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/" .. branch .. origin
 
     local tmp_path = "/tmp/" .. counter .. ".lua"
-    os.execute("wget -f " .. link .. " " .. tmp_path .. " > /dump.txt")
+    os.execute(string.format("wget -f %s %s > /dump.txt", link, tmp_path))
 
     if where == "self" then
         where = "/home" .. origin
@@ -38,22 +138,20 @@ local function download(origin, where)
             print("Error: " .. err)
             return
         end
-        print("File: \"" .. where .. "\" is installed!")
+        print(string.format("+%s"), where)
         return
     end
 
     local are_equal = false
     if (args[1] ~= "-f" and args[2] ~= "-f") then
-        local original_checksum = simple_hash(where)
-        local new_checksum = simple_hash(tmp_path)
+        local original_checksum = file_hash(where)
+        local new_checksum = file_hash(tmp_path)
         are_equal = (original_checksum == new_checksum and filesystem.size(where) == filesystem.size(tmp_path))
     end
 
     if are_equal then
-        print("File: \"" .. where .. "\" doesn't need update")
         return
     end
-    print("e")
 
     filesystem.remove(where)
     local result, err = filesystem.rename(tmp_path, where)
@@ -61,16 +159,18 @@ local function download(origin, where)
         print("Error:" .. err)
         return
     end
-    print("File: \"" .. where .. "\" is updated!")
+    print(string.format("-+%s", where))
 
     counter = counter + 1
 end
 
-local function check_in_args(arguments, check)
-    for _, v in ipairs(arguments) do
-        if v == check then return true end
+for index, arg in ipairs(args) do
+    if string.find(arg, "^%-") and not string.find(arg, "^%-%-") then
+        if string.find(arg, "a") then ask_for_permission = true end
     end
-    return false
+
+    if arg == "--check" then only_check = true
+    end
 end
 
 local function shared()
