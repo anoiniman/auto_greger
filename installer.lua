@@ -1,4 +1,4 @@
--- RESERVED
+local cmp_hash = -2006231090135281144
 -- RESERVED
 
 local os = require("os")
@@ -10,7 +10,10 @@ local branch = "master"
 local dry_mode = false
 local function execute(str)
     if dry_mode == true then print(string.format("os.execute(%s)", str))
-    else os.execute(str) end
+    else
+        -- print("os.execute(%s)", str)
+        os.execute(str)
+    end
 end
 
 local function simple_hash(str)
@@ -73,6 +76,9 @@ for index, arg in ipairs(args) do
     end
 end
 
+print(dry_mode)
+io.read()
+
 if do_what == nil then
     print(
        "\z
@@ -80,15 +86,15 @@ if do_what == nil then
         Usage: ./installer [OPTIONS] [COMMAND]\n\n\z
 
         OPTIONS:\n\z
-        \0 -h, --help .. Print help\n\z
-        \0 --dry .. Do a dry run
+        -h, --help .. Print help\n\z
+        --dry .. Do a dry run\n\z
 
         Commands:\n\z
         \t gen .. Generate dynamic download+check code (to be used from development environemnt)\n\z
         \t install .. Download files into opencomputers computer/robot whatever\n\z
         \t checksum .. Check downloaded files with known checksums, optionally reinstall bad files\n\n\z
 
-        See './installer help <command>' for more information on a specific command.
+        See './installer help <command>' for more information on a specific command.\z
        "
     )
     return
@@ -146,11 +152,11 @@ if do_what == "gen" then
     info_string = info_string .. "};"
     dir_string = dir_string .. "};"
 
-    os.execute(string.format("sed -i '2c%s' ./install_info.lua", dir_string))
-    os.execute(string.format("sed -i '3c%s' ./install_info.lua", info_string))
+    execute(string.format("sed -i '2c%s' ./install_info.lua", dir_string))
+    execute(string.format("sed -i '3c%s' ./install_info.lua", info_string))
 
     local cmp_hash_str = "local cmp_hash = " .. tostring(self_hash())
-    os.execute(string.format("sed -i '1c%s' ./installer.lua", cmp_hash_str))
+    execute(string.format("sed -i '1c%s' ./installer.lua", cmp_hash_str))
 end
 
 if do_what == "install" then
@@ -171,7 +177,7 @@ if do_what == "install" then
         local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/" .. branch .. from
 
         local tmp_path = "/tmp/" .. "a.lua"
-        os.execute(string.format("wget -f %s %s > /dump.txt", link, tmp_path))
+        execute(string.format("wget -f %s %s > /dump.txt", link, tmp_path))
 
         if to == "--robot" then
             to = "/home/robot" .. from
