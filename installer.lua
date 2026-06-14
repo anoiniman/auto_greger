@@ -1,4 +1,4 @@
-local cmp_hash = -2006231090135281144
+local cmp_hash = -4612564366392824661
 -- RESERVED
 
 local os = require("os")
@@ -6,6 +6,8 @@ local filesystem
 
 local args = {...}
 local branch = "master"
+local excluded_dirs = {"./output/robot/virtual"}
+
 
 local dry_mode = false
 local function execute(str)
@@ -70,6 +72,11 @@ for index, arg in ipairs(args) do
         break
     end
 
+    if arg == "check" then
+        do_what = "check"
+        break
+    end
+
     if arg == "help" then
         do_what = "help"
         break
@@ -121,22 +128,26 @@ if do_what == "gen" then
                 if string.find(file, "%.lua$") then 
                     local path = input_dir .. "/" .. file
                     table.insert(file_paths, path)
-                    table.insert(file_dates, get_file_mod_date(path))
+                    -- table.insert(file_dates, get_file_mod_date(path))
                     table.insert(file_hashes, file_hash(path))
                 elseif not string.find(file, "%..*$") then
                     local new_dir = input_dir .. "/" .. file
-                    if var_name == "robot" then table.insert(dirs_table, new_dir) end
+                    for _, dir in ipairs(excluded_dirs) do if new_dir == dir then return end end
+
+                    local recorded_dir_name = string.gsub(new_dir, "%./output/", "./")
+                    if var_name == "robot" then table.insert(dirs_table, recorded_dir_name) end
                     recursive_append_dir(new_dir)
                 end
             end
         end
 
-        info_string = info_string .. string.format("[\"%s\"]={", var_name)
+        info_string = info_string .. string.format("[\"--%s\"]={", var_name)
         recursive_append_dir("./output/" .. var_name)
         for index, path in ipairs(file_paths) do
             local date = file_dates[index]
             local hash = file_hashes[index]
-            local entry_str = string.format("{\"%s\",\"%s\",\"%s\"},", path, date, hash)
+            -- local entry_str = string.format("{\"%s\",\"%s\",\"%s\"},", path, hash, date)
+            local entry_str = string.format("{\"%s\",\"%s\"},", path, hash)
             info_string = info_string .. entry_str
         end
         info_string = info_string .. "},"
@@ -159,6 +170,52 @@ if do_what == "gen" then
     execute(string.format("sed -i '1c%s' ./installer.lua", cmp_hash_str))
 end
 
+
+local abort_counter = 0
+local function download(remote, local_)
+    local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/" .. branch .. remote
+
+    local tmp_path = "/tmp/" .. "a.lua"
+    execute(string.format("wget -f %s %s > /dump.txt", link, tmp_path))
+
+    if local_ == "--robot" then
+        local_ = "/home/robot" .. string.gsub(remote, "./output/robot", "")
+    elseif local_ == "--shared" then
+        local_ = "/usr/lib" .. string.gsub(remote, "./output/shared", "")
+    end
+
+    if not filesystem.exists(local_) then
+        local result, err = filesystem.rename(tmp_path, local_)
+        if result == nil then
+            print("Error: " .. err)
+            return false
+        end
+        print(string.format("+%s"), local_)
+        return true
+    end
+
+    local are_equal = false
+    if not force_download then
+        local remote_checksum = file_hash(local_)
+        local local_checksum = file_hash(tmp_path)
+        are_equal = (remote_checksum == local_checksum and filesystem.size(local_) == filesystem.size(tmp_path))
+    end
+
+    if are_equal then
+        return true
+    end
+
+    filesystem.remove(local_)
+    local result, err = filesystem.rename(tmp_path, local_)
+    if result == nil then
+        print("Error:" .. err)
+        return false
+    end
+    print(string.format("-+%s", local_))
+
+    return true
+end
+
 if do_what == "install" then
     local force_download = false
 
@@ -172,48 +229,6 @@ if do_what == "install" then
         error("self_hash not equal")
     end
 
-    local abort_counter = 0
-    local function download(from, to)
-        local link = "https://raw.githubusercontent.com/anoiniman/auto_greger/refs/heads/" .. branch .. from
-
-        local tmp_path = "/tmp/" .. "a.lua"
-        execute(string.format("wget -f %s %s > /dump.txt", link, tmp_path))
-
-        if to == "--robot" then
-            to = "/home/robot" .. from
-        end
-
-        if not filesystem.exists(to) then
-            local result, err = filesystem.rename(tmp_path, to)
-            if result == nil then
-                print("Error: " .. err)
-                return false
-            end
-            print(string.format("+%s"), to)
-            return true
-        end
-
-        local are_equal = false
-        if not force_download then
-            local from_checksum = file_hash(to)
-            local new_checksum = file_hash(tmp_path)
-            are_equal = (from_checksum == new_checksum and filesystem.size(to) == filesystem.size(tmp_path))
-        end
-
-        if are_equal then
-            return true
-        end
-
-        filesystem.remove(to)
-        local result, err = filesystem.rename(tmp_path, to)
-        if result == nil then
-            print("Error:" .. err)
-            return false
-        end
-        print(string.format("-+%s", to))
-
-        return true
-    end
 
     if not download("/install_info.lua", "/home") then
         error("Failed to download install_info.lua file -- fatal -- check your internet connection")
@@ -231,10 +246,11 @@ if do_what == "install" then
         end
 
         for _, entry in ipairs(module_info) do
-            download(entry.path)
+            download(entry.path, name)
         end
     end
 
+    -- FLAG CHECK
     for index = command_pos + 1, #args, 1 do
         local arg = args[index]
 
@@ -246,18 +262,50 @@ if do_what == "install" then
         elseif string.find(arg, "--force") then force_download = true end
     end
 
+    -- DIR BUILD
+    for _, path in ipairs(install_info.dir_tbl) do
+        if not filesystem.exists(path) then filesystem.makeDirectory(path) end
+    end
+
+    -- DO ACTUAL DOWNLOADS
     for index = command_pos + 1, #args, 1 do
         local arg = args[index]
 
         if string.find(arg, "^%-") and not string.find(arg, "^%-%-") then end
         if arg == "robot" or arg == "controller" or arg == "shared" then
-            download_module(arg)
+            download_module(string.format("--%s", arg))
         end
         if arg == "all" or arg == "a" then
-            download_module("robot")
-            download_module("controller")
-            download_module("shared")
+            download_module("--robot")
+            download_module("--controller")
+            download_module("--shared")
+        end
+    end
+end
+
+if do_what == "check" then
+    local install_info = loadfile("/home/install_info.lua")
+    if install_info == nil then error("No install_info.lua detected, install before checking") end
+    
+    local function check_module(module_name)
+        for _, info_obj in ipairs(install_info.info_tbl[module_name]) do
+            local remote_path = info_obj[1]
+            local good_hash = info_obj[2]
+
+            if module_name == "--robot" then
+                local_path = "/home/robot" .. string.gsub(remote, "./output/robot", "")
+            elseif module_name == "--shared" then
+                local_path = "/usr/lib" .. string.gsub(remote, "./output/shared", "")
+            end
+
+            local local_hash = simple_hash(local_path)
+            print("Bad hash: " .. local_path)
+            print(good_hash .. "~=" .. local_hash)
+            if local_hash ~= good_hash then download(remote_path, local_path) end
         end
     end
 
+    for module_name, _ in pairs(install_info.info_tbl) do
+        check_module(module_name)
+    end
 end
