@@ -13,7 +13,7 @@ local interface BlockName
     name: BlockType
 end
 
-local function good_name(tbl: {string}, name: string): boolean
+local function good_name(tbl: {BlockType}, name: BlockType): boolean
     for _, k_name in ipairs(tbl) do
         if k_name == name then return true end
     end
@@ -61,7 +61,7 @@ end
 
 function task_helper.new_prototype<S is TaskState>(
     priority: integer,
-    func: function(S, BlockType): S, string
+    func: function(S, BlockType): string | nil
 ): TaskPrototype<S>
     local new: TaskPrototype<S> = {
         priority = priority,
@@ -74,33 +74,34 @@ end
 function task_helper.new_task<S is TaskState, T is StateGenerator<S>>(
     prototype: TaskPrototype<S>,
     base_obj: T,
-    quantity: integer
+    quantity: integer,
+    init_blockname?: BlockName
 ): Task
     local state: S = base_obj:state_generator(quantity)
     return {
         priority = prototype.priority,
         prototype_uuid = prototype.uuid,
-        yield_block = nil,
+        yield_block = init_blockname,
 
         state = state,
         coroutine = coroutine.create(prototype.func)
     }
 end
 
-
 function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
     prototype: TaskPrototype<S>,
     base_obj: T,
-    quantity: integer
+    quantity: integer,
+    init_blockname?: BlockName
 ): boolean
     local func = function(a: Task, x: TaskPrototype<S>): boolean return a.prototype_uuid == x.uuid end
     if pqueue.find(await_queue as PriorityQueue<Task>, func, prototype) then return false end
 
-    pqueue.insert(await_queue, task_helper.new_task(prototype, base_obj, quantity))
+    pqueue.insert(await_queue, task_helper.new_task(prototype, base_obj, quantity, init_blockname))
     return true
 end
 
-function task_helper.yield(block_name: string | integer)
+function task_helper.yield(block_name: BlockType)
     coroutine.yield(block_name)
 end
 

@@ -1,4 +1,8 @@
+local comms = require("comms")
+
+require("Task")
 require("Position")
+require("interactive")
 require("inventory.__h_Item")
 require("build.MetaBuild.__h_init")
 require("build.MetaBuild.MetaSchematic")
@@ -6,7 +10,7 @@ local item_helper = require("inventory.__h_Item")
 
 global interface ConstructBuildInstruction
     rel_coords: Pos3D    
-    block_info: ItemDefinition
+    block_definition: ItemDefinition
 
     extra_instruction: {TSymbolExtra} | nil
 end
@@ -18,10 +22,9 @@ global enum ConstructionOption
     "do_foundation_fill"
 end
 
-global interface ConstructBuildState is TaskState
+global interface ConstructBuildState is TaskState, InteractiveIDStore
     build_instruction: ConstructBuildInstruction
 
-    interaction_id: integer
     build_ref: Build
 
     c_options: {ConstructionOption}
@@ -36,7 +39,7 @@ global interface ConstructBuildGenerator<S is ConstructBuildState> is StateGener
     c_options: {ConstructionOption}
 end
 
-
+local record module end
 function module.new_instruction(rel_coords: Pos3D, trans_symbol: TransSymbol): ConstructBuildInstruction
     if trans_symbol is InnerTransSymbol then
         return {
@@ -53,7 +56,7 @@ function module.new_instruction(rel_coords: Pos3D, trans_symbol: TransSymbol): C
             extra_instruction = nil
         }
     else
-        error(comms.robot_send("Fatal", "Unexpected"))
+        error(comms.robot_send("fatal", "Unexpected"))
     end
 end
 

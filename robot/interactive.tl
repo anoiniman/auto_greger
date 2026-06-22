@@ -2,6 +2,10 @@ local record module end
 -- Just noticed that this is basically a fancy future/promise implementation :sob:
 local comms = require("comms")
 
+global interface InteractiveIDStore
+    interaction_id: integer | {integer}
+end
+
 local enum InteractiveType
     "generic_hold"
     "auto_build0"
@@ -46,23 +50,67 @@ local function get_new_id(): integer -- now with this linear search will no long
     return incremental_id
 end
 
-function module.add(interactive_type: InteractiveType, human_readable: string): integer
+function module.add(
+    interactive_type: InteractiveType,
+    human_readable: string,
+    id_store?: InteractiveIDStore,
+    slot?: integer
+): integer
     local new_id = get_new_id()
     local new_element = element_new(interactive_type, human_readable)
     print(comms.robot_send("info", string.format("[%s] New ifs entry has been set: %s", new_id, human_readable)))
     wait_list[new_id] = new_element
+
+    if id_store ~= nil then -- implemented really weirdly because teal typechecking jank
+        id_store = id_store as InteractiveIDStore
+        local int_id = id_store.interaction_id
+
+        if int_id is integer then
+            id_store.interaction_id = new_id
+        elseif int_id is {integer} then
+            local slot_ = slot or 1
+            int_id[slot_] = new_id
+        end
+    end
+
     return new_id
 end
 
-function module.get_data_table(id: integer): any
+function module.get_id_from_store_or_id(store_or_id: InteractiveIDStore | integer, slot: integer | nil, del: boolean): integer
+    local id: integer
+    if store_or_id is InteractiveIDStore then
+        local id_store = store_or_id
+        local int_id = id_store.interaction_id
+
+        if int_id is integer then
+            id = id_store.interaction_id as integer
+
+            if del then id_store.interaction_id = -1 end
+        elseif int_id is {integer} then
+            local slot_: integer = (slot or 1) as integer
+            id = int_id[slot_]
+
+            if del then int_id[slot_] = nil end
+        end
+    elseif store_or_id is integer then
+        id = store_or_id
+    end
+
+    return id
+end
+
+function module.get_data_table(store_or_id: InteractiveIDStore | integer, slot?: integer): any
+    local id = module.get_id_from_store_or_id(store_or_id, slot, false)
     return wait_list[id].data_table
 end
 
-function module.del_data_table(id: integer)
+function module.del_data_table(store_or_id: InteractiveIDStore | integer, slot?: integer)
+    local id = module.get_id_from_store_or_id(store_or_id, slot, false)
     wait_list[id].data_table = nil
 end
 
-function module.del_element(id: integer)
+function module.del_element(store_or_id: InteractiveIDStore | integer, slot?: integer)
+    local id = module.get_id_from_store_or_id(store_or_id, slot, true)
     wait_list[id] = nil
 end
 

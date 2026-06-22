@@ -2,3 +2,6 @@
 Needed to add this flag to the luajit installation of the lua bindings for raylib in order to support our filthy lua 5.4 code.
 https://github.com/LuaJIT/LuaJIT/issues/929
 
+----
+
+Find way to seperate out "pure" chunk operations from the chunks themselves or someway to inject the map_obj into other parts of the code, because ConstructBuildTask depends on map_obj (it needs to manipulate chunks and so on), but map_obj depends on MetaQuad which depends on Build, which depends on ConstructBuildTask etc.
