@@ -7,7 +7,11 @@ local type InvObj = require("inventory.__h_InvObj")
 local vinv_helper = require("inventory.VirtualInventory")
 
 local late_bind = require("late_bind")
-local inv: InvObj = late_bind.new_bind("inventory.inv_obj")
+local record lb_tbl end
+local lb_ctx = late_bind.new_ctx(lb_tbl)
+
+local lb_tbl.inv = {} as InvObj
+late_bind.new_bind(lb_ctx, "inventory.inv_obj", inv)
 
 local a_tbl = require("PriorityQueue")
 local pqueue, PriorityQueue, _Prioritizable = table.unpack(a_tbl)

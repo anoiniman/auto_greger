@@ -1,5 +1,8 @@
--- luacheck: globals EMPTY_STRING
-local module = {}
+local late_bind = require("late_bind")
+local record module end
+local record lb_tbl end
+local lb_ctx = late_bind.new_ctx(lb_tbl)
+
 --imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
 -- Or we'll stay with 16 slots with the expectation that we abandon internal crafting quickly, idk
@@ -58,13 +61,15 @@ local external_inventories: {string : {ExternalInventory}} = {}
 -- variety of reasons, mainly when you are interested in putting certain things in specific buildings
 -- local short_lived_ordered_inventories = {}
 
-local einv_helper: EInvModuleMetaType = late_bind.new_bind<EInvModuleMetaType>("inventory.ExternalInventory")
+lb_tbl.einv_helper = {} as EInvModuleMetaType 
+late_bind.new_bind(lb_ctx, "inventory.ExternalInventory", "einv_helper")
+
 function module.get_data(): {any}
     local virtual_inventory = vinv_helper.get_data(module.virtual_inventory)
     local external_table = {}
     for _name, inner_table in pairs(external_inventories) do
         for _, einv in ipairs(inner_table) do
-            local vinv = einv_helper.get_data(einv)
+            local vinv = lb_tbl.einv_helper.get_data(einv)
             table.insert(external_table, vinv)
         end
     end
@@ -96,7 +101,7 @@ function module.re_instantiate(big_table: {any})
 
     external_inventories = {}
     for _, entry in ipairs(big_table[3]) do -- entry is fat ledger, remember
-        local external = einv_helper.reinstantiate(entry as {any})
+        local external = lb_tbl.einv_helper.reinstantiate(entry as {any})
         if external.parent_build ~= nil then -- because it might just be a self-cache duh
             module.register_ledger(external)
         end
@@ -176,7 +181,7 @@ function module.list_external_inv()
 
         table.insert(other_buffer, "   -- ")
         table.insert(other_buffer, "quad = ")
-        local quad_str = tostring(einv_helper.get_quad_num(fat_buffer))
+        local quad_str = tostring(lb_tbl.einv_helper.get_quad_num(fat_buffer))
         table.insert(other_buffer, quad_str)
         table.insert(other_buffer, "\n")
 
@@ -186,7 +191,7 @@ function module.list_external_inv()
     print(comms.robot_send("info", str))
 end
 
-local function iter_external_inv<T>(build_name): (function (?{T}): integer | nil, T | nil), {string : {ExternalInventory}} | nil
+local function iter_external_inv<T>(build_name): ((function (?{T}): integer | nil, T | nil), {string : {ExternalInventory}} | nil)
     if build_name == nil then
         local inner, next_index
         local iteration = math.max
@@ -342,7 +347,7 @@ function module.get_nearest_inv_by_definition(item: ItemDefinition, empty_slots_
     if empty_slots_needed == nil then empty_slots_needed = 1 end
 
     local function check_and_add_to_queue(queue: PriorityQueue<PriorityEInv>, fat_inv: ExternalInventory)
-        local v_distance = einv_helper.get_distance(fat_inv) / max_combined_travel
+        local v_distance = lb_tbl.einv_helper.get_distance(fat_inv) / max_combined_travel
         if v_distance > 1 then return end
 
         --[[local v_inv_space = fat_inv.ledger:getNumOfEmptySlots() / fat_inv.ledger.inv_size
@@ -360,8 +365,8 @@ function module.get_nearest_inv_by_definition(item: ItemDefinition, empty_slots_
         pqueue_helper.insert(queue, new)
     end
 
-    local inv_table_misc = pqueue_helper.new<PriorityEInv>
-    local inv_table = pqueue_helper.new<PriorityEInv>
+    local inv_table_misc: PriorityQueue<PriorityEInv> = pqueue_helper.new()
+    local inv_table: PriorityQueue<PriorityEInv> = pqueue_helper.new()
     for _, fat_inv in iter_external_inv() do
         if not fat_inv.long_term_storage or not fat_inv.storage then
             goto continue
@@ -393,7 +398,7 @@ function module.get_nearest_external_inv(
     total_needed_quantity: integer
 ): ExternalInventory | nil
     -- ordered with biggest in the top position (#size - 1)
-    local ref_quant_queue: PriorityQueue<PriorityEInv> = pqueue_helper.new<PriorityEInv>()
+    local ref_quant_queue: PriorityQueue<PriorityEInv> = pqueue_helper.new()
     for _, fat_inv in iter_external_inv() do
         local pinv = fat_inv.ledger
 
@@ -408,7 +413,7 @@ function module.get_nearest_external_inv(
             pqueue_helper.insert(ref_quant_queue, new_ref_quant)
             goto continue
         end
-        local distance = einv_helper.get_distance(fat_inv)
+        local distance = lb_tbl.einv_helper.get_distance(fat_inv)
 
         for index, entry in ipairs(ref_quant_queue) do
             -- local i_quantity = entry[1]

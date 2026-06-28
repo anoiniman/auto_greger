@@ -1,27 +1,33 @@
 local interface LateBind
-    path: string
-    fake_table: {any : any}
+    source_path: string
+    target_name: string
 end
 
-local objects: {LateBind}
+local interface LateBindContext
+    lb_tbl: {string | integer : any}
+    objects: {LateBind}
+end
+
 local record helper end
 
--- Only works for modules that do not return tables of tables lmao
-function helper.new_bind<T>(path: string): T
-    local fake_table: T = {} as T
-    table.insert(objects, {path = path, fake_table = fake_table as {any : any}})
-    return fake_table
+-- Only works for modules that do not return tables of tables
+-- Only works for table members that are pass by reference
+function helper.new_ctx(lb_tbl: {string | integer : any}): LateBindContext
+    return {lb_tbl = lb_tbl, objects = {}}
 end
 
-function helper.do_binds()
+function helper.new_bind(ctx: LateBindContext, source_path: string, target_name: string)
+    table.insert(ctx.objects, {source_path = source_path, target_name = target_name})
+end
+function helper.do_binds(ctx: LateBindContext)
     while true do
-        local late_bind = table.remove(objects)
-        if late_bind == nil then break end
+        local lb = table.remove(ctx.objects)
+        if lb == nil then break end
 
-        local real_table: {any : any} = require(late_bind.path) as {any : any}
-        local fake_table = late_bind.fake_table
-        for k, v in pairs(real_table) do fake_table[k] = v end
+        local source = require(lb.source_path)
+        ctx.lb_tbl[lb.target_name] = source
     end
 end
+
 
 return helper

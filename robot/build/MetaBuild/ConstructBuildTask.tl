@@ -2,6 +2,7 @@ require("build.MetaBuild.__h_ConstructBuildTask")
 local task_helper = require("Task")
 local interactive = require("interactive")
 local area_helper = require("nav_module.Area")
+local map_helper = late_bind.new_bind("nav_module.map_obj")
 
 -- TODO: we need to think about what happens when higher priorty tasks appear. Should a build task be forcefully high
 -- priority, as has been done so far? Or will we design with better interruptability this time?
@@ -120,7 +121,7 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType): s
 
         task_helper.yield("add_quad")
     elseif what_step == "add_quad" then
-        local chunk_ref = module.chunk_exists(what_chunk)
+        local chunk_ref = map_helper.chunk_exists(what_chunk)
         -- TODO, we don't really need to build roads right now, do we?
         --[[if chunk_ref.chunk.roads_cleared == false then
             local self_table = {prio, "start_auto_build", ab_metainfo}
