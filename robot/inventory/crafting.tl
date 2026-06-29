@@ -7,11 +7,13 @@ local type InvObj = require("inventory.__h_InvObj")
 local vinv_helper = require("inventory.VirtualInventory")
 
 local late_bind = require("late_bind")
-local record lb_tbl end
+local record lb_tbl
+    inv: InvObj
+end
 local lb_ctx = late_bind.new_ctx(lb_tbl)
 
-local lb_tbl.inv = {} as InvObj
-late_bind.new_bind(lb_ctx, "inventory.inv_obj", inv)
+-- lb_tbl.inv = {} as InvObj
+late_bind.new_bind(lb_ctx, "inventory.inv_obj", "inv")
 
 local a_tbl = require("PriorityQueue")
 local pqueue, PriorityQueue, _Prioritizable = table.unpack(a_tbl)
@@ -33,13 +35,13 @@ end
 -- reported but it will result in a full system crash that is not to be handled
 function module.craft(task_state: CraftingState): CraftingState, boolean
     local recipe_grid: recipeGrid = task_state.recipe_grid
-    local output: FullerDefinition = task_state.output
+    local output: FullDefinition = task_state.output
     local repeats: integer = output.size
 
     --function module.craft(dictionary, recipe, output, how_much_to_craft)
     if not module.isCraftActive() then error(comms.robot_send("fatal", "Craft is not active")) end
 
-    if not inv.is_crafting_clear() then
+    if not lb_tbl.inv.is_crafting_clear() then
         print(comms.robot_send("error", "attempted to self_craft, yet internal crafting table was not clear, aborting!"))
         return task_state, false
     end
@@ -51,11 +53,7 @@ function module.craft(task_state: CraftingState): CraftingState, boolean
         if grid_slot > 3 then grid_slot = grid_slot + 1 end
         if grid_slot > 6 then grid_slot = grid_slot + 2 end
 
-        local label, name: string, string | nil
-        label = item_def.label as string
-        name = item_def.name
-
-        local i_slot_tbl = vinv_helper.get_all_slots(inv.virtual_inventory, label, name)
+        local i_slot_tbl = vinv_helper.get_all_slots(lb_tbl.inv.virtual_inventory, item_def)
         if i_slot_tbl is nil then
             error(comms.robot_send("fatal", "Woops no slots with what we want"))
             break
@@ -77,7 +75,7 @@ function module.craft(task_state: CraftingState): CraftingState, boolean
             if result ~= biggest.slot or not robot.transferTo(grid_slot, remaining) then
                 error(comms.robot_send("fatal", "something went wrong in self_crafting (transferTo)"))
             end -- else we succeded! (yay!)
-            vinv_helper.remove_from_slot(inv.virtual_inventory, biggest.slot, remaining) -- it's ok to overshoot!
+            vinv_helper.remove_from_slot(lb_tbl.inv.virtual_inventory, biggest.slot, remaining) -- it's ok to overshoot!
 
             remaining = remaining - quantity
         end
@@ -86,11 +84,11 @@ function module.craft(task_state: CraftingState): CraftingState, boolean
     end
     
     -- Now the virtual crafting-table should be assembled, lets do the thing!
-    local output_slot = vinv_helper.get_smallest_slot(inv.virtual_inventory, output.label, output.name)
+    local output_slot = vinv_helper.get_smallest_slot(lb_tbl.inv.virtual_inventory, output)
     if  output_slot is nil
-        or vinv_helper.how_many_slot(inv.virtual_inventory, output_slot) + repeats > 64
+        or vinv_helper.how_many_slot(lb_tbl.inv.virtual_inventory, output_slot) + repeats > 64
     then
-        output_slot = vinv_helper.get_empty_slot(inv.virtual_inventory, inv.get_forbidden_table())
+        output_slot = vinv_helper.get_empty_slot(lb_tbl.inv.virtual_inventory, lb_tbl.inv.get_forbidden_table())
     end
 
     if output_slot == nil then error(comms.robot_send("fatal", "assert failed!")) end
@@ -101,16 +99,16 @@ function module.craft(task_state: CraftingState): CraftingState, boolean
 
     if not result then
         print(comms.robot_send("error", "failed to craft :("))
-        inv.force_update_vinv() -- last hurah-ass
+        lb_tbl.inv.force_update_vinv() -- last hurah-ass
         for index = 1, 12, 1 do
-            if index % 4 ~= 0 then inv.simple_slot_check(index) end
+            if index % 4 ~= 0 then lb_tbl.inv.simple_slot_check(index) end
         end
 
         return task_state, false
     end
 
     -- Optimistically Update the thingy-majig
-    vinv_helper.force_update_slot(inv.virtual_inventory, output.label, output.name, repeats, output_slot)
+    vinv_helper.force_update_slot(lb_tbl.inv.virtual_inventory, output, output_slot)
 
     robot.select(1)
     return task_state, true

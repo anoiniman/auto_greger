@@ -40,7 +40,7 @@ function helper.new_item_definition(label: string | nil, name: string | nil, siz
     return {label = label, name = name, size = size, stack_size = stack_size, disc = 0}
 end
 
-global interface FullerDefinition is ItemDefinition
+global interface FullerDefinition is ItemDefinition, FullDefinition
 where self.disc == 10
     label: string
     name: string | nil

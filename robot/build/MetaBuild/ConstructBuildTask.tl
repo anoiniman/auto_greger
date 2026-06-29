@@ -2,7 +2,17 @@ require("build.MetaBuild.__h_ConstructBuildTask")
 local task_helper = require("Task")
 local interactive = require("interactive")
 local area_helper = require("nav_module.Area")
-local map_helper = late_bind.new_bind("nav_module.map_obj")
+
+local late_bind = require("late_bind")
+local interface FakeMap
+
+end
+
+local record lb_tbl
+    map_helper: FakeMap
+end
+local lb_ctx = late_bind.new_ctx(lb_tbl)
+lb_tbl.map_helper = late_bind.new_bind(lb_ctx, "nav_module.map_obj", "map_helper")
 
 -- TODO: we need to think about what happens when higher priorty tasks appear. Should a build task be forcefully high
 -- priority, as has been done so far? Or will we design with better interruptability this time?
