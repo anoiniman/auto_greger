@@ -1,0 +1,178 @@
+require("deep_copy")
+local comms = require("comms")
+
+local computer = require("computer")
+local serialize = require("serialization")
+local robot = require("robot")
+
+local einventory_helper = require("inventory.ExternalInventory")
+local eitem_helper = require("inventory.eInvItem")
+local item_helper = require("inventory.__h_Item")
+
+require("build.MetaBuild.BuildPrimitive")
+local MetaDoor = require("build.MetaBuild.DoorInfo")
+
+local nav = require("nav_module.nav_obj")
+local inv = require("inventory.inv_obj")
+
+local general_functions = require("build.general_functions")
+local generic_hooks = require("build.generic_hooks")
+
+local hr = {
+    "-ccc||-",
+    "-ccc||-",
+    "-ccc||-",
+    "----||-",
+    "-ccc||-",
+    "-ccc||-",
+    "-ccc||-",
+}
+local one_seven = {1, 7}
+local two_six = {2, 6}
+
+local doors = {}
+doors[1] = MetaDoor:new()
+doors[1]:doorX(5, 1)
+
+
+local type C = CoordinateType
+local module: BaseBuildPrimitive = {
+    name = "coke_quad",
+    dictionary = {
+        ["|"] = item_helper.get_air_def(),
+        ["c"] = item_helper.new_item_query("Coke Oven Brick", "Railcraft:machine.alpha")
+    },
+    human_readable = hr,
+    origin_block = {0 as C.X, 0 as C.Z, 0 as C.Y},
+    base_table = { default = hr },
+
+    segments = { -- This nil assignment schtick makes it so for 99% of the cases 'ipairs' no longer works :) btw
+        [1] = {{"-ccc*--", two_six}, {"-ccc---", one_seven}},   -- for height 1 change this
+        [2] = {{"-c-c---", two_six}},   -- for height 2 change this
+        [3] = nil                       -- ..
+    },
+
+    doors = doors,
+}
+
+function Module:iter(): integer | nil, {string} | nil
+    return general_functions.iter(self.base_table, 3, self.segments)
+end
+
+local input_items = {
+    MetaItem:new("any:log", nil, true, "Charcoal" ),
+    MetaItem:new(nil, "Coal", false, "Coal Coke"),
+    MetaItem:new(nil, "Block of Coal", false, "Block of Coal Coke")
+}
+
+-- as long as we're doing things right there should be no problem with this, well just stay on the
+-- lookout for bugs, if we're not deep_copying the state everytime we create a new building object
+-- this can have problems, but as of right now we always deep_copy the primitive, so it's
+-- ok to do this
+
+function Module.og_state()
+    return {
+        last_checked = computer.uptime(),
+
+        fsm = 1,
+        in_what_asterisk = 1,
+        temp_reg = nil,
+
+        in_building = false,
+        ---
+        coke_oven_tbl = nil
+    }
+end
+
+Module.shared_state = Module.og_state()
+
+-- First element of the hook array == special_symbol "*", etc.
+Module.state_init = {
+    function()
+        return Module.shared_state -- takes a ref
+    end,
+    function(parent)
+        local coke_tbl = {
+            MetaInventory:newMachine(input_items, parent, '*', 1, "coke_oven"),
+            MetaInventory:newMachine(input_items, parent, '*', 2, "coke_oven"),
+        }
+
+        Module.coke_oven_tbl = coke_tbl -- modifies shared state table
+        return Module.shared_state -- takes the same ref
+    end,
+    -- removed local chest definition, git blame if you want it back :P
+}
+
+-- TODO (low priority) add auto-clear creosote oil when abcd
+-- Hopefully the game won't run long enough for we needing to clear creosote oil, but idk, we'll see
+-- very good furnace fuel as always, usually you only start having too much creosote when you start
+-- doing steel, because you start burning lots of charcoal that you cannot offset with creosote,
+-- anyway, I'll just order the robot arround manually if I need to
+
+-- This can be implemented by adding different usage_flags to the definition, and having a debug
+-- command that allows us to forcefully use a given known building with a given flag
+
+-- time calculation assuming that each log takes 1800 ticks (90 seconds) to turn into charcoal
+Module.hooks = {
+    function(state, parent, flag, _quantity_goal, _state_table)
+        if flag == "only_check" then -- this better be checked before hand otherwise the robot will be acting silly
+            if computer.uptime() - state.last_checked < 60 * 12 then return "wait" end -- 12 minutes of waiting :)
+            return "all_good"
+        elseif flag ~= "raw_usage" then
+            if flag == nil then flag = "nil" end
+            print(comms.robot_send("error", string.format("coke_quad, bad_flag: %s", flag)))
+            return nil
+        end
+        local serial = serialize.serialize(state, true)
+        print(comms.robot_send("debug", "The state of the current runner function is:\n" .. serial))
+
+        local go_next = generic_hooks.std_hook1(state, parent, flag, Module.og_state, "coke_quad")
+        if go_next == nil or go_next > 2 then
+            state.fsm = 1
+            state.in_what_asterisk = 1
+            state.temp_reg = nil
+            state.in_building = false
+
+            return nil
+        end
+        return go_next
+    end,
+    function(state)
+        nav.change_orientation("east")
+        local _, c_type = robot.detect()
+        if c_type == "solid" then goto after_turn end
+
+        nav.change_orientation("west")
+        _, c_type = robot.detect()
+        if c_type == "solid" then goto after_turn end
+
+        ::after_turn::
+        local cur_inv = state.coke_oven_tbl[state.in_what_asterisk - 1]
+        inv.force_update_einv(cur_inv) -- force updates contents of storage, since they are not tracked
+
+        if state.in_what_asterisk - 1 == 1 then
+            local how_many = inv.virtual_inventory:howMany(nil, "any:log")
+            inv.dump_only_named(nil, "any:log", cur_inv, how_many / 2)
+        else
+            inv.dump_only_named(nil, "any:log", cur_inv, 65)
+        end
+
+        inv.suck_only_named(nil, "any:log", cur_inv, 65)
+        -- TODO dealing with creosote goes here:
+
+        return 1
+    end,
+    --[[function(state)
+        local storage_table = state[1]; local index = state[2]
+        local cur_storage = storage_table[index]
+
+        for _, item_def in cur_storage:itemDefIter() do
+            inv.dump_only_named(item_def.lable, item_def.name, cur_storage.ledger)
+        end
+
+        state[2] = state[2] + 1
+        return 1
+    end--]]
+}
+
+return Module

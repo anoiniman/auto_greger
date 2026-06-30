@@ -1,19 +1,20 @@
-local deep_copy = require("deep_copy")
-local comms = require("comms")
-local serialize = require("serialization")
+require("deep_copy")
+require("build.MetaBuild.MetaSchematic")
+require("Position")
 
--- this either really cooks, or really fucks us over, who cares
--- friendly reminder that tables are passed by reference, otherwise this wouldn't work
-local module = {}
+local interface BaseFormat is {{string}} default: {string} end
+local type SubSegment = {string, Pos2D}
+local type SegmentArray = {integer : {SubSegment}}
 
-function module.iter(base_table, goal, segments)
-    local iteration = 0
-    return function ()
+local record module end
+function module.iter(base_table: BaseFormat, goal: integer, segments: SegmentArray): function(): integer | nil, {string} | nil
+    local iteration: integer = 0
+    return function (): integer | nil, {string} | nil
         iteration = iteration + 1 -- later indexes into 1,2,3
         if iteration > goal then return nil end -- gg
 
         local cur_base = base_table[iteration]
-        if cur_base == nil then cur_base = base_table["def"] end
+        if cur_base == nil then cur_base = base_table.default end
 
         local cur_segment = segments[iteration]
         if cur_segment == nil then
@@ -21,12 +22,12 @@ function module.iter(base_table, goal, segments)
             return iteration, cur_base
         end
 
-        local square_segment_to_return = deep_copy.copy_table(cur_base, ipairs)
+        local square_segment_to_return = COPY(cur_base, ipairs)
 
-        for _, replaces in pairs(cur_segment) do
+        for _, replaces in ipairs(cur_segment) do
             local term = replaces[1]
-            for _, replace_index in pairs(replaces[2]) do
-                square_segment_to_return[replace_index] = term
+            for _, replace_index in ipairs(replaces[2]) do
+                square_segment_to_return[replace_index as integer] = term
                 -- print(comms.robot_send("debug", "iter_func -> \n" .. serialize.serialize(square_segment_to_return, true)))
             end
         end
@@ -34,9 +35,9 @@ function module.iter(base_table, goal, segments)
     end
 end
 
-function module.mirror_x(base_table, segments)
+function module.mirror_x(base_table: BaseFormat, segments: SegmentArray)
     -- Reverse the base
-    for key, base in pairs(base_table) do
+    for _, base in ipairs(base_table) do
         -- segments == nil -> we are not using meta-date -> etc
         for index, x_segment in ipairs(base) do
             x_segment = string.reverse(x_segment)
@@ -55,10 +56,10 @@ function module.mirror_x(base_table, segments)
     end
 end
 
-function module.mirror_z(base_table, segments)
+function module.mirror_z(base_table: BaseFormat, segments: SegmentArray)
     -- Reverse the base
-    local ref_to_default = nil
-    for key, base in pairs(base_table) do
+    local ref_to_default: {string} | nil = nil
+    for key, base in pairs(base_table as {integer : {string}}) do
         if base == ref_to_default then goto continue end -- in order not to reverse the def twice
         -- maybe this can be expanded into an "already seen" table in order to not double reverse arbitrarily
 
@@ -70,7 +71,7 @@ function module.mirror_z(base_table, segments)
             jindex = jindex + 1
             if index == 4 then break end -- this was the problem, we were reversing and then unreversing
         end
-        if key == "def" then ref_to_default = base end
+        if key as string == "def" then ref_to_default = base end
 
         ::continue::
     end
@@ -80,26 +81,30 @@ function module.mirror_z(base_table, segments)
 
     local quad_size_logic = 8 -- imagine this is a const, it's 7+1, the actual size of a quad + 1
     -- Reverse the segments
-    for index, seg in pairs(segments) do
+    for _, seg in pairs(segments) do
         for _, sub_seg in ipairs(seg) do
             for jindex, replacement_num in ipairs(sub_seg[2]) do
-                replacement_num = quad_size_logic - replacement_num
+                replacement_num = quad_size_logic - (replacement_num as integer)
                 sub_seg[2][jindex] = replacement_num
             end
         end
     end
 end
 
-function module.count_occurence_of_symbol(what_symbol, how_much, where)
-    local to_return = nil
-    local num_to_return = nil
+function module.count_occurence_of_symbol(
+    what_symbol: SpecialSymbol,
+    index: integer,
+    where: {SpecialSchematicChunk}
+): SpecialSchematicChunk | nil, integer | nil
+    local to_return: SpecialSchematicChunk = nil
+    local num_to_return: integer = nil
 
     local hits = 0
     for _, symbol in ipairs(where) do
         if symbol[1] == what_symbol then hits = hits + 1 end
-        if hits == how_much then
-            num_to_return = how_much + 1
-            local copy = deep_copy.copy(symbol, ipairs)
+        if hits == index then
+            num_to_return = index + 1
+            local copy = COPY(symbol, ipairs)
             table.remove(copy, 1) -- you fucker man, damn
             to_return = copy
             break

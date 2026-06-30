@@ -1,10 +1,8 @@
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
-require("__h_MetaQuad")
-
+require("nav_module.__h_MetaQuad")
 local build_helper = require("build.MetaBuild")
-
 local record helper end
 
 -- make a convert rel to quad and back function somewhere

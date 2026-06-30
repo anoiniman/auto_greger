@@ -1,4 +1,4 @@
-require("build.MetaBuild.__h_MetaBuild")
+require("build.MetaBuild.__h_init")
 require("build.MetaBuild.DoorInfo")
 global interface MetaQuad
     quad: integer

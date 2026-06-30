@@ -1,9 +1,6 @@
 local module = {}
+require("deep_copy")
 
-local os = require("os")
-local io = require("io")
-
-local deep_copy = require("deep_copy")
 local comms = require("comms")
 
 local robot = require("robot")
@@ -12,7 +9,6 @@ local navi = require("nav_module.nav_interface")
 local rel_move = require("nav_module.rel_move")
 
 local nav_to_build = require("nav_module.nav_to_building")
-
 local general_functions = require("build.general_functions")
 
 ---------------------

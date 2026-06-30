@@ -4,20 +4,10 @@ require("Task")
 require("Position")
 require("interactive")
 require("inventory.__h_Item")
+require("build.MetaBuild.__h_Symbol")
 require("build.MetaBuild.__h_init")
 require("build.MetaBuild.MetaSchematic")
 local item_helper = require("inventory.__h_Item")
-
-global enum TSymbolExtra
-    "break_shovel"
-end
-
-global interface InnerTransSymbol
-    item: ItemDefinition
-    extra: {TSymbolExtra} | nil
-end
--- Can be a table data type or just a raw string where string == item_label
-global type TransSymbol = InnerTransSymbol | string
 
 
 global interface ConstructBuildInstruction
