@@ -8,6 +8,18 @@ require("build.MetaBuild.__h_init")
 require("build.MetaBuild.MetaSchematic")
 local item_helper = require("inventory.__h_Item")
 
+global enum TSymbolExtra
+    "break_shovel"
+end
+
+global interface InnerTransSymbol
+    item: ItemDefinition
+    extra: {TSymbolExtra} | nil
+end
+-- Can be a table data type or just a raw string where string == item_label
+global type TransSymbol = InnerTransSymbol | string
+
+
 global interface ConstructBuildInstruction
     rel_coords: Pos3D    
     block_definition: ItemDefinition
@@ -40,6 +52,13 @@ global interface ConstructBuildGenerator<S is ConstructBuildState> is StateGener
 end
 
 local record module end
+function module.check_option(cbs: ConstructBuildState, option: ConstructionOption): boolean
+    for _, opt in ipairs(cbs.c_options) do
+        if opt == option then return true end
+    end
+    return false
+end
+
 function module.new_instruction(rel_coords: Pos3D, trans_symbol: TransSymbol): ConstructBuildInstruction
     if trans_symbol is InnerTransSymbol then
         return {

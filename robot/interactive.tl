@@ -2,8 +2,9 @@ local record module end
 -- Just noticed that this is basically a fancy future/promise implementation :sob:
 local comms = require("comms")
 
+global type InteractiveIDType = integer | {integer}
 global interface InteractiveIDStore
-    interaction_id: integer | {integer}
+    interaction_id: InteractiveIDType
 end
 
 local enum InteractiveType

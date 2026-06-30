@@ -1,4 +1,5 @@
 -- require("build.MetaBuild.SchematicInterface")
+require("nav_module.__h_map_obj")
 local enum BuildOption
     "top_to_bottom"
 end
@@ -6,7 +7,7 @@ end
 global interface Build
     name: string
     options: {BuildOption} | nil
-    what_chunk: Pos2D
+    what_chunk: ChunkCoord
     what_quad: integer
 
     build_task: BuildTask | nil

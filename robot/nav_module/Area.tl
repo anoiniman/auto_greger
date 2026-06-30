@@ -1,6 +1,6 @@
 local comms = require("comms")
 
-local map_helper = require("__h_map_obj")
+local c_helper = require("nav_module.chunk_coord")
 require("inventory.__h_Item")
 
 local record module end
@@ -34,7 +34,7 @@ function module.named_area_new(name: string, color: string, height: integer, flo
 end
 function module.add_chunk_to_area<T is Area>(area: T, what_chunk: ChunkCoord)
     for _, o_chunk in ipairs(area.chunk_coords) do -- checks if chunk is already added
-        if map_helper.cmp_ccoords(what_chunk, o_chunk) then return end
+        if c_helper.cmp_ccoords(what_chunk, o_chunk) then return end
     end
     table.insert(area.chunk_coords, what_chunk)
 end
@@ -56,7 +56,7 @@ end
 function module.is_chunk_in_area_table<T is Area>(tbl: AreaTable<T>, what_chunk: ChunkCoord): boolean
     for _, area in ipairs(tbl) do
         for _, area_chunk in ipairs(area.chunk_coords) do
-            if map_helper.cmp_ccoords(what_chunk, area_chunk) then return true end
+            if c_helper.cmp_ccoords(what_chunk, area_chunk) then return true end
         end
     end
     return false

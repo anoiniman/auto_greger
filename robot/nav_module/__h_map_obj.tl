@@ -1,7 +1,18 @@
-global type ChunkCoord = {integer, integer}
-local record helper end
-function helper.cmp_ccoords(a: ChunkCoord, b: ChunkCoord): boolean
-    return a[1] == b[1] and a[2] == b[2]
+require("nav_module.Area")
+require("nav_module.chunk_coord")
+require("nav_module.__h_MetaQuad")
+global enum ChunkTag
+
 end
 
-return helper
+global interface Chunk
+    tags: {ChunkTag} | nil
+    parent_area: Area | nil
+    meta_quads:  {MetaQuad} | nil
+end
+
+global interface FakeMap
+    chunk_set_parent: function(ChunkCoord, NamedArea, ?integer): boolean
+    chunk_exists: function(ChunkCoord): Chunk
+    add_quad: function(ChunkCoord, integer, string): boolean
+end

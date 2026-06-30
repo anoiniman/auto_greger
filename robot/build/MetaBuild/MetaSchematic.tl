@@ -22,18 +22,6 @@ global interface MSChunk
     symbol: string
 end
 
-global enum TSymbolExtra
-    "shovel"
-end
-
-global interface InnerTransSymbol
-    item: ItemDefinition
-    extra: {TSymbolExtra}
-end
-
--- Can be a table data type or just a raw string where string == item_label
-global type TransSymbol = InnerTransSymbol | string
-
 global type SpecialSchematicChunk = {SpecialSymbol, integer, integer, integer}
 
 local function ms_chunk_new(x: integer, symbol: string): MSChunk

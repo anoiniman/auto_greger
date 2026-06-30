@@ -1,9 +1,7 @@
-------- Sys Requires -------
---local io = require("io")
-
-------- Own Requires -------
 local comms = require("comms")
 local deep_copy = require("deep_copy")
+
+require("__h_MetaQuad")
 
 local build_helper = require("build.MetaBuild")
 
@@ -11,11 +9,7 @@ local record helper end
 
 -- make a convert rel to quad and back function somewhere
 -- we need to review if we still want to use doors like this or no. My idea is: no.
-global interface Quad
-    quad: integer,
-    build: Build | nil,
-    doors: {Door} | nil,
-end
+local type Quad = MetaQuad
 
 function helper.new()
     return {

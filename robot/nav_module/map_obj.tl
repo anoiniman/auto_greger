@@ -46,15 +46,6 @@ end
 --  roads_cleared: boolean (deprecated?) --> if it still exists it'll just be another tag, but rather, maybe
                                          -- we should have a "roads" array that holds Type Road objects
 -- //////
-global enum ChunkTag
-
-end
-
-global interface Chunk
-    tags: {ChunkTag} | nil
-    parent_area: Area | nil
-    meta_quads:  {MetaQuad} | nil
-end
 
 function module.new_chunk()
 
@@ -223,11 +214,6 @@ end
 module.all_builds = known_buildings
 
 -->>-----------------------------------<<--
-
-function helper.get_chunk_handle(x: integer, z: integer)
-
-end
-
 
 local function chunk_is_unique(chunk)
     return  chunk.marks ~= nil or chunk.parent_area ~= nil

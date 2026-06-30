@@ -2,14 +2,12 @@
 -- this is like this because I cannot be arsed to do better, and most additions/removings will not happen
 -- through this interface, but rather directly through direct building interaction and building
 -- agnostic direct inventory interaction, no point messing around with the data structuring just to
--- help out this very minor debug-ish function-- luacheck: ignore io
-local serialize = require("serialization")
-local io = require("io")
-
+-- help out this very minor debug-ish function
 require("Position")
 require("deep_copy")
 local comms = require("comms")
 
+local item_helper = require("inventory.__h_Item")
 local meta_schematic = require("build.MetaBuild.MetaSchematic")
 local cbuild_task_helper = require("build.MetaBuild.__h_ConstructBuildTask")
 
@@ -20,11 +18,13 @@ local function build_stack_new(): BuildStack
     return {1 as C.X, 1 as C.Z, 1 as C.Y}
 end
 
-local record module end
+local record module
+    instruction_construction: function(MSChunk, Pos3D, {string : TransSymbol}): Instruction | nil
+end
 
 local interface SchematicInterface
     schematic: MetaSchematic
-    dictionary: {any} | nil
+    dictionary: {string : TransSymbol}
     origin_block: Pos3D
     special_blocks: {SpecialSchematicChunk}
 
@@ -33,25 +33,25 @@ end
 
 function module.new(): SchematicInterface
     return {
-        schematic = meta_schematic_new(),
+        schematic = meta_schematic.new(),
         dictionary = nil, -- {}
         origin_block = {
-            x = 0,
-            z = 0,
-            y = 0
+            0 as C.X,
+            0 as C.Z,
+            0 as C.Y,
         },
         special_blocks = {},
 
-        build_stack = BuildStack:new()
+        build_stack = build_stack_new()
     }
 end
 
-function module.init(sinterface: SchematicInterface, dict: {any}, origin: Pos3D)
+function module.init(sinterface: SchematicInterface, dict: {string : TransSymbol}, origin: Pos3D)
     sinterface.origin_block = origin
     sinterface.dictionary = dict
 end
 
-function module.get_special_blocks(sinterface: SchematicInterface)
+function module.get_special_blocks(sinterface: SchematicInterface): {SpecialSchematicChunk}
     return sinterface.special_blocks
 end
 
@@ -66,25 +66,25 @@ function module.parse_string_arr(sinterface: SchematicInterface, string_array: {
     if #sinterface.schematic == 0 then print(comms.robot_send("error", "we ballsd up good :(")) end
 end
 
-function module.advance_y(sinterface: SchematicInterface, top_down: boolean): boolean
+function module.advance_y(sinterface: SchematicInterface, top_to_bottom: boolean): boolean
    local b_stack = sinterface.build_stack
-    if top_down then
+    if top_to_bottom then
         return b_stack[3] > 1
     end
     return b_stack[3] <= #sinterface.schematic
 end
 
-function module.force_advance_head(sinterface: SchematicInterface, top_down: boolean): boolean
+function module.force_advance_head(sinterface: SchematicInterface, top_to_bottom: boolean): boolean
     local b_stack = sinterface.build_stack
 
     if b_stack[2] <= 7 then -- try and read every line
         b_stack[1] = 1
         b_stack[2] = b_stack[2] + 1
-    elseif module.advance_y(sinterface, top_down) then -- only then move-up in height
+    elseif module.advance_y(sinterface, top_to_bottom) then -- only then move-up in height
         b_stack[1] = 1
         b_stack[2] = 1
 
-        if not top_down then
+        if not top_to_bottom then
             b_stack[3] = b_stack[3] + 1
         else
             b_stack[3] = b_stack[3] - 1
@@ -96,10 +96,12 @@ function module.force_advance_head(sinterface: SchematicInterface, top_down: boo
     return false -- aka continue
 end
 
+local type Instruction = ConstructBuildInstruction
+
 -- Maybe this doing builds thing needs to be redesing. And by maybe I mean: it does forcefully
 -- chunk.dist && chunk.symbol
 function module.do_build(state: ConstructBuildState, sinterface: SchematicInterface): ConstructBuildState
-    local top_down = state.top_down
+    local top_to_bottom = cbuild_task_helper.check_option(state, "top_to_bottom")
     local b_stack = sinterface.build_stack
 
     local function get_instruction(chunk: MSChunk): Instruction
@@ -110,7 +112,7 @@ function module.do_build(state: ConstructBuildState, sinterface: SchematicInterf
         rel[2] = sinterface.origin_block[2] + (b_stack[1] - 1)
         rel[1] = sinterface.origin_block[1] + chunk.x
 
-        return module.instruction_construction(sinterface, chunk, rel)
+        return module.instruction_construction(chunk, rel, sinterface.dictionary)
     end
 
     --[[if DO_DEBUG_PRINT then
@@ -138,77 +140,34 @@ function module.do_build(state: ConstructBuildState, sinterface: SchematicInterf
 
     ::very_funny::
     if chunk == nil then
-        if module.force_advance_head(sinterface, top_down) then
-            return true, "done", nil
+        if module.force_advance_head(sinterface, top_to_bottom) then
+            return state
         end
-        return module.do_build(sinterface, top_down)
+        return module.do_build(state, sinterface)
     end
 
-    local state.build_instruction = get_instruction(chunk)
+    state.build_instruction = get_instruction(chunk)
     return state
 end
 
--- place for the side argument in place
--- orientation to have the robot change it's orientation before placing
-
-local function interpret_element(element, index, do_error)
-    if element == nil then
-        print(comms.robot_send("error", "SI:interpret_element, element nil! Expected a table to have more than 1 element"))
-        return nil
-    end
-
-    if element == "west" or element == "east" or element == "north" or element == "south" or element == "up" or element == "down" then
-        if index == 1 then return "place", element
-        elseif index == 2 then return "orient", element
-        else error(comms.robot_send("fatal", "interpret_element: as of yet unsupported!")) end
-
-    else -- non instruction element
-        if do_error then
-            print(comms.robot_send("error", "SI:IC, instruction: \"" .. element .. "\" not recognized"))
-        end
-        return nil
-    end
-end
-
-function module.instruction_construction(chunk: MSChunk, rel: Pos3D)
-    local translated_symbol: TransSymbol = sinterface.dictionary[chunk.symbol]
+function module.instruction_construction(
+    chunk: MSChunk,
+    rel: Pos3D,
+    dictionary: {string : TransSymbol}
+): Instruction | nil
+    local translated_symbol: TransSymbol = dictionary[chunk.symbol]
     if translated_symbol == nil then
-        if chunk.symbol is SpecialSymbol then
-            translated_symbol = {item_definition = item_helper.get_air_def()}
-            goto skip01
+        local symbol = chunk.symbol
+        if symbol is SpecialSymbol then
+            translated_symbol = {item = item_helper.get_air_def()}
+        else
+            print(comms.robot_send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
+            return nil
         end
-
-        print(comms.robot_send("error", "symbol: \"" .. chunk.symbol .. "\" does not possess a valid flag in the dictionary"))
-        return false
     end
-    ::skip01::
 
     local coords = COPY(rel, ipairs)
-
-    if type(translated_symbol) ~= "table" then
-        return cbuild_task_helper.new_instruction(coords, translated_symbol)
-    end
-
-    local instruction
-    local first = table.remove(translated_symbol, 1) -- should be lable
-    local peek = interpret_element(translated_symbol[1], 1, false)
-    if peek == nil then
-        local second = table.remove(translated_symbol, 1)
-        if first == "nil" then first = nil end
-        instruction = BuildInstruction:newBasic(coords, first, second)
-    else
-        instruction = BuildInstruction:newBasic(coords, first, nil)
-    end
-
-    for index, element in ipairs(translated_symbol) do
-        local i_str, arg = interpret_element(element, index, true)
-        instruction:addExtra(i_str, arg)
-    end
-
-    if instruction == nil then
-        error(comms.robot_send("fatal", "SI:InstructionConstruction, no instruction was created!"))
-    end
-    return instruction
+    return cbuild_task_helper.new_instruction(coords, translated_symbol)
 end
 
 return module

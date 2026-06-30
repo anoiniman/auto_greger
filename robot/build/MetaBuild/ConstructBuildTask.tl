@@ -1,18 +1,21 @@
+local comms = require("comms")
 require("build.MetaBuild.__h_ConstructBuildTask")
+require("nav_module.__h_map_obj")
+
 local task_helper = require("Task")
 local interactive = require("interactive")
 local area_helper = require("nav_module.Area")
+local build_helper = require("build.MetaBuild")
+
+local ma_module = require("nav_module.map_area")
+local map_area: AreaTable<NamedArea> = ma_module.area_table
 
 local late_bind = require("late_bind")
-local interface FakeMap
-
-end
-
 local record lb_tbl
-    map_helper: FakeMap
+    map_obj: FakeMap
 end
 local lb_ctx = late_bind.new_ctx(lb_tbl)
-lb_tbl.map_helper = late_bind.new_bind(lb_ctx, "nav_module.map_obj", "map_helper")
+late_bind.new_bind(lb_ctx, "nav_module.map_obj", "map_obj")
 
 -- TODO: we need to think about what happens when higher priorty tasks appear. Should a build task be forcefully high
 -- priority, as has been done so far? Or will we design with better interruptability this time?
@@ -20,7 +23,7 @@ lb_tbl.map_helper = late_bind.new_bind(lb_ctx, "nav_module.map_obj", "map_helper
 local record module end
 
 -- what_chunk, what_quad, id, primitive_name,
-local function unpack_state(state: ConstructBuildState): Pos2D, integer, integer, string
+local function unpack_state(state: ConstructBuildState): ChunkCoord, integer, InteractiveIDType, string
     return state.build_ref.what_chunk, state.build_ref.what_quad, state.interaction_id, state.build_ref.name
 end
 
@@ -81,7 +84,7 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType): s
         local human_readable = table.concat(hr_table)
         interactive.add("auto_build0", human_readable, state)
 
-        tasker_helper.yield("igate0poll")
+        task_helper.yield("igate0poll")
     elseif nblock == "igate0poll" then
         local data: {integer, integer, integer} = interactive.get_data_table(state) as {integer, integer, integer}
         if data == nil then
@@ -89,68 +92,57 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType): s
         end
         build_ref.what_chunk[1] = build_ref.what_chunk[1] + data[1]
         build_ref.what_chunk[2] = build_ref.what_chunk[2] + data[2]
-        state.what_quad = data[3]
+        build_ref.what_quad = data[3]
 
-        interactive.del_element(id, state)
+        interactive.del_element(state)
         task_helper.yield("igate1")
-    elseif what_step == "igate1" then
-        if area_helper.is_chunk_in_area_table(map_areas, what_chunk) then
+    elseif nblock == "igate1" then
+        if area_helper.is_chunk_in_area_table(map_area, build_ref.what_chunk) then
             task_helper.yield("add_quad")
         end
 
         local hr_table: {string | integer} = {
             "abs_chunk:", build_ref.what_chunk[1], ", ", build_ref.what_chunk[2], " || ", 
-            "quad: ", state.what_quad, " || \n", "name: ", build_ref.primitive_name, " || ", 
+            "quad: ", build_ref.what_quad, " || \n", "name: ", build_ref.primitive.name, " || ", 
             "waiting for area_name and optional height override"
         }
         local human_readable = table.concat(hr_table)
         interactive.add("auto_build1", human_readable, state)
 
         task_helper.yield("igate1poll")
-    elseif what_step == "igate1poll" then
-        local data: {string, integer} = interactive.get_data_table(id) as {string, integer}
+    elseif nblock == "igate1poll" then
+        local data: {string, integer} = interactive.get_data_table(state) as {string, integer}
         if data == nil then
             task_helper.yield("igate1poll")
         end
 
         local area_name = data[1]
-        local area = area_helper.get_named_area(map_areas, area_name)
+        local area = area_helper.get_named_area(map_area, area_name)
 
         if area == nil then
             print(comms.robot_send("error", "what are you? Stupid? start_auto_build, what_step == 3 | area doesn't exist stupid"))
-            interactive.del_data_table(id) -- resets table
+            interactive.del_data_table(state) -- resets table
             task_helper.yield("igate1")
         end
 
         local height_override = data[2] -- it's ok if it's nil
         -- TODO this is going to be helish to separate :(
-        if not module.chunk_set_parent(what_chunk, area, height_override) then -- the important thing of this step
+        if not lb_tbl.map_obj.chunk_set_parent(build_ref.what_chunk, area as NamedArea, height_override) then
             print(comms.robot_send("error", "There was an error executing chunk_set_parent"))
         end
-        interactive.del_element(id)
+        interactive.del_element(state)
 
         task_helper.yield("add_quad")
-    elseif what_step == "add_quad" then
-        local chunk_ref = map_helper.chunk_exists(what_chunk)
-        -- TODO, we don't really need to build roads right now, do we?
-        --[[if chunk_ref.chunk.roads_cleared == false then
-            local self_table = {prio, "start_auto_build", ab_metainfo}
-            local build_height = module.get_height(what_chunk)
-            local local_instructions = BuildInstruction:roadBuild(what_chunk, build_height)
-
-            return {80, "navigate_rel", "road_build", local_instructions, self_table}
-        end--]]
-
-        local result = module.add_quad(what_chunk, what_quad, primitive_name)
+    elseif nblock == "add_quad" then
+        local chunk_ref = lb_tbl.map_obj.chunk_exists(build_ref.what_chunk)
+        local result = lb_tbl.map_obj.add_quad(build_ref.what_chunk, build_ref.what_quad, build_ref.primitive.name)
         if not result then
             error(comms.robot_send("fatal", "start_auto_build, step == 4 | TODO - make this thing failable without fatality :)"))
         end
 
-        what_step = 5
-        ab_metainfo.step = what_step
-        -- old return
-    elseif what_step == 5 then
-        local result = module.setup_build(what_chunk, what_quad)
+        task_helper.yield("setup_build")
+    elseif nblock == "setup_build" then
+        local result = build_ref
         if not result then
             print(comms.robot_send("error", "start_auto_build, step == 5 | TODO - idem :)"))
             lock[1] = 0

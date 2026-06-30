@@ -32,15 +32,15 @@ global interface ItemDefinition
 
     label: string | nil
     name: string | nil
-    size: integer | nil
 
+    size: integer | nil
     stack_size: integer | nil
 end
 function helper.new_item_definition(label: string | nil, name: string | nil, size?: integer, stack_size?: integer): ItemDefinition
     return {label = label, name = name, size = size, stack_size = stack_size, disc = 0}
 end
 
-global interface FullerDefinition is ItemDefinition, FullDefinition
+global interface FullerDefinition is ItemDefinition
 where self.disc == 10
     label: string
     name: string | nil
@@ -127,6 +127,20 @@ function helper.item_def_wildcard_eq<T is ItemDefinition>(wild: T, other: T): bo
     return  (helper.item_def_eq(wild, other))
             or (tostring(wild.name) == "nil" and tostring(wild.label) == tostring(other.label))
             or (tostring(wild.label) == "nil" and tostring(wild.name) == tostring(other.name))
+end
+
+local air_def: FullDefinition = {
+    disc = 9,
+
+    label = "Air",
+    name = "special:air",
+
+    size = 1,
+    stack_size = 1
+}
+
+function helper.get_air_def(): FullDefinition
+    return air_def
 end
 
 return helper
