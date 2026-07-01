@@ -27,7 +27,7 @@ function helper.get_build(quad: Quad): Build
     return quad.build
 end
 
-function helper.get_doors(quad: Quad): {Door}
+function helper.get_doors(quad: Quad): {DoorInfo}
     return quad.doors
 end
 

@@ -3,6 +3,6 @@ require("build.MetaBuild.DoorInfo")
 global interface MetaQuad
     quad: integer
     build: Build | nil
-    doors: {Door} | nil
+    doors: {DoorInfo} | nil
 end
 

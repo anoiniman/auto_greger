@@ -15,4 +15,5 @@ global interface FakeMap
     chunk_set_parent: function(ChunkCoord, NamedArea, ?integer): boolean
     chunk_exists: function(ChunkCoord): Chunk
     add_quad: function(ChunkCoord, integer, string): boolean
+    get_build: function(ChunkCoord, integer): Build
 end

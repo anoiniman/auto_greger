@@ -32,17 +32,16 @@ local record module end
 
 function module.new_build_primtive<S is BuildState>(
     base_prim: BaseBuildPrimitive,
-    gen: (function(self, integer): S),
-    use_function: (function(S, BlockType): string | nil),
+    gen: function(integer): S,
+    use_function: function(S, TaskBlockType): string | nil
 ): BuildPrimitive<S>
     local prototype = task_helper.new_prototype(-1, use_function)
     return {
         base = base_prim,
-        state_generator = s,
+        state_generator = gen,
         
         task_prototype = prototype
     }
 end
-
 
 return module

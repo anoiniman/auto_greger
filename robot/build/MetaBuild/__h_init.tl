@@ -6,13 +6,13 @@ local enum BuildOption
     "top_to_bottom"
 end
 
-global interface Build<T is BuildTask>
+global interface Build
     name: string
     options: {BuildOption} | nil
-    what_chunk: ChunkCoord
-    what_quad: integer
+    chunk: ChunkCoord
+    quad: integer
 
-    build_task: T | nil
+    build_task: BuildTask | nil
     doors: {DoorInfo}
     special_blocks: {SpecialSchematicChunk}
 

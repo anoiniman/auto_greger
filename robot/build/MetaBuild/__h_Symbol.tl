@@ -1,3 +1,4 @@
+require("inventory.__h_Item")
 global enum TSymbolExtra
     "break_shovel"
 end
