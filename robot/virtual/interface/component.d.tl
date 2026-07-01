@@ -19,6 +19,24 @@ global interface InventoryController is ComponentType
     suckFromSlot: function(integer, integer, ?integer): boolean
     equip: function(): boolean
 end
+
+global interface AnalyzeResult
+    hardness: number
+    harvestLevel: integer
+    harvestTool: string
+    metadata: integer
+    name: string
+end
+
+global interface Geolyzer is ComponentType
+    scan: function( -- Note: incomplete, return type is not declared, and neither is options table
+        x: integer, z: integer, y?: integer, w?: integer, d?: integer, h?: integer, ignoreReplaceable: boolean | {any}
+    ): {any}
+    analyze: function(side: integer, options?: {any}): AnalyzeResult
+    canSeeSky: function(): boolean
+    isSunVisible: function(): boolean
+end
+
 -- store(side:number, slot:number, dbAddress:string, dbSlot:number):boolean
 -- etc.
 
