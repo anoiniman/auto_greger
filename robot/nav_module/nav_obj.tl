@@ -2,9 +2,11 @@ require("prelude")
 local comms = require("comms")
 require("deep_copy")
 require("Position")
+
 require("build.MetaBuild.__h_init")
-require("nav_module.DirectionEnum")
 require("nav_module.__h_map_obj")
+
+require("nav_module.DirectionEnum")
 require("nav_module.chunk_coord")
 
 local type C = CoordinateType
@@ -17,7 +19,7 @@ local type C = CoordinateType
 
 -- singleton btw, this is why there is no "nav_obj:new()" function
 local record module end
-local interface NavObj
+global interface NavObj
     c_zero: Pos2D
 
     abs: Pos2D

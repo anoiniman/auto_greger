@@ -1,5 +1,3 @@
-global EMPTY_TABLE: {any} = {}
-
 global FORCE_INTERRUPT_ORE: boolean = false
 
 -- TODO adding a save file to save this sort of global variables or a way to autocheck them idk

@@ -1,5 +1,4 @@
--- luacheck: globals EMPTY_TABLE
-local module = {}
+local record module end
 
 local sides_api = require("sides")
 local robot = require("robot")

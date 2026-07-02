@@ -1,3 +1,14 @@
+global enum BaseMoveResult
+    "impossible move"
+    "not enough energy"
+    "entity"
+    "solid"
+    "replaceable"
+    "liquid"
+    "passable"
+    "air"
+end
+
 local type Side = string | integer
 local record robot
     name: function(): string
@@ -36,10 +47,10 @@ local record robot
     useUp: function(Side, boolean, number): boolean, string | nil
     useDown: function(Side, boolean, number): boolean, string | nil
 
-    forward: function(): boolean, string | nil
-    back: function(): boolean, string | nil
-    up: function(): boolean, string | nil
-    down: function(): boolean, string | nil
+    forward: function(): boolean, BaseMoveResult | nil
+    back: function(): boolean, BaseMoveResult | nil
+    up: function(): boolean, BaseMoveResult | nil
+    down: function(): boolean, BaseMoveResult | nil
 
     turnLeft: function(): boolean
     turnRight: function(): boolean

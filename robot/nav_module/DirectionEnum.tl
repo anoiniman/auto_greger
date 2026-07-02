@@ -3,4 +3,6 @@ global enum DirectionEnum
     "east"
     "south"
     "west"
+    "up"
+    "down"
 end

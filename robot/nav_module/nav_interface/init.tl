@@ -1,40 +1,47 @@
-local to_export = {}
-local inward_facing = {}
-
----- Global Imports -----
---local math = require("math")
 local robot = require("robot")
 --local sides_api = require("sides")
-local serialize = require("serialization") -- luacheck: ignore
+require("Position")
 
----- Shared Imports -----
+require("prelude")
 local comms = require("comms")
-
----- Local Imports ------
+local nav = require("nav_module.nav_obj")
 local strat = require("nav_module.nav_interface.strategies")
 
---local geolyzer = require("geolyzer_wrapper")
---local inv = require("inventory.inv_obj")
+global enum StratResult
+    "impossible move"
+    "not enough energy"
+    "entity"
+    "solid"
+    "replaceable"
+    "liquid"
+    "passable"
+    "air"
+    
+    "lava"
+end
 
 
-function inward_facing.update_pos(direction, nav_obj) -- assuming forward move
-    local abs = nav_obj.abs
-    local rel = nav_obj.rel
+local record to_export 
+    real_move: function (string, DirectionEnum, ExtraSauce): boolean, StratResult | nil
+end
+local record inward_facing 
+    change_orientation: function(DirectionEnum)
+end
 
+function inward_facing.update_pos(direction: DirectionEnum) -- assuming forward move
+    local nav_obj = nav.get_obj()
+
+    local abs: {integer, integer, integer} = nav_obj.abs
     local height = nav_obj.height
 
     if direction == "north" then
         abs[2] = abs[2] - 1
-        rel[2] = rel[2] - 1
     elseif direction == "east" then
         abs[1] = abs[1] + 1
-        rel[1] = rel[1] + 1
     elseif direction == "south" then
         abs[2] = abs[2] + 1
-        rel[2] = rel[2] + 1
     elseif direction == "west" then
         abs[1] = abs[1] - 1
-        rel[1] = rel[1] - 1
     elseif direction == "up" then
         height = height + 1
     elseif direction == "down" then
@@ -46,7 +53,7 @@ function inward_facing.update_pos(direction, nav_obj) -- assuming forward move
     nav_obj.height = height
 end
 
-function inward_facing.un_convert_orientation(num_side)
+function inward_facing.un_convert_orientation(num_side: integer): DirectionEnum
     if num_side == 1 then
         return "down"
     elseif num_side == 2 then
@@ -61,12 +68,12 @@ function inward_facing.un_convert_orientation(num_side)
         return "west"
     else
         print(comms.robot_send("error", "un_convert_orientation, logical impossibility"))
-        return "error"
+        return "error" as DirectionEnum
     end
 end
 
 -- NOT SIDES_API COMPATIBLE ANYMORE
-function inward_facing.convert_orientation(orientation)
+function inward_facing.convert_orientation(orientation: DirectionEnum): integer
     if orientation == "north" then
         return 3
     elseif orientation == "east" then
@@ -82,27 +89,27 @@ function inward_facing.convert_orientation(orientation)
     end
 end
 
-function to_export.rotate_right(nav_obj)
+function to_export.rotate_right()
+    local nav_obj = nav.get_obj()
     local orient = nav_obj.orientation
+
     if orient == "north" then
-        inward_facing.change_orientation("east", nav_obj)
+        inward_facing.change_orientation("east")
     elseif orient == "east" then
-        inward_facing.change_orientation("south", nav_obj)
+        inward_facing.change_orientation("south")
     elseif orient == "south" then
-        inward_facing.change_orientation("west", nav_obj)
+        inward_facing.change_orientation("west")
     elseif orient == "west" then
-        inward_facing.change_orientation("north", nav_obj)
+        inward_facing.change_orientation("north")
     else
         error(comms.robot_send("fatal", "invalid state nav_interface.rotate_right"))
     end
 end
 
-function to_export.get_opposite_orientation(nav_obj)
-    return inward_facing.get_opposite_orientation(nav_obj)
-end
-
-function inward_facing.get_opposite_orientation(nav_obj)
+function inward_facing.get_opposite_orientation(): DirectionEnum
+    local nav_obj = nav.get_obj()
     local orientation = nav_obj.orientation
+
     if orientation == "north" then
         return "south"
     elseif orientation == "east" then
@@ -118,11 +125,16 @@ function inward_facing.get_opposite_orientation(nav_obj)
     else
         print(comms.robot_send("error", "get_opposite_orientation, Logical Impossibility found"))
         print(comms.robot_send("error", "orientation: " .. orientation))
-        return nil
+        return nil as DirectionEnum
     end
 end
 
-function inward_facing.change_orientation(goal, nav_obj)
+function to_export.get_opposite_orientation(): DirectionEnum
+    return inward_facing.get_opposite_orientation()
+end
+
+function inward_facing.change_orientation(goal: DirectionEnum)
+    local nav_obj = nav.get_obj()
     local orientation = nav_obj.orientation
 
     local numeric = inward_facing.convert_orientation(orientation) - 2 -- (alignement)
@@ -153,45 +165,45 @@ function inward_facing.change_orientation(goal, nav_obj)
     nav_obj.orientation = goal
 end
 
-function to_export.change_orientation(goal, nav_obj)
-    return inward_facing.change_orientation(goal, nav_obj)
+function to_export.change_orientation(goal: DirectionEnum)
+    return inward_facing.change_orientation(goal)
 end
 
-
-function inward_facing.base_move(direction, nav_obj) -- return result and error string
-    local result
-    local err
+function inward_facing.base_move(direction: DirectionEnum): boolean, BaseMoveResult | nil
+    local result: boolean
+    local err: BaseMoveResult | nil
 
     if direction == "up" then
         result, err = robot.up()
     elseif direction == "down" then
         result, err = robot.down()
     else
-        inward_facing.change_orientation(direction, nav_obj)
+        inward_facing.change_orientation(direction)
         result, err = robot.forward()
     end
 
     -- Translate result to boolean, since this is the standard we've been using in the rest of the programme
-    if result ~= nil then inward_facing.update_pos(direction, nav_obj)
+    if result ~= nil then inward_facing.update_pos(direction)
     else result = false end
 
     return result, err
 end
 
+local type StratFunction = function(inward_facing, DirectionEnum, ExtraSauce)
+local type ExtraSauce = {any}
 -- EMPTY_TABLE = {}
 -- TODO -> better cave/hole detection so we don't lose ourselves underground
 -- Returning true means move sucesseful
-function inward_facing.real_move(strat_name, direction, nav_obj, extra_sauce)
+function inward_facing.real_move(strat_name: string, direction: DirectionEnum, extra_sauce?: ExtraSauce): boolean, StratResult | nil
     if extra_sauce == nil then extra_sauce = EMPTY_TABLE end -- nice hack!
-    if nav_obj == nil then print(comms.robot_send("error", "No nav obj provided!")) end
 
     -- accept the direct injection without looking twice -- using this for other purposes is UB :>
     -- ('other' is defined as: not executing a movement strategy)
     if type(strat_name) == "function" then
-        return strat_name(direction, nav_obj, extra_sauce)
+        return (strat_name as StratFunction)(inward_facing, direction, extra_sauce)
     end
 
-    local what_strat
+    local what_strat: StratFunction
     if strat_name == "surface" then
         what_strat = strat.surface
     elseif strat_name == "free" then
@@ -201,29 +213,25 @@ function inward_facing.real_move(strat_name, direction, nav_obj, extra_sauce)
         return false, nil
     end
 
-    return what_strat(inward_facing, direction, nav_obj, extra_sauce)
+    return what_strat(inward_facing, direction, extra_sauce)
 end
 
--- for now forget argument remais for compatibility, but needs to be refactored in the future
-function to_export.debug_move(dir, distance, nav_obj)
-    local result, err
+function to_export.debug_move(dir: DirectionEnum, distance: integer): boolean, BaseMoveResult | nil
+    local result: boolean
+    local err: StratResult | nil
 
-    local all_ok = true
-    for i = 1, distance, 1 do
-        result, err = inward_facing.real_move("free", dir, nav_obj)
+    for _ = 1, distance, 1 do
+        result, err = inward_facing.real_move("free", dir)
         if not result then break end
     end
 
-    return result, err
+    return result, err as BaseMoveResult
 end
 
-function to_export.force_forward(nav_obj)
-    return to_export.debug_move(nav_obj.orientation, 1, nav_obj)
+function to_export.force_forward(): boolean, BaseMoveResult | nil
+    local nav_obj = nav.get_obj()
+    return to_export.debug_move(nav_obj.orientation, 1)
 end
 
-function to_export.r_move(a,b,c,d)
-    return inward_facing.real_move(a,b,c,d)
-end
-
-
+to_export.real_move = inward_facing.real_move
 return to_export
