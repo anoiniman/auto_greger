@@ -7,32 +7,19 @@ require("Position")
 require("deep_copy")
 local comms = require("comms")
 
+require("build.MetaBuild.__h_SchematicInterface")
 local item_helper = require("inventory.__h_Item")
 local meta_schematic = require("build.MetaBuild.MetaSchematic")
 local cbuild_task_helper = require("build.MetaBuild.__h_ConstructBuildTask")
 
-local type BuildStack = Pos3D
-local type C = CoordinateType
-
-local function build_stack_new(): BuildStack
-    return {1 as C.X, 1 as C.Z, 1 as C.Y}
-end
+local type BuildStack = SIBuildStack
 
 local record module
     instruction_construction: function(MSChunk, Pos3D, {string : TransSymbol}): Instruction | nil
 end
 
-local interface SchematicInterface
-    schematic: MetaSchematic
-    dictionary: {string : TransSymbol}
-    origin_block: Pos3D
-    special_blocks: {SpecialSchematicChunk}
-
-    build_stack: BuildStack
-end
-
 function module.new(): SchematicInterface
-    return {
+    local new = {
         schematic = meta_schematic.new(),
         dictionary = nil, -- {}
         origin_block = {
@@ -44,11 +31,9 @@ function module.new(): SchematicInterface
 
         build_stack = build_stack_new()
     }
-end
-
-function module.init(sinterface: SchematicInterface, dict: {string : TransSymbol}, origin: Pos3D)
-    sinterface.origin_block = origin
-    sinterface.dictionary = dict
+    new.origin_block = origin
+    new.dictionary = dict
+    return new
 end
 
 function module.get_special_blocks(sinterface: SchematicInterface): {SpecialSchematicChunk}
@@ -98,7 +83,7 @@ end
 
 local type Instruction = ConstructBuildInstruction
 
--- Maybe this doing builds thing needs to be redesing. And by maybe I mean: it does forcefully
+-- Maybe this doing builds thing needs to be redesigned. And by maybe I mean: it does forcefully
 -- chunk.dist && chunk.symbol
 function module.do_build(state: ConstructBuildState, sinterface: SchematicInterface): ConstructBuildState
     local top_to_bottom = cbuild_task_helper.check_option(state, "top_to_bottom")

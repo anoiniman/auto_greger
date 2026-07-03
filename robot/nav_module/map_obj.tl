@@ -6,11 +6,9 @@ local helper = require("__h_map_obj")
 local comms = require("comms")
 local deep_copy = require("deep_copy")
 
+require("nav_module.__h_map_obj")
 local interactive = require("interactive")
--- YOU CANNOT IMPORT EVAL.NAVIGATE, IT BECOMES CIRCULAR YOU DUFUS
---local eval_nav = require("eval.navigate")
-
-local MetaQuad = require("nav_module.MetaQuad")
+-- require("build.MetaBuild")
 local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 
 local record module end
@@ -26,7 +24,7 @@ local record module end
 -- We'll be using [x,z] -> map_map (lol) = {}; map_map[tostring(x) .. "," .. tostrong(z)] = chunk
 -- maybe integer packing will be gooe enough?
 
-local type Chunk;
+
 local map_map = {}
 --[[local function get_chunk(coord: ChunkCoord): Chunk
     local packed = (coord[1] << 32) | coord[2]
@@ -42,7 +40,7 @@ end
 --  tags: nil | {Tag} (?)
 --  parent_area: nil | Area
 --  height_override: nil | integer (deprecated for sure with update of how buildings will be instantiated)
---  meta_quads: {MetaQuad}
+--  builds: {Build}
 --  roads_cleared: boolean (deprecated?) --> if it still exists it'll just be another tag, but rather, maybe
                                          -- we should have a "roads" array that holds Type Road objects
 -- //////

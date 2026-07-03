@@ -1,6 +1,7 @@
 require("nav_module.Area")
 require("nav_module.chunk_coord")
-require("nav_module.__h_MetaQuad")
+require("build.MetaBuild.__h_init")
+
 global enum ChunkTag
 
 end
@@ -8,7 +9,7 @@ end
 global interface Chunk
     tags: {ChunkTag} | nil
     parent_area: Area | nil
-    meta_quads:  {MetaQuad} | nil
+    builds:  {Build} | nil
 end
 
 global interface FakeMap

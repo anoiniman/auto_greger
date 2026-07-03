@@ -9,6 +9,8 @@ local task_helper = require("Task")
 
 local nav = require("nav_module.nav_obj")
 
+require("build.MetaBuild.__h_init")
+local p_helper = require("build.MetaBuild.BuildPrimtiive")
 local general_functions = require("build.general_functions")
 local SchematicInterface = require("build.MetaBuild.SchematicInterface")
 local vinv_helper = require("inventory.VirtualInventory")
@@ -32,7 +34,7 @@ local type C = CoordinateType
     return {
         name = "NONE",
         option = nil,
-        what_chunk = nil as Pos2D,
+        chunk = nil as Pos2D,
 
         build_task = nil,
         doors = nil as {Door}
@@ -40,7 +42,36 @@ local type C = CoordinateType
     }
 end--]]
 
-function module.require(name: string, what_chunk: ChunkCoord, what_quad: integer): Build | nil
+
+-- build state == 1 chunk wide state
+function module.finalize_build(build: Build, doors: {Door})
+    build.doors = doors -- lame cludge for now, fix later TODO
+
+    for index, func in ipairs(self.post_build_s_init) do
+        self.post_build_state[index] = func(self)
+    end
+
+    build.sinterface = nil -- :)
+    
+    if V_ENV then
+        local test_interface = require("virtual.tests")
+        local num_of_builds = tostring(test_interface:getNumOfChildren({"build"}, build.name))
+
+        -- TODO: uh oh, this needs to be handled differently now
+        if true then
+            print("Warning -- this is outdated, this code needs to be updated" .. debug.traceback())
+            return
+        end
+        for index, state in ipairs(build.post_build_state) do
+            local path = {"build", self.name, num_of_builds, "pb_state"}
+            test_interface:registerObject(state, tostring(index), path)
+        end
+    end
+    -- print(comms.robot_send("debug", "finalizedBuild"))
+end
+
+
+function module.require(name: string, chunk: ChunkCoord, quad: integer, chunk_height: integer): Build | nil
     local new: Build = {} as Build
 
     --[[if primitive_cache[name] ~= nil then
@@ -64,72 +95,47 @@ function module.require(name: string, what_chunk: ChunkCoord, what_quad: integer
         print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
         return nil
     end
+    
+    p_helper.init(primitive, quad, chunk_height)
 
     new.name = primitive.base.name
     new.options = primitive.base.options
-    new.build_task = task_helper.new_task(primitive.new_task, -1)
+    new.build_task = task_helper.new_task(primitive, -1) as BuildTask
 
-    new.what_chunk = what_chunk
-    new.what_quad = what_quad
+    new.chunk = chunk
+    new.quad = quad
 
     -- module.init_primitive(new)
     return new
 end
 
 
-function module.get_special_coords(build: Build, what_symbol: SpecialSymbol, index: integer): Pos3D
+function module.get_special_coords(build: Build, what_symbol: SpecialSymbol, index: integer): Pos3D | nil
     local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
-    return {coords[1] as C.X, coords[2] as C.Z, coords[3] as C.Y} -- this is effectifly a deep_copy
-end
-
-function module.get_dist_to_special(build: Build, what_symbol: SpecialSymbol, index: integer): integer
-    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
-    local x, z, y = coords[1], coords[2], coords[3]
-    local cabs_x = build.what_chunk[1] * 16
-    local cabs_z = build.what_chunk[2] * 16
-
-    x = x + cabs_x
-    z = z + cabs_z
-    local cur_abs = nav.get_abs()
-    local dist_x = math.abs(x - cur_abs[1])
-    local dist_z = math.abs(z - cur_abs[2])
-    local dist_y = math.abs(y - nav.get_height())
-
-    local man_dist = dist_x + dist_z + dist_y
-    return man_dist
-end
-
-function module.rotate_and_translate_primitive(build: Build, quad_num: integer, logical_chunk_height: integer): boolean
-    local base_table = build.primitive.base_table
-    local segments = build.primitive.segments
-    local origin_block = build.primitive.origin_block
-
-    origin_block[3] = origin_block[3] + logical_chunk_height -- y
-
-    if quad_num == 1 then
-        general_functions.mirror_x(base_table, segments)
-
-        origin_block[1] = origin_block[1] + 8 -- x
-        origin_block[2] = origin_block[2] + 1 -- z
-    elseif quad_num == 2 then
-        origin_block[1] = origin_block[1] + 1
-        origin_block[2] = origin_block[2] + 1
-    elseif quad_num == 3 then
-        general_functions.mirror_z(base_table, segments)
-
-        origin_block[1] = origin_block[1] + 1
-        origin_block[2] = origin_block[2] + 8
-    elseif quad_num == 4 then
-        general_functions.mirror_x(base_table, segments)
-        general_functions.mirror_z(base_table, segments)
-
-        origin_block[1] = origin_block[1] + 8 -- x
-        origin_block[2] = origin_block[2] + 8
-    else
-        print(comms.robot_send("error", "MetaBuild rotatePrimitive impossible quad_num: " .. quad_num))
-        return false
+    if coords is SpecialSchematicChunk then
+        return {coords[2] as C.X, coords[3] as C.Z, coords[4] as C.Y} -- this is effectifly a deep_copy
     end
-    return true
+    return nil
+end
+
+function module.get_dist_to_special(build: Build, what_symbol: SpecialSymbol, index: integer): integer | nil
+    local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
+    if coords is SpecialSchematicChunk then
+        local x, z, y = coords[2], coords[3], coords[4]
+        local cabs_x = build.chunk[1] * 16
+        local cabs_z = build.chunk[2] * 16
+
+        x = x + cabs_x
+        z = z + cabs_z
+        local cur_abs = nav.get_abs()
+        local dist_x = math.abs(x - cur_abs[1])
+        local dist_z = math.abs(z - cur_abs[2])
+        local dist_y = math.abs(y - nav.get_height())
+
+        local man_dist = dist_x + dist_z + dist_y
+        return man_dist
+    end
+    return nil
 end
 
 -- no need to rotate since they are already pre-rotated from before
@@ -198,84 +204,6 @@ end--]]
 
 function module.dump_primitive(build: Build)
     build.primitive = nil
-end
-
-function module.setup_build(build: Build, what_quad: integer, chunk_height: integer): boolean
-    local old_origin_block = COPY(self.primitive.origin_block, ipairs)
-    local result = module.rotate_and_translate_primitive(build, what_quad, chunk_height)
-    if not result then return false end
-
-    local base_table = build.primitive.base_table
-
-    if build.sinterface == nil then
-        build.sinterface = sinterface_helper.new()
-    end
-    -- its ok to retain this after dumping the primitive because of GC, I think
-    sinterface_helper.init(build.sinterface, build.primitive.dictionary, build.primitive.origin_block)
-    build.special_blocks = sinterface_helper.get_special_blocks(build.sinterface)
-
-    if module.check_human_map(build, base_table, build.primitive.name) ~= 0 then -- sanity check
-        return false
-    end
-
-    -- Build the sparse array
-
-    -- ATTENTION: VVVVVVVVVVVVVVVVVVVVVVVVV
-    -- if returning the length of the MetaSchematic tables is faulty, we'll need to count the height of buildings here
-    -- thanks to the magic of lua bogus arguments are ok!
-    if module.primitive.iter == nil then
-        for index, table_obj in ipairs(base_table) do
-            sinterface_helper.parse_string_arr(build.sinterface, table_obj, index)
-            --max_index = max_index + 1
-        end
-    else
-        for index, table_obj in build.primitive:iter(base_table) do -- it is expected that table object does not include meta-data
-            sinterface_helper.parse_string_arr(build.sinterface, table_obj, index)
-            -- print(comms.robot_send("debug", "MetaBuild:setupBuild() we looped once m8"))
-            --max_index = max_index + 1
-        end
-    end
-
-    -- TODO move this to its own little function when appropriate
-    if module.contains_option(build, "top_to_bottom") then
-        print("top_bottomed")
-        build.sinterface.build_stack.logical_y = #build.sinterface.schematic
-    end
-
-    build.is_nil = false
-
-    local result = module.translate_special(build, what_quad, chunk_height, old_origin_block)
-    if not result then return false end
-
-    return true
-end
-
-
--- build state == 1 chunk wide state
-function module.finalize_build(build: Build, doors: {Door})
-    build.doors = doors -- lame cludge for now, fix later TODO
-
-    for index, func in ipairs(self.post_build_s_init) do
-        self.post_build_state[index] = func(self)
-    end
-
-    build.sinterface = nil -- :)
-    
-    if V_ENV then
-        local test_interface = require("virtual.tests")
-        local num_of_builds = tostring(test_interface:getNumOfChildren({"build"}, build.name))
-
-        -- TODO: uh oh, this needs to be handled differently now
-        if true then
-            print("Warning -- this is outdated, this code needs to be updated" .. debug.traceback())
-            return
-        end
-        for index, state in ipairs(build.post_build_state) do
-            local path = {"build", self.name, num_of_builds, "pb_state"}
-            test_interface:registerObject(state, tostring(index), path)
-        end
-    end
-    -- print(comms.robot_send("debug", "finalizedBuild"))
 end
 
 function module.get_inventories(build: Build): {ExternalInventory} | nil

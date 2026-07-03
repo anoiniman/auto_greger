@@ -5,6 +5,7 @@ require("nav_module.__h_map_obj")
 local task_helper = require("Task")
 local interactive = require("interactive")
 local area_helper = require("nav_module.Area")
+
 local build_helper = require("build.MetaBuild")
 
 local ma_module = require("nav_module.map_area")
@@ -45,13 +46,11 @@ end
 -- forward declaration
 local c_main_function: function(ConstructBuildState, TaskBlockType): string | nil
 function module.new_construct_task(
-    build_ref: Build,
     priority: integer,
     c_options: {ConstructionOption}
 ): Task
     local prototype = task_helper.new_prototype(priority, c_main_function)
     local gen_obj: ConstructBuildGenerator<ConstructBuildState> = {
-        build_ref = build_ref,
         c_options = c_options,
 
         state_generator = state_generator,
@@ -103,7 +102,7 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType): s
 
         local hr_table: {string | integer} = {
             "abs_chunk:", build_ref.what_chunk[1], ", ", build_ref.what_chunk[2], " || ", 
-            "quad: ", build_ref.what_quad, " || \n", "name: ", build_ref.primitive.name, " || ", 
+            "quad: ", build_ref.what_quad, " || \n", "name: ", build_ref.name, " || ", 
             "waiting for area_name and optional height override"
         }
         local human_readable = table.concat(hr_table)
@@ -132,10 +131,13 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType): s
         end
         interactive.del_element(state)
 
-        task_helper.yield("add_quad")
-    elseif nblock == "add_quad" then
+        task_helper.yield("require_build")
+    elseif nblock == "require_build" then
+        local build = 
+
+
         local chunk_ref = lb_tbl.map_obj.chunk_exists(build_ref.what_chunk)
-        local result = lb_tbl.map_obj.add_quad(build_ref.what_chunk, build_ref.what_quad, build_ref.primitive.name)
+        local result = lb_tbl.map_obj.add_quad(build_ref.what_chunk, build_ref.what_quad, build_ref.name)
         if not result then
             error(comms.robot_send("fatal", "start_auto_build, step == 4 | TODO - make this thing failable without fatality :)"))
         end

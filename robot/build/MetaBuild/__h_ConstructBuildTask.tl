@@ -5,8 +5,8 @@ require("Position")
 require("interactive")
 require("inventory.__h_Item")
 require("build.MetaBuild.__h_Symbol")
-require("build.MetaBuild.__h_init")
 require("build.MetaBuild.MetaSchematic")
+require("build.MetaBuild.__h_SchematicInterface")
 local item_helper = require("inventory.__h_Item")
 
 
@@ -27,8 +27,7 @@ end
 global interface ConstructBuildState is TaskState, InteractiveIDStore
     build_instruction: ConstructBuildInstruction
 
-    build_ref: Build
-
+    sinterface: SchematicInterface
     c_options: {ConstructionOption}
 
     rel_moved: boolean
@@ -37,7 +36,6 @@ global interface ConstructBuildState is TaskState, InteractiveIDStore
 end
 
 global interface ConstructBuildGenerator<S is ConstructBuildState> is StateGenerator<S>
-    build_ref: Build
     c_options: {ConstructionOption}
 end
 

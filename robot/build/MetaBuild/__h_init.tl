@@ -1,7 +1,6 @@
 require("build.MetaBuild.MetaSchematic")
 require("nav_module.chunk_coord")
 require("build.MetaBuild.DoorInfo")
-require("build.MetaBuild.BuildPrimitive")
 
 global interface Build
     name: string
@@ -9,7 +8,8 @@ global interface Build
     chunk: ChunkCoord
     quad: integer
 
-    build_task: BuildTask | nil
+    offset: Pos3D
     doors: {DoorInfo}
     special_blocks: {SpecialSchematicChunk}
+    build_task: BuildTask | nil
 end

@@ -96,8 +96,8 @@ function module.count_occurence_of_symbol(
     index: integer,
     where: {SpecialSchematicChunk}
 ): SpecialSchematicChunk | nil, integer | nil
-    local to_return: SpecialSchematicChunk = nil
-    local num_to_return: integer = nil
+    local match_chunk: SpecialSchematicChunk = nil
+    local next_index: integer = nil
 
     local hits = 0
     for _, symbol in ipairs(where) do
@@ -105,13 +105,12 @@ function module.count_occurence_of_symbol(
         if hits == index then
             num_to_return = index + 1
             local copy = COPY(symbol, ipairs)
-            table.remove(copy, 1) -- you fucker man, damn
             to_return = copy
             break
         end
     end
 
-    return to_return, num_to_return
+    return match_chunk, next_index
 end
 
 return module
