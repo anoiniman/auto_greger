@@ -99,7 +99,7 @@ end
 -- crafting table action, will a simple math.floor be enough, or should the task of doing this be relegated to
 -- recipe tree resolution? Probably here?
 function module.instantiate<S is TaskState>(recipe_template: MetaRecipe<S>, quantity: integer)
-    task_helper.instantiate(recipe_template.task_prototype, recipe_template, quantity)
+    task_helper.instantiate(recipe_template, quantity)
 end
 
 return module

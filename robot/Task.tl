@@ -72,16 +72,16 @@ function task_helper.new_prototype<S is TaskState>(
 end
 
 function task_helper.new_task<S is TaskState, T is StateGenerator<S>>(
-    prototype: TaskPrototype<S>,
     base_obj: T,
     quantity: integer,
     init_blockname?: BlockName
 ): Task
+    local prototype = base_obj.task_prototype
     local state: S = base_obj:state_generator(quantity)
     return {
         priority = prototype.priority,
         prototype_uuid = prototype.uuid,
-        yield_block = init_blockname,
+        yield_block = init_blockname or 0,
 
         state = state,
         coroutine = coroutine.create(prototype.func)
@@ -89,11 +89,11 @@ function task_helper.new_task<S is TaskState, T is StateGenerator<S>>(
 end
 
 function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
-    prototype: TaskPrototype<S>,
     base_obj: T,
     quantity: integer,
     init_blockname?: BlockName
 ): boolean
+    local prototype = base_obj.task_prototype
     local func = function(a: Task, x: TaskPrototype<S>): boolean return a.prototype_uuid == x.uuid end
     if pqueue.find(await_queue as PriorityQueue<Task>, func, prototype) then return false end
 

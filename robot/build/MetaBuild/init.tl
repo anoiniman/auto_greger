@@ -3,13 +3,15 @@
 local filesystem = require("filesystem")
 
 local comms = require("comms")
-local deep_copy = require("deep_copy")
+require("deep_copy")
+require("nav_module.chunk_coord")
+local task_helper = require("Task")
 
 local nav = require("nav_module.nav_obj")
 
 local general_functions = require("build.general_functions")
 local SchematicInterface = require("build.MetaBuild.SchematicInterface")
-local VirtualInventory = require("inventory.VirtualInventory")
+local vinv_helper = require("inventory.VirtualInventory")
 
 
 local primitive_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
@@ -38,44 +40,40 @@ local type C = CoordinateType
     }
 end--]]
 
-function module.require(name: string, what_chunk: Pos2D, what_quad: integer): Build
+function module.require(name: string, what_chunk: ChunkCoord, what_quad: integer): Build | nil
     local new: Build = {} as Build
 
-    if primitive_cache[name] ~= nil then
+    --[[if primitive_cache[name] ~= nil then
         new.primitive = primitive_cache[name]:new() -- very important
         module.initPrimitive(build)
         return true
-    end
-    if name == nil then name = "nil" end
+    end--]]
 
-    local path
+    local path: string
     if V_ENV then path = "./build/" .. name .. ".lua"
     else path = "/home/robot/build/" .. name .. ".lua" end
-    local build_table = nil -- luacheck: ignore
+    local primitive: BuildPrimitive = nil
 
-    local conditional
+    local conditional: boolean
     if V_ENV then conditional = filesystem.exists(path)
     else conditional = filesystem.exists(path) and not filesystem.isDirectory(path) end
 
     if conditional then
-        build_table = dofile(path)
+        primitive = dofile(path) as BuildPrimitive
     else
         print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
-        return false
+        return nil
     end
 
-    new.primitive = new_table:new() -- very important
-    new.name = new.primitive.name
-    new.extra_sauce = new.primitive.extra_sauce -- effective change of ownership
-    new.new_task = new.primitive.new_task
+    new.name = primitive.base.name
+    new.options = primitive.base.options
+    new.build_task = task_helper.new_task(primitive.new_task, -1)
 
     new.what_chunk = what_chunk
     new.what_quad = what_quad
 
-    -- THIS WAS REMOVED IN ORDER TO PERSERVE RAM
-    --primitive_cache[name] = build_table
-    module.init_primitive(new)
-    return true
+    -- module.init_primitive(new)
+    return new
 end
 
 
@@ -99,10 +97,6 @@ function module.get_dist_to_special(build: Build, what_symbol: SpecialSymbol, in
 
     local man_dist = dist_x + dist_z + dist_y
     return man_dist
-end
-
-function module.init_primitive(build: Build)
-    module.primitive.parent = build
 end
 
 function module.rotate_and_translate_primitive(build: Build, quad_num: integer, logical_chunk_height: integer): boolean
