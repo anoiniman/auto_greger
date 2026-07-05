@@ -81,7 +81,7 @@ function task_helper.new_task<S is TaskState, T is StateGenerator<S>>(
     return {
         priority = prototype.priority,
         prototype_uuid = prototype.uuid,
-        yield_block = init_blockname or 0,
+        yield_block = init_blockname,
 
         state = state,
         coroutine = coroutine.create(prototype.func)
@@ -97,7 +97,7 @@ function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
     local func = function(a: Task, x: TaskPrototype<S>): boolean return a.prototype_uuid == x.uuid end
     if pqueue.find(await_queue as PriorityQueue<Task>, func, prototype) then return false end
 
-    pqueue.insert(await_queue, task_helper.new_task(prototype, base_obj, quantity, init_blockname))
+    pqueue.insert(await_queue, task_helper.new_task(base_obj, quantity, init_blockname))
     return true
 end
 

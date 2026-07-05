@@ -1,10 +1,8 @@
+require("build.MetaBuild.__h_Symbol")
+require("build.MetaBuild.MetaSchematic")
 require("Position")
 global type SIBuildStack = Pos3D
-local type C = CoordinateType
-
-local function build_stack_new(): BuildStack
-    return {1 as C.X, 1 as C.Z, 1 as C.Y}
-end
+local type BuildStack = SIBuildStack
 
 global interface SchematicInterface
     schematic: MetaSchematic

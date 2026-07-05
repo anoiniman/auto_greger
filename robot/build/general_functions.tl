@@ -103,9 +103,9 @@ function module.count_occurence_of_symbol(
     for _, symbol in ipairs(where) do
         if symbol[1] == what_symbol then hits = hits + 1 end
         if hits == index then
-            num_to_return = index + 1
+            next_index = index + 1
             local copy = COPY(symbol, ipairs)
-            to_return = copy
+            match_chunk = copy
             break
         end
     end

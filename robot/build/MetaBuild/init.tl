@@ -1,34 +1,19 @@
 --local math = require("math")
 --local serialize = require("serialization")
-local filesystem = require("filesystem")
-
 local comms = require("comms")
 require("deep_copy")
 require("nav_module.chunk_coord")
-local task_helper = require("Task")
+require("Task")
 
 local nav = require("nav_module.nav_obj")
 
+require("inventory.__h_ExternalInventory")
 require("build.MetaBuild.__h_init")
-local p_helper = require("build.MetaBuild.BuildPrimtiive")
 local general_functions = require("build.general_functions")
-local SchematicInterface = require("build.MetaBuild.SchematicInterface")
-local vinv_helper = require("inventory.VirtualInventory")
+require("build.MetaBuild.SchematicInterface")
+-- local vinv_helper = require("inventory.VirtualInventory")
 
-
-local primitive_cache = {}  -- as you might have noticed this value exists outside the MetaTable(s)
-                            -- so it exists as a singleton all "inheritors" of the MetaTable have the same
-                            -- reference for "build_cache"
 local record module end
-
-function module.contains_option(build: Build, check: BuildOption): boolean
-    if build.options == nil then return false end
-    for _, value in ipairs(build.options as {BuildOption}) do
-        if value == check then return true end
-    end
-    return false
-end
-
 local type C = CoordinateType
 --[[function module.new(): Build
     return {
@@ -41,74 +26,6 @@ local type C = CoordinateType
         special_blocks = nil as {SpecialSchematicChunk},
     }
 end--]]
-
-
--- build state == 1 chunk wide state
-function module.finalize_build(build: Build, doors: {Door})
-    build.doors = doors -- lame cludge for now, fix later TODO
-
-    for index, func in ipairs(self.post_build_s_init) do
-        self.post_build_state[index] = func(self)
-    end
-
-    build.sinterface = nil -- :)
-    
-    if V_ENV then
-        local test_interface = require("virtual.tests")
-        local num_of_builds = tostring(test_interface:getNumOfChildren({"build"}, build.name))
-
-        -- TODO: uh oh, this needs to be handled differently now
-        if true then
-            print("Warning -- this is outdated, this code needs to be updated" .. debug.traceback())
-            return
-        end
-        for index, state in ipairs(build.post_build_state) do
-            local path = {"build", self.name, num_of_builds, "pb_state"}
-            test_interface:registerObject(state, tostring(index), path)
-        end
-    end
-    -- print(comms.robot_send("debug", "finalizedBuild"))
-end
-
-
-function module.require(name: string, chunk: ChunkCoord, quad: integer, chunk_height: integer): Build | nil
-    local new: Build = {} as Build
-
-    --[[if primitive_cache[name] ~= nil then
-        new.primitive = primitive_cache[name]:new() -- very important
-        module.initPrimitive(build)
-        return true
-    end--]]
-
-    local path: string
-    if V_ENV then path = "./build/" .. name .. ".lua"
-    else path = "/home/robot/build/" .. name .. ".lua" end
-    local primitive: BuildPrimitive = nil
-
-    local conditional: boolean
-    if V_ENV then conditional = filesystem.exists(path)
-    else conditional = filesystem.exists(path) and not filesystem.isDirectory(path) end
-
-    if conditional then
-        primitive = dofile(path) as BuildPrimitive
-    else
-        print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
-        return nil
-    end
-    
-    p_helper.init(primitive, quad, chunk_height)
-
-    new.name = primitive.base.name
-    new.options = primitive.base.options
-    new.build_task = task_helper.new_task(primitive, -1) as BuildTask
-
-    new.chunk = chunk
-    new.quad = quad
-
-    -- module.init_primitive(new)
-    return new
-end
-
 
 function module.get_special_coords(build: Build, what_symbol: SpecialSymbol, index: integer): Pos3D | nil
     local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
@@ -138,9 +55,10 @@ function module.get_dist_to_special(build: Build, what_symbol: SpecialSymbol, in
     return nil
 end
 
+local type SSC = SpecialSchematicChunk
 -- no need to rotate since they are already pre-rotated from before
-function module.translate_special(quad_num: integer, logical_chunk_height: integer, primitive_offset: Pos3D): boolean
-    local special_table = self.special_blocks
+function module.translate_special(build: Build, quad_num: integer, logical_chunk_height: integer, primitive_offset: Pos3D): boolean
+    local special_table = build.special_blocks
 
     --[[print(string.format("Name is: %s", self.name))
     local a_special = special_table[1]
@@ -148,24 +66,24 @@ function module.translate_special(quad_num: integer, logical_chunk_height: integ
     print(str)
     io.read()--]]
 
-    local function case_one(special)
+    local function case_one(special: SSC)
         special[2] = special[2] + 8 -- x
         special[3] = special[3] + 1 -- z
     end
-    local function case_two(special)
+    local function case_two(special: SSC)
         special[2] = special[2] + 1 -- x
         special[3] = special[3] + 1 -- z
     end
-    local function case_three(special)
+    local function case_three(special: SSC)
         special[2] = special[2] + 1 -- x
         special[3] = special[3] + 8 -- z
     end
-    local function case_four(special)
+    local function case_four(special: SSC)
         special[2] = special[2] + 8 -- x
         special[3] = special[3] + 8 -- z
     end
 
-    local case_function
+    local case_function: function(SSC)
     if quad_num == 1 then
         case_function = case_one
     elseif quad_num == 2 then
@@ -198,14 +116,7 @@ function module.translate_special(quad_num: integer, logical_chunk_height: integ
     return true
 end
 
---[[function Module:translatePrimitive(quad_num)
-
-end--]]
-
-function module.dump_primitive(build: Build)
-    build.primitive = nil
-end
-
+--[[
 function module.get_inventories(build: Build): {ExternalInventory} | nil
     if build.build_task == nil then return nil end
     return bt_helper.get_attached_inventories(build.build_task)
@@ -215,27 +126,6 @@ function module.run_build_check(build: Build, quantity_goal: integer): CheckResu
     -- self:useBuilding(nil, "only_check", nil, quantity_goal, nil, nil)
     return bt_helper.run_check(build.build_task)
 end
-
-local max_depth: integer = 3
-local function recursive_append(tbl: {any}, buffer: {string}, depth: integer)
-    if depth >= max_depth then return end
-    depth = depth + 1
-    table.insert(buffer, "{\n")
-    for key, value in pairs(tbl) do
-        table.insert(buffer, string.format("%s = ", tostring(key)))
-
-        if type(value) == "table" then recursive_append(value as {any}, buffer, depth); goto skip_comma
-        elseif type(value) == "function" then table.insert(buffer, "function")
-        elseif type(value) == "boolean" or type(value) == "string" or type(value) == "number" then
-            table.insert(buffer, tostring(value))
-        else table.insert(buffer, "other") end
-
-        table.insert(buffer, ", ")
-        ::skip_comma::
-    end
-    table.insert(buffer, "}\n")
-end
-
 
 function module.create_and_return_ledger(build: Build): VirtualInventory
     -- We could try to pre-add-up every block by looping through the sinterface multiple times, and only
@@ -258,35 +148,6 @@ function module.create_and_return_ledger(build: Build): VirtualInventory
 
     return tmp_ledger
 end
-
-function module.check_human_map(base_table: {{string}}, name: string): integer
-    local watch_dog = false
-    for _, base in pairs(base_table) do
-        if base[1] == "def" then -- I wish there was a re-usable way to write this logic, but no pass by ref, no luck
-            if watch_dog == false then
-                watch_dog = true
-            else
-                goto continue
-            end
-        end
-
-        local map = base[2]
-        if #map > 7 then
-            comms.robot_send("error", "In human map -- Build: \"" .. name .. "\" -- Too Many Lines!")
-            return -1
-        end
-
-        for index, line in ipairs(map) do
-            if string.len(line) > 7 then
-                comms.robot_send("error", "In human map -- Build: \"" .. name .. "\" -- Line: \"" .. tostring(index) .. "\" -- Line is way too big!")
-                return index
-            end
-        end
-
-        ::continue::
-    end
-
-    return 0
-end
+--]]
 
 return module

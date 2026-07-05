@@ -133,7 +133,7 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType): s
 
         task_helper.yield("require_build")
     elseif nblock == "require_build" then
-        local build = 
+        local build = build_helper.require_build()
 
 
         local chunk_ref = lb_tbl.map_obj.chunk_exists(build_ref.what_chunk)

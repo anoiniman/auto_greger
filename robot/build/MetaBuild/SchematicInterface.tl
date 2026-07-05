@@ -13,26 +13,25 @@ local meta_schematic = require("build.MetaBuild.MetaSchematic")
 local cbuild_task_helper = require("build.MetaBuild.__h_ConstructBuildTask")
 
 local type BuildStack = SIBuildStack
+local type C = CoordinateType
 
 local record module
     instruction_construction: function(MSChunk, Pos3D, {string : TransSymbol}): Instruction | nil
 end
 
-function module.new(): SchematicInterface
+local function build_stack_new(): BuildStack
+    return {1 as C.X, 1 as C.Z, 1 as C.Y}
+end
+
+function module.new(origin: Pos3D, dict: {string : TransSymbol}): SchematicInterface
     local new = {
         schematic = meta_schematic.new(),
-        dictionary = nil, -- {}
-        origin_block = {
-            0 as C.X,
-            0 as C.Z,
-            0 as C.Y,
-        },
+        dictionary = dict,
+        origin_block = origin,
         special_blocks = {},
 
-        build_stack = build_stack_new()
+        build_stack = build_stack_new(),
     }
-    new.origin_block = origin
-    new.dictionary = dict
     return new
 end
 

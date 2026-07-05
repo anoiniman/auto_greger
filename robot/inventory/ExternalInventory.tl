@@ -10,7 +10,9 @@ local map = require("nav_module.map_obj")
 local einv_item = require("inventory.eInvItem")
 local vinv_helper = require("inventory.VirtualInventory")
 local cvinv_helper = require("inventory.CompressedVinventory")
-local meta_build = require("build.MetaBuild")
+local build_helper = require("build.MetaBuild")
+require("inventory.__h_ExternalInventory")
+
 
 local enum StorageType
     "chest"
@@ -36,19 +38,6 @@ local function get_storage_size(storage_type?: StorageType): integer
     error(comms.robot_send("fatal", "unimplemented"))
 end
 
--- storage compared to being a production inventory that consumes items
--- long_term_storage compared to being an inventory associated with this 1 specific building
-global interface ExternalInventory
-    parent_build: Build | nil
-    
-    item_defs: {eInvItem}
-    storage: boolean
-    long_term_storage: boolean
-
-    ledger: CompressedVinventory
-    symbol: string
-    special_block_index: integer
-end
 local record module end
 
 function module.new_cache(storage_type?: StorageType): ExternalInventory
@@ -163,11 +152,11 @@ function module.reinstantiate(big_table: {any}): ExternalInventory
 end
 
 function module.get_distance(einv: ExternalInventory): integer
-    return meta_build.parent_build.getDistToSpecial(einv.parent_build, einv.symbol, einv.special_block_index)
+    return build_helper.parent_build.getDistToSpecial(einv.parent_build, einv.symbol, einv.special_block_index)
 end
 
 function module.get_coords(einv: ExternalInventory): Pos3D
-    return meta_build.get_special_coords(einv.parent_build, einv.symbol, einv.special_block_index)
+    return build_helper.get_special_coords(einv.parent_build, einv.symbol, einv.special_block_index)
 end
 
 function module.get_quad_num(einv: ExternalInventory): integer
