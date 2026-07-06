@@ -1,6 +1,7 @@
+require("Task")
+require("build.MetaBuild.DoorInfo")
 require("build.MetaBuild.MetaSchematic")
 require("nav_module.chunk_coord")
-require("build.MetaBuild.DoorInfo")
 
 global interface BuildState is TaskState end
 global interface BuildTask is Task end

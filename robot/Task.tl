@@ -1,4 +1,5 @@
 require("deep_copy")
+local comms = require("comms")
 local a_tbl = require("PriorityQueue")
 local pqueue, PriorityQueue, Prioritizable = table.unpack(a_tbl)
 local simple_hash = require("simple_hash")
@@ -25,6 +26,7 @@ end
 
 
 global interface Task is Prioritizable
+    name: string
     prototype_uuid: integer
     yield_block: BlockName | nil
 
@@ -38,9 +40,10 @@ end
 
 global interface TaskPrototype<S is TaskState>
     priority: integer
-    func: function(S, BlockType): string | nil
+    func: function(S, BlockType, ?{string : any}): string | nil
 
     uuid: integer
+    name: string
 end
 
 global interface StateGenerator<S is TaskState>
@@ -61,9 +64,11 @@ end
 
 function task_helper.new_prototype<S is TaskState>(
     priority: integer,
-    func: function(S, BlockType): string | nil
+    name: string,
+    func: function(S, BlockType, ?{string : any}): string | nil
 ): TaskPrototype<S>
     local new: TaskPrototype<S> = {
+        name = name,
         priority = priority,
         func = func,
     }
@@ -79,6 +84,7 @@ function task_helper.new_task<S is TaskState, T is StateGenerator<S>>(
     local prototype = base_obj.task_prototype
     local state: S = base_obj:state_generator(quantity)
     return {
+        name = prototype.name,
         priority = prototype.priority,
         prototype_uuid = prototype.uuid,
         yield_block = init_blockname,
@@ -99,6 +105,38 @@ function task_helper.instantiate<S is TaskState, T is StateGenerator<S>>(
 
     pqueue.insert(await_queue, task_helper.new_task(base_obj, quantity, init_blockname))
     return true
+end
+
+local function set_block_name(task: Task, new_name: BlockType)
+    if type(new_name) == "string" or type(new_name) == "number" then 
+        local block = task.yield_block
+        if block is BlockName then
+            block.name = new_name as string
+        else
+            comms.robot_send("fatal", string.format(
+                    "(ID = %d | name = %s)\n Attempted to set block_name: %s",
+                    task.prototype_uuid, task.name, tostring(new_name)
+            ))
+        end
+    end
+end
+
+function task_helper.call(task: Task)
+    local _: boolean
+    local new_name: any
+    _, new_name = coroutine.resume(task.coroutine, task.state, task.yield_block)
+    if new_name ~= nil and (type(new_name) == "string" or type(new_name) == "number") then
+        set_block_name(task, new_name as BlockType)
+    end
+end
+
+function task_helper.call_with(task: Task, block: BlockType, arg_: {string : any})
+    local _: boolean
+    local new_name: any
+    _, new_name = coroutine.resume(task.coroutine, task.state, block, arg_)
+    if new_name ~= nil and (type(new_name) == "string" or type(new_name) == "number") then
+        set_block_name(task, new_name as BlockType)
+    end
 end
 
 function task_helper.yield(block_name: BlockType)

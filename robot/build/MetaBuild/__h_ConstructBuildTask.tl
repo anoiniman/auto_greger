@@ -9,7 +9,6 @@ require("build.MetaBuild.MetaSchematic")
 require("build.MetaBuild.__h_SchematicInterface")
 local item_helper = require("inventory.__h_Item")
 
-
 global interface ConstructBuildInstruction
     rel_coords: Pos3D    
     block_definition: ItemDefinition
@@ -28,6 +27,7 @@ global interface ConstructBuildState is TaskState, InteractiveIDStore
     build_instruction: ConstructBuildInstruction
 
     sinterface: SchematicInterface
+    sinterface_loaded: boolean
     c_options: {ConstructionOption}
 
     rel_moved: boolean

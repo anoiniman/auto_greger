@@ -1,18 +1,21 @@
 require("Position")
 require("deep_copy")
 require("build.MetaBuild.DoorInfo")
+-- require("build.MetaBuild.__h_init")
 require("build.MetaBuild.__h_Symbol")
 require("build.MetaBuild.__h_ConstructBuildTask")
 
+local filesystem = require("filesystem")
+
+local comms = require("comms")
 local task_helper = require("Task")
+local general_functions = require("build.general_functions")
+local sinterface_helper = require("build.MetaBuild.SchematicInterface")
+local build_helper = require("build.MetaBuild")
 
 global enum CBuildOption
     "top_to_bottom"
 end
-
-local interface BaseFormat is {{string}} default: {string} end
-local type SubSegment = {string, Pos2D}
-local type SegmentArray = {integer : {SubSegment}}
 
 global interface BaseBuildPrimitive
     name: string
@@ -22,15 +25,15 @@ global interface BaseBuildPrimitive
     human_readable: {{string}} | nil
     pos_offset: Pos3D
 
-    base_table: BaseFormat | nil
-    segments: {integer : SegmentArray}
+    base_table: BaseFormat
+    segments: SegmentArray
     doors: {DoorInfo}
     iter: function(self): (function(): integer | nil, {string} | nil)
 end
 
 global interface BuildPrimitive is StateGenerator<BuildState>
     base: BaseBuildPrimitive
-    c_task: ConstructBuildTask
+    c_task: Task
 end
 
 local record module end
@@ -38,9 +41,9 @@ local record module end
 function module.new_build_primtive(
     base_prim: BaseBuildPrimitive,
     gen: function(integer): BuildState,
-    use_function: function(BuildState, TaskBlockType): string | nil
+    use_function: function(BuildState, TaskBlockType, ?{string : any}): string | nil
 ): BuildPrimitive
-    local prototype = task_helper.new_prototype(-1, use_function)
+    local prototype = task_helper.new_prototype(-1, "BuildPrimitive", use_function)
     return {
         base = base_prim,
         state_generator = gen,
@@ -51,14 +54,13 @@ end
 
 
 local function check_human_map(base_table: {{string}}, name: string): integer
-    for _, base in pairs(base_table) do
-        local map = base[2]
-        if #map > 7 then
+    for _, base in ipairs(base_table) do
+        if #base > 7 then
             comms.robot_send("error", "In human map -- Build: \"" .. name .. "\" -- Too Many Lines!")
             return -1
         end
 
-        for index, line in ipairs(map) do
+        for index, line in ipairs(base) do
             if string.len(line) > 7 then
                 comms.robot_send(
                     "error",
@@ -67,8 +69,6 @@ local function check_human_map(base_table: {{string}}, name: string): integer
                 return index
             end
         end
-
-        ::continue::
     end
 
     return 0
@@ -77,29 +77,29 @@ end
 local function rotate_and_translate(primitive: BaseBuildPrimitive, quad_num: integer, chunk_height: integer): boolean
     local base_table = primitive.base_table
     local segments = primitive.segments
-    local origin_block = primitive.origin_block
+    local pos_offset = primitive.pos_offset
 
-    origin_block[3] = origin_block[3] + logical_chunk_height -- y
+    pos_offset[3] = pos_offset[3] + chunk_height -- y
 
     if quad_num == 1 then
         general_functions.mirror_x(base_table, segments)
 
-        origin_block[1] = origin_block[1] + 8 -- x
-        origin_block[2] = origin_block[2] + 1 -- z
+        pos_offset[1] = pos_offset[1] + 8 -- x
+        pos_offset[2] = pos_offset[2] + 1 -- z
     elseif quad_num == 2 then
-        origin_block[1] = origin_block[1] + 1
-        origin_block[2] = origin_block[2] + 1
+        pos_offset[1] = pos_offset[1] + 1
+        pos_offset[2] = pos_offset[2] + 1
     elseif quad_num == 3 then
         general_functions.mirror_z(base_table, segments)
 
-        origin_block[1] = origin_block[1] + 1
-        origin_block[2] = origin_block[2] + 8
+        pos_offset[1] = pos_offset[1] + 1
+        pos_offset[2] = pos_offset[2] + 8
     elseif quad_num == 4 then
         general_functions.mirror_x(base_table, segments)
         general_functions.mirror_z(base_table, segments)
 
-        origin_block[1] = origin_block[1] + 8 -- x
-        origin_block[2] = origin_block[2] + 8
+        pos_offset[1] = pos_offset[1] + 8 -- x
+        pos_offset[2] = pos_offset[2] + 8
     else
         print(comms.robot_send("error", "MetaBuild rotatePrimitive impossible quad_num: " .. quad_num))
         return false
@@ -107,49 +107,35 @@ local function rotate_and_translate(primitive: BaseBuildPrimitive, quad_num: int
     return true
 end
 
-function module.init(primitive: BuildPrimitive, quad: integer, chunk_height: integer): boolean
-    local old_origin_block = COPY(primitive.base.origin_block, ipairs)
+function module.init(primitive: BuildPrimitive, quad: integer, chunk_height: integer, build: Build): boolean
+    local old_pos_offset = COPY(primitive.base.pos_offset, ipairs)
     local result = rotate_and_translate(primitive.base, quad, chunk_height)
     if not result then return false end
 
     local base_table = primitive.base.base_table
+    if check_human_map(base_table, primitive.base.name) ~= 0 then return false end -- Sanity
 
-    primitive.c_task.sinterface = sinterface_helper.new()
-    -- its ok to retain this after dumping the primitive because of GC, I think
-    sinterface_helper.init(sinterface, primitive.dictionary, primitive.origin_block)
-    special_blocks = sinterface_helper.get_special_blocks(sinterface)
+    local sinterface = sinterface_helper.new(primitive.base.pos_offset, primitive.base.dictionary)
+    build.special_blocks = sinterface_helper.get_special_blocks(sinterface)
 
-    if check_human_map(base_table, primitive.name) ~= 0 then -- sanity check
-        return false
-    end
-
-    -- the sparse array
+    local update_state = { sinterface = sinterface }
+    task_helper.call_with(primitive.c_task, "update", update_state as {string : any})
 
     -- ATTENTION: VVVVVVVVVVVVVVVVVVVVVVVVV
     -- if returning the length of the MetaSchematic tables is faulty, we'll need to count the height of ngs here
     -- thanks to the magic of lua bogus arguments are ok!
-    if module.primitive.iter == nil then
+    if primitive.base.iter == nil then
         for index, table_obj in ipairs(base_table) do
             sinterface_helper.parse_string_arr(sinterface, table_obj, index)
             --max_index = max_index + 1
         end
     else
-        for index, table_obj in primitive:iter(base_table) do -- it is expected that table object does not include meta-data
+        for index, table_obj in primitive.base:iter() do
             sinterface_helper.parse_string_arr(sinterface, table_obj, index)
-            -- print(comms.robot_send("debug", "Metasetup) we looped once m8"))
-            --max_index = max_index + 1
         end
     end
 
-    -- TODO move this to its own little function when appropriate
-    if module.contains_option( "top_to_bottom") then
-        print("top_bottomed")
-        sinterface.stack.logical_y = #sinterface.schematic
-    end
-
-    is_nil = false
-
-    local result = module.translate_special( quad, chunk_height, old_origin_block)
+    result = build_helper.translate_special(build, quad, chunk_height, old_pos_offset)
     if not result then return false end
 
     return true
@@ -180,14 +166,14 @@ function module.require_build(name: string, chunk: ChunkCoord, quad: integer, ch
         return nil
     end
     
-    module.init(primitive, quad, chunk_height)
+    if not module.init(primitive, quad, chunk_height, new) then return nil end
 
     new.name = primitive.base.name
     new.build_task = task_helper.new_task(primitive, -1) as BuildTask
 
     new.chunk = chunk
     new.quad = quad
-    new.doors = doors
+    new.doors = primitive.base.doors
 
     -- module.init_primitive(new)
     return new

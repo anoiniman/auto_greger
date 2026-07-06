@@ -1,10 +1,7 @@
 require("deep_copy")
+require("build.MetaBuild.__h_Symbol")
 require("build.MetaBuild.MetaSchematic")
 require("Position")
-
-local interface BaseFormat is {{string}} default: {string} end
-local type SubSegment = {string, Pos2D}
-local type SegmentArray = {integer : {SubSegment}}
 
 local record module end
 function module.iter(base_table: BaseFormat, goal: integer, segments: SegmentArray): function(): integer | nil, {string} | nil
