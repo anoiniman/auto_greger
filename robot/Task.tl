@@ -121,22 +121,30 @@ local function set_block_name(task: Task, new_name: BlockType)
     end
 end
 
-function task_helper.call(task: Task)
-    local _: boolean
-    local new_name: any
-    _, new_name = coroutine.resume(task.coroutine, task.state, task.yield_block)
+function task_helper.call<T>(task: Task): T
+    local rt_table: {any} = table.pack(coroutine.resume(task.coroutine, task.state, task.yield_block))
+    local new_name: string = rt_table[2] as string
+    if type(new_name) ~= "string" then error(comms.robot_send("fatal", "new_name is not string")) end
+
     if new_name ~= nil and (type(new_name) == "string" or type(new_name) == "number") then
         set_block_name(task, new_name as BlockType)
     end
+    table.remove(rt_table, 1)
+    table.remove(rt_table, 1)
+    return rt_table as T
 end
 
-function task_helper.call_with(task: Task, block: BlockType, arg_: {string : any})
-    local _: boolean
-    local new_name: any
-    _, new_name = coroutine.resume(task.coroutine, task.state, block, arg_)
+function task_helper.call_with<T>(task: Task, block: BlockType, arg_: {string : any}): T
+    local rt_table: {any} = table.pack(coroutine.resume(task.coroutine, task.state, block, arg_))
+    local new_name: string = rt_table[2] as string
+    if type(new_name) ~= "string" then error(comms.robot_send("fatal", "new_name is not string")) end
+
     if new_name ~= nil and (type(new_name) == "string" or type(new_name) == "number") then
         set_block_name(task, new_name as BlockType)
     end
+    table.remove(rt_table, 1)
+    table.remove(rt_table, 1)
+    return rt_table as T
 end
 
 function task_helper.yield(block_name: BlockType)

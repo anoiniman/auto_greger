@@ -107,9 +107,9 @@ local function rotate_and_translate(primitive: BaseBuildPrimitive, quad_num: int
     return true
 end
 
-function module.init(primitive: BuildPrimitive, quad: integer, chunk_height: integer, build: Build): boolean
+function module.init(primitive: BuildPrimitive, build: Build): boolean
     local old_pos_offset = COPY(primitive.base.pos_offset, ipairs)
-    local result = rotate_and_translate(primitive.base, quad, chunk_height)
+    local result = rotate_and_translate(primitive.base, build.quad, build.offset[3])
     if not result then return false end
 
     local base_table = primitive.base.base_table
@@ -135,15 +135,16 @@ function module.init(primitive: BuildPrimitive, quad: integer, chunk_height: int
         end
     end
 
-    result = build_helper.translate_special(build, quad, chunk_height, old_pos_offset)
+    result = build_helper.translate_special(build, build.quad, build.offset[3], old_pos_offset)
     if not result then return false end
 
+    build.build_task = task_helper.new_task(primitive, -1) as BuildTask
+    build.doors = primitive.base.doors
     return true
 end
 
-function module.require_build(name: string, chunk: ChunkCoord, quad: integer, chunk_height: integer): Build | nil
-    local new: Build = {} as Build
-
+function module.require_build(build: Build): boolean
+    local name: string = build.name
     --[[if primitive_cache[name] ~= nil then
         new.primitive = primitive_cache[name]:new() -- very important
         module.initPrimitive(build)
@@ -163,20 +164,10 @@ function module.require_build(name: string, chunk: ChunkCoord, quad: integer, ch
         primitive = dofile(path) as BuildPrimitive
     else
         print(comms.robot_send("error", "MetaBuild -- require -- No such build with name: \"" .. name .. "\""))
-        return nil
+        return false
     end
     
-    if not module.init(primitive, quad, chunk_height, new) then return nil end
-
-    new.name = primitive.base.name
-    new.build_task = task_helper.new_task(primitive, -1) as BuildTask
-
-    new.chunk = chunk
-    new.quad = quad
-    new.doors = primitive.base.doors
-
-    -- module.init_primitive(new)
-    return new
+    return module.init(primitive, build)
 end
 
 

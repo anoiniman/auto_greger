@@ -6,7 +6,7 @@ local task_helper = require("Task")
 local interactive = require("interactive")
 local area_helper = require("nav_module.Area")
 
-local build_helper = require("build.MetaBuild")
+local primitive_helper = requrie("build.MetaBuild.BuildPrimitive")
 
 local ma_module = require("nav_module.map_area")
 local map_area: AreaTable<NamedArea> = ma_module.area_table
@@ -60,7 +60,7 @@ function module.new_construct_task(
 
     local block_names = {
         know_names = "igate0",
-        name = {"igate0", "igate0poll", "igate1", "igate1poll"}
+        name = {"update", "igate0", "igate0poll", "igate1", "igate1poll", "require_build", "do_build"}
     }
 
     return task_helper.new_task(prototype, gen_obj, -1)
@@ -92,7 +92,6 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType, up
     if nblock == "igate0" then
         -- if this crashes add the to_string's
         local hr_table: {string | integer} = {
-            "offset_chunk:", build_ref.what_chunk[1], ", ", build_ref.what_chunk[2], " ||", 
             "name: ", build_ref.name, " || \n", "waiting for origin_chunk_coords, and quad"
         }
         local human_readable = table.concat(hr_table)
@@ -104,15 +103,15 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType, up
         if data == nil then
             task_helper.yield("igate0poll")
         end
-        build_ref.what_chunk[1] = build_ref.what_chunk[1] + data[1]
-        build_ref.what_chunk[2] = build_ref.what_chunk[2] + data[2]
+        build_ref.what_chunk[1] = data[1]
+        build_ref.what_chunk[2] = data[2]
         build_ref.what_quad = data[3]
 
         interactive.del_element(state)
         task_helper.yield("igate1")
     elseif nblock == "igate1" then
         if area_helper.is_chunk_in_area_table(map_area, build_ref.what_chunk) then
-            task_helper.yield("add_quad")
+            task_helper.yield("require_build")
         end
 
         local hr_table: {string | integer} = {
@@ -148,36 +147,21 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType, up
 
         task_helper.yield("require_build")
     elseif nblock == "require_build" then
-        local build = build_helper.require_build()
-
-        local chunk_ref = lb_tbl.map_obj.chunk_exists(build_ref.what_chunk)
-        
-
-        local result = lb_tbl.map_obj.add_build(build_ref.what_chunk, build_ref.what_quad, build_ref.name)
+        local build = primitive_helper.require_build(build_ref.name, build_ref)
+        local result = lb_tbl.map_obj.add_build(build_ref.chunk, build_ref.quad, build_ref.name)
         if not result then
-            error(comms.robot_send("fatal", "start_auto_build, step == 4 | TODO - make this thing failable without fatality :)"))
+            return -- kills the task
         end
 
-        task_helper.yield("setup_build")
-    elseif nblock == "setup_build" then
-        local result = build_ref
-        if not result then
-            print(comms.robot_send("error", "start_auto_build, step == 5 | TODO - idem :)"))
-            lock[1] = 0
-            return nil
-        end
-
-        what_step = 6
-        ab_metainfo.step = what_step
-        -- old return
-    elseif what_step == -100 then -- quite an important TODO if I say so myself
+        task_helper.yield("do_build")
+    elseif what_step == -100 then -- TODO (?)
         -- Do things like filling in the floor so monsters don't spawn etc. !
-        module.clear_quad()
-        error("TODO")
+        -- module.clear_quad()
+        if true then error("TODO") end
+        task_helper.yield("do_build")
+    elseif what_step == "do_build" then
+        -- REWRITE HEAD
 
-        what_step = 7
-        ab_metainfo.step = what_step
-    elseif what_step == 6 then
         local result, status, instruction = module.do_build(what_chunk, what_quad)
         if not result then error(comms.robot_send("fatal", "start_auto_build, step == 6")) end
         if status == "done" then
@@ -199,9 +183,6 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType, up
 
     ::fall::
     error(comms.robot_send("fatal", "Fell out from yield block table"))
-
-    -- let this fall through if this is what we want to return, most of the time this is what we want to return
-    -- return {prio, "start_auto_build", ab_metainfo}
 end
 
 

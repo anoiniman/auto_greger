@@ -146,7 +146,7 @@ function module.request_form(_data: any, id: integer)
     end
 end
 
-local type auto_build0 = {integer, integer, integer}
+local type auto_build0 = {integer, integer, integer, integer}
 local type auto_build1 = {string}
 function module.set_data_table(add_data: any, id: integer): boolean
     local element = wait_list[id]
@@ -160,8 +160,8 @@ function module.set_data_table(add_data: any, id: integer): boolean
         local data: auto_build0 = add_data as auto_build0
 
         -- since we don't have the request systme implemented, just add an eval to throw data in
-        if  data == nil or #data ~= 3 or tonumber(data[1]) == nil or tonumber(data[2]) == nil or tonumber(data[3]) == nil or
-            data[3] > 4 or data[3] < 1
+        if  data == nil or #data ~= 3 or tonumber(data[1]) == nil or tonumber(data[2]) == nil or tonumber(data[3]) == nil
+            or data[3] > 255 or data[3] < 0 or tonumber(data[4]) == nil or data[4] > 4 or data[4] < 1
         then
             print(comms.robot_send("error", "invalid data"))
             return false

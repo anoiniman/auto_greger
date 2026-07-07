@@ -10,6 +10,7 @@ global interface Build
     name: string
     chunk: ChunkCoord
     quad: integer
+    height: integer
 
     offset: Pos3D
 

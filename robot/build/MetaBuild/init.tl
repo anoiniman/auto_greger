@@ -15,17 +15,32 @@ require("build.MetaBuild.SchematicInterface")
 
 local record module end
 local type C = CoordinateType
---[[function module.new(): Build
-    return {
-        name = "NONE",
-        option = nil,
-        chunk = nil as Pos2D,
 
-        build_task = nil,
-        doors = nil as {Door}
-        special_blocks = nil as {SpecialSchematicChunk},
+function module.empty(name: string): Build
+    return {
+        name = name,
+        chunk = {0, 0},
+        height = 1,
+        quad = -1,
+
+        offset = {0 as C.X, 0 as C.Z, 0 as C.Y},
+        doors = {},
+        special_blocks = {},
     }
-end--]]
+end
+
+function module.new(name: string, chunk: ChunkCoord, height: integer, quad: integer): Build
+    return {
+        name = name,
+        chunk = chunk,
+        height = height,
+        quad = quad,
+
+        offset = {0 as C.X, 0 as C.Z, 0 as C.Y},
+        doors = {},
+        special_blocks = {},
+    }
+end
 
 function module.get_special_coords(build: Build, what_symbol: SpecialSymbol, index: integer): Pos3D | nil
     local coords, _ = general_functions.count_occurence_of_symbol(what_symbol, index, build.special_blocks)
