@@ -12,6 +12,7 @@ global interface Build
     quad: integer
 
     offset: Pos3D
+
     doors: {DoorInfo}
     special_blocks: {SpecialSchematicChunk}
     build_task: BuildTask | nil

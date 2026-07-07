@@ -9,7 +9,7 @@ end
 global interface Chunk
     tags: {ChunkTag} | nil
     parent_area: Area | nil
-    builds:  {Build} | nil
+    builds:  {integer : Build} | nil
 end
 
 global interface FakeMap

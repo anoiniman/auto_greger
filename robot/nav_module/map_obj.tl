@@ -9,7 +9,6 @@ local deep_copy = require("deep_copy")
 require("nav_module.__h_map_obj")
 local interactive = require("interactive")
 -- require("build.MetaBuild")
-local BuildInstruction = require("build.MetaBuild.BuildInstruction")
 
 local record module end
 
@@ -25,31 +24,42 @@ local record module end
 -- maybe integer packing will be gooe enough?
 
 
-local map_map = {}
+local map_map: {integer : Chunk} = {}
+local known_buildings: {string : {Build}} = {}
+local map_areas = require("nav_module.map_area")
+local area_table = map_areas.area_table
 --[[local function get_chunk(coord: ChunkCoord): Chunk
     local packed = (coord[1] << 32) | coord[2]
     return map_map[packed]
 end--]]
-local macroexp get_chunk(coord: ChunkCoord)
+local macroexp get_chunk(coord: ChunkCoord): Chunk
     return map_map[(coord[1] << 32) | coord[2]]
 end
+local macroexp get_coords(): integer, integer
+    return packed >> 32, packed & 0xFFFFFFFF
+end
+
 
 -- CHUNK:
 --  x: integer
 --  z: integer
 --  tags: nil | {Tag} (?)
 --  parent_area: nil | Area
---  height_override: nil | integer (deprecated for sure with update of how buildings will be instantiated)
 --  builds: {Build}
---  roads_cleared: boolean (deprecated?) --> if it still exists it'll just be another tag, but rather, maybe
-                                         -- we should have a "roads" array that holds Type Road objects
 -- //////
 
-function module.new_chunk()
-
+function module.new_chunk(coord: ChunkCoord): Chunk
+    local new_chunk = {
+        tags = nil,
+        parent_area = nil,
+        builds  = nil,
+    }
+    map_map[(coord[1] << 32) | coord[2]] = new_chunk
+    return new_chunk
 end
 
-function module.add_tag(chunk: Chunk, str: ChunkTag)
+function module.add_tag(coord: ChunkCoord, str: ChunkTag)
+    local chunk = get_chunk(coord)
     if chunk.tags == nil then chunk.tags = {} end
     for _, tag in ipairs(chunk.tags as {ChunkTag}) do
         if tag == str then return end     
@@ -57,7 +67,9 @@ function module.add_tag(chunk: Chunk, str: ChunkTag)
     table.insert(chunk.tags, str)
 end
 
-function module.try_remove_tag(chunk: Chunk, str: ChunkTags, ok_to_fail?: boolean): boolean
+function module.try_remove_tag(coord: ChunkCoord, str: ChunkTags, ok_to_fail?: boolean): boolean
+    local chunk = get_chunk(coord)
+
     if ok_to_fail is nil then ok_to_fail = false end
     local was_able_to_remove = false
     for index, tag in ipairs(chunk.tags) do
@@ -77,19 +89,13 @@ function module.try_remove_tag(chunk: Chunk, str: ChunkTags, ok_to_fail?: boolea
     return true
 end
 
-function module.check_marks(chunk: Chunk, str: ChunkTag): boolean
+function module.check_marks(coord: ChunkCoord, str: ChunkTag): boolean
+    local chunk = get_chunk(coord)
     if chunk.tags is nil then return false end
     for _, tag in ipairs(chunk.tags) do
         if tag == str then return true end
     end
     return false
-end
-
-function module.get_name(chunk: Chunk, what_quad: integer): string
-    if chunk.meta_quads == nil then return nil end
-    local quad_in_question = chunk.meta_quads[what_quad]
-    if quad_in_question == nil or not quad_in_question:isInit() then return nil end
-    return quad_in_question:getName()
 end
 
 function module.get_height(chunk: Chunk): integer
@@ -98,111 +104,39 @@ function module.get_height(chunk: Chunk): integer
     return nil as integer
 end
 
-function module.get_build_ref(what_quad: integer): Build
-    if chunk.meta_quads == nil then return nil end
-    local quad_in_question = self.chunk.meta_quads[what_quad]
-    if quad_in_question == nil or not quad_in_question:isInit() then return nil end
-    return quad_in_question:getBuild()
-end
-
-function MetaChunk:setParent(what_parent, height_override)
-    if height_override ~= nil then
-        if height_override < 0 or height_override > 255 then
-            print(comms.robot_send("error", "MetaChunk:addToParent -- invalid height_override"))
-            return false
-        end
-        self.chunk.height_override = height_override
+function module.get_build_ref(coord: ChunkCoord, what_quad: integer): Build | nil
+    local chunk = get_chunk(coord)
+    local builds = chunk.builds
+    if builds is {Build} then
+        local build = builds[what_quad]
+        if build == nil then return nil else return build end
     end
-
-    self.chunk.parent_area = what_parent
-    return true
+    return nil
 end
 
-local function empty_quad_table()
-    local quads = {MetaQuad:new(), MetaQuad:new(), MetaQuad:new(), MetaQuad:new()}
-    return quads
+function module.get_name(coord: ChunkCoord, quad: integer): string | nil
+    local build = module.get_build_ref(coord, quad)
+    if build is Build then return build.name end
+    return nil
 end
 
-function MetaChunk:getDoors(what_quad_num)
-    if not self:quadChecks(what_quad_num, "getDoors") then return nil end
-    local this_quad = self.chunk.meta_quads[what_quad_num]
-    local doors = this_quad:getDoors()
-    --if doors == nil then print(comms.robot_send("error", "MetaChunk:getDoors, got nil doors xO")) end
-    return doors
+function module.set_parent(coord: ChunkCoord, parent: Area)
+    local chunk = get_chunk(coord)
+    chunk.parent_area = parent
 end
 
-function MetaChunk:quadChecks(what_quad_num, from_where)
-    if what_quad_num > 4 or what_quad_num < 1 then
-        print(comms.robot_send("error", "-- " .. from_where .. " --" .. "specified invalid quad_num: \"" .. tostring(what_quad_num) .. "\""))
-        return false
-    end
-    if self.chunk.meta_quads == nil then self.chunk.meta_quads = empty_quad_table() end
-    return true
+function module.get_doors(coord: ChunkCoord, quad: integer): {DoorInfo} | nil
+    local build = module.get_build_ref(coord, quad)
+    if build is nil then return nil end
+    return (build as Build).doors
 end
 
-function MetaChunk:addQuadCommon(what_quad_num, what_build, what_chunk)
-    local this_quad = self.chunk.meta_quads[what_quad_num]
-    local result = this_quad:setQuad(what_quad_num, what_build, what_chunk)
-
-    if result == true then
-        return true
-    end
-    print(comms.robot_send("error", "couldn't add build to quad"))
-    -- TODO if this happens reset the chunk?
-    return false
+function module.insert_build(name: string, build_ref: Build)
+    if known_buildings[name] == nil then known_buildings[name] = {} end
+    local size = #known_buildings[name]
+    known_buildings[name][size + 1] = build_ref
 end
 
-function MetaChunk:addQuad(what_quad_num, what_build, what_chunk)
-    if not self:quadChecks(what_quad_num, "addQuad") then return false end
-    if self.chunk.meta_quads[what_quad_num]:getNum() ~= 0 then
-        print(comms.robot_send("error", "trying to overwrite already defined quad, without specifing desire to overwrite!"))
-    end
-    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
-end
-
-function MetaChunk:replaceQuad(what_quad_num, what_build, what_chunk)
-    if not self:quadChecks(what_quad_num, "replaceQuad") then return false end
-    local this_quad = self.chunk.meta_quads[what_quad_num]
-    if this_quad:getNum() ~= 0 and this_quad:isBuilt() then
-        print(comms.robot_send("error", "trying to overwrite already BUILT quad, UNIMPLEMENTED!"))
-    end
-    return self:addQuadCommon(what_quad_num, what_build, what_chunk)
-end
-
-function MetaChunk:setupBuild(what_quad_num)
-    if not self:quadChecks(what_quad_num, "setupBuild") then return false end
-
-    local this_quad = self.chunk.meta_quads[what_quad_num]
-    if this_quad:isBuilt() then
-        print(comms.robot_send("error", "cannot prepare to build what is already built!"))
-        return false
-    end
-
-    local chunk_height = self:getHeight()
-    return this_quad:setupBuild(chunk_height)
-end
-
-function MetaChunk:doBuild(what_quad_num)
-    if not self:quadChecks(what_quad_num, "doBuild") then return false end
-
-    local this_quad = self.chunk.meta_quads[what_quad_num]
-    if this_quad:isBuilt() then
-        print(comms.robot_send("error", "cannot build what is already built!"))
-        return false
-    end
-    return this_quad:doBuild()
-end
-
-function MetaChunk:finalizeBuild(what_quad_num)
-    if not self:quadChecks(what_quad_num, "finalizeBuild") then return false end
-    local this_quad = self.chunk.meta_quads[what_quad_num]
-    this_quad:finalizeBuild()
-    return true
-end
-
--->>-----------------------------------<<--
-
-local known_buildings = {}
 function known_buildings:insert(name, build_ref)
     if self[name] == nil then self[name] = {} end
     local size = #self[name]
@@ -212,27 +146,21 @@ end
 module.all_builds = known_buildings
 
 -->>-----------------------------------<<--
-
-local function chunk_is_unique(chunk)
-    return  chunk.marks ~= nil or chunk.parent_area ~= nil
-            or chunk.meta_quads ~= nil or chunk.height_override ~= nil or chunk.roads_cleared ~= false
-end
-
-local function translate_chunk(chunk, a_table, build_table, chunks_proper)
-    ------- META QUADS --------
-    if chunk.meta_quads ~= nil then
-        for _, quad in ipairs(chunk.meta_quads) do
-            if not quad:isBuilt() then goto continue end
+local type BSaveType = { {string, string, integer, integer, integer} }
+local type CSaveType = { {integer, integer, {string}, string | nil}}
+local function translate_chunk(chunk: Chunk, coords: ChunkCoord, build_table: {BSaveType}, chunks_table: {CSaveType})
+    ------- BUILD TABLE --------
+    local builds = chunk.builds
+    if builds is {integer : Build} then
+        -- bd_sub_table = {area_name, build_name, x, z, what_quad}
+        for _, build in pairs(builds) do
             local sub_table = {
                 chunk.parent_area.name,
-                quad:getName(),
-                math.floor(chunk.x),
-                math.floor(chunk.z),
-                quad:getNum()
+                build.name,
+                coords[1] as integer,
+                coords[2] as integer,
             }
-
             table.insert(build_table, sub_table)
-            ::continue::
         end
     end
 
@@ -241,40 +169,30 @@ local function translate_chunk(chunk, a_table, build_table, chunks_proper)
         math.floor(chunk.x),
         math.floor(chunk.z),
         chunk.marks,
-        chunk.height_override,
-        chunk.roads_cleared,
+        chunk.parent_area.name
     }
-    if chunk.parent_area ~= nil then
-        sub_table[6] = chunk.parent_area.name
+    local parent_area = chunk.parent_area
+    if parent_area is NamedArea then
+        sub_table[4] = parent_area.name
     end
-
     table.insert(chunks_proper, sub_table)
 end
 
 -- we need data to recreate builds, to recreate areas, and to recreate marks,
-function module.get_data()
-    local a_table = deep_copy.copy_no_functions(areas_table)
-
-    -- MetaQuads are never stored directly, instead they are stored as an order to pretend_build
-    -- something at the given MetaQuad, and by something let us say: the building that IS THERE!
+function module.get_data(): {{NamedArea}, BSaveType, CSaveType}
     -- bd_sub_table = {area_name, build_name, x, z, what_quad}
-    local build_table = {}
+    local build_table: BSaveType = {}
 
-    -- chunk_proper_sub_table = {x, z, {[marks]}, height_override, roads_cleared}
-    local chunks_proper = {}
+    -- chunk_proper_sub_table = {x, z, {[marks]}, parent_area}
+    local chunk_table: CSaveType  = {}
 
-    for _, line in ipairs(map_obj) do
-        for _, chunk in ipairs(line) do
-            if not chunk_is_unique(chunk) then goto continue end
-            -- tbls are being passed by ref
-            translate_chunk(chunk, a_table, build_table, chunks_proper)
-            ::continue::
-        end
+    for raw_coord, chunk in pairs(map_map) do
+        translate_chunk(chunk, get_coords(raw_coord), build_table, chunk_table)
     end
 
     local big_table = {
-        a_table,
-        chunks_proper,
+        areas_table,
+        chunks_table,
         build_table,
     }
     return big_table

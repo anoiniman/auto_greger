@@ -150,9 +150,10 @@ c_main_function = function(state: ConstructBuildState, nblock: TaskBlockType, up
     elseif nblock == "require_build" then
         local build = build_helper.require_build()
 
-
         local chunk_ref = lb_tbl.map_obj.chunk_exists(build_ref.what_chunk)
-        local result = lb_tbl.map_obj.add_quad(build_ref.what_chunk, build_ref.what_quad, build_ref.name)
+        
+
+        local result = lb_tbl.map_obj.add_build(build_ref.what_chunk, build_ref.what_quad, build_ref.name)
         if not result then
             error(comms.robot_send("fatal", "start_auto_build, step == 4 | TODO - make this thing failable without fatality :)"))
         end
