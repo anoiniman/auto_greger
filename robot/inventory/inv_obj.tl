@@ -11,26 +11,33 @@ local text = require("text")
 local serialize = require("serialization")
 local filesystem = require("filesystem")
 
-require("deep_copy")
 local comms = require("comms")
-local geolyzer = require("geolyzer_wrapper")
+local deep_copy = require("deep_copy")
+
+local a_tbl = require("PriorityQueue")
+local pqueue_helper, PriorityQueue, Prioritizable = table.unpack(a_tbl)
+
 local search_table = require("search_table")
--- local PPObj = require("common_pp_format")
+local PPObj = require("common_pp_format")
 
 local Task = require("Task")
 local late_bind = require("late_bind")
+local geolyzer = require("geolyzer_wrapper")
+
+local map_helper = require("nav_module.map_obj")
 
 -- require("inventory.__h_ExternalInventory")
-local einv_helper = require("inventory.ExternalInventory")
 local item_bucket = require("inventory.item_buckets")
 local vinv_helper = require("inventory.VirtualInventory")
+local cinv_helper = require("inventory.CompressedVinventory")
+local einv_helper = require("inventory.ExternalInventory")
 
-local crafting_component = component.getPrimary("crafting")
-local inventory = component.getPrimary("inventory_controller")
-local generator = component.getPrimary("generator")
+local inventory = component.getPrimary("inventory_controller") as InventoryController
+local generator = component.getPrimary("generator") as Generator
 
 --}}}
 
+local external_inventories = einv_helper.get_external_inv_arr()
 local record module 
     virtual_inventory: VirtualInventory
 end
@@ -43,6 +50,7 @@ local inventory_size: integer = 32
 local used_up_capacity: integer = 0 -- has become useless because of better inventory management schemes, remove in future
 
 local crafting_table_slots: {integer} = {1,2,3, -1, 5,6,7, -1, 9,10,11}
+local forbiden_slots: {integer} = {1,2,3, 5,6,7, 9,10,11}
 
 local crafting_table_clear: boolean = true
 function module:is_crafting_clear(): boolean return crafting_table_clear end
@@ -60,53 +68,53 @@ vinv_helper.report_equiped_break(module.virtual_inventory) -- smart?
 -- variety of reasons, mainly when you are interested in putting certain things in specific buildings
 -- local short_lived_ordered_inventories = {}
 
-function module.get_data(): {any}
-    local virtual_inventory = vinv_helper.get_data(module.virtual_inventory)
-    local external_table = {}
+local type SaveData = {{string | integer}, EquipmentInfo, {EInventorySaveData}, integer, boolean}
+
+function module.get_data(): SaveData
+    local vinv_data = vinv_helper.get_data(module.virtual_inventory)
+    local external_table: {EInventorySaveData} = {}
     for _name, inner_table in pairs(external_inventories) do
         for _, einv in ipairs(inner_table) do
-            local vinv = lb_tbl.einv_helper.get_data(einv)
+            local vinv = einv_helper.get_data(einv)
             table.insert(external_table, vinv)
         end
     end
 
     -- local inv_size = serialize.serialize(inventory_size, false)
     local big_table = {
-        virtual_inventory, -- 1
-        module.virtual_inventory.equip_tbl,
+        vinv_data, -- 1
+        module.virtual_inventory.equip_info,
         external_table,
 
         used_up_capacity, -- 4
 
         crafting_table_clear,
-        use_self_craft, -- 6
     }
     return big_table
 end
 
 -- WARNING: reInstantiate will DELETE equip_tbl, you need to reinstantiate equiptbl in separate for now
-function module.re_instantiate(big_table: {any})
-    module.virtual_inventory = vinv_helper.reinstantiate(big_table[1] as {any})
+function module.re_instantiate(big_table: SaveData)
+    module.virtual_inventory = vinv_helper.reinstantiate(big_table[1])
     if big_table[2] ~= nil then
         -- it's ok to do this directly since only primitives are "in there"
-        module.virtual_inventory.equip_tbl = big_table[2] as {string | integer}
+        module.virtual_inventory.equip_info = big_table[2]
     else
-        module.virtual_inventory.equip_tbl = {}
+        module.virtual_inventory.equip_info = {}
         vinv_helper.report_equiped_break(module.virtual_inventory) -- smart?
     end
 
     external_inventories = {}
     for _, entry in ipairs(big_table[3]) do -- entry is fat ledger, remember
-        local external = lb_tbl.einv_helper.reinstantiate(entry as {any})
+        local external = einv_helper.reinstantiate(entry)
         if external.parent_build ~= nil then -- because it might just be a self-cache duh
-            module.register_ledger(external)
+            einv_helper.register_ledger(external)
         end
     end
 
-    used_up_capacity = big_table[4] as integer
+    used_up_capacity = big_table[4]
 
-    crafting_table_clear = big_table[5] as boolean
-    use_self_craft = big_table[6] as boolean
+    crafting_table_clear = big_table[5]
 end
 
 --->>-- Check on the ledgers --<<-----{{{
@@ -132,28 +140,29 @@ end
 function module.add_item_to_external(
     table_name: string,
     index: integer,
-    label: string,
-    name: string,
-    to_be_added: integer
+    item_def: ItemDefinition,
+    size: integer
 ): boolean
-    local fat_ledger = get_fat_ledger(table_name, index)
+    local fat_ledger = get_fat_ledger(table_name, index) as ExternalInventory
     if fat_ledger == nil then return false end
 
-    local ledger = (fat_ledger as ExternalInventory).ledger
-    vinv_helper.add_or_create(ledger, lable, name, to_be_added)
+    local ledger = cinv_helper.uncompress(fat_ledger.ledger)
+    vinv_helper.add_or_create(ledger, item_def, size, EMPTY_TABLE as {integer})
+    fat_ledger.ledger = cinv_helper.compress(ledger)
 
     return true
 end
 
 function module.remove_stack_from_external(table_name: string, index: integer, slot: integer, how_much: integer): boolean
-    local fat_ledger = get_fat_ledger(table_name, index)
+    local fat_ledger = get_fat_ledger(table_name, index) as ExternalInventory
     if fat_ledger == nil then return false end
 
     if how_much == 0 then return true end
     if how_much > 64 then how_much = 64 end
 
-    local ledger = fat_ledger.ledger
+    local ledger = cinv_helper.uncompress(fat_ledger.ledger)
     vinv_helper.remove_from_slot(ledger, slot, how_much)
+    fat_ledger.ledger = cinv_helper.compress(ledger)
 
     return true
 end
@@ -169,7 +178,7 @@ function module.list_external_inv()
         local fat_buffer = inner_tbl[1]
         table.insert(other_buffer, "   -- ")
         table.insert(other_buffer, "chunk = (")
-        local chunk = fat_buffer.parent_build.what_chunk
+        local chunk = (fat_buffer.parent_build as Build).chunk
         table.insert(other_buffer, tostring(chunk[1]))
         table.insert(other_buffer, ", ")
         table.insert(other_buffer, tostring(chunk[2]))
@@ -177,7 +186,7 @@ function module.list_external_inv()
 
         table.insert(other_buffer, "   -- ")
         table.insert(other_buffer, "quad = ")
-        local quad_str = tostring(lb_tbl.einv_helper.get_quad_num(fat_buffer))
+        local quad_str = tostring(einv_helper.get_quad_num(fat_buffer))
         table.insert(other_buffer, quad_str)
         table.insert(other_buffer, "\n")
 
@@ -187,11 +196,11 @@ function module.list_external_inv()
     print(comms.robot_send("info", str))
 end
 
-local function iter_external_inv<T>(build_name): ((function (?{T}): integer | nil, T | nil), {string : {ExternalInventory}} | nil)
+local function iter_external_inv(build_name?: string): ((function (?{{ExternalInventory}}): integer | nil, ExternalInventory | nil), {ExternalInventory} | nil, integer | nil)
     if build_name == nil then
-        local inner, next_index
-        local iteration = math.max
-        local function real_next(tbl: {T})
+        local inner, next_index: {ExternalInventory}, integer
+        local iteration = math.maxinteger
+        local function real_next(tbl: {{ExternalInventory}}): integer | nil, ExternalInventory | nil
             if inner ~= nil and iteration <= #inner then
                 iteration = iteration + 1
                 local value = inner[iteration]
@@ -205,14 +214,16 @@ local function iter_external_inv<T>(build_name): ((function (?{T}): integer | ni
                 return real_next(tbl)
             end
         end
-        return real_next, external_inventories
+        return real_next, external_inventories as {any : ExternalInventory}
     end
 
     if external_inventories[build_name] == nil then --some basic runtime checking
-        return function() return nil end
+        return function(): integer | nil, ExternalInventory | nil
+            return nil, nil
+        end
     end
 
-    return ipairs(external_inventories[build_name])
+    return (ipairs(external_inventories[build_name]) as ((function (?{{ExternalInventory}}): integer | nil, ExternalInventory | nil), {ExternalInventory} | nil, integer | nil))
 end
 
 -- All this pretty print code is the work of a madman
@@ -223,11 +234,13 @@ local function prepare_pp_print(
     size: integer,
     large_pp: PPObj
 )
-    local pp_obj
+    local pp_obj: PPObj
+    local decomp_ledger = cinv_helper.uncompress(fat_ledger.ledger)
+
     if uncompressed then
-        pp_obj = vinv_helper.get_fmt_obj(fat_ledger.ledger)
+        pp_obj = vinv_helper.get_fmt_obj(decomp_ledger)
     else
-        pp_obj = vinv_helper.get_compressed_fmt_obj(fat_ledger.ledger)
+        pp_obj = vinv_helper.get_compressed_fmt_obj(decomp_ledger)
     end
 
     local title_string = {"<External Inventory> (", index, "/", size, ")"}
@@ -235,7 +248,7 @@ local function prepare_pp_print(
     pp_obj:initPages()
 
     if large_pp.title == nil then -- aka, if large_pp is still just a {} instead of a inst of ppObj
-        for k, v in pairs(pp_obj) do large_pp[k] = v end
+        for k, v in pairs(pp_obj as {string : any}) do (large_pp as {string : any})[k] = v end
         return
     end
 
@@ -256,7 +269,7 @@ function module.print_external_inv(name: string, index: integer, uncompressed: b
 
     -- TODO we'll prob have to concat the internal inventories or have alterante view modes or whatever,
     -- for now just a simple print
-    if name ~= nil and index ~= nil then
+    if name ~= nil and index ~= nil and tbl is {ExternalInventory} then
         local fat_ledger = tbl[index]
         local pp_obj = {}
         prepare_pp_print(uncompressed, fat_ledger, index, #tbl, pp_obj)
@@ -294,7 +307,7 @@ end
 
 function module.how_many_internal(item: ItemDefinition): integer
     local quantity = vinv_helper.how_many(module.virtual_inventory, item)
-    local empty_slot = vinv_helper.module.get_empty_slot(virtual_inventory)
+    local empty_slot = vinv_helper.get_empty_slot(module.virtual_inventory, forbiden_slots)
     if empty_slot == nil then return quantity end
 
     -- TODO -> make this less hackish
@@ -303,7 +316,9 @@ function module.how_many_internal(item: ItemDefinition): integer
         generator.remove(generator.count())
         local what_is = inventory.getStackInInternalSlot(empty_slot)
         if  what_is ~= nil and
-            (what_is.label == label or (what_is.name == name and (label == nil or label == "nil" or label == "nil_label"))) then
+            (what_is.label == item.label or
+            (what_is.name == item.name and (item.label == nil or item.label == "nil" or item.label == "nil_label")))
+        then
             quantity = quantity + what_is.size
         end
 
@@ -315,15 +330,15 @@ function module.how_many_internal(item: ItemDefinition): integer
 end
 
 function module.how_many_total(item: ItemDefinition): integer
-    local quantity = vinv_helper.how_many(module.virtual_inventory)
+    local quantity = vinv_helper.how_many(module.virtual_inventory, item)
     for _, fat_ledger in iter_external_inv() do
-        local ledger = fat_ledger.ledger
-        quantity = quantity + vinv_helper.how_many(ledger)
+        local ledger = (fat_ledger as ExternalInventory).ledger
+        quantity = quantity + vinv_helper.how_many(cinv_helper.uncompress(ledger), item)
     end
     return quantity
 end
 
-local interface PriorityEInv is Prioritizeable
+local interface PriorityEInv is Prioritizable
     einv: ExternalInventory
 end
 local max_combined_travel: integer = 512 + 128
@@ -332,16 +347,16 @@ function module.get_nearest_inv_by_definition(item: ItemDefinition, empty_slots_
     if empty_slots_needed == nil then empty_slots_needed = 1 end
 
     local function check_and_add_to_queue(queue: PriorityQueue<PriorityEInv>, fat_inv: ExternalInventory)
-        local v_distance = lb_tbl.einv_helper.get_distance(fat_inv) / max_combined_travel
+        local v_distance = einv_helper.get_distance(fat_inv) / max_combined_travel
         if v_distance > 1 then return end
 
         --[[local v_inv_space = fat_inv.ledger:getNumOfEmptySlots() / fat_inv.ledger.inv_size
 
         local cmp_value = d_distance * 0.80 + v_inv_space * 0.20
         if cmp_value > 1 then cmp_value = 1.0 end--]]
-        if empty_slots_needed > vinv_helper.get_num_of_empty_slots(fat_inv.ledger) then return end
+        if empty_slots_needed > vinv_helper.get_num_of_empty_slots(cinv_helper.uncompress(fat_inv.ledger)) then return end
 
-        local cmp_value = v_distance
+        local cmp_value = math.floor(v_distance)
         local new: PriorityEInv = {
             priority = cmp_value,
             einv = fat_inv
@@ -352,17 +367,19 @@ function module.get_nearest_inv_by_definition(item: ItemDefinition, empty_slots_
 
     local inv_table_misc: PriorityQueue<PriorityEInv> = pqueue_helper.new()
     local inv_table: PriorityQueue<PriorityEInv> = pqueue_helper.new()
-    for _, fat_inv in iter_external_inv() do
+    for _, fat_inv_ in iter_external_inv() do
+        local fat_inv = fat_inv_ as ExternalInventory
+
         if not fat_inv.long_term_storage or not fat_inv.storage then
             goto continue
         end
 
-        if fat_inv:canAdd(lable, name) then
-            check_and_add_to_tbl(unsorted_inv_table, fat_inv)
+        if einv_helper.can_add(fat_inv, item) then
+            check_and_add_to_queue(inv_table, fat_inv)
             goto continue
         end
-        if fat_inv:canAny() then
-            check_and_add_to_tbl(unsorted_inv_table_misc, fat_inv)
+        if einv_helper.can_any(fat_inv) then
+            check_and_add_to_queue(inv_table_misc, fat_inv)
             goto continue
         end
 
@@ -373,7 +390,7 @@ function module.get_nearest_inv_by_definition(item: ItemDefinition, empty_slots_
         if pqueue_helper.size(inv_table_misc) == 0 then return nil end
         inv_table = inv_table_misc
     end
-    return inv_table.einv[1]
+    return (pqueue_helper.remove(inv_table, 1) as PriorityEInv).einv
 end
 
 -- No, I'm not going to solve the travelling salesman problem
@@ -384,60 +401,48 @@ function module.get_nearest_external_inv(
 ): ExternalInventory | nil
     -- ordered with biggest in the top position (#size - 1)
     local ref_quant_queue: PriorityQueue<PriorityEInv> = pqueue_helper.new()
-    for _, fat_inv in iter_external_inv() do
-        local pinv = fat_inv.ledger
+    for _, fat_inv_ in iter_external_inv() do
+        local fat_inv = fat_inv_ as ExternalInventory
+        local pinv = cinv_helper.uncompress(fat_inv.ledger)
 
         local quantity = vinv_helper.how_many(pinv, item)
         if quantity == nil or quantity < min_quantity then goto continue end
+
+        local distance = einv_helper.get_distance(fat_inv)
         local new_ref_quant = {
-            priority = quantity,
+            priority = distance,
             einv = fat_inv
         }
-
-        if pqueue_helper.size(ref_quant_queue) == 0 then
-            pqueue_helper.insert(ref_quant_queue, new_ref_quant)
-            goto continue
-        end
-        local distance = lb_tbl.einv_helper.get_distance(fat_inv)
-
-        for index, entry in ipairs(ref_quant_queue) do
-            -- local i_quantity = entry[1]
-            local i_inv = entry[2]
-
-            local i_distance = i_inv:getDistance()
-            if distance > i_distance then -- smaller is better
-                table.insert(ref_quant_table, index, new_ref_quant)
-                goto continue
-            end
-        end -- else, we da biggest ork
-
         pqueue_helper.insert(ref_quant_queue, new_ref_quant)
+
         ::continue::
     end
-    if pqueue.size(ref_quant) == 0 then return nil end
+    if pqueue_helper.size(ref_quant_queue) == 0 then return nil end
 
     local dist_sum = 0
     local quant_sum = 0
     -- check if we aren't going to do too much travelling
-    for index, entry in pqueue_helper.iter(ref_quant_queue) do
-        local i_quantity = entry[1]
-        local i_inv = entry[2]
-        local i_distance = i_inv:getDistance()
+    for index, entry_ in pqueue_helper.iter(ref_quant_queue) do
+        local entry = entry_ as PriorityEInv
+
+        local i_quantity = entry.priority
+        local i_inv = entry.einv
+        local i_distance = einv_helper.get_distance(i_inv)
 
         quant_sum = quant_sum + i_quantity
         dist_sum = dist_sum + i_distance
         if quant_sum >= total_needed_quantity then break end
     end
     -- remembered to account for internal inventory
-    quant_sum = quant_sum + module.how_many_internal(lable, name)
+    quant_sum = quant_sum + module.how_many_internal(item)
     if dist_sum > max_combined_travel or quant_sum < total_needed_quantity then return nil end
 
     -- we'll be recomputing the table for everystep but who cares?
-    return pqueue_helper.remove(ref_quant_queue).einv
+    return (pqueue_helper.remove(ref_quant_queue) as PriorityEInv).einv
 end
 
 function module.print_build_inventory(uncompressed: boolean, name: string, index: integer)
-    local build_table = build_register.get_buildings(name)
+    local build_table = map_helper.get_build_arr_by_name(name) as {Build}
     if build_table == nil then
         print(comms.robot_send("error", "No building with such a name exists/is built: " .. name))
         return

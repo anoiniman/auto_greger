@@ -104,10 +104,11 @@ end
     end
 end --]]
 
-local type SaveTable = {
+global type EInventorySaveData = {
     string | ChunkCoord, string | integer, {eInvItem}, boolean, boolean, {string | integer}, SpecialSymbol, integer
 }
-function module.get_data(einv: ExternalInventory): SaveTable
+local type SaveData = EInventorySaveData
+function module.get_data(einv: ExternalInventory): SaveData
     local vinv = cvinv_helper.uncompress(einv.ledger)
     local save_ledger = vinv_helper.get_data(vinv)
     local parent_chunk: string | ChunkCoord = "nil"
@@ -139,7 +140,7 @@ function module.get_data(einv: ExternalInventory): SaveTable
     return big_table
 end
 
-function module.reinstantiate(big_table: SaveTable): ExternalInventory
+function module.reinstantiate(big_table: SaveData): ExternalInventory
     local serial_ledger = big_table[6]
     local real_ledger = vinv_helper.reinstantiate(serial_ledger)
 

@@ -1,11 +1,7 @@
--- luacheck: globals EMPTY_STRING
 local comms = require("comms")
-
--- local SpecialDefinition = require("inventory.SpecialDefinition")
 local item_bucket = require("inventory.item_buckets")
 
 local record module end
-
 -- It is assumed this will never be used for the robots own inventory
 
 -- this will be a virtual inventory without fixed buckets and initialised lazily, achieving good item compression

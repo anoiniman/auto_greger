@@ -16,7 +16,7 @@ local record comms_def
     robot_send: function(ValidLevel, string): string
     send_unexpected: function(?boolean)
     cls_nself: function()
-    send_command: function(...: string)
+    send_command: function(...: any)
     screen_print: function()
     log: function(string | number, string)
 end

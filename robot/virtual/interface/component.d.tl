@@ -37,6 +37,12 @@ global interface Geolyzer is ComponentType
     isSunVisible: function(): boolean
 end
 
+global interface Generator
+    count: function(): integer
+    insert: function(integer): boolean, string | nil
+    remove: function(integer): boolean
+end
+
 -- store(side:number, slot:number, dbAddress:string, dbSlot:number):boolean
 -- etc.
 

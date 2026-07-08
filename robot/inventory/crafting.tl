@@ -25,9 +25,6 @@ local crafting_component: Crafting = component.getPrimary("crafting") as Craftin
 local use_self_craft = true
 
 local record module end
-function module.isCraftActive(): boolean
-    return use_self_craft
-end
 
 -- WARNING: WILL have some problems with tools breaking and so on, let's just hope it is able of self-cleaning!
 -- WARNING: can only craft (optimistically) up to a stack at the time! expected_output > 64 is floored to 64

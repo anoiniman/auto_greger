@@ -34,7 +34,7 @@ function module.remove<T is Prioritizable>(queue: PriorityQueue<T>, index?: inte
 end
 
 function module.peek<T is Prioritizable>(queue: PriorityQueue<T>, index?: integer): T | nil
-    if index is nil then return queue.inner[#queue.inner] end -- removes last element
+    if index is nil then return queue.inner[#queue.inner] end
     return queue.inner[index]
 end
 

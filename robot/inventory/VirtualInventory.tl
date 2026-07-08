@@ -80,7 +80,7 @@ function helper.get_compressed_fmt_obj(vinv: VirtualInventory): PPObj
     return print_table
 end
 
-function helper.getFmtObj(vinv: VirtualInventory): PPObj
+function helper.get_fmt_obj(vinv: VirtualInventory): PPObj
     local print_table = PPObj:new()
     print_table:setTitle("Default VInventory fmtObj:")
 

@@ -168,6 +168,11 @@ function module.add_build(coord: ChunkCoord, quad: integer, build_ref: Build): b
     return true
 end
 
+function module.get_build_arr_by_name(name: string): {Build} | nil
+    return known_buildings[name] 
+end
+
+
 module.all_builds = known_buildings
 
 -->>-----------------------------------<<--
