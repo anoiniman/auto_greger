@@ -1,8 +1,4 @@
 local late_bind = require("late_bind")
-local record module end
-local record lb_tbl end
-local lb_ctx = late_bind.new_ctx(lb_tbl)
-
 --imports {{{
 -- I'll assume we have 32 slots (2-inventory upgrades) because otherwise it is just to small dog :sob:
 -- Or we'll stay with 16 slots with the expectation that we abandon internal crafting quickly, idk
@@ -10,13 +6,12 @@ local component = require("component")
 local sides_api = require("sides")
 local robot = require("robot")
 local computer = require("computer")
--- luacheck: push ignore
+
 local text = require("text")
 local serialize = require("serialization")
 local filesystem = require("filesystem")
--- luacheck: pop
 
-local deep_copy = require("deep_copy")
+require("deep_copy")
 local comms = require("comms")
 local geolyzer = require("geolyzer_wrapper")
 local search_table = require("search_table")
@@ -24,10 +19,10 @@ local search_table = require("search_table")
 
 local Task = require("Task")
 local late_bind = require("late_bind")
-local build_register = require("build.build_register")
 
+-- require("inventory.__h_ExternalInventory")
+local einv_helper = require("inventory.ExternalInventory")
 local item_bucket = require("inventory.item_buckets")
---local MetaLedger = require("inventory.MetaLedger")
 local vinv_helper = require("inventory.VirtualInventory")
 
 local crafting_component = component.getPrimary("crafting")
@@ -35,6 +30,12 @@ local inventory = component.getPrimary("inventory_controller")
 local generator = component.getPrimary("generator")
 
 --}}}
+
+local record module 
+    virtual_inventory: VirtualInventory
+end
+-- local record lb_tbl einv_helper: EInvModuleMetaType end
+-- local lb_ctx = late_bind.new_ctx(lb_tbl)
 
 -- forbiden slots (because of crafting table) = 1,2,3 -- 5,6,7 -- 9,10,11
 -- this means actual internal inventory size while crafing mode is true is == 7
@@ -49,20 +50,15 @@ function module:is_crafting_clear(): boolean return crafting_table_clear end
 -- Hopefully for now it'll be efficient enough to simply iterate all external ledgers
 -- rather than having to create a sort of universal ledger
 module.virtual_inventory = vinv_helper.new(inventory_size)
-module.virtual_inventory.equip_tbl = {}
+module.virtual_inventory.equip_info = {}
 vinv_helper.report_equiped_break(module.virtual_inventory) -- smart?
 
--- External Ledgers table actually holds fat-ledgers not raw ledgers (aka, does not hold MetaExternalInventory)
-local external_inventories: {string : {ExternalInventory}} = {}
 
 -- It is difficult to serialize by building, since their references changes as the programme is loaded/unloaded,
 -- and storing enough information to know what building is what is unwieldy, so this table needs to
 -- be recomputed from the "main table" everytime we start the programme, still, it is useful for a wide
 -- variety of reasons, mainly when you are interested in putting certain things in specific buildings
 -- local short_lived_ordered_inventories = {}
-
-lb_tbl.einv_helper = {} as EInvModuleMetaType 
-late_bind.new_bind(lb_ctx, "inventory.ExternalInventory", "einv_helper")
 
 function module.get_data(): {any}
     local virtual_inventory = vinv_helper.get_data(module.virtual_inventory)
@@ -291,17 +287,6 @@ end
 --- }}}
 
 --- {{{ --->>-- Manipulate ledgers & stuff --<<---
-
-function module.register_ledger(fat_ledger: ExternalInventory)
-    local build_name = fat_ledger.parent_build.name
-    if build_name == nil then print(comms.send_unexpected()); return end
-
-    if external_inventories[build_name] == nil then
-        external_inventories[build_name] = {fat_ledger}
-        return
-    end
-    table.insert(external_inventories[build_name], fat_ledger)
-end
 
 function module.find_largest_slot(item: ItemDefinition): integer
     return vinv_helper.get_largest_slot(module.virtual_inventory, item)

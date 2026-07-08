@@ -12,6 +12,8 @@ global interface ExternalInventory
     long_term_storage: boolean
 
     ledger: CompressedVinventory
-    symbol: string
+    symbol: SpecialSymbol
     special_block_index: integer
+
+    is_cache: boolean
 end

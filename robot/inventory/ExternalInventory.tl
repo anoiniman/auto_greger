@@ -1,5 +1,5 @@
 -- You hook this up to anything you want to register as an external inventory
-local deep_copy = require("deep_copy")
+require("deep_copy")
 local comms = require("comms")
 
 -- local MetaLedger = require("inventory.MetaLedger")
@@ -7,12 +7,11 @@ local item_helper = require("inventory.__h_Item")
 local map = require("nav_module.map_obj")
 -- local inv = require("inventory.inv_obj")
 
-local einv_item = require("inventory.eInvItem")
+require("inventory.eInvItem")
 local vinv_helper = require("inventory.VirtualInventory")
 local cvinv_helper = require("inventory.CompressedVinventory")
 local build_helper = require("build.MetaBuild")
 require("inventory.__h_ExternalInventory")
-
 
 local enum StorageType
     "chest"
@@ -39,6 +38,25 @@ local function get_storage_size(storage_type?: StorageType): integer
 end
 
 local record module end
+local external_inventories: {string : {ExternalInventory}} = {}
+
+function module.get_external_inv_arr(): {string : {ExternalInventory}}
+    return external_inventories
+end
+
+function module.register_ledger(fat_ledger: ExternalInventory)
+    if fat_ledger.parent_build == nil then return end
+
+    local build = fat_ledger.parent_build as Build
+    local build_name = build.name
+    if build_name == nil then print(comms.send_unexpected()); return end
+
+    if external_inventories[build_name] == nil then
+        external_inventories[build_name] = {fat_ledger}
+        return
+    end
+    table.insert(external_inventories[build_name], fat_ledger)
+end
 
 function module.new_cache(storage_type?: StorageType): ExternalInventory
     return {
@@ -57,7 +75,7 @@ function module.new(
 ): ExternalInventory
     if not is_cache and parent_build == nil then
         print(comms.robot_send("error", "MetaExtInventory, parent_build is nil"))
-        print(comms.robot_send("stack", debug.traceback()))
+        print(comms.robot_send("error", debug.traceback()))
     end
 
     local new: ExternalInventory = {
@@ -70,7 +88,7 @@ function module.new(
         special_block_index = index
     }
     if not is_cache then
-        inv.register_ledger(new) -- important
+        module.register_ledger(new) 
     end
     return new
 end
@@ -86,15 +104,19 @@ end
     end
 end --]]
 
-function module.get_data(einv: ExternalInventory): {any}
+local type SaveTable = {
+    string | ChunkCoord, string | integer, {eInvItem}, boolean, boolean, {string | integer}, SpecialSymbol, integer
+}
+function module.get_data(einv: ExternalInventory): SaveTable
     local vinv = cvinv_helper.uncompress(einv.ledger)
     local save_ledger = vinv_helper.get_data(vinv)
-    local parent_chunk: string | Pos2D = "nil"
+    local parent_chunk: string | ChunkCoord = "nil"
     local what_quad: string | integer = "nil"
 
-    if einv.parent_build ~= nil then
-        parent_chunk = einv.parent_build.what_chunk
-        what_quad = einv.parent_build.quad
+    local build = einv.parent_build
+    if build is Build then
+        parent_chunk = build.chunk
+        what_quad = build.quad
     end
 
     local big_table = {
@@ -117,30 +139,29 @@ function module.get_data(einv: ExternalInventory): {any}
     return big_table
 end
 
-function module.reinstantiate(big_table: {any}): ExternalInventory
+function module.reinstantiate(big_table: SaveTable): ExternalInventory
     local serial_ledger = big_table[6]
     local real_ledger = vinv_helper.reinstantiate(serial_ledger)
 
-    local parent_chunk = big_table[1] as Pos2D
-    local what_quad = big_table[2] as integer
+    local parent_chunk = big_table[1]
+    local what_quad = big_table[2]
     local real_build: Build = nil
 
     if big_table[1] ~= "nil" then
-        real_build = map.get_build_ref(parent_chunk, what_quad)
+        real_build = map.get_build_ref(parent_chunk as ChunkCoord, what_quad as integer)
     end
 
-    local item_defs = big_table[3] as {eInvItem}
-    local storage = big_table[4] as boolean
-    local long_term_storage = big_table[5] as boolean
+    local item_defs = big_table[3]
+    local storage = big_table[4]
+    local long_term_storage = big_table[5]
 
-    local symbol = big_table[7] as SpecialSymbol
-    local sp_index = big_table[8] as integer
+    local symbol = big_table[7]
+    local sp_index = big_table[8]
 
     local new: ExternalInventory = {}
     new.parent_build = real_build
-    new.ledger = real_ledger
+    new.ledger = cvinv_helper.compress(real_ledger)
 
-    if item_defs == "nil" then item_defs = nil end
     new.item_defs = item_defs
 
     new.storage = storage
@@ -152,7 +173,12 @@ function module.reinstantiate(big_table: {any}): ExternalInventory
 end
 
 function module.get_distance(einv: ExternalInventory): integer
-    return build_helper.parent_build.getDistToSpecial(einv.parent_build, einv.symbol, einv.special_block_index)
+    if einv.parent_build == nil then
+        print(comms.robot_send("warning", "MEI attempted to get distance of einv with no parent_build"))
+        return math.maxinteger
+    end
+    local build = einv.parent_build as Build
+    return build_helper.get_dist_to_special(build, einv.symbol, einv.special_block_index)
 end
 
 function module.get_coords(einv: ExternalInventory): Pos3D
@@ -160,19 +186,21 @@ function module.get_coords(einv: ExternalInventory): Pos3D
 end
 
 function module.get_quad_num(einv: ExternalInventory): integer
-    local chunk = einv.parent_build.what_chunk
-    local doors = einv.parent_build.doors
-    local quad_num = map.find_quad(chunk, doors).quad
-    if quad_num == nil then
-        print(comms.robot_send("warning", "MetaExternalInventory, was unable to getQuadNum?!"))
-        quad_num = -1
+    if einv.parent_build == nil then
+        print(comms.robot_send("warning", "MEI attempted to get quad_num of einv with no parent_build"))
+        return -1
     end
-
-    return quad_num
+    local build = einv.parent_build as Build
+    return build.quad
 end
 
-function module.get_chunk(einv: ExternalInventory): Pos2D
-    return COPY(einv.parent_build.what_chunk)
+function module.get_chunk(einv: ExternalInventory): ChunkCoord
+    if einv.parent_build == nil then
+        print(comms.robot_send("warning", "MEI attempted to get chunk of einv with no parent_build"))
+        return {-111111111111, -11111111111}
+    end
+    local build = einv.parent_build as Build
+    return COPY(build.chunk)
 end
 
 function module.can_add(einv: ExternalInventory, other_item: ItemDefinition): boolean
@@ -202,7 +230,7 @@ end
 function module.item_def_iter(einv: ExternalInventory): function(): integer | nil, eInvItem | nil
     local iteration = 0
 
-    return function()
+    return function(): integer | nil, eInvItem | nil
         iteration = iteration + 1
         local item_def = einv.item_defs[iteration]
         if item_def == nil then return nil, nil end
@@ -239,7 +267,7 @@ function module.new_storage(
     index: integer,
     storage_type: StorageType
 ): ExternalInventory
-    local new = einv:new(item_defs, parent_build, false, symbol, index, storage_type)
+    local new = module.new(item_defs, parent_build, false, symbol, index, storage_type)
     new.storage = true
     return new
 end
@@ -255,10 +283,10 @@ function module.new_machine(
     local is_cache = false
     if extern == nil or extern == false then is_cache = true end
 
-    local new = einv:new(item_defs, parent_build, is_cache, symbol, index, storage_type)
+    local new = module.new(item_defs, parent_build, is_cache, symbol, index, storage_type)
     new.storage = false
     return new
 end
 
-global EInvModuleMetaType = module
+-- global EInvModuleMetaType = module
 return module

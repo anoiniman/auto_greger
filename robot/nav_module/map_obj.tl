@@ -4,7 +4,7 @@ local comms = require("comms")
 local map_areas = require("nav_module.map_area")
 local area_helper = require("nav_module.Area")
 
-require("__h_map_obj")
+require("nav_module.__h_map_obj")
 local primitive_helper = require("build.MetaBuild.BuildPrimitive")
 local build_helper = require("build.MetaBuild")
 

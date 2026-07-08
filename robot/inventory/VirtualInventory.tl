@@ -119,7 +119,7 @@ function helper.get_data(vinv: VirtualInventory): {string | integer}
     return vinv.inv_table
 end
 
-function helper.reinstantiate(unserial: {any}): VirtualInventory
+function helper.reinstantiate(unserial: {string | integer}): VirtualInventory
     local new = helper.new(-1)
 
     if #unserial % 3 ~= 0 then
@@ -129,7 +129,7 @@ function helper.reinstantiate(unserial: {any}): VirtualInventory
     new.inv_size = (#unserial / 3) as integer
     new.table_size = #unserial
 
-    new.inv_table = unserial as {string | integer}
+    new.inv_table = unserial
     return new
 end
 
